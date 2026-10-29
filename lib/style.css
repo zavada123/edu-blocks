@@ -1,0 +1,232 @@
+.eb-root {
+  --eb-ink: #575e75;
+  --eb-bg: #f9f9fb;
+  --eb-line: #d9dce6;
+  --eb-accent: #4c97ff;
+  --eb-ok: #0fbd8c;
+  --eb-bad: #ff6680;
+  display: grid;
+  grid-template-columns: minmax(300px, 380px) 1fr;
+  height: 100%;
+  min-height: 0;
+  background: var(--eb-bg);
+  color: var(--eb-ink);
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.eb-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  overflow: auto;
+  border-right: 1px solid var(--eb-line);
+}
+
+.eb-task h2 {
+  margin: 0 0 4px;
+  font-size: 1.2rem;
+}
+
+.eb-task p {
+  margin: 0 0 4px;
+  line-height: 1.4;
+}
+
+.eb-goals {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.eb-goals li::before {
+  content: "○ ";
+}
+
+.eb-goals li.eb-goal-ok {
+  color: var(--eb-ok);
+  font-weight: 600;
+}
+
+.eb-goals li.eb-goal-ok::before {
+  content: "✓ ";
+}
+
+.eb-field-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.eb-field {
+  width: 100%;
+  max-height: 40vh;
+  background: #e9eef8;
+  border-radius: 10px;
+}
+
+.eb-floor {
+  fill: #fff;
+}
+
+.eb-wall {
+  fill: #8d96b3;
+}
+
+.eb-hero {
+  transition: transform 0.25s ease-in-out;
+}
+
+.eb-hero-turn {
+  transition: transform 0.2s ease-in-out;
+}
+
+.eb-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.eb-controls button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 22px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.eb-run {
+  flex: 1;
+  background: var(--eb-ok);
+  color: #fff;
+  font-size: 1.05rem;
+}
+
+.eb-reset {
+  background: #e3e6ef;
+  color: var(--eb-ink);
+}
+
+.eb-controls button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.eb-verdict {
+  padding: 12px;
+  border-radius: 10px;
+}
+
+.eb-verdict p {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.eb-verdict-ok {
+  background: #e3f8f1;
+}
+
+.eb-verdict-fail {
+  background: #ffe8ec;
+}
+
+.eb-verdict-close {
+  display: none;
+  margin: 8px 0 0 auto;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 18px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+}
+
+.eb-hint {
+  margin-top: 6px !important;
+}
+
+.eb-stars {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 1.8rem;
+  letter-spacing: 4px;
+}
+
+.eb-star {
+  color: #cfd3df;
+}
+
+.eb-star-on {
+  color: #ffbf00;
+}
+
+.eb-editor {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+.eb-large {
+  font-size: 1.1rem;
+}
+
+/* Phone and narrow window: the field on top, the blocks fill the rest of the screen. */
+@media (max-width: 760px) {
+  .eb-root {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .eb-editor {
+    flex: 1 1 auto;
+    min-height: 300px;
+  }
+
+  .eb-stage {
+    flex: 0 1 auto;
+    gap: 6px;
+    max-height: 50%;
+    padding: 8px 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--eb-line);
+  }
+
+  .eb-task h2 {
+    font-size: 1rem;
+  }
+
+  .eb-task p {
+    font-size: 0.9rem;
+  }
+
+  .eb-goals {
+    margin-top: 2px;
+    font-size: 0.9rem;
+  }
+
+  .eb-field {
+    max-height: 24vh;
+  }
+
+  .eb-controls button {
+    min-height: 40px;
+  }
+
+  /* The result floats over the blocks, so the field and the buttons stay in place. */
+  .eb-verdict {
+    position: absolute;
+    z-index: 50;
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    box-shadow: 0 4px 16px rgb(0 0 0 / 0.2);
+  }
+
+  .eb-verdict-close {
+    display: block;
+  }
+}
+/*$vite$:1*/

@@ -1,0 +1,66 @@
+{
+  "name": "edu-blocks",
+  "version": "0.1.0",
+  "description": "Ігрове блокове програмування для 3–6 класу: рівні, кристали, блоки як у Scratch 3",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "build:lib": "vite build -c vite.lib.config.ts && vite build -c vite.lib.config.ts --mode core && tsc -p tsconfig.lib.json",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zavada123/edu-blocks.git"
+  },
+  "files": [
+    "lib"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "exports": {
+    "./core": {
+      "types": "./lib/types/core.d.ts",
+      "import": "./lib/core.js"
+    },
+    "./react": {
+      "types": "./lib/types/react.d.ts",
+      "import": "./lib/react.js"
+    },
+    "./style.css": "./lib/style.css",
+    "./blocks-media/*": "./lib/blocks-media/*"
+  },
+  "dependencies": {
+    "buffer": "6.0.3",
+    "events": "3.3.0",
+    "scratch-blocks": "1.3.0",
+    "scratch-vm": "github:TurboWarp/scratch-vm#f26ff67e951258a84d25cad3acaf8804eb202318"
+  },
+  "peerDependencies": {
+    "react": ">=19",
+    "react-dom": ">=19"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.7",
+    "@vitejs/plugin-react": "6.1.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "typescript": "6.0.3",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  }
+}
