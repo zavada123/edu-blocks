@@ -1,5 +1,5 @@
 import { type HeroBlock, opcodeOf, START_OPCODE } from "./blocks.ts"
-import type { Program } from "./run.ts"
+import type { Program } from "./program.ts"
 
 /**
  * A short way to write a program in code: reference solutions of the levels and tests.

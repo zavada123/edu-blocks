@@ -1,80 +1,18 @@
 import VirtualMachine, { type BlockUtility, type Runtime } from "scratch-vm"
 import vmLog from "scratch-vm/src/util/log.js"
-import { allowedOpcodes, HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID, isNumberShadow, START_OPCODE } from "./blocks.ts"
-import { allGoalsMet, type Level, starsFor } from "./level.ts"
-import { type Action, applyAction, atFinish, onCrystal, type Outcome, parseMap, wallAhead, type World } from "./world.ts"
+import { HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID } from "./blocks.ts"
+import { allGoalsMet, type Level } from "./level.ts"
+import { checkProgram, type FailReason, MAX_ACTIONS, MAX_FRAMES, PASSES_PER_FRAME, type Program, resultOf, type RunResult, type Session } from "./program.ts"
+import { type Action, applyAction, atFinish, onCrystal, parseMap, wallAhead } from "./world.ts"
 
 /**
- * A program is the `blocks` object of the hero sprite in a Scratch 3 project (project.json):
- * block id → block. The browser sends it; the server runs it again with `runProgram` and trusts only that result.
+ * The program in the TurboWarp VM. The editor uses the VM to keep the program in project.json form; the run
+ * itself is `judgeProgram`. `runProgram` stays as the reference: the tests check that both give the same result.
  */
-export type Program = Readonly<Record<string, unknown>>
 
 // Each run creates a VM, and the VM warns about missing costume files and replaced services every time.
-// Errors stay; the rest would fill the server log.
+// Errors stay; the rest would fill the log.
 vmLog.warn = vmLog.info = vmLog.debug = () => undefined
-
-export const MAX_PROGRAM_BLOCKS = 300
-/** Hero actions in one run. A textbook level needs fewer than 100. */
-export const MAX_ACTIONS = 1_000
-/** VM frames in one run. A «завжди» loop without actions ends here. */
-export const MAX_FRAMES = 2_000
-/**
- * Passes over the threads in one VM frame. The VM measures a frame in milliseconds; this package counts passes
- * instead, so a run gives the same result on a slow phone and on the server.
- */
-const PASSES_PER_FRAME = 20
-
-export type FailReason = "badProgram" | "noStart" | "crashed" | "goalsNotMet" | "tooLong"
-
-export interface Frame {
-  readonly action: Action
-  readonly outcome: Outcome
-  /** The block that made the move, to highlight it in the editor. */
-  readonly blockId: string | null
-  readonly world: World
-}
-
-export interface RunResult {
-  readonly levelId: string
-  readonly passed: boolean
-  /** 0 when not passed. */
-  readonly stars: 0 | 1 | 2 | 3
-  /** Blocks in the program, the start hat and number fields not counted. */
-  readonly blocks: number
-  readonly collected: number
-  readonly totalCrystals: number
-  readonly reason: FailReason | null
-  /** For `badProgram`: what is wrong. */
-  readonly detail?: string
-  readonly frames: ReadonlyArray<Frame>
-  readonly world: World
-}
-
-interface ProgramBlock {
-  readonly opcode: string
-  readonly shadow?: boolean
-  readonly topLevel?: boolean
-}
-
-const isProgramBlock = (value: unknown): value is ProgramBlock =>
-  typeof value === "object" && value !== null && !Array.isArray(value) && typeof (value as ProgramBlock).opcode === "string"
-
-/** Checks the program shape and palette before the VM sees it. Returns the error text or the block count. */
-export const checkProgram = (level: Level, program: Program): { readonly error: string } | { readonly blocks: number; readonly hasStart: boolean } => {
-  const entries = Object.entries(program)
-  if (entries.length > MAX_PROGRAM_BLOCKS) return { error: `Програма довша за ${MAX_PROGRAM_BLOCKS} блоків` }
-  const allowed = allowedOpcodes(level.blocks)
-  let blocks = 0
-  let hasStart = false
-  for (const [, block] of entries) {
-    if (!isProgramBlock(block)) return { error: "Блок без опкоду або змінна: цей рівень їх не має" }
-    if (!allowed.has(block.opcode)) return { error: `Блок ${block.opcode} не з цього рівня` }
-    if (block.opcode === START_OPCODE) hasStart = true
-    else if (block.shadow !== true && !isNumberShadow(block.opcode)) blocks++
-  }
-  return { blocks, hasStart }
-}
 
 // Assets are not loaded (no storage attached), so any costume id works.
 const COSTUME = { name: "hero", dataFormat: "svg", assetId: "00000000000000000000000000000000", md5ext: "00000000000000000000000000000000.svg", rotationCenterX: 0, rotationCenterY: 0 }
@@ -122,14 +60,6 @@ export const projectFor = (program: Program): object => ({
   extensions: [HERO_EXTENSION_ID],
   meta: { semver: "3.0.0", vm: "0.2.0", agent: "edu-blocks" }
 })
-
-/** What the hero blocks do in one run. */
-interface Session {
-  world: World
-  readonly frames: Array<Frame>
-  done: boolean
-  reason: FailReason | null
-}
 
 /** The VM extension class: block info for the palette and the block functions. */
 const heroExtension = (level: Level | null, session: Session | null) =>
@@ -222,35 +152,19 @@ export const createVm = (level: Level | null, session: Session | null): VirtualM
   return vm
 }
 
-const result = (level: Level, session: Session, blocks: number, extra: Partial<RunResult> = {}): RunResult => {
-  const passed = session.reason === null && allGoalsMet(level, session.world)
-  return {
-    levelId: level.id,
-    passed,
-    stars: passed ? starsFor(level, blocks) : 0,
-    blocks,
-    collected: session.world.totalCrystals - session.world.crystals.size,
-    totalCrystals: session.world.totalCrystals,
-    reason: passed ? null : (session.reason ?? "goalsNotMet"),
-    frames: session.frames,
-    world: session.world,
-    ...extra
-  }
-}
-
 /** Runs the program on the level from the start hat «коли натиснуто прапорець» and checks the goals. */
 export const runProgram = (level: Level, program: Program): Promise<RunResult> =>
   withVmLock(async () => {
     const session: Session = { world: parseMap(level.map, level.dir), frames: [], done: false, reason: null }
     const checked = checkProgram(level, program)
-    if ("error" in checked) return result(level, { ...session, reason: "badProgram" }, 0, { detail: checked.error })
-    if (!checked.hasStart) return result(level, { ...session, reason: "noStart" }, checked.blocks)
+    if ("error" in checked) return resultOf(level, { ...session, reason: "badProgram" }, 0, { detail: checked.error })
+    if (!checked.hasStart) return resultOf(level, { ...session, reason: "noStart" }, checked.blocks)
 
     const vm = createVm(level, session)
     try {
       await vm.loadProject(projectFor(program))
     } catch {
-      return result(level, { ...session, reason: "badProgram" }, checked.blocks, { detail: "Програму не вдалося прочитати" })
+      return resultOf(level, { ...session, reason: "badProgram" }, checked.blocks, { detail: "Програму не вдалося прочитати" })
     }
     await settle()
     countPasses(vm)
@@ -260,5 +174,5 @@ export const runProgram = (level: Level, program: Program): Promise<RunResult> =
     }
     if (!session.done && vm.runtime.threads.length > 0) session.reason = "tooLong"
     vm.stopAll()
-    return result(level, session, checked.blocks)
+    return resultOf(level, session, checked.blocks)
   })

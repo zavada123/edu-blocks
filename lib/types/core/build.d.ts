@@ -1,5 +1,5 @@
 import { type HeroBlock } from "./blocks.ts";
-import type { Program } from "./run.ts";
+import type { Program } from "./program.ts";
 /**
  * A short way to write a program in code: reference solutions of the levels and tests.
  * `buildProgram(["move", { repeat: 3, body: ["move", "collect"] }])` gives the same blocks the editor makes.
