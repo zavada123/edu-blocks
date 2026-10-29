@@ -4,7 +4,8 @@ import { solutions } from "../levels/solutions.ts"
 import { buildProgram } from "./build.ts"
 import type { Level } from "./level.ts"
 import { allowedOpcodes } from "./blocks.ts"
-import { checkProgram, runProgram } from "./run.ts"
+import { checkProgram } from "./program.ts"
+import { runProgram } from "./run.ts"
 import { parseMap } from "./world.ts"
 
 const level = (id: string): Level => {

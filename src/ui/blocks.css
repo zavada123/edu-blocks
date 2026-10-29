@@ -4,6 +4,9 @@
   --eb-line: #d9dce6;
   --eb-accent: #4c97ff;
   --eb-ok: #0fbd8c;
+  /* Text and button colours with 4.5:1 contrast on the light background and with white text. */
+  --eb-ok-text: #0a7d5c;
+  --eb-ok-button: #0b7a5c;
   --eb-bad: #ff6680;
   display: grid;
   grid-template-columns: minmax(300px, 380px) 1fr;
@@ -44,7 +47,7 @@
 }
 
 .eb-goals li.eb-goal-ok {
-  color: var(--eb-ok);
+  color: var(--eb-ok-text);
   font-weight: 600;
 }
 
@@ -97,7 +100,7 @@
 
 .eb-run {
   flex: 1;
-  background: var(--eb-ok);
+  background: var(--eb-ok-button);
   color: #fff;
   font-size: 1.05rem;
 }
@@ -154,12 +157,13 @@
   letter-spacing: 4px;
 }
 
+/* Large text: 3:1 contrast on the result background. */
 .eb-star {
-  color: #cfd3df;
+  color: #7c8297;
 }
 
 .eb-star-on {
-  color: #ffbf00;
+  color: #b07800;
 }
 
 .eb-editor {

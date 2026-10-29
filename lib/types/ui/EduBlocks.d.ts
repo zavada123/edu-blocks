@@ -1,5 +1,5 @@
 import { type Level } from "../core/level.ts";
-import { type FailReason, type Program } from "../core/run.ts";
+import type { FailReason, Program } from "../core/program.ts";
 import { type Skin } from "./Field.tsx";
 import "./blocks.css";
 /** What the trainer gives the app after each run. The server runs `program` again before it trusts `passed`. */
@@ -23,5 +23,7 @@ export interface EduBlocksProps {
     /** Milliseconds per hero action in the animation. */
     readonly speed?: number;
     readonly onComplete?: (report: BlocksReport) => void;
+    /** After each change of the blocks, with the program as it is now. An app that has its own check button sends it. */
+    readonly onProgramChange?: (program: Program) => void;
 }
-export declare const EduBlocks: ({ level, skin, large, program, media, speed, onComplete }: EduBlocksProps) => import("react").JSX.Element;
+export declare const EduBlocks: ({ level, skin, large, program, media, speed, onComplete, onProgramChange }: EduBlocksProps) => import("react").JSX.Element;

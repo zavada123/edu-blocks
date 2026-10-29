@@ -5,7 +5,9 @@ import { serializeBlocks } from "scratch-vm/src/serialization/sb3.js"
 import { HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID } from "../core/blocks.ts"
 import { buildProgram } from "../core/build.ts"
 import { describeGoal, goalMet, type Level } from "../core/level.ts"
-import { createVm, type FailReason, type Program, projectFor, type RunResult, runProgram, settle, withVmLock } from "../core/run.ts"
+import { judgeProgram } from "../core/judge.ts"
+import type { FailReason, Program, RunResult } from "../core/program.ts"
+import { createVm, projectFor, settle, withVmLock } from "../core/run.ts"
 import { parseMap, type World } from "../core/world.ts"
 import { Field, type Skin } from "./Field.tsx"
 import { toolboxXml } from "./toolbox.ts"
@@ -33,6 +35,8 @@ export interface EduBlocksProps {
   /** Milliseconds per hero action in the animation. */
   readonly speed?: number
   readonly onComplete?: (report: BlocksReport) => void
+  /** After each change of the blocks, with the program as it is now. An app that has its own check button sends it. */
+  readonly onProgramChange?: (program: Program) => void
 }
 
 // Hero blocks drawn as Scratch extension blocks. The VM runs them by the same opcodes.
@@ -61,6 +65,9 @@ const FAIL_TEXT: Readonly<Record<FailReason, string>> = {
   badProgram: "Програму не вдалося запустити."
 }
 
+/** Workspace events that change the program: a block is added, removed, moved or gets a new field value. */
+const PROGRAM_EVENTS: ReadonlySet<string> = new Set(["create", "delete", "change", "move"])
+
 /** Editor width (px) below which the palette turns compact. */
 const COMPACT_WIDTH = 560
 
@@ -82,7 +89,7 @@ const Stars = ({ count }: { readonly count: number }) => (
   </span>
 )
 
-export const EduBlocks = ({ level, skin = "robot", large = false, program, media = "./blocks-media/", speed = 350, onComplete }: EduBlocksProps) => {
+export const EduBlocks = ({ level, skin = "robot", large = false, program, media = "./blocks-media/", speed = 350, onComplete, onProgramChange }: EduBlocksProps) => {
   const start = useMemo(() => parseMap(level.map, level.dir), [level])
   const [world, setWorld] = useState<World>(start)
   const [phase, setPhase] = useState<Phase>({ kind: "edit" })
@@ -95,6 +102,9 @@ export const EduBlocks = ({ level, skin = "robot", large = false, program, media
   const glowRef = useRef<string | null>(null)
   // The first program only: a new `program` prop for the same level does not reset the student's work.
   const initialProgram = useRef(program)
+  // The latest callback, so a new function from the app does not rebuild the editor.
+  const onProgramChangeRef = useRef(onProgramChange)
+  onProgramChangeRef.current = onProgramChange
 
   const setGlow = useCallback((id: string | null) => {
     const ws = workspaceRef.current
@@ -140,6 +150,12 @@ export const EduBlocks = ({ level, skin = "robot", large = false, program, media
       await settle()
       if (disposed) return
       ws.getFlyout()?.getWorkspace().addChangeListener(vm.flyoutBlockListener)
+      // The VM updates its blocks in its own listener, which runs first.
+      ws.addChangeListener((event: unknown) => {
+        if (typeof event === "object" && event !== null && "type" in event && PROGRAM_EVENTS.has(String(event.type))) {
+          onProgramChangeRef.current?.(heroProgram(vm))
+        }
+      })
       vmRef.current = vm
     })
 
@@ -164,13 +180,13 @@ export const EduBlocks = ({ level, skin = "robot", large = false, program, media
     setPhase({ kind: "edit" })
   }, [setGlow, start])
 
-  const run = useCallback(async () => {
+  const run = useCallback(() => {
     const vm = vmRef.current
     if (vm === null) return
     reset()
     setPhase({ kind: "running" })
     const prog = heroProgram(vm)
-    const result = await runProgram(level, prog)
+    const result = judgeProgram(level, prog)
     const finish = () => {
       setGlow(null)
       setWorld(result.world)
@@ -193,7 +209,7 @@ export const EduBlocks = ({ level, skin = "robot", large = false, program, media
     <div className={large ? "eb-root eb-large" : "eb-root"}>
       <section className="eb-stage">
         <header className="eb-task">
-          <h2>{level.title}</h2>
+          {level.title !== "" && <h2>{level.title}</h2>}
           {level.task.map((line) => (
             <p key={line}>{line}</p>
           ))}
@@ -209,7 +225,7 @@ export const EduBlocks = ({ level, skin = "robot", large = false, program, media
           <Field world={world} skin={skin} />
         </div>
         <div className="eb-controls">
-          <button type="button" className="eb-run" onClick={() => void run()} disabled={running}>
+          <button type="button" className="eb-run" onClick={run} disabled={running}>
             <span aria-hidden="true">▶</span> Запустити
           </button>
           <button type="button" className="eb-reset" onClick={reset} disabled={phase.kind === "edit"}>
