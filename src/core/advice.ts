@@ -1,7 +1,8 @@
 import { opcodeOf } from "./blocks.ts"
 import type { BlockName, ItemKind, Level } from "./level.ts"
 import type { Frame, Program, RunResult } from "./program.ts"
-import { applyAction, type Cell, cellKey, parseMap, wallAhead, type World } from "./world.ts"
+import { startWorld } from "./level.ts"
+import { applyAction, type Cell, cellAhead, cellKey, enemiesLeft, enemyAt, wallAhead, type World } from "./world.ts"
 
 /**
  * Advice after a run, made from what the hero did with this very program: what is missing («взяти», a turn,
@@ -74,15 +75,26 @@ const wastedTurns = (frames: ReadonlyArray<Frame>): { readonly cancel: boolean; 
     const prev = frames[i - 1]?.action
     if ((frame.action === "turnLeft" && prev === "turnRight") || (frame.action === "turnRight" && prev === "turnLeft"))
       cancel = true
-    if (frame.action !== "move" && frame.action !== "collect" && prev === frame.action && frames[i - 2]?.action === frame.action)
+    if ((frame.action === "turnLeft" || frame.action === "turnRight") && prev === frame.action && frames[i - 2]?.action === frame.action)
       triple = true
   })
   return { cancel, triple }
 }
 
+/** The hero walked into an enemy: it has to be struck first. */
+const bumpAdvice = (level: Level, n: number): ReadonlyArray<string> => {
+  const canAsk = level.blocks.includes("enemyAhead") && (level.blocks.includes("if") || level.blocks.includes("ifElse"))
+  return [
+    `На ${n}-й дії герой наткнувся на ворога. Спершу «вдарити», а тоді вже крок.`,
+    ...(canAsk ? ["Щоб не рахувати, спитай: «якщо попереду ворог? то вдарити, інакше крок»."] : [])
+  ]
+}
+
 const crashAdvice = (level: Level, result: RunResult, has: (b: BlockName) => boolean): ReadonlyArray<string> => {
   const n = result.frames.length
-  const before = result.frames[n - 2]?.world ?? parseMap(level.map, level.dir)
+  const before = result.frames[n - 2]?.world ?? startWorld(level)
+  const ahead = cellAhead(result.world)
+  if (enemyAt(result.world, ahead.x, ahead.y) !== undefined) return bumpAdvice(level, n)
   const leftFree = !wallAhead(applyAction(before, "turnLeft").world)
   const rightFree = !wallAhead(applyAction(before, "turnRight").world)
   const where = `На ${n}-й дії герой урізався в перешкоду.`
@@ -105,7 +117,7 @@ const itemAdvice = (level: Level, result: RunResult, has: (b: BlockName) => bool
   const item = level.scene?.item ?? "crystal"
   const noun = NOUNS[item]
   const verb = item === "campfire" ? "запалив" : "взяв"
-  const start = parseMap(level.map, level.dir)
+  const start = startWorld(level)
   const visited = new Set([
     cellKey(start.hero.x, start.hero.y),
     ...result.frames.map((f) => cellKey(f.world.hero.x, f.world.hero.y))
@@ -129,6 +141,28 @@ const finishAdvice = (level: Level, result: RunResult): ReadonlyArray<string> =>
   return [`Програма закінчилась, коли до мети лишалось ${d} ${steps(d)}. Додай дій або збільш число повторень.`]
 }
 
+const times3 = (n: number) => `${n} ${n % 10 === 1 && n % 100 !== 11 ? "удар" : few(n) ? "удари" : "ударів"}`
+
+/** The enemies took the hearts: say who hits and when, and how many blows a boss needs. */
+const defeatAdvice = (level: Level, result: RunResult): ReadonlyArray<string> => {
+  const tips = ["Ворог, що стоїть поруч, замахується, а наступним ходом б'є. Вдар його одразу, як він підійде, і не стій до нього спиною."]
+  const boss = result.world.enemies.find((e) => e.boss && e.hp > 0)
+  if (boss !== undefined) tips.push(`Бос витримує ${times3(boss.maxHp)} і б'є у відповідь. Лишилось ${times3(boss.hp)}: повтори «вдарити» стільки разів.`)
+  const turns = result.frames.filter((f) => f.action === "turnLeft" || f.action === "turnRight").length
+  if (level.blocks.includes("enemyAhead") && turns > 0) tips.push("Кожен поворот — теж хід: поки герой крутиться, ворог встигає вдарити.")
+  return tips
+}
+
+const enemyGoalAdvice = (level: Level, result: RunResult): ReadonlyArray<string> => {
+  if (!level.goals.some((g) => g.type === "enemies")) return []
+  const left = enemiesLeft(result.world)
+  if (left === 0) return []
+  const hurt = result.world.enemies.find((e) => e.hp > 0 && e.hp < e.maxHp)
+  return [
+    `Лишилось ворогів: ${left}.${hurt === undefined ? " Підійди до них: вороги помічають героя лише зблизька." : ` Одному ще треба ${times3(hurt.hp)}.`}`
+  ]
+}
+
 /** What is extra in a program: a «взяти» on an empty cell, turns that cancel out. */
 const extraAdvice = (level: Level, frames: ReadonlyArray<Frame>): ReadonlyArray<string> => {
   const tips: Array<string> = []
@@ -138,6 +172,8 @@ const extraAdvice = (level: Level, frames: ReadonlyArray<Frame>): ReadonlyArray<
     tips.push(
       `«Взяти» ${empty} ${times(empty)} спрацював на порожній клітинці. ${canAsk ? "Прибери зайвий «взяти» або сховай його в «якщо тут щось є?»." : "Прибери зайвий «взяти»."}`
     )
+  const missed = frames.filter((f) => f.outcome === "swingMissed").length
+  if (missed > 0) tips.push(`«Вдарити» ${missed} ${times(missed)} влучив у порожнечу: попереду не було ворога.`)
   const turns = wastedTurns(frames)
   if (turns.cancel) tips.push("Поворот ліворуч і одразу праворуч гасять один одного: прибери обидва.")
   if (turns.triple) tips.push("Три повороти в один бік — це один поворот в інший бік.")
@@ -157,8 +193,10 @@ export const adviseRun = (level: Level, program: Program, result: RunResult): Re
   switch (result.reason) {
     case "crashed":
       return [...crashAdvice(level, result, has), ...extraAdvice(level, result.frames)].slice(0, MAX_ADVICE)
+    case "defeated":
+      return [...defeatAdvice(level, result), ...extraAdvice(level, result.frames)].slice(0, MAX_ADVICE)
     case "goalsNotMet":
-      return [...itemAdvice(level, result, has), ...finishAdvice(level, result), ...extraAdvice(level, result.frames)].slice(
+      return [...itemAdvice(level, result, has), ...enemyGoalAdvice(level, result), ...finishAdvice(level, result), ...extraAdvice(level, result.frames)].slice(
         0,
         MAX_ADVICE
       )

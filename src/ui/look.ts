@@ -1,5 +1,5 @@
-import type { ItemKind, Prop, PropKind, Scene } from "../core/level.ts"
-import { cellKey } from "../core/world.ts"
+import type { ItemKind, NpcKind, Prop, PropKind, Scene } from "../core/level.ts"
+import { cellKey, type EnemyKind } from "../core/world.ts"
 import type { Decor, Obstacle } from "./scenery.ts"
 import appleTile from "./sprites/apple.png"
 import bloomOrangeStrip from "./sprites/bloom-orange.png"
@@ -17,6 +17,19 @@ import houseImage from "./sprites/house.png"
 import iceTile from "./sprites/ice.png"
 import keyImage from "./sprites/key.png"
 import meadowSheet from "./sprites/meadow.png"
+import enemyBearSheet from "./sprites/enemy-bear.png"
+import enemyFlameSheet from "./sprites/enemy-flame.png"
+import enemyGoblinSheet from "./sprites/enemy-goblin.png"
+import enemySkullSheet from "./sprites/enemy-skull.png"
+import enemySlimeSheet from "./sprites/enemy-slime.png"
+import enemySpiritSheet from "./sprites/enemy-spirit.png"
+import enemyToadSheet from "./sprites/enemy-toad.png"
+import npcBoySheet from "./sprites/npc-boy.png"
+import npcGirlSheet from "./sprites/npc-girl.png"
+import npcGrandpaSheet from "./sprites/npc-grandpa.png"
+import npcHunterSheet from "./sprites/npc-hunter.png"
+import npcKidSheet from "./sprites/npc-kid.png"
+import npcVillagerSheet from "./sprites/npc-villager.png"
 import pathSummerSheet from "./sprites/path-summer.png"
 import pathWinterSheet from "./sprites/path-winter.png"
 import pathTile from "./sprites/path.png"
@@ -110,6 +123,27 @@ export const ITEM_TILES: Readonly<Record<ItemKind, string>> = {
 export const PROPS: Readonly<Record<PropKind, { readonly href: string; readonly width: number; readonly height: number }>> = {
   house: { href: houseImage, width: 4, height: 3 },
   woodshed: { href: woodshedImage, width: 3, height: 2 }
+}
+
+/** Character sheets of the villagers: 64×112, a column per direction, as the hero sheets. */
+export const NPCS: Readonly<Record<NpcKind, string>> = {
+  grandpa: npcGrandpaSheet,
+  boy: npcBoySheet,
+  girl: npcGirlSheet,
+  villager: npcVillagerSheet,
+  hunter: npcHunterSheet,
+  kid: npcKidSheet
+}
+
+/** Monster sheets: 64×64, a column per direction and a row per frame. */
+export const ENEMIES: Readonly<Record<EnemyKind, string>> = {
+  slime: enemySlimeSheet,
+  spirit: enemySpiritSheet,
+  goblin: enemyGoblinSheet,
+  skull: enemySkullSheet,
+  flame: enemyFlameSheet,
+  bear: enemyBearSheet,
+  toad: enemyToadSheet
 }
 
 /** The cells a prop covers, so the scenery leaves them free. */

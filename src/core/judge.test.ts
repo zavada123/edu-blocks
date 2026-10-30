@@ -9,7 +9,7 @@ import type { Program, RunResult } from "./program.ts"
 import { createVm, projectFor, runProgram, settle, withVmLock } from "./run.ts"
 
 const ALL_BLOCKS: ReadonlyArray<BlockName> = [
-  "move", "turnLeft", "turnRight", "collect", "wallAhead", "onCrystal", "atFinish",
+  "move", "turnLeft", "turnRight", "collect", "attack", "wallAhead", "onCrystal", "atFinish", "enemyAhead",
   "repeat", "forever", "repeatUntil", "if", "ifElse", "not", "and", "or"
 ]
 
@@ -40,14 +40,14 @@ const randomProgram = (next: () => number): ReadonlyArray<Step> => {
   const pick = <T,>(xs: ReadonlyArray<T>): T => xs[Math.floor(next() * xs.length)] as T
   const question = (depth: number): Question => {
     const r = next()
-    if (depth > 1 || r < 0.6) return pick(["wallAhead", "onCrystal", "atFinish"] as const)
+    if (depth > 1 || r < 0.6) return pick(["wallAhead", "onCrystal", "atFinish", "enemyAhead"] as const)
     if (r < 0.75) return { not: question(depth + 1) }
     return r < 0.88 ? { and: [question(depth + 1), question(depth + 1)] } : { or: [question(depth + 1), question(depth + 1)] }
   }
   const steps = (depth: number): ReadonlyArray<Step> =>
     Array.from({ length: 1 + Math.floor(next() * 4) }, (): Step => {
       const r = next()
-      if (depth >= 3 || r < 0.55) return pick(["move", "move", "turnLeft", "turnRight", "collect"] as const)
+      if (depth >= 3 || r < 0.55) return pick(["move", "move", "turnLeft", "turnRight", "collect", "attack"] as const)
       if (r < 0.7) return { repeat: Math.floor(next() * 6), body: steps(depth + 1) }
       if (r < 0.8) return { until: question(0), body: steps(depth + 1) }
       if (r < 0.88) return { if: question(0), then: steps(depth + 1) }

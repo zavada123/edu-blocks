@@ -15,7 +15,8 @@ export declare const MAX_FRAMES = 2000;
  * instead, so a run gives the same result on a slow phone and on the server.
  */
 export declare const PASSES_PER_FRAME = 20;
-export type FailReason = "badProgram" | "noStart" | "crashed" | "goalsNotMet" | "tooLong";
+/** `defeated`: the enemies took all the hearts. */
+export type FailReason = "badProgram" | "noStart" | "crashed" | "defeated" | "goalsNotMet" | "tooLong";
 export interface Frame {
     readonly action: Action;
     readonly outcome: Outcome;

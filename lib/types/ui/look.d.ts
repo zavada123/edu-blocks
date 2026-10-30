@@ -1,4 +1,5 @@
-import type { ItemKind, Prop, PropKind, Scene } from "../core/level.ts";
+import type { ItemKind, NpcKind, Prop, PropKind, Scene } from "../core/level.ts";
+import { type EnemyKind } from "../core/world.ts";
 import type { Decor, Obstacle } from "./scenery.ts";
 import waterTile from "./sprites/water.png";
 /** A bush that sways: a strip of 16×16 frames played in a loop. */
@@ -31,5 +32,9 @@ export declare const PROPS: Readonly<Record<PropKind, {
     readonly width: number;
     readonly height: number;
 }>>;
+/** Character sheets of the villagers: 64×112, a column per direction, as the hero sheets. */
+export declare const NPCS: Readonly<Record<NpcKind, string>>;
+/** Monster sheets: 64×64, a column per direction and a row per frame. */
+export declare const ENEMIES: Readonly<Record<EnemyKind, string>>;
 /** The cells a prop covers, so the scenery leaves them free. */
 export declare const propCells: (props: ReadonlyArray<Prop>) => ReadonlySet<string>;

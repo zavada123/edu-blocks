@@ -4,13 +4,13 @@ import type VirtualMachine from "scratch-vm"
 import { serializeBlocks } from "scratch-vm/src/serialization/sb3.js"
 import { HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID } from "../core/blocks.ts"
 import { buildProgram } from "../core/build.ts"
-import { describeGoal, goalMet, type Level } from "../core/level.ts"
+import { describeGoal, goalMet, type Level, startWorld } from "../core/level.ts"
 import { adviseRun } from "../core/advice.ts"
 import { judgeProgram } from "../core/judge.ts"
 import type { FailReason, Program, RunResult } from "../core/program.ts"
 import { createVm, projectFor, settle, withVmLock } from "../core/run.ts"
 import { heroLevelOf, xpFor, xpGain } from "../core/xp.ts"
-import { parseMap, type World } from "../core/world.ts"
+import type { World } from "../core/world.ts"
 import { Field, type Skin } from "./Field.tsx"
 import { toolboxXml } from "./toolbox.ts"
 import "./blocks.css"
@@ -74,6 +74,7 @@ for (const b of HERO_BLOCKS) {
 
 const FAIL_TEXT: Readonly<Record<FailReason, string>> = {
   crashed: "Герой урізався в перешкоду.",
+  defeated: "Вороги забрали всі сердечка.",
   goalsNotMet: "Програма закінчилась, а завдання ще не виконане.",
   tooLong: "Програма працює задовго. Можливо, цикл ніколи не закінчується.",
   noStart: "Поклади нагору програми блок «коли натиснуто прапорець».",
@@ -126,7 +127,7 @@ export const EduBlocks = ({
   onComplete,
   onProgramChange
 }: EduBlocksProps) => {
-  const start = useMemo(() => parseMap(level.map, level.dir), [level])
+  const start = useMemo(() => startWorld(level), [level])
   const [world, setWorld] = useState<World>(start)
   const [phase, setPhase] = useState<Phase>({ kind: "edit" })
   // On a phone the result covers the blocks until the student closes it.
@@ -367,7 +368,7 @@ const Verdict = ({
     <div className="eb-verdict eb-verdict-fail" role="status">
       <p>{reason === "badProgram" && result.detail !== undefined ? result.detail : FAIL_TEXT[reason]}</p>
       <Advice tips={advice} />
-      {level.hint !== undefined && (reason === "crashed" || reason === "goalsNotMet") && <p className="eb-hint">Підказка: {level.hint}</p>}
+      {level.hint !== undefined && (reason === "crashed" || reason === "defeated" || reason === "goalsNotMet") && <p className="eb-hint">Підказка: {level.hint}</p>}
       <CloseButton onClose={onClose} />
     </div>
   )

@@ -19,7 +19,8 @@ export const MAX_FRAMES = 2_000
  */
 export const PASSES_PER_FRAME = 20
 
-export type FailReason = "badProgram" | "noStart" | "crashed" | "goalsNotMet" | "tooLong"
+/** `defeated`: the enemies took all the hearts. */
+export type FailReason = "badProgram" | "noStart" | "crashed" | "defeated" | "goalsNotMet" | "tooLong"
 
 export interface Frame {
   readonly action: Action

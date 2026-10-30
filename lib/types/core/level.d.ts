@@ -1,12 +1,14 @@
-import { type Direction, type MapRows, type World } from "./world.ts";
+import { type Direction, type EnemySpec, type MapRows, type World } from "./world.ts";
 import type { Tier } from "./xp.ts";
 /** Blocks a level can put into the palette. Hero blocks and the Scratch blocks with the same meaning. */
-export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "wallAhead" | "onCrystal" | "atFinish" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or";
+export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "wallAhead" | "enemyAhead" | "onCrystal" | "atFinish" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or";
 /** What the hero must achieve. All goals of a level are checked together. */
 export type Goal = {
     readonly type: "crystals";
 } | {
     readonly type: "finish";
+} | {
+    readonly type: "enemies";
 };
 /** What lies on the `c` cells and what `collect` takes. A campfire is not taken but lit. */
 export type ItemKind = "crystal" | "wood" | "apple" | "fish" | "key" | "campfire";
@@ -20,6 +22,14 @@ export interface Prop {
     readonly x: number;
     readonly y: number;
 }
+/** Villagers from the pack. They only stand and look around: the hero walks past them, they never block. */
+export type NpcKind = "grandpa" | "boy" | "girl" | "villager" | "hunter" | "kid";
+export interface Npc {
+    readonly who: NpcKind;
+    /** The cell the villager stands on. Best on a wall or meadow cell, so the hero does not walk through them. */
+    readonly x: number;
+    readonly y: number;
+}
 /** How the level looks: the season, the floor, the things on the map. The rules of the game stay the same. */
 export interface Scene {
     readonly theme?: "summer" | "winter";
@@ -28,6 +38,7 @@ export interface Scene {
     readonly item?: ItemKind;
     readonly finish?: FinishKind;
     readonly props?: ReadonlyArray<Prop>;
+    readonly npcs?: ReadonlyArray<Npc>;
 }
 export interface Level {
     readonly id: string;
@@ -47,11 +58,17 @@ export interface Level {
     };
     /** Shown after a failed run. */
     readonly hint?: string;
+    /** Enemies on floor cells. They act after each hero action: see `applyAction`. */
+    readonly enemies?: ReadonlyArray<EnemySpec>;
+    /** Hearts of the hero. 3 by default; they matter only where there are enemies. */
+    readonly hearts?: number;
     /** Summer, crystals and a flag when left out. */
     readonly scene?: Scene;
     /** Sets the XP of the level. An intro level when left out. */
     readonly tier?: Tier;
 }
+/** The world at the start of a level: the map, the enemies and the hearts. */
+export declare const startWorld: (level: Level) => World;
 export declare const goalMet: (world: World, goal: Goal) => boolean;
 export declare const allGoalsMet: (level: Level, world: World) => boolean;
 export declare const describeGoal: (goal: Goal, world: World, scene?: Scene) => string;
