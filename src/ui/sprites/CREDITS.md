@@ -22,5 +22,9 @@
 | `stump.png` | плитка 144,128 |
 | `sunflower.png` | плитка 48,240 |
 | `petals.png` | плитка 32,128 |
+| `flower.png` | плитка 16,128 |
+| `tuft.png` | плитка 0,80 |
+| `clover.png` | плитка 64,240 |
+| `sprout.png` | плитка 0,128 |
 | `crystal.png` | `background-elements/tileset.png`, плитка 128,192 |
 | `flag.png` | `background-elements/flag.gif`, 4 кадри в один ряд |
