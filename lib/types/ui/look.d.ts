@@ -1,11 +1,24 @@
 import type { ItemKind, Prop, PropKind, Scene } from "../core/level.ts";
 import type { Decor, Obstacle } from "./scenery.ts";
 import waterTile from "./sprites/water.png";
+/** A bush that sways: a strip of 16×16 frames played in a loop. */
+export interface Swaying {
+    readonly href: string;
+    readonly frames: number;
+}
 /** The pictures of one season. A decor without a picture is left out (no flowers in the snow). */
 export interface Season {
+    /** One ground tile, or a sheet of 7 meadow tiles (see `meadowTile`). */
     readonly grass: string;
+    readonly meadow: string | null;
+    /** The 11×6 sheet of path pieces (see terrain.ts). */
+    readonly path: string;
+    /** Snow falling over the whole field. */
+    readonly snowfall: string | null;
     readonly tree: string;
     readonly obstacles: Readonly<Record<Obstacle, string>>;
+    /** Obstacles drawn as swaying bushes instead of the still picture. */
+    readonly swaying: Partial<Readonly<Record<Obstacle, Swaying>>>;
     readonly decor: Readonly<Record<Decor, string | null>>;
 }
 export declare const seasonOf: (scene: Scene) => Season;

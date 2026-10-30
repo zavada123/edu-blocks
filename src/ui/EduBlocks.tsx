@@ -5,6 +5,7 @@ import { serializeBlocks } from "scratch-vm/src/serialization/sb3.js"
 import { HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID } from "../core/blocks.ts"
 import { buildProgram } from "../core/build.ts"
 import { describeGoal, goalMet, type Level } from "../core/level.ts"
+import { adviseRun } from "../core/advice.ts"
 import { judgeProgram } from "../core/judge.ts"
 import type { FailReason, Program, RunResult } from "../core/program.ts"
 import { createVm, projectFor, settle, withVmLock } from "../core/run.ts"
@@ -96,7 +97,7 @@ interface Reward {
 type Phase =
   | { readonly kind: "edit" }
   | { readonly kind: "running" }
-  | { readonly kind: "done"; readonly result: RunResult; readonly reward: Reward }
+  | { readonly kind: "done"; readonly result: RunResult; readonly reward: Reward; readonly advice: ReadonlyArray<string> }
 
 /** The program as in project.json, with the block ids of the editor (vm.toJSON() would shorten them). */
 const heroProgram = (vm: VirtualMachine): Program => {
@@ -235,7 +236,7 @@ export const EduBlocks = ({
     const finish = () => {
       setGlow(null)
       setWorld(result.world)
-      setPhase({ kind: "done", result, reward })
+      setPhase({ kind: "done", result, reward, advice: adviseRun(level, prog, result) })
       setVerdictOpen(true)
       onComplete?.({
         levelId: level.id,
@@ -286,7 +287,7 @@ export const EduBlocks = ({
             <span aria-hidden="true">↺</span> Спочатку
           </button>
         </div>
-        {phase.kind === "done" && verdictOpen && <Verdict level={level} result={phase.result} reward={phase.reward} onClose={() => setVerdictOpen(false)} />}
+        {phase.kind === "done" && verdictOpen && <Verdict level={level} result={phase.result} reward={phase.reward} advice={phase.advice} onClose={() => setVerdictOpen(false)} />}
       </section>
       <div className="eb-editor" ref={editorRef} />
     </div>
@@ -327,25 +328,35 @@ const XpLine = ({ reward }: { readonly reward: Reward }) => {
   )
 }
 
+/** What to change in this very program, from `adviseRun`. */
+const Advice = ({ tips }: { readonly tips: ReadonlyArray<string> }) =>
+  tips.length === 0 ? null : (
+    <ul className="eb-advice">
+      {tips.map((tip) => (
+        <li key={tip}>{tip}</li>
+      ))}
+    </ul>
+  )
+
 const Verdict = ({
   level,
   result,
   reward,
+  advice,
   onClose
 }: {
   readonly level: Level
   readonly result: RunResult
   readonly reward: Reward
+  readonly advice: ReadonlyArray<string>
   readonly onClose: () => void
 }) => {
   if (result.passed) {
-    const better = level.stars !== undefined && result.stars < 3 ? ` Для трьох зірок вистачить ${level.stars.three} блоків.` : ""
     return (
       <div className="eb-verdict eb-verdict-ok" role="status">
         <Stars count={result.stars} />
-        <p>
-          Рівень пройдено! Блоків: {result.blocks}.{better}
-        </p>
+        <p>Рівень пройдено!{advice.length === 0 ? ` Блоків: ${result.blocks}.` : ""}</p>
+        <Advice tips={advice} />
         <XpLine reward={reward} />
         <CloseButton onClose={onClose} />
       </div>
@@ -355,6 +366,7 @@ const Verdict = ({
   return (
     <div className="eb-verdict eb-verdict-fail" role="status">
       <p>{reason === "badProgram" && result.detail !== undefined ? result.detail : FAIL_TEXT[reason]}</p>
+      <Advice tips={advice} />
       {level.hint !== undefined && (reason === "crashed" || reason === "goalsNotMet") && <p className="eb-hint">Підказка: {level.hint}</p>}
       <CloseButton onClose={onClose} />
     </div>

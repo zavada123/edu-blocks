@@ -1,8 +1,9 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react"
 import type { Prop, Scene } from "../core/level.ts"
 import { cellKey, type Direction, type World } from "../core/world.ts"
-import { FLOORS, ITEM_TILES, PROPS, propCells, seasonOf, waterTile } from "./look.ts"
-import { buildScenery } from "./scenery.ts"
+import { FLOORS, ITEM_TILES, PROPS, propCells, seasonOf, type Swaying, waterTile } from "./look.ts"
+import { buildScenery, cellHash } from "./scenery.ts"
+import { meadowTile, PATH_SHEET_COLUMNS, pathPiece } from "./terrain.ts"
 import beeSheet from "./sprites/bee.png"
 import fireStrip from "./sprites/fire.png"
 import flagStrip from "./sprites/flag.png"
@@ -28,6 +29,13 @@ const SHEETS: Readonly<Record<Skin, { readonly href: string; readonly height: nu
 
 const COLUMN: Readonly<Record<Direction, number>> = { down: 0, up: 1, left: 2, right: 3 }
 
+const PATH_SHEET_ROWS = 6
+const SEAM = 0.15
+const MEADOW_TILES = 7
+/** The snowfall picture (320×240) drawn at half size, so the flakes match the 16-pixel tiles. */
+const SNOW_W = 160
+const SNOW_H = 120
+
 const WALK_FRAMES = 4
 const FRAME_MS = 70
 
@@ -40,6 +48,43 @@ const Frame = ({ href, height, col, row }: { readonly href: string; readonly hei
 
 const Tile = ({ href }: { readonly href: string }) => <image href={href} x={-CELL / 2} y={-CELL / 2} width={CELL} height={CELL} />
 
+/** One 16×16 piece of a sheet, with its top-left corner at x, y. */
+const Piece = (props: {
+  readonly href: string
+  readonly x: number
+  readonly y: number
+  readonly col: number
+  readonly row: number
+  readonly columns: number
+  readonly rows: number
+}) => (
+  // A hair wider than the cell, so no thin seam shows between two pieces when the field is scaled.
+  <svg
+    x={props.x}
+    y={props.y}
+    width={CELL + SEAM}
+    height={CELL + SEAM}
+    viewBox={`${props.col * CELL} ${props.row * CELL} ${CELL} ${CELL}`}
+    preserveAspectRatio="none"
+  >
+    <image href={props.href} width={props.columns * CELL} height={props.rows * CELL} />
+  </svg>
+)
+
+/** Whether the viewer asked for less motion: then bushes stand still and no snow falls. */
+const useReducedMotion = (): boolean => {
+  const [reduced, setReduced] = useState(false)
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)")
+    setReduced(query.matches)
+    const onChange = () => setReduced(query.matches)
+    query.addEventListener("change", onChange)
+    return () => query.removeEventListener("change", onChange)
+  }, [])
+  return reduced
+}
+
 /** A strip of frames played in a loop: the flag and the flame. */
 const Strip = (props: {
   readonly href: string
@@ -50,6 +95,7 @@ const Strip = (props: {
   readonly frames: ReadonlyArray<number>
   readonly total: number
   readonly dur: string
+  readonly begin?: string
 }) => (
   <svg x={props.x} y={props.y} width={props.width} height={props.height} viewBox={`0 0 ${props.width} ${props.height}`}>
     <image href={props.href} width={props.width * props.total} height={props.height}>
@@ -59,10 +105,22 @@ const Strip = (props: {
         dur={props.dur}
         calcMode="discrete"
         repeatCount="indefinite"
+        begin={props.begin ?? "0s"}
       />
     </image>
   </svg>
 )
+
+/** A bush in the wind. Each bush starts at its own frame, so the meadow does not sway in step. */
+const SwayingBush = ({ look, x, y, still }: { readonly look: Swaying; readonly x: number; readonly y: number; readonly still: boolean }) => {
+  const frames = Array.from({ length: look.frames }, (_, i) => i)
+  const begin = `-${(cellHash(x, y, 9) % 8) * 0.1}s`
+  return still ? (
+    <Piece href={look.href} x={-CELL / 2} y={-CELL / 2} col={0} row={0} columns={look.frames} rows={1} />
+  ) : (
+    <Strip href={look.href} x={-CELL / 2} y={-CELL / 2} width={CELL} height={CELL} frames={frames} total={look.frames} dur="0.8s" begin={begin} />
+  )
+}
 
 const Flag = () => <Strip href={flagStrip} x={-CELL / 2} y={-CELL / 2} width={CELL} height={CELL} frames={[0, 1, 2, 3]} total={4} dur="0.6s" />
 
@@ -115,7 +173,10 @@ const at = (key: string) => {
 }
 
 export const Field = ({ world, skin, scene = {} }: { readonly world: World; readonly skin: Skin; readonly scene?: Scene | undefined }) => {
-  const grassId = `eb-grass-${useId().replace(/:/g, "")}`
+  const uid = useId().replace(/:/g, "")
+  const grassId = `eb-grass-${uid}`
+  const snowId = `eb-snow-${uid}`
+  const still = useReducedMotion()
   const frame = useWalkFrame(world.hero.x, world.hero.y)
   const allItems = useAllItems(world)
   const sheet = SHEETS[skin]
@@ -130,6 +191,8 @@ export const Field = ({ world, skin, scene = {} }: { readonly world: World; read
   )
   const center = (x: number, y: number) => `translate(${x * CELL + CELL / 2} ${y * CELL + CELL / 2})`
   const { view } = scenery
+  const isPath = (x: number, y: number) => x >= 0 && y >= 0 && x < width && y < height && !walls.has(cellKey(x, y))
+  const meadow = season.meadow
   return (
     <svg
       className="eb-field"
@@ -141,14 +204,53 @@ export const Field = ({ world, skin, scene = {} }: { readonly world: World; read
         <pattern id={grassId} width={CELL} height={CELL} patternUnits="userSpaceOnUse">
           <image href={season.grass} width={CELL} height={CELL} />
         </pattern>
+        {season.snowfall !== null && (
+          <pattern id={snowId} width={SNOW_W} height={SNOW_H} patternUnits="userSpaceOnUse">
+            <image href={season.snowfall} width={SNOW_W} height={SNOW_H} />
+            {!still && (
+              <animateTransform
+                attributeName="patternTransform"
+                type="translate"
+                from="0 0"
+                to={`${SNOW_W / 4} ${SNOW_H}`}
+                dur="9s"
+                repeatCount="indefinite"
+              />
+            )}
+          </pattern>
+        )}
       </defs>
       {/* The hero walks on the floor; walls are trees, bushes and rocks (or water under a bridge), and a meadow lies around. */}
       <rect x={view.x * CELL} y={view.y * CELL} width={view.width * CELL} height={view.height * CELL} fill={`url(#${grassId})`} />
+      {meadow !== null &&
+        Array.from({ length: view.width * view.height }, (_, i) => {
+          const x = view.x + (i % view.width)
+          const y = view.y + Math.floor(i / view.width)
+          const look = meadowTile(x, y)
+          return look === 0 ? null : (
+            <Piece key={`m${cellKey(x, y)}`} href={meadow} x={x * CELL} y={y * CELL} col={look} row={0} columns={MEADOW_TILES} rows={1} />
+          )
+        })}
       {Array.from({ length: width * height }, (_, i) => {
         const x = i % width
         const y = Math.floor(i / width)
         const wall = walls.has(cellKey(x, y))
         if (wall && ground !== "bridge") return null
+        if (ground === "path") {
+          const { col, row } = pathPiece(isPath, x, y)
+          return (
+            <Piece
+              key={cellKey(x, y)}
+              href={season.path}
+              x={x * CELL}
+              y={y * CELL}
+              col={col}
+              row={row}
+              columns={PATH_SHEET_COLUMNS}
+              rows={PATH_SHEET_ROWS}
+            />
+          )
+        }
         return (
           <g key={cellKey(x, y)} transform={center(x, y)}>
             <Tile href={wall ? waterTile : FLOORS[ground]} />
@@ -163,11 +265,14 @@ export const Field = ({ world, skin, scene = {} }: { readonly world: World; read
           </g>
         )
       })}
-      {scenery.obstacles.map(({ x, y, kind }) => (
-        <g key={`o${cellKey(x, y)}`} transform={center(x, y)}>
-          <Tile href={season.obstacles[kind]} />
-        </g>
-      ))}
+      {scenery.obstacles.map(({ x, y, kind }) => {
+        const swaying = season.swaying[kind]
+        return (
+          <g key={`o${cellKey(x, y)}`} transform={center(x, y)}>
+            {swaying === undefined ? <Tile href={season.obstacles[kind]} /> : <SwayingBush look={swaying} x={x} y={y} still={still} />}
+          </g>
+        )
+      })}
       {scenery.trees.map(({ x, y }) => (
         <image key={`t${cellKey(x, y)}`} href={season.tree} x={x * CELL} y={y * CELL} width={CELL * 2} height={CELL * 2} />
       ))}
@@ -207,6 +312,17 @@ export const Field = ({ world, skin, scene = {} }: { readonly world: World; read
           <Frame href={sheet.href} height={sheet.height} col={COLUMN[world.hero.dir]} row={frame} />
         </g>
       </g>
+      {season.snowfall !== null && (
+        <rect
+          x={view.x * CELL}
+          y={view.y * CELL}
+          width={view.width * CELL}
+          height={view.height * CELL}
+          fill={`url(#${snowId})`}
+          className="eb-snowfall"
+          pointerEvents="none"
+        />
+      )}
     </svg>
   )
 }

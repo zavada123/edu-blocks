@@ -187,6 +187,15 @@
   margin-top: 6px !important;
 }
 
+.eb-advice {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+
 .eb-stars {
   display: block;
   margin-bottom: 4px;
