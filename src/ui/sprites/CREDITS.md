@@ -42,5 +42,5 @@
 | `apple.png` | плитка 16,272 |
 | `key.png` | `items/gold-key.png` |
 | `fish.png` | `items/food/fish.png` |
-| `grandma.png` | `characters/4.png` |
+| `grandma.png` | `characters/4.png`, волосся перефарбоване в сиве, шкіра світліша |
 | `fire.png` | `assets/graphics/Fire.png` з https://github.com/konyd/action-rpg-template (вогонь із Ninja Adventure) |
