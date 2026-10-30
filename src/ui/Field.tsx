@@ -1,88 +1,91 @@
-import { useRef } from "react"
+import { useEffect, useId, useState } from "react"
 import { cellKey, type Direction, type World } from "../core/world.ts"
+import beeSheet from "./sprites/bee.png"
+import bushTile from "./sprites/bush.png"
+import crystalTile from "./sprites/crystal.png"
+import flagStrip from "./sprites/flag.png"
+import grassTile from "./sprites/grass.png"
+import pathTile from "./sprites/path.png"
+import robotSheet from "./sprites/robot.png"
+import roverSheet from "./sprites/rover.png"
 
 /** Hero looks. The app sells and picks them; the package only draws them. */
 export type Skin = "robot" | "rover" | "bee"
 
-const SKIN_COLORS: Readonly<Record<Skin, { readonly body: string; readonly dark: string }>> = {
-  robot: { body: "#4C97FF", dark: "#3373CC" },
-  rover: { body: "#FF8C1A", dark: "#DB6E00" },
-  bee: { body: "#FFBF00", dark: "#CC9900" }
+/** Pixel art from the Ninja Adventure pack (CC0), see sprites/CREDITS.md. One cell is one 16×16 tile. */
+const CELL = 16
+
+/** A sheet has a column per direction and a row per walking frame. */
+const SHEETS: Readonly<Record<Skin, { readonly href: string; readonly height: number }>> = {
+  robot: { href: robotSheet, height: 112 },
+  rover: { href: roverSheet, height: 112 },
+  bee: { href: beeSheet, height: 64 }
 }
 
-const ANGLE: Readonly<Record<Direction, number>> = { up: -90, right: 0, down: 90, left: 180 }
+const COLUMN: Readonly<Record<Direction, number>> = { down: 0, up: 1, left: 2, right: 3 }
 
-const CELL = 40
+const WALK_FRAMES = 4
+const FRAME_MS = 70
 
-const Hero = ({ skin, crashed }: { readonly skin: Skin; readonly crashed: boolean }) => {
-  const c = SKIN_COLORS[skin]
-  return (
-    <g>
-      {skin === "bee" ? (
-        <>
-          <ellipse cx={-4} cy={-13} rx={7} ry={5} fill="#fff" opacity={0.85} />
-          <ellipse cx={-4} cy={13} rx={7} ry={5} fill="#fff" opacity={0.85} />
-        </>
-      ) : (
-        <rect x={-12} y={-15} width={8} height={30} rx={3} fill={c.dark} />
-      )}
-      <circle r={13} fill={crashed ? "#FF6680" : c.body} stroke={c.dark} strokeWidth={2} />
-      {skin === "bee" && <path d="M-4 -12 v24 M3 -12 v24" stroke="#575E75" strokeWidth={3} />}
-      {skin === "rover" && <rect x={-9} y={-5} width={8} height={10} rx={2} fill={c.dark} />}
-      {/* Eyes look where the hero goes. */}
-      <circle cx={6} cy={-5} r={4} fill="#fff" />
-      <circle cx={6} cy={5} r={4} fill="#fff" />
-      <circle cx={7.5} cy={-5} r={2} fill="#2b2b3a" />
-      <circle cx={7.5} cy={5} r={2} fill="#2b2b3a" />
-    </g>
-  )
-}
-
-const Crystal = () => (
-  <g>
-    <path d="M0 -12 L9 -3 L0 12 L-9 -3 Z" fill="#5CB1D6" stroke="#2E8EB8" strokeWidth={1.5} />
-    <path d="M0 -12 L3 -3 L0 12 L-3 -3 Z" fill="#9AD4EC" />
-  </g>
+/** One 16×16 frame of a sheet, centred on the origin. */
+const Frame = ({ href, width, height, col, row }: { readonly href: string; readonly width: number; readonly height: number; readonly col: number; readonly row: number }) => (
+  <svg x={-CELL / 2} y={-CELL / 2} width={CELL} height={CELL} viewBox={`${col * CELL} ${row * CELL} ${CELL} ${CELL}`}>
+    <image href={href} width={width} height={height} />
+  </svg>
 )
+
+const Tile = ({ href }: { readonly href: string }) => <image href={href} x={-CELL / 2} y={-CELL / 2} width={CELL} height={CELL} />
 
 const Flag = () => (
-  <g>
-    <path d="M-8 14 V-13" stroke="#575E75" strokeWidth={2.5} strokeLinecap="round" />
-    <path d="M-7 -13 H10 L5 -7 L10 -1 H-7 Z" fill="#FF6680" />
-  </g>
+  <svg x={-CELL / 2} y={-CELL / 2} width={CELL} height={CELL} viewBox={`0 0 ${CELL} ${CELL}`}>
+    <image href={flagStrip} width={CELL * 4} height={CELL}>
+      <animate attributeName="x" values={`0;-${CELL};-${CELL * 2};-${CELL * 3}`} dur="0.6s" calcMode="discrete" repeatCount="indefinite" />
+    </image>
+  </svg>
 )
 
-/** Turns the shortest way: from «left» to «up» is a quarter turn, not three quarters. */
-const useHeroAngle = (dir: Direction): number => {
-  const angle = useRef(ANGLE[dir])
-  const diff = ((((ANGLE[dir] - angle.current) % 360) + 540) % 360) - 180
-  angle.current += diff
-  return angle.current
+const cells = (world: World) =>
+  Array.from({ length: world.width * world.height }, (_, i) => {
+    const x = i % world.width
+    const y = Math.floor(i / world.width)
+    const key = cellKey(x, y)
+    return { key, x, y, wall: world.walls.has(key) }
+  })
+
+/** Steps through the walking frames once each time the hero moves to another cell. */
+const useWalkFrame = (x: number, y: number): number => {
+  const [frame, setFrame] = useState(0)
+  useEffect(() => {
+    let step = 0
+    const timer = setInterval(() => {
+      step += 1
+      setFrame(step % WALK_FRAMES)
+      if (step >= WALK_FRAMES) clearInterval(timer)
+    }, FRAME_MS)
+    return () => clearInterval(timer)
+  }, [x, y])
+  return frame
 }
 
 export const Field = ({ world, skin }: { readonly world: World; readonly skin: Skin }) => {
-  const angle = useHeroAngle(world.hero.dir)
-  const cells: Array<React.ReactElement> = []
-  for (let y = 0; y < world.height; y++) {
-    for (let x = 0; x < world.width; x++) {
-      const wall = world.walls.has(cellKey(x, y))
-      cells.push(
-        <rect
-          key={cellKey(x, y)}
-          className={wall ? "eb-wall" : "eb-floor"}
-          x={x * CELL + 1}
-          y={y * CELL + 1}
-          width={CELL - 2}
-          height={CELL - 2}
-          rx={wall ? 4 : 6}
-        />
-      )
-    }
-  }
+  const grassId = `eb-grass-${useId().replace(/:/g, "")}`
+  const frame = useWalkFrame(world.hero.x, world.hero.y)
+  const sheet = SHEETS[skin]
   const center = (x: number, y: number) => `translate(${x * CELL + CELL / 2} ${y * CELL + CELL / 2})`
   return (
     <svg className="eb-field" viewBox={`0 0 ${world.width * CELL} ${world.height * CELL}`} role="img" aria-label="Поле гри">
-      {cells}
+      <defs>
+        <pattern id={grassId} width={CELL} height={CELL} patternUnits="userSpaceOnUse">
+          <image href={grassTile} width={CELL} height={CELL} />
+        </pattern>
+      </defs>
+      {/* Walls are bushes on the grass; the hero walks on a sandy path. */}
+      <rect width={world.width * CELL} height={world.height * CELL} fill={`url(#${grassId})`} />
+      {cells(world).map(({ key, x, y, wall }) => (
+        <g key={key} transform={center(x, y)}>
+          <Tile href={wall ? bushTile : pathTile} />
+        </g>
+      ))}
       {world.finish !== null && (
         <g transform={center(world.finish.x, world.finish.y)}>
           <Flag />
@@ -92,13 +95,16 @@ export const Field = ({ world, skin }: { readonly world: World; readonly skin: S
         const [x, y] = key.split(",").map(Number)
         return (
           <g key={key} transform={center(x ?? 0, y ?? 0)}>
-            <Crystal />
+            <g className="eb-crystal">
+              <Tile href={crystalTile} />
+            </g>
           </g>
         )
       })}
       <g className="eb-hero" style={{ transform: `translate(${world.hero.x * CELL + CELL / 2}px, ${world.hero.y * CELL + CELL / 2}px)` }}>
-        <g className="eb-hero-turn" style={{ transform: `rotate(${angle}deg)` }}>
-          <Hero skin={skin} crashed={world.crashed} />
+        <ellipse cx={0} cy={7} rx={5} ry={1.5} className="eb-hero-shadow" />
+        <g className={world.crashed ? "eb-hero-crashed" : undefined}>
+          <Frame href={sheet.href} width={CELL * 4} height={sheet.height} col={COLUMN[world.hero.dir]} row={frame} />
         </g>
       </g>
     </svg>

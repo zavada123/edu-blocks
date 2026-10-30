@@ -63,24 +63,50 @@
 .eb-field {
   width: 100%;
   max-height: 40vh;
-  background: #e9eef8;
   border-radius: 10px;
-}
-
-.eb-floor {
-  fill: #fff;
-}
-
-.eb-wall {
-  fill: #8d96b3;
+  /* Pixel art stays sharp at any size. */
+  image-rendering: pixelated;
 }
 
 .eb-hero {
   transition: transform 0.25s ease-in-out;
 }
 
-.eb-hero-turn {
-  transition: transform 0.2s ease-in-out;
+.eb-hero-shadow {
+  fill: rgba(0, 0, 0, 0.25);
+}
+
+.eb-hero-crashed {
+  animation: eb-shake 0.3s ease-in-out 2;
+  filter: drop-shadow(0 0 1.5px #ff3355);
+}
+
+.eb-crystal {
+  animation: eb-bob 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes eb-bob {
+  to {
+    transform: translateY(-1.5px);
+  }
+}
+
+@keyframes eb-shake {
+  25% {
+    transform: translateX(-1.5px);
+  }
+  75% {
+    transform: translateX(1.5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eb-hero,
+  .eb-hero-crashed,
+  .eb-crystal {
+    animation: none;
+    transition: none;
+  }
 }
 
 .eb-controls {

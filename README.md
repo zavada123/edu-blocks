@@ -108,4 +108,4 @@ npm run build:lib  # збірка пакета в lib/ (комітьте lib р�
 - [TurboWarp scratch-vm](https://github.com/TurboWarp/scratch-vm) — рушій, у якому редактор тримає програму. Він уже зібраний у `edu-blocks/react`; `edu-blocks/core` його не потребує. Ліцензія MPL-2.0: змінені файли рушія треба було б відкрити, але пакет рушій не змінює.
 - [scratch-blocks](https://github.com/scratchfoundation/scratch-blocks) 1.3.0 — редактор блоків. Ліцензія Apache-2.0, переклади блоків — BSD-3-Clause. Версія scratch-blocks від TurboWarp має GPL-3.0, тому її не взято.
 
-Робот, кристали й мапа намальовані в проєкті (`src/ui/Field.tsx`). Назва Scratch, кіт Scratch та інші персонажі Scratch — торгові марки MIT, тренажер їх не використовує й не пов'язаний зі Scratch Foundation.
+Піксельна графіка поля (робот, кущі, стежка, кристали, прапорець) — з набору [Ninja Adventure](https://pixel-boy.itch.io/ninja-adventure-asset-pack) від Pixel-boy, ліцензія CC0; звідки кожен файл — у `src/ui/sprites/CREDITS.md`. Назва Scratch, кіт Scratch та інші персонажі Scratch — торгові марки MIT, тренажер їх не використовує й не пов'язаний зі Scratch Foundation.
