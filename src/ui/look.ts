@@ -2,6 +2,8 @@ import type { ItemKind, Prop, PropKind, Scene } from "../core/level.ts"
 import { cellKey } from "../core/world.ts"
 import type { Decor, Obstacle } from "./scenery.ts"
 import appleTile from "./sprites/apple.png"
+import bloomOrangeStrip from "./sprites/bloom-orange.png"
+import bloomWhiteStrip from "./sprites/bloom-white.png"
 import bridgeTile from "./sprites/bridge.png"
 import bushRoundTile from "./sprites/bush-round.png"
 import bushTile from "./sprites/bush.png"
@@ -14,6 +16,9 @@ import grassTile from "./sprites/grass.png"
 import houseImage from "./sprites/house.png"
 import iceTile from "./sprites/ice.png"
 import keyImage from "./sprites/key.png"
+import meadowSheet from "./sprites/meadow.png"
+import pathSummerSheet from "./sprites/path-summer.png"
+import pathWinterSheet from "./sprites/path-winter.png"
 import pathTile from "./sprites/path.png"
 import petalsTile from "./sprites/petals.png"
 import rockTile from "./sprites/rock.png"
@@ -23,6 +28,8 @@ import snowRockTile from "./sprites/snow-rock.png"
 import snowShrubTile from "./sprites/snow-shrub.png"
 import snowTreeImage from "./sprites/snow-tree.png"
 import snowTile from "./sprites/snow.png"
+import snowMeadowSheet from "./sprites/snow-meadow.png"
+import snowfallImage from "./sprites/snowfall.png"
 import sproutTile from "./sprites/sprout.png"
 import stumpTile from "./sprites/stump.png"
 import sunflowerTile from "./sprites/sunflower.png"
@@ -34,23 +41,44 @@ import waterTile from "./sprites/water.png"
 import woodTile from "./sprites/wood.png"
 import woodshedImage from "./sprites/woodshed.png"
 
+/** A bush that sways: a strip of 16×16 frames played in a loop. */
+export interface Swaying {
+  readonly href: string
+  readonly frames: number
+}
+
 /** The pictures of one season. A decor without a picture is left out (no flowers in the snow). */
 export interface Season {
+  /** One ground tile, or a sheet of 7 meadow tiles (see `meadowTile`). */
   readonly grass: string
+  readonly meadow: string | null
+  /** The 11×6 sheet of path pieces (see terrain.ts). */
+  readonly path: string
+  /** Snow falling over the whole field. */
+  readonly snowfall: string | null
   readonly tree: string
   readonly obstacles: Readonly<Record<Obstacle, string>>
+  /** Obstacles drawn as swaying bushes instead of the still picture. */
+  readonly swaying: Partial<Readonly<Record<Obstacle, Swaying>>>
   readonly decor: Readonly<Record<Decor, string | null>>
 }
 
 const SUMMER: Season = {
   grass: grassTile,
+  meadow: meadowSheet,
+  path: pathSummerSheet,
+  snowfall: null,
   tree: treeImage,
   obstacles: { bush: bushTile, bushRound: bushRoundTile, fern: fernTile, rock: rockTile, stump: stumpTile, sunflower: sunflowerTile },
+  swaying: { sunflower: { href: bloomWhiteStrip, frames: 4 }, fern: { href: bloomOrangeStrip, frames: 4 } },
   decor: { petals: petalsTile, flower: flowerTile, tuft: tuftTile, clover: cloverTile, sprout: sproutTile }
 }
 
 const WINTER: Season = {
   grass: snowTile,
+  meadow: snowMeadowSheet,
+  path: pathWinterSheet,
+  snowfall: snowfallImage,
   tree: snowTreeImage,
   obstacles: {
     bush: snowShrubTile,
@@ -60,6 +88,7 @@ const WINTER: Season = {
     stump: stumpTile,
     sunflower: snowPineSmallTile
   },
+  swaying: {},
   decor: { petals: null, flower: twigTile, tuft: twigsTile, clover: null, sprout: twigTile }
 }
 
