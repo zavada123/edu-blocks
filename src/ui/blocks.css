@@ -61,9 +61,11 @@
   justify-content: center;
 }
 
+/* Every level gets a square field of the same size: the view is square, the size comes from the window. */
 .eb-field {
-  width: 100%;
-  max-height: 68vh;
+  width: min(100%, 58vh);
+  aspect-ratio: 1;
+  flex: none;
   border-radius: 10px;
   /* Pixel art stays sharp at any size. */
   image-rendering: pixelated;
@@ -205,9 +207,27 @@
   font-size: 1.05rem;
 }
 
-.eb-reset {
+.eb-reset,
+.eb-fullscreen {
   background: #e3e6ef;
   color: var(--eb-ink);
+}
+
+.eb-controls .eb-fullscreen {
+  padding: 0 14px;
+  font-size: 1.2rem;
+}
+
+/* Full screen: the game covers the page (where the browser has no full screen, too). */
+.eb-root.eb-full {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  height: 100dvh;
+}
+
+.eb-full .eb-field {
+  width: min(100%, 72vh);
 }
 
 .eb-controls button:disabled {
@@ -321,7 +341,11 @@
   }
 
   .eb-field {
-    max-height: 34vh;
+    width: min(100%, 34vh);
+  }
+
+  .eb-full .eb-field {
+    width: min(100%, 40vh);
   }
 
   .eb-controls button {

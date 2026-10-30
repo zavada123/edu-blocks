@@ -37,6 +37,8 @@ const OBSTACLES: ReadonlyArray<Obstacle> = [
   "sunflower"
 ]
 const MEADOW: ReadonlyArray<Decor> = ["flower", "tuft", "tuft", "clover", "sprout", "petals"]
+/** Meadow cells around the longest side of the level, at least. */
+const MIN_MARGIN = 2
 const TREE_CHANCE = 3
 const MEADOW_TREE_CHANCE = 5
 const PATH_DECOR_CHANCE = 4
@@ -64,13 +66,14 @@ export const buildScenery = (
   world: Pick<World, "width" | "height" | "walls" | "finish">,
   { reserved = new Set(), bareWalls = false }: SceneryOptions = {}
 ): Scenery => {
-  const mx = Math.ceil(world.width / 2)
-  const my = Math.ceil(world.height / 2)
+  // A square view: every level shows on a field of the same shape, the level in its middle.
+  const longest = Math.max(world.width, world.height)
+  const side = longest + 2 * Math.max(MIN_MARGIN, Math.ceil(longest / 6))
   const view = {
-    x: -mx,
-    y: -my,
-    width: world.width + 2 * mx,
-    height: world.height + 2 * my
+    x: -Math.floor((side - world.width) / 2),
+    y: -Math.floor((side - world.height) / 2),
+    width: side,
+    height: side
   }
   const inside = (x: number, y: number) => x >= 0 && y >= 0 && x < world.width && y < world.height
   const blocked = (x: number, y: number) => !inside(x, y) || (!bareWalls && world.walls.has(cellKey(x, y)))
