@@ -1,0 +1,3471 @@
+{
+  "license": "CC0 1.0",
+  "author": "Pixel-boy (Ninja Adventure)",
+  "sources": {
+    "superpowers": "https://github.com/sparklinlabs/superpowers-asset-packs/tree/master/ninja-adventure",
+    "pixel-boy": "https://github.com/pixel-boy/NinjaAdventure",
+    "action-rpg-template": "https://github.com/konyd/action-rpg-template"
+  },
+  "game": [
+    {
+      "file": "apple.png",
+      "role": "Яблуко: предмет",
+      "origin": "tileset 16,272",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "bee.png",
+      "role": "Скін «Бджілка»",
+      "origin": "monsters/10.png",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": null
+    },
+    {
+      "file": "bridge.png",
+      "role": "Дошки мосту: підлога",
+      "origin": "tileset 272,64",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "bush-round.png",
+      "role": "Круглий кущ: перешкода",
+      "origin": "tileset 0,96",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "bush.png",
+      "role": "Кущ: перешкода влітку",
+      "origin": "tileset 144,240",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "clover.png",
+      "role": "Конюшина: декор луки",
+      "origin": "tileset 64,240",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "crystal.png",
+      "role": "Кристал: предмет за замовчуванням",
+      "origin": "tileset 128,192",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "fern.png",
+      "role": "Папороть: перешкода",
+      "origin": "tileset 208,128",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "fire.png",
+      "role": "Вогнище: 12 кадрів 8×12, грають 1–6",
+      "origin": "action-rpg-template: Fire.png",
+      "width": 96,
+      "height": 12,
+      "frame": {
+        "width": 8,
+        "height": 12
+      },
+      "frames": 12,
+      "layout": null
+    },
+    {
+      "file": "fish.png",
+      "role": "Риба: предмет в ополонці",
+      "origin": "items/food/fish.png",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "flag.png",
+      "role": "Прапорець фінішу: 4 кадри",
+      "origin": "background-elements/flag.gif",
+      "width": 64,
+      "height": 16,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 4,
+      "layout": null
+    },
+    {
+      "file": "flower.png",
+      "role": "Квітка: декор луки",
+      "origin": "tileset 16,128",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "grandma.png",
+      "role": "Бабуся: фініш рівня «Пиріг для бабусі»",
+      "origin": "characters/4.png",
+      "width": 64,
+      "height": 32,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 8,
+      "layout": null
+    },
+    {
+      "file": "grass.png",
+      "role": "Трава: літній фон луки",
+      "origin": "tileset 352,176",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "house.png",
+      "role": "Будинок героя (3 рівні)",
+      "origin": "tileset 0,0, 64×48",
+      "width": 64,
+      "height": 48,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "ice.png",
+      "role": "Лід ставка: підлога",
+      "origin": "tileset 336,304",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "key.png",
+      "role": "Ключ: предмет",
+      "origin": "items/gold-key.png",
+      "width": 12,
+      "height": 8,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "ninja.png",
+      "role": "Головний герой (скін «Ніндзя»)",
+      "origin": "pixel-boy: character/ninja_blue/sprite.png",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози."
+    },
+    {
+      "file": "path.png",
+      "role": "Стежка: підлога влітку",
+      "origin": "tileset 320,176",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "petals.png",
+      "role": "Пелюстки: декор стежки",
+      "origin": "tileset 32,128",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "robot.png",
+      "role": "Скін «Робот»",
+      "origin": "characters/20.png",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози."
+    },
+    {
+      "file": "rock.png",
+      "role": "Камінь: перешкода",
+      "origin": "tileset 16,112",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "rover.png",
+      "role": "Скін «Ровер»",
+      "origin": "characters/21.png",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози."
+    },
+    {
+      "file": "snow-ball.png",
+      "role": "Сніжна куля: перешкода взимку",
+      "origin": "tileset 112,384",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "snow-pine-small.png",
+      "role": "Маленька ялинка: перешкода взимку",
+      "origin": "tileset 96,400",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "snow-rock.png",
+      "role": "Засніжений камінь: перешкода взимку",
+      "origin": "tileset 96,384",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "snow-shrub.png",
+      "role": "Засніжений кущ: перешкода взимку",
+      "origin": "tileset 96,336",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "snow-tree.png",
+      "role": "Засніжена ялина 2×2: перешкода взимку",
+      "origin": "tileset 0,352, 32×32",
+      "width": 32,
+      "height": 32,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "snow.png",
+      "role": "Сніг: зимовий фон і стежка",
+      "origin": "tileset 224,304",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "sprout.png",
+      "role": "Паросток: декор луки",
+      "origin": "tileset 0,128",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "stump.png",
+      "role": "Пеньок: перешкода",
+      "origin": "tileset 144,128",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "sunflower.png",
+      "role": "Соняшник: перешкода",
+      "origin": "tileset 48,240",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "tree.png",
+      "role": "Дерево 2×2: перешкода влітку",
+      "origin": "tileset 96,160, 32×32",
+      "width": 32,
+      "height": 32,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "tuft.png",
+      "role": "Пучок трави: декор луки",
+      "origin": "tileset 0,80",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "twig.png",
+      "role": "Гілочка: зимовий декор",
+      "origin": "tileset 0,288",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "twigs.png",
+      "role": "Гілочки: зимовий декор",
+      "origin": "tileset 16,288",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "water.png",
+      "role": "Вода під мостом",
+      "origin": "tileset 320,112",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "well.png",
+      "role": "Криниця: фініш",
+      "origin": "tileset 48,112",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "wood.png",
+      "role": "Дрова: предмет",
+      "origin": "tileset 144,288",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    },
+    {
+      "file": "woodshed.png",
+      "role": "Дровітня",
+      "origin": "tileset 256,0, 48×32",
+      "width": 48,
+      "height": 32,
+      "frame": null,
+      "frames": 1,
+      "layout": null
+    }
+  ],
+  "pack": [
+    {
+      "id": "character-1",
+      "file": "characters/1.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Зелений ніндзя в капюшоні",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-1",
+      "file": "characters/faceset/1.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: зелений ніндзя в капюшоні",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-2",
+      "file": "characters/2.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Лисий монах",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-2",
+      "file": "characters/faceset/2.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: лисий монах",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-3",
+      "file": "characters/3.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Солдат у шоломі",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-3",
+      "file": "characters/faceset/3.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: солдат у шоломі",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-4",
+      "file": "characters/4.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Жінка з фіолетовим волоссям",
+      "width": 64,
+      "height": 32,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 8,
+      "layout": "4 стовпці = напрямки, 2 ряди: стоїть і крок",
+      "inGame": "grandma.png",
+      "href": null
+    },
+    {
+      "id": "faceset-4",
+      "file": "characters/faceset/4.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: жінка з фіолетовим волоссям",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-5",
+      "file": "characters/5.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Селянка в капелюсі",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-5",
+      "file": "characters/faceset/5.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: селянка в капелюсі",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-6",
+      "file": "characters/6.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Рудий хлопець",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-6",
+      "file": "characters/faceset/6.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: рудий хлопець",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-7",
+      "file": "characters/7.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Ніндзя в темній масці",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-7",
+      "file": "characters/faceset/7.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: ніндзя в темній масці",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-8",
+      "file": "characters/8.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Вартовий у чорній шапці",
+      "width": 64,
+      "height": 32,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 8,
+      "layout": "4 стовпці = напрямки, 2 ряди: стоїть і крок",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-8",
+      "file": "characters/faceset/8.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: вартовий у чорній шапці",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-9",
+      "file": "characters/9.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Дідусь із білою бородою",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-9",
+      "file": "characters/faceset/9.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: дідусь із білою бородою",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-10",
+      "file": "characters/10.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Вусань у пов'язці",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-10",
+      "file": "characters/faceset/10.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: вусань у пов'язці",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-11",
+      "file": "characters/11.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Білий кіт",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-11",
+      "file": "characters/faceset/11.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: білий кіт",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-12",
+      "file": "characters/12.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Кучерявий хлопець",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-12",
+      "file": "characters/faceset/12.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: кучерявий хлопець",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-13",
+      "file": "characters/13.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Детектив у капелюсі",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-13",
+      "file": "characters/faceset/13.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: детектив у капелюсі",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-14",
+      "file": "characters/14.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Ковбой",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-14",
+      "file": "characters/faceset/14.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: ковбой",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-15",
+      "file": "characters/15.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Лицар у сріблястому шоломі",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-15",
+      "file": "characters/faceset/15.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: лицар у сріблястому шоломі",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-16",
+      "file": "characters/16.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Дівчина в червоній шапці",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-16",
+      "file": "characters/faceset/16.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: дівчина в червоній шапці",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-17",
+      "file": "characters/17.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Принцеса з діадемою",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-17",
+      "file": "characters/faceset/17.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: принцеса з діадемою",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-18",
+      "file": "characters/18.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Темний лицар",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-18",
+      "file": "characters/faceset/18.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: темний лицар",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-19",
+      "file": "characters/19.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Ескімос у капюшоні",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-19",
+      "file": "characters/faceset/19.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: ескімос у капюшоні",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-20",
+      "file": "characters/20.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Жовтий робот",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": "robot.png",
+      "href": null
+    },
+    {
+      "id": "faceset-20",
+      "file": "characters/faceset/20.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: жовтий робот",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-21",
+      "file": "characters/21.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Сірий робот",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": "rover.png",
+      "href": null
+    },
+    {
+      "id": "faceset-21",
+      "file": "characters/faceset/21.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: сірий робот",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-22",
+      "file": "characters/22.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Кам'яний велетень",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-22",
+      "file": "characters/faceset/22.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: кам'яний велетень",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-23",
+      "file": "characters/23.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Скелет",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-23",
+      "file": "characters/faceset/23.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: скелет",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-24",
+      "file": "characters/24.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Червоний ніндзя",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-24",
+      "file": "characters/faceset/24.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: червоний ніндзя",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-25",
+      "file": "characters/25.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Хлопець у зеленому",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-25",
+      "file": "characters/faceset/25.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: хлопець у зеленому",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": "Портрет для діалогу, у рамку faceset-box",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "character-dog",
+      "file": "characters/dog.png",
+      "source": "superpowers",
+      "category": "Персонажі",
+      "name": "Песик",
+      "width": 32,
+      "height": 16,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 2,
+      "layout": "2 кадри: сидить і лежить",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-dog",
+      "file": "characters/faceset/dog.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Портрет: песик",
+      "width": 38,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "faceset-all",
+      "file": "characters/faceset/all.png",
+      "source": "superpowers",
+      "category": "Портрети",
+      "name": "Кілька портретів однією смугою",
+      "width": 343,
+      "height": 38,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-1",
+      "file": "monsters/1.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Червоний краб-око",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-2",
+      "file": "monsters/2.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Вогняний дух",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-3",
+      "file": "monsters/3.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Зелений гриб",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-4",
+      "file": "monsters/4.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Зелений гоблін",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-5",
+      "file": "monsters/5.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Пень-мімік",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-6",
+      "file": "monsters/6.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Зелена змія",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-7",
+      "file": "monsters/7.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Привид-крапля",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-8",
+      "file": "monsters/8.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Кам'яний голем",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-9",
+      "file": "monsters/9.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Червоний кажан",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-10",
+      "file": "monsters/10.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Помаранчевий аксолотль",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": "bee.png",
+      "href": null
+    },
+    {
+      "id": "monster-11",
+      "file": "monsters/11.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Брунатний ковтач",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-12",
+      "file": "monsters/12.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Зелений паросток",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-13",
+      "file": "monsters/13.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Сова-воїн",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-14",
+      "file": "monsters/14.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Жаба-велетень",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-15",
+      "file": "monsters/15.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Червоний гриб",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-16",
+      "file": "monsters/16.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Зелений жук",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-17",
+      "file": "monsters/17.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Око-крапля",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-18",
+      "file": "monsters/18.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Слиз",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-19",
+      "file": "monsters/19.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Череп у вогні",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-20",
+      "file": "monsters/20.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Горщик-мімік",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-21",
+      "file": "monsters/21.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Жолудь",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "monster-22",
+      "file": "monsters/22.png",
+      "source": "superpowers",
+      "category": "Монстри",
+      "name": "Риба",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "4 стовпці = напрямки, 4 ряди = кадри руху",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "fx-1",
+      "file": "fx/1.png",
+      "source": "superpowers",
+      "category": "Ефекти",
+      "name": "Біле кільце: хвиля від удару",
+      "width": 160,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 5,
+      "layout": "5 кадрів 32×32 в один ряд; є і fx/1.gif",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "fx-2",
+      "file": "fx/2.png",
+      "source": "superpowers",
+      "category": "Ефекти",
+      "name": "Жовте кільце: хвиля",
+      "width": 160,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 5,
+      "layout": "5 кадрів 32×32 в один ряд; є і fx/2.gif",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "fx-3",
+      "file": "fx/3.png",
+      "source": "superpowers",
+      "category": "Ефекти",
+      "name": "Спалах-зірка з кільцем",
+      "width": 224,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 7,
+      "layout": "7 кадрів 32×32 в один ряд; є і fx/3.gif",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "fx-4",
+      "file": "fx/4.png",
+      "source": "superpowers",
+      "category": "Ефекти",
+      "name": "Мерехтливе кільце",
+      "width": 160,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 5,
+      "layout": "5 кадрів 32×32 в один ряд; є і fx/4.gif",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "fx-5",
+      "file": "fx/5.png",
+      "source": "superpowers",
+      "category": "Ефекти",
+      "name": "Іскра-зірка",
+      "width": 192,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 6,
+      "layout": "6 кадрів 32×32 в один ряд; є і fx/5.gif",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "fx-6",
+      "file": "fx/6.png",
+      "source": "superpowers",
+      "category": "Ефекти",
+      "name": "Косий розріз",
+      "width": 128,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 4,
+      "layout": "4 кадрів 32×32 в один ряд; є і fx/6.gif",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "fx-7",
+      "file": "fx/7.png",
+      "source": "superpowers",
+      "category": "Ефекти",
+      "name": "Розріз хрестом",
+      "width": 128,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 4,
+      "layout": "4 кадрів 32×32 в один ряд; є і fx/7.gif",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "fx-8",
+      "file": "fx/8.png",
+      "source": "superpowers",
+      "category": "Ефекти",
+      "name": "Дуга удару",
+      "width": 160,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 5,
+      "layout": "5 кадрів 32×32 в один ряд; є і fx/8.gif",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "fx-9",
+      "file": "fx/9.png",
+      "source": "superpowers",
+      "category": "Ефекти",
+      "name": "Подвійна дуга удару",
+      "width": 160,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 5,
+      "layout": "5 кадрів 32×32 в один ряд; є і fx/9.gif",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "fx-10",
+      "file": "fx/10.png",
+      "source": "superpowers",
+      "category": "Ефекти",
+      "name": "Удар кігтями",
+      "width": 160,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 5,
+      "layout": "5 кадрів 32×32 в один ряд; є і fx/10.gif",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "fx-11",
+      "file": "fx/11.png",
+      "source": "superpowers",
+      "category": "Ефекти",
+      "name": "Удар кігтями, варіант",
+      "width": 160,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 5,
+      "layout": "5 кадрів 32×32 в один ряд; є і fx/11.gif",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "fx-12",
+      "file": "fx/12.png",
+      "source": "superpowers",
+      "category": "Ефекти",
+      "name": "Вогняний вибух",
+      "width": 160,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 5,
+      "layout": "5 кадрів 32×32 в один ряд; є і fx/12.gif",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "fx-13",
+      "file": "fx/13.png",
+      "source": "superpowers",
+      "category": "Ефекти",
+      "name": "Білий вихор (вітер)",
+      "width": 192,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 6,
+      "layout": "6 кадрів 32×32 в один ряд; є і fx/13.gif",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "fx-14",
+      "file": "fx/14.png",
+      "source": "superpowers",
+      "category": "Ефекти",
+      "name": "Синій вихор (вода)",
+      "width": 192,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 6,
+      "layout": "6 кадрів 32×32 в один ряд; є і fx/14.gif",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "fx-15",
+      "file": "fx/15.png",
+      "source": "superpowers",
+      "category": "Ефекти",
+      "name": "Бризки води",
+      "width": 192,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 6,
+      "layout": "6 кадрів 32×32 в один ряд; є і fx/15.gif",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "fx-16",
+      "file": "fx/16.png",
+      "source": "superpowers",
+      "category": "Ефекти",
+      "name": "Білі кігті",
+      "width": 160,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 5,
+      "layout": "5 кадрів 32×32 в один ряд; є і fx/16.gif",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "fx-17",
+      "file": "fx/17.png",
+      "source": "superpowers",
+      "category": "Ефекти",
+      "name": "Рожеві кігті (магія)",
+      "width": 160,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 5,
+      "layout": "5 кадрів 32×32 в один ряд; є і fx/17.gif",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "fx-18",
+      "file": "fx/18.png",
+      "source": "superpowers",
+      "category": "Ефекти",
+      "name": "Дим і пил",
+      "width": 192,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 6,
+      "layout": "6 кадрів 32×32 в один ряд; є і fx/18.gif",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "fx-19",
+      "file": "fx/19.png",
+      "source": "superpowers",
+      "category": "Ефекти",
+      "name": "Швидкий змах",
+      "width": 192,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 6,
+      "layout": "6 кадрів 32×32 в один ряд; є і fx/19.gif",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "fx-20",
+      "file": "fx/20.png",
+      "source": "superpowers",
+      "category": "Ефекти",
+      "name": "Полум'яна дуга",
+      "width": 160,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 5,
+      "layout": "5 кадрів 32×32 в один ряд; є і fx/20.gif",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-arrow",
+      "file": "items/arrow.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Стріла",
+      "width": 13,
+      "height": 5,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-big-treasure-chest",
+      "file": "items/big-treasure-chest.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Велика скриня",
+      "width": 32,
+      "height": 14,
+      "frame": {
+        "width": 16,
+        "height": 14
+      },
+      "frames": 2,
+      "layout": "2 кадри: закрита і відкрита",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-coin-2",
+      "file": "items/coin-2.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Монета, що обертається",
+      "width": 40,
+      "height": 10,
+      "frame": {
+        "width": 10,
+        "height": 10
+      },
+      "frames": 4,
+      "layout": "4 кадри обертання",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-empty-pot",
+      "file": "items/empty-pot.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Порожня пляшечка",
+      "width": 9,
+      "height": 11,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-fireball",
+      "file": "items/fireball.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Вогняна куля",
+      "width": 13,
+      "height": 9,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-gold-coin",
+      "file": "items/gold-coin.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Золота монета",
+      "width": 7,
+      "height": 7,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-gold-cup",
+      "file": "items/gold-cup.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Золотий кубок",
+      "width": 9,
+      "height": 11,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-gold-key",
+      "file": "items/gold-key.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Золотий ключ",
+      "width": 12,
+      "height": 8,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": "key.png",
+      "href": null
+    },
+    {
+      "id": "item-heart",
+      "file": "items/heart.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Серце",
+      "width": 9,
+      "height": 8,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-ice-spike",
+      "file": "items/ice-spike.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Крижаний шип",
+      "width": 12,
+      "height": 8,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-jar",
+      "file": "items/jar.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Глечик",
+      "width": 32,
+      "height": 16,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 2,
+      "layout": "2 кадри: цілий і розбитий",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-kunai",
+      "file": "items/kunai.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Кунай",
+      "width": 14,
+      "height": 5,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-life-pot",
+      "file": "items/life-pot.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Зілля життя",
+      "width": 9,
+      "height": 11,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-little-treasure-chest",
+      "file": "items/little-treasure-chest.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Мала скриня",
+      "width": 32,
+      "height": 16,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 2,
+      "layout": "2 кадри: закрита і відкрита",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-medipack",
+      "file": "items/medipack.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Аптечка",
+      "width": 10,
+      "height": 10,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-milk-pot",
+      "file": "items/milk-pot.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Пляшечка молока",
+      "width": 9,
+      "height": 11,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-scroll-empty",
+      "file": "items/scroll-empty.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Порожній сувій",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-scroll-fire",
+      "file": "items/scroll-fire.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Сувій вогню",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-scroll-ice",
+      "file": "items/scroll-ice.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Сувій льоду",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-scroll-plant",
+      "file": "items/scroll-plant.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Сувій рослин",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-scroll-rock",
+      "file": "items/scroll-rock.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Сувій каменю",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-scroll-thunder",
+      "file": "items/scroll-thunder.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Сувій грому",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-shuriken",
+      "file": "items/shuriken.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Сюрикен",
+      "width": 13,
+      "height": 13,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-silver-coin",
+      "file": "items/silver-coin.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Срібна монета",
+      "width": 6,
+      "height": 6,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-silver-cup",
+      "file": "items/silver-cup.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Срібний кубок",
+      "width": 9,
+      "height": 11,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-silver-key",
+      "file": "items/silver-key.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Срібний ключ",
+      "width": 12,
+      "height": 8,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "item-water-pot",
+      "file": "items/water-pot.png",
+      "source": "superpowers",
+      "category": "Предмети",
+      "name": "Пляшечка води",
+      "width": 9,
+      "height": 11,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "food-beaf",
+      "file": "items/food/beaf.png",
+      "source": "superpowers",
+      "category": "Їжа",
+      "name": "Яловичина",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "food-calamari",
+      "file": "items/food/calamari.png",
+      "source": "superpowers",
+      "category": "Їжа",
+      "name": "Кальмар",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "food-fish",
+      "file": "items/food/fish.png",
+      "source": "superpowers",
+      "category": "Їжа",
+      "name": "Риба",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": "fish.png",
+      "href": null
+    },
+    {
+      "id": "food-fortune-cookie",
+      "file": "items/food/fortune-cookie.png",
+      "source": "superpowers",
+      "category": "Їжа",
+      "name": "Печиво з передбаченням",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "food-honey",
+      "file": "items/food/honey.png",
+      "source": "superpowers",
+      "category": "Їжа",
+      "name": "Мед",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "food-noodle",
+      "file": "items/food/noodle.png",
+      "source": "superpowers",
+      "category": "Їжа",
+      "name": "Локшина",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "food-octopus",
+      "file": "items/food/octopus.png",
+      "source": "superpowers",
+      "category": "Їжа",
+      "name": "Восьминіг",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "food-onigiri",
+      "file": "items/food/onigiri.png",
+      "source": "superpowers",
+      "category": "Їжа",
+      "name": "Онігірі",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "food-shrimp",
+      "file": "items/food/shrimp.png",
+      "source": "superpowers",
+      "category": "Їжа",
+      "name": "Креветка",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "food-sushi",
+      "file": "items/food/sushi.png",
+      "source": "superpowers",
+      "category": "Їжа",
+      "name": "Суші",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "food-sushi-2",
+      "file": "items/food/sushi-2.png",
+      "source": "superpowers",
+      "category": "Їжа",
+      "name": "Суші 2",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "food-tea-leaf",
+      "file": "items/food/tea-leaf.png",
+      "source": "superpowers",
+      "category": "Їжа",
+      "name": "Чайний лист",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "food-yakitori",
+      "file": "items/food/yakitori.png",
+      "source": "superpowers",
+      "category": "Їжа",
+      "name": "Якіторі",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "food-all",
+      "file": "items/food/all.png",
+      "source": "superpowers",
+      "category": "Їжа",
+      "name": "Уся їжа однією смугою",
+      "width": 286,
+      "height": 22,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "weapon-axe",
+      "file": "weapons/axe.png",
+      "source": "superpowers",
+      "category": "Зброя",
+      "name": "Сокира",
+      "width": 11,
+      "height": 8,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "weapon-bow",
+      "file": "weapons/bow.png",
+      "source": "superpowers",
+      "category": "Зброя",
+      "name": "Лук",
+      "width": 15,
+      "height": 7,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "weapon-fork",
+      "file": "weapons/fork.png",
+      "source": "superpowers",
+      "category": "Зброя",
+      "name": "Вила",
+      "width": 7,
+      "height": 12,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "weapon-hammer",
+      "file": "weapons/hammer.png",
+      "source": "superpowers",
+      "category": "Зброя",
+      "name": "Молот",
+      "width": 9,
+      "height": 9,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "weapon-katana",
+      "file": "weapons/katana.png",
+      "source": "superpowers",
+      "category": "Зброя",
+      "name": "Катана",
+      "width": 6,
+      "height": 10,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "weapon-lance",
+      "file": "weapons/lance.png",
+      "source": "superpowers",
+      "category": "Зброя",
+      "name": "Спис",
+      "width": 6,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "weapon-sai",
+      "file": "weapons/sai.png",
+      "source": "superpowers",
+      "category": "Зброя",
+      "name": "Сай",
+      "width": 7,
+      "height": 8,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "weapon-sword",
+      "file": "weapons/sword.png",
+      "source": "superpowers",
+      "category": "Зброя",
+      "name": "Меч",
+      "width": 6,
+      "height": 11,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "weapon-all",
+      "file": "weapons/all.png",
+      "source": "superpowers",
+      "category": "Зброя",
+      "name": "Уся зброя однією смугою",
+      "width": 187,
+      "height": 27,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "hud-arrow",
+      "file": "hud/arrow.png",
+      "source": "superpowers",
+      "category": "Інтерфейс",
+      "name": "Стрілка вибору в меню",
+      "width": 13,
+      "height": 13,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "hud-dialogue-bubble",
+      "file": "hud/dialogue-bubble.png",
+      "source": "superpowers",
+      "category": "Інтерфейс",
+      "name": "Рамка діалогу",
+      "width": 316,
+      "height": 60,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "hud-faceset-box",
+      "file": "hud/faceset-box.png",
+      "source": "superpowers",
+      "category": "Інтерфейс",
+      "name": "Рамка для портрета",
+      "width": 48,
+      "height": 48,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "hud-heart",
+      "file": "hud/heart.png",
+      "source": "superpowers",
+      "category": "Інтерфейс",
+      "name": "Серце здоров'я: 5 станів від повного до порожнього",
+      "width": 80,
+      "height": 16,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 5,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "hud-kunai",
+      "file": "hud/kunai.png",
+      "source": "superpowers",
+      "category": "Інтерфейс",
+      "name": "Іконка кунаю",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "hud-shuriken",
+      "file": "hud/shuriken.png",
+      "source": "superpowers",
+      "category": "Інтерфейс",
+      "name": "Іконка сюрикена",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "hud-no-button",
+      "file": "hud/no-button.png",
+      "source": "superpowers",
+      "category": "Інтерфейс",
+      "name": "Кнопка «ні»",
+      "width": 26,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "hud-yes-button",
+      "file": "hud/yes-button.png",
+      "source": "superpowers",
+      "category": "Інтерфейс",
+      "name": "Кнопка «так»",
+      "width": 26,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "bg-flag",
+      "file": "background-elements/flag.gif",
+      "source": "superpowers",
+      "category": "Оточення",
+      "name": "Прапорець, що майорить",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 4,
+      "layout": "GIF, 4 кадрів",
+      "inGame": "flag.png",
+      "href": null
+    },
+    {
+      "id": "bg-flower",
+      "file": "background-elements/flower.gif",
+      "source": "superpowers",
+      "category": "Оточення",
+      "name": "Квітка, що гойдається",
+      "width": 10,
+      "height": 8,
+      "frame": null,
+      "frames": 2,
+      "layout": "GIF, 2 кадрів",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "bg-plant",
+      "file": "background-elements/plant.gif",
+      "source": "superpowers",
+      "category": "Оточення",
+      "name": "Рослина, що гойдається",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 4,
+      "layout": "GIF, 4 кадрів",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "bg-waterfall-start",
+      "file": "background-elements/waterfall-start.gif",
+      "source": "superpowers",
+      "category": "Оточення",
+      "name": "Водоспад: верх",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 5,
+      "layout": "GIF, 5 кадрів",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "bg-waterfall-middle",
+      "file": "background-elements/waterfall-middle.gif",
+      "source": "superpowers",
+      "category": "Оточення",
+      "name": "Водоспад: середина",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 5,
+      "layout": "GIF, 5 кадрів",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "bg-waterfall-end",
+      "file": "background-elements/waterfall-end.gif",
+      "source": "superpowers",
+      "category": "Оточення",
+      "name": "Водоспад: низ",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 3,
+      "layout": "GIF, 3 кадрів",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "bg-snow",
+      "file": "background-elements/snow.png",
+      "source": "superpowers",
+      "category": "Оточення",
+      "name": "Сніжинки: накладка на весь екран",
+      "width": 320,
+      "height": 240,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "bg-tileset",
+      "file": "background-elements/tileset.png",
+      "source": "superpowers",
+      "category": "Оточення",
+      "name": "Головний тайлсет світу: 28 × 40 плиток 16×16",
+      "width": 448,
+      "height": 640,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 1,
+      "layout": "Плитки 16×16; назви ділянок — у розділі «Тайлсет»",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "font-font8x8",
+      "file": "font8x8.png",
+      "source": "superpowers",
+      "category": "Шрифти",
+      "name": "Піксельний шрифт 8×8",
+      "width": 120,
+      "height": 64,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "font-font30x30",
+      "file": "font30x30.png",
+      "source": "superpowers",
+      "category": "Шрифти",
+      "name": "Великий шрифт 30×30",
+      "width": 450,
+      "height": 240,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "official-character-ninja_blue-sprite",
+      "file": "content/character/ninja_blue/sprite.png",
+      "source": "pixel-boy",
+      "category": "Персонажі",
+      "name": "Синій ніндзя (наш герой)",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": "ninja.png",
+      "href": null
+    },
+    {
+      "id": "official-character-samurai_blue-sprite",
+      "file": "content/character/samurai_blue/sprite.png",
+      "source": "pixel-boy",
+      "category": "Персонажі",
+      "name": "Синій самурай",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "official-character-samurai_green-samurai_green",
+      "file": "content/character/samurai_green/samurai_green.png",
+      "source": "pixel-boy",
+      "category": "Персонажі",
+      "name": "Зелений самурай",
+      "width": 64,
+      "height": 112,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 28,
+      "layout": "4 стовпці = напрямки (униз, угору, ліворуч, праворуч). Ряди 0–3: ходьба (4 кадри). Ряд 4: атака. Ряд 5: стрибок. Ряд 6: 0 — лежить, 1 — тримає предмет над головою, 2–3 — особливі пози.",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "official-character-pig-pig",
+      "file": "content/character/pig/pig.png",
+      "source": "pixel-boy",
+      "category": "Персонажі",
+      "name": "Порося",
+      "width": 32,
+      "height": 16,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 2,
+      "layout": "2 кадри",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "official-character-Shadow",
+      "file": "content/character/Shadow.png",
+      "source": "pixel-boy",
+      "category": "Персонажі",
+      "name": "Тінь під персонажем",
+      "width": 12,
+      "height": 8,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "official-destroyable-grass",
+      "file": "content/destroyable/grass.png",
+      "source": "pixel-boy",
+      "category": "Оточення",
+      "name": "Трава, яку можна зрізати",
+      "width": 16,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "official-destroyable-crate",
+      "file": "content/destroyable/crate.png",
+      "source": "pixel-boy",
+      "category": "Оточення",
+      "name": "Ящик, який можна розбити",
+      "width": 14,
+      "height": 15,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "official-destroyable-pot",
+      "file": "content/destroyable/pot.png",
+      "source": "pixel-boy",
+      "category": "Оточення",
+      "name": "Горщик, який можна розбити",
+      "width": 14,
+      "height": 16,
+      "frame": null,
+      "frames": 1,
+      "layout": null,
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "official-map-tileset_floor",
+      "file": "content/map/tileset_floor.png",
+      "source": "pixel-boy",
+      "category": "Тайлсети",
+      "name": "Підлога надворі: трава, пісок, дороги",
+      "width": 352,
+      "height": 417,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 572,
+      "layout": "Плитки 16×16",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "official-map-tileset_interior_floor",
+      "file": "content/map/tileset_interior_floor.png",
+      "source": "pixel-boy",
+      "category": "Тайлсети",
+      "name": "Підлога в кімнатах",
+      "width": 352,
+      "height": 272,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 374,
+      "layout": "Плитки 16×16",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "official-map-tileset_village_abandoned",
+      "file": "content/map/tileset_village_abandoned.png",
+      "source": "pixel-boy",
+      "category": "Тайлсети",
+      "name": "Покинуте село: будинки, руїни",
+      "width": 320,
+      "height": 192,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 240,
+      "layout": "Плитки 16×16",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "official-map-tileset_wall_simple",
+      "file": "content/map/tileset_wall_simple.png",
+      "source": "pixel-boy",
+      "category": "Тайлсети",
+      "name": "Прості стіни",
+      "width": 160,
+      "height": 176,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 110,
+      "layout": "Плитки 16×16",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "official-map-tileset_animated",
+      "file": "content/map/tileset_animated.png",
+      "source": "pixel-boy",
+      "category": "Тайлсети",
+      "name": "Анімовані плитки",
+      "width": 64,
+      "height": 64,
+      "frame": {
+        "width": 16,
+        "height": 16
+      },
+      "frames": 16,
+      "layout": "Плитки 16×16",
+      "inGame": null,
+      "href": null
+    },
+    {
+      "id": "rpg-fire",
+      "file": "assets/graphics/Fire.png",
+      "source": "action-rpg-template",
+      "category": "Ефекти",
+      "name": "Вогнище",
+      "width": 96,
+      "height": 12,
+      "frame": {
+        "width": 8,
+        "height": 12
+      },
+      "frames": 12,
+      "layout": "12 кадрів 8×12 в один ряд",
+      "inGame": "fire.png",
+      "href": null
+    },
+    {
+      "id": "rpg-smoke",
+      "file": "assets/graphics/FX/Smoke.png",
+      "source": "action-rpg-template",
+      "category": "Ефекти",
+      "name": "Клуб диму",
+      "width": 192,
+      "height": 32,
+      "frame": {
+        "width": 32,
+        "height": 32
+      },
+      "frames": 6,
+      "layout": "6 кадрів 32×32 в один ряд",
+      "inGame": null,
+      "href": null
+    }
+  ],
+  "tilesetRegions": [
+    {
+      "x": 0,
+      "y": 0,
+      "width": 64,
+      "height": 48,
+      "name": "Будинок помаранчевий (у грі: house.png)",
+      "tiles": "0,0 – 3,2"
+    },
+    {
+      "x": 64,
+      "y": 0,
+      "width": 64,
+      "height": 48,
+      "name": "Будинок світлий",
+      "tiles": "4,0 – 7,2"
+    },
+    {
+      "x": 128,
+      "y": 0,
+      "width": 64,
+      "height": 48,
+      "name": "Будинок помаранчевий 2",
+      "tiles": "8,0 – 11,2"
+    },
+    {
+      "x": 192,
+      "y": 0,
+      "width": 64,
+      "height": 48,
+      "name": "Будинок з червоним дахом",
+      "tiles": "12,0 – 15,2"
+    },
+    {
+      "x": 256,
+      "y": 0,
+      "width": 48,
+      "height": 32,
+      "name": "Солом'яна хатинка (у грі: woodshed.png)",
+      "tiles": "16,0 – 18,1"
+    },
+    {
+      "x": 304,
+      "y": 0,
+      "width": 112,
+      "height": 96,
+      "name": "Дерев'яні паркани й стіни",
+      "tiles": "19,0 – 25,5"
+    },
+    {
+      "x": 416,
+      "y": 0,
+      "width": 32,
+      "height": 96,
+      "name": "Кам'яні статуї",
+      "tiles": "26,0 – 27,5"
+    },
+    {
+      "x": 0,
+      "y": 48,
+      "width": 48,
+      "height": 32,
+      "name": "Брама торії",
+      "tiles": "0,3 – 2,4"
+    },
+    {
+      "x": 0,
+      "y": 80,
+      "width": 256,
+      "height": 64,
+      "name": "Дрібні предмети: горщики, бочки, таблички, ліхтарі",
+      "tiles": "0,5 – 15,8"
+    },
+    {
+      "x": 224,
+      "y": 64,
+      "width": 48,
+      "height": 16,
+      "name": "Вивіска DOJO",
+      "tiles": "14,4 – 16,4"
+    },
+    {
+      "x": 256,
+      "y": 48,
+      "width": 48,
+      "height": 48,
+      "name": "Дерев'яні сходи",
+      "tiles": "16,3 – 18,5"
+    },
+    {
+      "x": 288,
+      "y": 96,
+      "width": 80,
+      "height": 64,
+      "name": "Ставок у піску",
+      "tiles": "18,6 – 22,9"
+    },
+    {
+      "x": 0,
+      "y": 144,
+      "width": 96,
+      "height": 48,
+      "name": "Зелені кущі-дерева",
+      "tiles": "0,9 – 5,11"
+    },
+    {
+      "x": 96,
+      "y": 144,
+      "width": 96,
+      "height": 48,
+      "name": "Ялинки",
+      "tiles": "6,9 – 11,11"
+    },
+    {
+      "x": 192,
+      "y": 144,
+      "width": 96,
+      "height": 48,
+      "name": "Скелі й валуни",
+      "tiles": "12,9 – 17,11"
+    },
+    {
+      "x": 0,
+      "y": 192,
+      "width": 48,
+      "height": 80,
+      "name": "Глиняна скеля",
+      "tiles": "0,12 – 2,16"
+    },
+    {
+      "x": 80,
+      "y": 192,
+      "width": 32,
+      "height": 32,
+      "name": "Лід (блоки)",
+      "tiles": "5,12 – 6,13"
+    },
+    {
+      "x": 112,
+      "y": 192,
+      "width": 32,
+      "height": 32,
+      "name": "Кристали",
+      "tiles": "7,12 – 8,13"
+    },
+    {
+      "x": 176,
+      "y": 192,
+      "width": 112,
+      "height": 48,
+      "name": "Земля з обривом",
+      "tiles": "11,12 – 17,14"
+    },
+    {
+      "x": 176,
+      "y": 240,
+      "width": 112,
+      "height": 48,
+      "name": "Трава з обривом",
+      "tiles": "11,15 – 17,17"
+    },
+    {
+      "x": 288,
+      "y": 176,
+      "width": 160,
+      "height": 112,
+      "name": "Пісок, плитка, грядки",
+      "tiles": "18,11 – 27,17"
+    },
+    {
+      "x": 64,
+      "y": 240,
+      "width": 96,
+      "height": 48,
+      "name": "Рожеві кущі",
+      "tiles": "4,15 – 9,17"
+    },
+    {
+      "x": 0,
+      "y": 288,
+      "width": 96,
+      "height": 48,
+      "name": "Засніжені ялинки",
+      "tiles": "0,18 – 5,20"
+    },
+    {
+      "x": 176,
+      "y": 288,
+      "width": 112,
+      "height": 48,
+      "name": "Сніг з обривом",
+      "tiles": "11,18 – 17,20"
+    },
+    {
+      "x": 288,
+      "y": 288,
+      "width": 160,
+      "height": 48,
+      "name": "Сніг і лід (підлога)",
+      "tiles": "18,18 – 27,20"
+    },
+    {
+      "x": 0,
+      "y": 336,
+      "width": 96,
+      "height": 48,
+      "name": "Засніжені ялинки 2",
+      "tiles": "0,21 – 5,23"
+    },
+    {
+      "x": 192,
+      "y": 336,
+      "width": 144,
+      "height": 48,
+      "name": "Іглу й печера",
+      "tiles": "12,21 – 20,23"
+    },
+    {
+      "x": 336,
+      "y": 336,
+      "width": 112,
+      "height": 48,
+      "name": "Моховий храм (підлога)",
+      "tiles": "21,21 – 27,23"
+    },
+    {
+      "x": 0,
+      "y": 384,
+      "width": 96,
+      "height": 48,
+      "name": "Снігові кучугури",
+      "tiles": "0,24 – 5,26"
+    },
+    {
+      "x": 96,
+      "y": 384,
+      "width": 96,
+      "height": 48,
+      "name": "Засніжені камені й кущі",
+      "tiles": "6,24 – 11,26"
+    },
+    {
+      "x": 192,
+      "y": 384,
+      "width": 112,
+      "height": 80,
+      "name": "Засніжена скеля зі сходами",
+      "tiles": "12,24 – 18,28"
+    },
+    {
+      "x": 336,
+      "y": 384,
+      "width": 112,
+      "height": 80,
+      "name": "Мохові статуї, самоцвіти й кулі",
+      "tiles": "21,24 – 27,28"
+    },
+    {
+      "x": 0,
+      "y": 432,
+      "width": 96,
+      "height": 48,
+      "name": "Сухі дерева",
+      "tiles": "0,27 – 5,29"
+    },
+    {
+      "x": 96,
+      "y": 432,
+      "width": 80,
+      "height": 48,
+      "name": "Залізна огорожа",
+      "tiles": "6,27 – 10,29"
+    },
+    {
+      "x": 0,
+      "y": 480,
+      "width": 448,
+      "height": 112,
+      "name": "Килими й підлога кімнат",
+      "tiles": "0,30 – 27,36"
+    },
+    {
+      "x": 0,
+      "y": 592,
+      "width": 448,
+      "height": 48,
+      "name": "Меблі",
+      "tiles": "0,37 – 27,39"
+    }
+  ]
+}
