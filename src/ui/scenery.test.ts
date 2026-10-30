@@ -9,9 +9,10 @@ const treeCells = (trees: ReadonlyArray<{ x: number; y: number }>) =>
   trees.flatMap(({ x, y }) => [cellKey(x, y), cellKey(x + 1, y), cellKey(x, y + 1), cellKey(x + 1, y + 1)])
 
 describe("buildScenery", () => {
-  test("the map has about twice the cells of the level in each direction", () => {
+  test("the view is a square with the level in its middle and a meadow around it", () => {
     const { view } = buildScenery(world)
-    expect(view).toEqual({ x: -5, y: -3, width: 20, height: 11 })
+    expect(view).toEqual({ x: -2, y: -4, width: 14, height: 14 })
+    expect(buildScenery(parseMap(["#####", "#S.F#", "#####"])).view).toEqual({ x: -2, y: -3, width: 9, height: 9 })
   })
 
   test("every wall cell of the level gets either a tree or one obstacle", () => {

@@ -19,6 +19,21 @@ export const solutions: Readonly<Record<string, ReadonlyArray<Step>>> = {
   "g5-guards": [{ repeat: 9, body: [{ if: "enemyAhead", then: ["attack"], else: ["move"] }] }],
   "g6-nested": [{ repeat: 4, body: [{ repeat: 3, body: ["move"] }, "collect", "turnRight"] }],
   "g6-maze": [{ until: "atFinish", body: [{ if: "wallAhead", then: ["turnLeft"], else: ["move"] }] }],
+  "g3-gate": ["move", "move", "turnLeft", "move", "move"],
+  "g3-logs": ["move", "move", "collect", "move", "move", "move", "turnRight", "move", "move", "collect"],
+  "g3-zigzag": ["move", "turnRight", "move", "turnLeft", "move", "turnRight", "move", "turnLeft", "move", "turnRight", "move", "turnLeft", "move"],
+  "g4-road": [{ repeat: 11, body: ["move"] }],
+  "g4-corner": [{ repeat: 6, body: ["move"] }, "turnRight", { repeat: 4, body: ["move"] }, "collect"],
+  "g4-sled": [{ repeat: 5, body: ["move", "turnRight", "move", "turnLeft"] }, "move"],
+  "g4-fence": [
+    { repeat: 6, body: ["move", { if: "onCrystal", then: ["collect"] }] },
+    "turnRight",
+    { repeat: 4, body: ["move", { if: "onCrystal", then: ["collect"] }] }
+  ],
+  "g5-snake": [{ repeat: 14, body: [{ if: "wallAhead", then: ["turnRight"], else: ["move"] }] }],
+  "g5-bridge": [{ until: "wallAhead", body: ["move"] }, "turnRight", { until: "wallAhead", body: ["move"] }, "collect"],
+  "g5-way-home": [{ until: "atFinish", body: ["move", { if: "onCrystal", then: ["collect"] }] }],
+  "g6-spiral": [{ until: "atFinish", body: [{ if: "wallAhead", then: ["turnRight"], else: ["move"] }] }],
   "g6-bear": [
     { until: "enemyAhead", body: ["move"] },
     { repeat: 3, body: ["attack"] },

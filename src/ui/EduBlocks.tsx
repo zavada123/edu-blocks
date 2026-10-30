@@ -137,6 +137,7 @@ export const EduBlocks = ({
   const vmRef = useRef<VirtualMachine | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const glowRef = useRef<string | null>(null)
+  const { rootRef, full, toggleFull } = useFullScreen()
   // Failed runs of this level since the editor opened: the first try bonus needs none.
   const failedRef = useRef(0)
   useEffect(() => {
@@ -262,7 +263,7 @@ export const EduBlocks = ({
 
   const running = phase.kind === "running"
   return (
-    <div className={large ? "eb-root eb-large" : "eb-root"}>
+    <div ref={rootRef} className={["eb-root", large ? "eb-large" : "", full ? "eb-full" : ""].filter(Boolean).join(" ")}>
       <section className="eb-stage">
         <header className="eb-task">
           {level.title !== "" && <h2>{level.title}</h2>}
@@ -287,12 +288,61 @@ export const EduBlocks = ({
           <button type="button" className="eb-reset" onClick={reset} disabled={phase.kind === "edit"}>
             <span aria-hidden="true">↺</span> Спочатку
           </button>
+          <button
+            type="button"
+            className="eb-fullscreen"
+            onClick={toggleFull}
+            aria-pressed={full}
+            aria-label={full ? "Вийти з повного екрана" : "На весь екран"}
+            title={full ? "Вийти з повного екрана (Esc)" : "На весь екран"}
+          >
+            <span aria-hidden="true">{full ? "⤡" : "⛶"}</span>
+          </button>
         </div>
         {phase.kind === "done" && verdictOpen && <Verdict level={level} result={phase.result} reward={phase.reward} advice={phase.advice} onClose={() => setVerdictOpen(false)} />}
       </section>
       <div className="eb-editor" ref={editorRef} />
     </div>
   )
+}
+
+/**
+ * Full screen for the game. The browser's full screen where it works; elsewhere (an iPhone) the game covers the
+ * page. Esc or the button leaves it.
+ */
+const useFullScreen = () => {
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [full, setFull] = useState(false)
+
+  useEffect(() => {
+    const onChange = () => {
+      if (document.fullscreenElement === null) setFull(false)
+    }
+    document.addEventListener("fullscreenchange", onChange)
+    return () => document.removeEventListener("fullscreenchange", onChange)
+  }, [])
+
+  useEffect(() => {
+    if (!full) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFull(false)
+    }
+    document.addEventListener("keydown", onKey)
+    return () => document.removeEventListener("keydown", onKey)
+  }, [full])
+
+  const toggleFull = useCallback(() => {
+    const root = rootRef.current
+    if (full) {
+      setFull(false)
+      if (document.fullscreenElement !== null) void document.exitFullscreen().catch(() => undefined)
+      return
+    }
+    setFull(true)
+    if (root !== null && typeof root.requestFullscreen === "function") void root.requestFullscreen().catch(() => undefined)
+  }, [full])
+
+  return { rootRef, full, toggleFull }
 }
 
 const CloseButton = ({ onClose }: { readonly onClose: () => void }) => (

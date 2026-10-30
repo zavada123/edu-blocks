@@ -1,7 +1,8 @@
 import type { Level } from "../core/level.ts"
 
 /**
- * Sample levels from grade 3 to grade 6: steps, turns, loops, branches and the loop with a condition.
+ * The course from grade 3 to grade 6, in the order a student plays it: steps and turns, loops, branches, the loop
+ * with a condition, and enemies. Within each grade a new idea comes first, then practice, then a challenge.
  * Together they tell one story, «Зима в селі»: each level gives the hero a reason to go somewhere.
  * The reference solution of each level is in `solutions.ts`.
  */
@@ -37,6 +38,32 @@ export const levels: ReadonlyArray<Level> = [
     scene: { theme: "winter", item: "wood", props: [HOME, { kind: "woodshed", x: 4, y: 2 }] }
   },
   {
+    id: "g3-gate",
+    grade: 3,
+    tier: "practice",
+    title: "Хвіртка",
+    task: ["Надворі вже темніє, пора додому.", "Хата за рогом: дійди до повороту, поверни ліворуч і йди до дверей."],
+    map: ["#####", "###F#", "###.#", "#S..#", "#####"],
+    blocks: ["move", "turnLeft", "turnRight"],
+    goals: [{ type: "finish" }],
+    stars: { three: 5, two: 7 },
+    hint: "Спершу два кроки, потім поворот ліворуч і ще два кроки.",
+    scene: { theme: "winter", finish: "home" }
+  },
+  {
+    id: "g3-logs",
+    grade: 3,
+    tier: "practice",
+    title: "Два поліна",
+    task: ["Вітер розкидав дрова біля дровітні.", "Одне поліно лежить на стежці, друге за рогом. Збери обидва."],
+    map: ["########", "#S.c...#", "######.#", "######c#", "########"],
+    blocks: ["move", "turnLeft", "turnRight", "collect"],
+    goals: [{ type: "crystals" }],
+    stars: { three: 10, two: 13 },
+    hint: "Візьми перше поліно, дійди до кінця стежки, поверни праворуч і йди до другого.",
+    scene: { theme: "winter", item: "wood", props: [HOME, { kind: "woodshed", x: 6, y: -1 }] }
+  },
+  {
     id: "g3-finish",
     grade: 3,
     tier: "practice",
@@ -46,7 +73,34 @@ export const levels: ReadonlyArray<Level> = [
     blocks: ["move", "turnLeft", "turnRight"],
     goals: [{ type: "finish" }],
     stars: { three: 8, two: 10 },
+    hint: "Перед кожним поворотом подумай, куди дивиться ніндзя: праворуч для нього — це його права рука.",
     scene: { theme: "winter", finish: "well", props: [HOME] }
+  },
+  {
+    id: "g3-zigzag",
+    grade: 3,
+    tier: "challenge",
+    title: "Між кучугурами",
+    task: ["Діти кличуть кататися на санчатах.", "Стежка до гірки петляє між кучугурами: то вниз, то вправо. Не загрузни в снігу."],
+    map: ["#######", "#S.####", "##..###", "###..##", "####.F#", "#######"],
+    blocks: ["move", "turnLeft", "turnRight"],
+    goals: [{ type: "finish" }],
+    stars: { three: 13, two: 16 },
+    hint: "Крок, праворуч, крок, ліворуч — і так знову. Помічаєш, що дії повторюються?",
+    scene: { theme: "winter", npcs: [{ who: "girl", x: 6, y: 3 }] }
+  },
+  {
+    id: "g4-road",
+    grade: 4,
+    tier: "intro",
+    title: "Дорога до лісу",
+    task: ["Дідусь чекає в лісі з санями дров.", "Дорога пряма, але довга. Скільки кроків? Поклади «крок уперед» у «повторити»."],
+    map: ["##############", "#S..........F#", "##############"],
+    blocks: ["move", "repeat"],
+    goals: [{ type: "finish" }],
+    stars: { three: 2, two: 4 },
+    hint: "Порахуй клітинки до прапорця і впиши це число в «повторити».",
+    scene: { theme: "winter", npcs: [{ who: "grandpa", x: 12, y: 2 }] }
   },
   {
     id: "g4-repeat",
@@ -62,6 +116,19 @@ export const levels: ReadonlyArray<Level> = [
     scene: { theme: "winter", item: "apple", props: [HOME] }
   },
   {
+    id: "g4-corner",
+    grade: 4,
+    tier: "practice",
+    title: "Хата лісника",
+    task: ["Лісник залишив дрова біля своєї хати.", "Іди вздовж лісу, поверни праворуч і спустись до дров. Тут знадобиться два «повторити»."],
+    map: ["#########", "#S......#", "#######.#", "#######.#", "#######.#", "#######c#", "#########"],
+    blocks: ["move", "turnLeft", "turnRight", "collect", "repeat"],
+    goals: [{ type: "crystals" }],
+    stars: { three: 6, two: 9 },
+    hint: "Один «повторити» для кроків праворуч, поворот, і другий «повторити» для кроків униз.",
+    scene: { theme: "winter", item: "wood", npcs: [{ who: "hunter", x: 6, y: 3 }] }
+  },
+  {
     id: "g4-stairs",
     grade: 4,
     tier: "practice",
@@ -73,6 +140,19 @@ export const levels: ReadonlyArray<Level> = [
     stars: { three: 5, two: 9 },
     hint: "Одна сходинка — це «крок, ліворуч, крок, праворуч». Скільки сходинок?",
     scene: { theme: "winter", finish: "grandma", props: [{ kind: "house", x: 3.5, y: -2 }] }
+  },
+  {
+    id: "g4-sled",
+    grade: 4,
+    tier: "practice",
+    title: "Гірка для санчат",
+    task: ["До великої гірки веде довга стежка між кучугурами.", "Знайди, що повторюється, і зроби програму короткою."],
+    map: ["#########", "#S.######", "##..#####", "###..####", "####..###", "#####..##", "######.F#", "#########"],
+    blocks: ["move", "turnLeft", "turnRight", "repeat"],
+    goals: [{ type: "finish" }],
+    stars: { three: 6, two: 9 },
+    hint: "Одна сходинка — «крок, праворуч, крок, ліворуч». Скільки їх до гірки?",
+    scene: { theme: "winter", npcs: [{ who: "boy", x: 8, y: 5 }] }
   },
   {
     id: "g4-if",
@@ -88,6 +168,19 @@ export const levels: ReadonlyArray<Level> = [
     scene: { theme: "winter", ground: "ice", item: "fish" }
   },
   {
+    id: "g4-fence",
+    grade: 4,
+    tier: "practice",
+    title: "Дрова вздовж паркану",
+    task: ["Дрова попадали з воза вздовж паркану, але не всюди.", "Іди вздовж паркану й бери поліно лише там, де воно є."],
+    map: ["#########", "#S.cc..c#", "#######.#", "#######c#", "#######.#", "#######c#", "#########"],
+    blocks: ["move", "turnLeft", "turnRight", "collect", "repeat", "if", "onCrystal"],
+    goals: [{ type: "crystals" }],
+    stars: { three: 11, two: 15 },
+    hint: "У кожному «повторити»: крок, а потім «якщо тут щось є? то взяти».",
+    scene: { theme: "winter", item: "wood", props: [{ kind: "woodshed", x: 3, y: -1 }] }
+  },
+  {
     id: "g4-until",
     grade: 4,
     tier: "practice",
@@ -99,6 +192,45 @@ export const levels: ReadonlyArray<Level> = [
     stars: { three: 4, two: 6 },
     hint: "Блок «повторити до попереду стіна?» сам зупиниться в кінці мосту.",
     scene: { theme: "winter", ground: "bridge", item: "key" }
+  },
+  {
+    id: "g5-snake",
+    grade: 5,
+    tier: "intro",
+    title: "Навколо ставка",
+    task: ["Лід на ставку тонкий, тож додому треба йти бережком.", "Повторюй: якщо попереду стіна — поверни праворуч, інакше зроби крок."],
+    map: ["########", "#S.....#", "######.#", "#F.....#", "########"],
+    blocks: ["move", "turnLeft", "turnRight", "repeat", "ifElse", "wallAhead"],
+    goals: [{ type: "finish" }],
+    stars: { three: 5, two: 8 },
+    hint: "Блок «якщо… то… інакше» сам вирішує, що робити: повернути чи йти. Залишилось порахувати, скільки разів повторити.",
+    scene: { theme: "winter", finish: "home" }
+  },
+  {
+    id: "g5-bridge",
+    grade: 5,
+    tier: "practice",
+    title: "Міст із поворотом",
+    task: ["Другий ключ від комори лежить за мостом, що повертає.", "Іди, доки попереду не стіна, поверни — і знову іди до кінця."],
+    map: ["##########", "#S.......#", "########.#", "########.#", "########c#", "##########"],
+    blocks: ["move", "turnLeft", "turnRight", "collect", "repeatUntil", "wallAhead"],
+    goals: [{ type: "crystals" }],
+    stars: { three: 8, two: 11 },
+    hint: "Два блоки «повторити до попереду стіна?», а між ними поворот праворуч.",
+    scene: { theme: "winter", ground: "bridge", item: "key" }
+  },
+  {
+    id: "g5-way-home",
+    grade: 5,
+    tier: "practice",
+    title: "Дрова на дорозі додому",
+    task: ["Віз розгубив дрова по дорозі додому.", "Іди, доки не дійдеш до хати, і підбирай дрова там, де вони лежать."],
+    map: ["#############", "#S.c..c.c..F#", "#############"],
+    blocks: ["move", "collect", "repeatUntil", "atFinish", "if", "onCrystal"],
+    goals: [{ type: "crystals" }, { type: "finish" }],
+    stars: { three: 6, two: 9 },
+    hint: "«Повторити до на меті?», а всередині: крок і «якщо тут щось є? то взяти».",
+    scene: { theme: "winter", item: "wood", finish: "home" }
   },
   {
     id: "g5-spirit",
@@ -164,6 +296,19 @@ export const levels: ReadonlyArray<Level> = [
     stars: { three: 5, two: 9 },
     hint: "Одна сторона двору — це три кроки, «взяти» і поворот. Повтори сторону кілька разів.",
     scene: { theme: "winter", item: "campfire", props: [HOME] }
+  },
+  {
+    id: "g6-spiral",
+    grade: 6,
+    tier: "practice",
+    title: "Сніжний равлик",
+    task: ["Діти протоптали в снігу стежку-равлика, а в її серці сховали прапорець.", "Стежка закручується праворуч. Склади правило, яке приведе до центру."],
+    map: ["#########", "#S......#", "#######.#", "#.....#.#", "#.###.#.#", "#.#F..#.#", "#.#####.#", "#.......#", "#########"],
+    blocks: ["move", "turnLeft", "turnRight", "repeatUntil", "atFinish", "ifElse", "wallAhead", "not"],
+    goals: [{ type: "finish" }],
+    stars: { three: 6, two: 9 },
+    hint: "Повторюй, доки не на меті: якщо попереду стіна — праворуч, інакше крок.",
+    scene: { theme: "winter" }
   },
   {
     id: "g6-maze",
