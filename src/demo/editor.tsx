@@ -2,13 +2,13 @@ import { StrictMode, useEffect, useMemo, useRef, useState } from "react"
 import { createRoot } from "react-dom/client"
 import { HERO_BLOCKS } from "../core/blocks.ts"
 import { checkLevel, emptyMap, levelSource, MAP_LIMITS, type MapTile, plainRoute, resizeMap, setTile } from "../core/kit.ts"
-import type { BlockName, FinishKind, Goal, ItemKind, Level, PropKind, Scene } from "../core/level.ts"
+import type { BlockName, FinishKind, Goal, ItemKind, Level, NpcKind, PropKind, Scene } from "../core/level.ts"
 import { parseMap, type Direction } from "../core/world.ts"
 import type { Tier } from "../core/xp.ts"
 import { levels } from "../levels/index.ts"
 import { type BlocksReport, EduBlocks } from "../ui/EduBlocks.tsx"
 import { Field } from "../ui/Field.tsx"
-import { ITEM_TILES, PROPS } from "../ui/look.ts"
+import { ITEM_TILES, NPCS, PROPS } from "../ui/look.ts"
 import { buildScenery } from "../ui/scenery.ts"
 import bushTile from "../ui/sprites/bush.png"
 import flagStrip from "../ui/sprites/flag.png"
@@ -24,7 +24,7 @@ import "./editor.css"
 
 const STORE = "eb-editor-level"
 
-type Tool = MapTile | PropKind | "clearProps"
+type Tool = MapTile | PropKind | "npc"
 
 const TILE_TOOLS: ReadonlyArray<{ readonly tool: MapTile; readonly name: string }> = [
   { tool: "floor", name: "Стежка" },
@@ -37,6 +37,15 @@ const TILE_TOOLS: ReadonlyArray<{ readonly tool: MapTile; readonly name: string 
 const PROP_TOOLS: ReadonlyArray<{ readonly tool: PropKind; readonly name: string }> = [
   { tool: "house", name: "Хата" },
   { tool: "woodshed", name: "Дровітня" }
+]
+
+const PEOPLE: ReadonlyArray<{ readonly id: NpcKind; readonly name: string }> = [
+  { id: "grandpa", name: "Дід" },
+  { id: "boy", name: "Хлопчик" },
+  { id: "girl", name: "Дівчинка" },
+  { id: "kid", name: "Малий у шубі" },
+  { id: "villager", name: "Сусід" },
+  { id: "hunter", name: "Мисливець" }
 ]
 
 const OTHER_BLOCKS: ReadonlyArray<{ readonly name: BlockName; readonly text: string }> = [
@@ -107,7 +116,11 @@ const tidy = (level: Level): Level => {
   return hint === undefined || hint.trim() === "" ? rest : level
 }
 
-const Icon = ({ tool, item }: { readonly tool: Tool; readonly item: ItemKind }) => {
+const Icon = ({ tool, item, who }: { readonly tool: Tool; readonly item: ItemKind; readonly who: NpcKind }) => {
+  if (tool === "npc")
+    return (
+      <span className="ed-icon ed-icon-sheet" style={{ backgroundImage: `url(${NPCS[who]})`, backgroundSize: "96px 168px" }} />
+    )
   // Sheets show one 16×16 frame at 24 px: the hero looking down, the flag, the middle of the path.
   if (tool === "start")
     return (
@@ -155,7 +168,7 @@ const MapCanvas = ({
     window.addEventListener("pointerup", stop)
     return () => window.removeEventListener("pointerup", stop)
   }, [])
-  const dragPaints = tool !== "house" && tool !== "woodshed" && tool !== "start" && tool !== "finish"
+  const dragPaints = tool !== "house" && tool !== "woodshed" && tool !== "start" && tool !== "finish" && tool !== "npc"
   return (
     <div className="ed-map" style={{ aspectRatio: `${view.width} / ${view.height}` }}>
       <Field world={world} skin="ninja" scene={level.scene} />
@@ -278,6 +291,7 @@ const Export = ({ level, onImport }: { readonly level: Level; readonly onImport:
 const Editor = () => {
   const [level, setLevel] = useState<Level>(load)
   const [tool, setTool] = useState<Tool>("floor")
+  const [who, setWho] = useState<NpcKind>("grandpa")
   const [playing, setPlaying] = useState(false)
   const [lastRun, setLastRun] = useState<BlocksReport | null>(null)
   const scene: Scene = level.scene ?? {}
@@ -304,7 +318,15 @@ const Editor = () => {
       setLevel((l) => ({ ...l, scene: { ...l.scene, props: [...(l.scene?.props ?? []), prop] } }))
       return
     }
-    if (tool === "clearProps") return
+    if (tool === "npc") {
+      // A second click on a villager takes them away.
+      setLevel((l) => {
+        const npcs = l.scene?.npcs ?? []
+        const here = npcs.some((n) => n.x === x && n.y === y)
+        return { ...l, scene: { ...l.scene, npcs: here ? npcs.filter((n) => n.x !== x || n.y !== y) : [...npcs, { who, x, y }] } }
+      })
+      return
+    }
     setLevel((l) => ({ ...l, map: setTile(l.map, x, y, tool) }))
   }
 
@@ -381,18 +403,39 @@ const Editor = () => {
                   onClick={() => setTool(t.tool)}
                   aria-pressed={tool === t.tool}
                 >
-                  <Icon tool={t.tool} item={scene.item ?? "crystal"} />
+                  <Icon tool={t.tool} item={scene.item ?? "crystal"} who={who} />
                   {t.name}
                 </button>
               ))}
-              <button type="button" className="ed-tool" onClick={() => updateScene({ props: [] })}>
-                Прибрати будинки
+              <span className={tool === "npc" ? "ed-tool ed-tool-on" : "ed-tool"}>
+                <button type="button" className="ed-tool-plain" onClick={() => setTool("npc")} aria-pressed={tool === "npc"}>
+                  <Icon tool="npc" item={scene.item ?? "crystal"} who={who} />
+                  Людина
+                </button>
+                <select
+                  aria-label="Хто"
+                  value={who}
+                  onChange={(e) => {
+                    const found = PEOPLE.find((p) => p.id === e.target.value)
+                    if (found !== undefined) setWho(found.id)
+                    setTool("npc")
+                  }}
+                >
+                  {PEOPLE.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </span>
+              <button type="button" className="ed-tool" onClick={() => updateScene({ props: [], npcs: [] })}>
+                Прибрати будинки й людей
               </button>
             </div>
             <MapCanvas level={level} tool={tool} onPaint={paint} />
             <p className="ed-note">
               Клацни або веди мишею по клітинках. Стіни стають деревами й кущами, луг навколо малюється сам. Хату ставлять дверима
-              на клітинку, по якій клацнули.
+              на клітинку, по якій клацнули. Людей краще ставити на стіну біля стежки, другий клік прибирає людину.
             </p>
             <Issues level={level} />
           </section>

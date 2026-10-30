@@ -45,6 +45,23 @@
   cursor: pointer;
 }
 
+.ed-tool-plain {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.ed-tool select {
+  font: inherit;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+}
+
 .ed-tool-on {
   border-color: #0f766e;
   background: #ccfbf1;

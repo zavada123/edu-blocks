@@ -54,6 +54,13 @@ describe("level kit", () => {
     expect(texts({ ...base, map: ["#####", "#..c#", "#####"] })).toEqual(["На мапі немає старту S"])
   })
 
+  test("warns about a villager on the path", () => {
+    expect(checkLevel({ ...base, scene: { npcs: [{ who: "boy", x: 2, y: 1 }] } }).map((i) => i.text)).toEqual([
+      "Людина стоїть на стежці: герой пройде крізь неї. Краще постав її на стіну поруч"
+    ])
+    expect(checkLevel({ ...base, scene: { npcs: [{ who: "boy", x: 2, y: 2 }] } })).toEqual([])
+  })
+
   test("every library level passes the check", () => {
     for (const level of levels) expect(checkLevel(level).filter((i) => i.level === "error")).toEqual([])
   })

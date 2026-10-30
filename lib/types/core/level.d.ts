@@ -20,6 +20,14 @@ export interface Prop {
     readonly x: number;
     readonly y: number;
 }
+/** Villagers from the pack. They only stand and look around: the hero walks past them, they never block. */
+export type NpcKind = "grandpa" | "boy" | "girl" | "villager" | "hunter" | "kid";
+export interface Npc {
+    readonly who: NpcKind;
+    /** The cell the villager stands on. Best on a wall or meadow cell, so the hero does not walk through them. */
+    readonly x: number;
+    readonly y: number;
+}
 /** How the level looks: the season, the floor, the things on the map. The rules of the game stay the same. */
 export interface Scene {
     readonly theme?: "summer" | "winter";
@@ -28,6 +36,7 @@ export interface Scene {
     readonly item?: ItemKind;
     readonly finish?: FinishKind;
     readonly props?: ReadonlyArray<Prop>;
+    readonly npcs?: ReadonlyArray<Npc>;
 }
 export interface Level {
     readonly id: string;

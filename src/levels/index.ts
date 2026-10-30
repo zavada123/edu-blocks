@@ -21,7 +21,7 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }],
     stars: { three: 5, two: 7 },
     hint: "Порахуй клітинки до дров: стільки разів потрібен блок «крок уперед».",
-    scene: { theme: "winter", item: "wood", props: [HOME, { kind: "woodshed", x: 4, y: -1 }] }
+    scene: { theme: "winter", item: "wood", props: [HOME, { kind: "woodshed", x: 4, y: -1 }], npcs: [{ who: "kid", x: 3, y: 2 }] }
   },
   {
     id: "g3-turn",

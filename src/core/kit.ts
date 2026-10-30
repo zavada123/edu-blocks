@@ -124,6 +124,8 @@ export const checkLevel = (level: Level): ReadonlyArray<Issue> => {
   if (!wants("crystals") && world.totalCrystals > 0) warning("На мапі є предмети, але мета їх не просить")
   if (!wants("finish") && world.finish !== null) warning("На мапі є F, але мета не просить до неї дійти")
 
+  const onPath = (level.scene?.npcs ?? []).filter((n) => !world.walls.has(cellKey(n.x, n.y)) && n.x >= 0 && n.y >= 0 && n.x < world.width && n.y < world.height)
+  if (onPath.length > 0) warning("Людина стоїть на стежці: герой пройде крізь неї. Краще постав її на стіну поруч")
   if (level.stars !== undefined && level.stars.two < level.stars.three)
     error("Для двох зірок блоків має бути не менше, ніж для трьох")
   if (level.stars === undefined) warning("Без меж для зірок будь-який розв'язок отримає три зірки")

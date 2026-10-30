@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react"
-import type { Prop, Scene } from "../core/level.ts"
+import type { Npc, Prop, Scene } from "../core/level.ts"
 import { cellKey, type Direction, type World } from "../core/world.ts"
-import { FLOORS, ITEM_TILES, PROPS, propCells, seasonOf, type Swaying, waterTile } from "./look.ts"
+import { FLOORS, ITEM_TILES, NPCS, PROPS, propCells, seasonOf, type Swaying, waterTile } from "./look.ts"
 import { buildScenery, cellHash } from "./scenery.ts"
 import { meadowTile, PATH_SHEET_COLUMNS, pathPiece } from "./terrain.ts"
 import beeSheet from "./sprites/bee.png"
@@ -30,6 +30,7 @@ const SHEETS: Readonly<Record<Skin, { readonly href: string; readonly height: nu
 const COLUMN: Readonly<Record<Direction, number>> = { down: 0, up: 1, left: 2, right: 3 }
 
 const PATH_SHEET_ROWS = 6
+const NPC_SHEET_HEIGHT = 112
 const SEAM = 0.15
 const MEADOW_TILES = 7
 /** The snowfall picture (320×240) drawn at half size, so the flakes match the 16-pixel tiles. */
@@ -166,6 +167,33 @@ const useAllItems = (world: World): ReadonlySet<string> => {
 }
 
 const NO_PROPS: ReadonlyArray<Prop> = []
+const NO_NPCS: ReadonlyArray<Npc> = []
+
+/** A villager looking down and shifting from foot to foot, each at their own pace. */
+const Villager = ({ npc, still }: { readonly npc: Npc; readonly still: boolean }) => {
+  const look = (
+    <svg x={-CELL / 2} y={-CELL / 2} width={CELL} height={CELL} viewBox={`0 0 ${CELL} ${CELL}`}>
+      <image href={NPCS[npc.who]} width={CELL * 4} height={NPC_SHEET_HEIGHT}>
+        {!still && (
+          <animate
+            attributeName="y"
+            values={`0;0;0;${-CELL};0;0;${-2 * CELL};0`}
+            dur="2.4s"
+            calcMode="discrete"
+            repeatCount="indefinite"
+            begin={`-${(cellHash(npc.x, npc.y, 11) % 8) * 0.3}s`}
+          />
+        )}
+      </image>
+    </svg>
+  )
+  return (
+    <>
+      <ellipse cx={0} cy={7} rx={5} ry={1.5} className="eb-hero-shadow" />
+      {look}
+    </>
+  )
+}
 
 const at = (key: string) => {
   const [x, y] = key.split(",").map(Number)
@@ -184,10 +212,15 @@ export const Field = ({ world, skin, scene = {} }: { readonly world: World; read
   const ground = scene.ground ?? "path"
   const item = scene.item ?? "crystal"
   const props = scene.props ?? NO_PROPS
+  const npcs = scene.npcs ?? NO_NPCS
   const { width, height, walls, finish } = world
   const scenery = useMemo(
-    () => buildScenery({ width, height, walls, finish }, { reserved: propCells(props), bareWalls: ground === "bridge" }),
-    [width, height, walls, finish, props, ground]
+    () => {
+      const reserved = new Set(propCells(props))
+      for (const n of npcs) reserved.add(cellKey(n.x, n.y))
+      return buildScenery({ width, height, walls, finish }, { reserved, bareWalls: ground === "bridge" })
+    },
+    [width, height, walls, finish, props, npcs, ground]
   )
   const center = (x: number, y: number) => `translate(${x * CELL + CELL / 2} ${y * CELL + CELL / 2})`
   const { view } = scenery
@@ -290,6 +323,11 @@ export const Field = ({ world, skin, scene = {} }: { readonly world: World; read
           />
         )
       })}
+      {npcs.map((n) => (
+        <g key={`n${n.who}${n.x},${n.y}`} transform={center(n.x, n.y)}>
+          <Villager npc={n} still={still} />
+        </g>
+      ))}
       {finish !== null && (
         <g transform={center(finish.x, finish.y)}>
           <Finish kind={scene.finish ?? "flag"} />

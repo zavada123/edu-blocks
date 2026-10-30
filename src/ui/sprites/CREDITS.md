@@ -51,3 +51,4 @@
 | `bloom-white.png` | `tileset_animated.png` (офіційний проєкт Godot), 4 кадри |
 | `bloom-orange.png` | `background-elements/plant.gif`, 4 кадри в ряд |
 | `snowfall.png` | `background-elements/snow.png` |
+| `npc-grandpa.png`, `npc-boy.png`, `npc-girl.png`, `npc-villager.png`, `npc-hunter.png`, `npc-kid.png` | `characters/9.png`, `6.png`, `17.png`, `25.png`, `14.png`, `19.png` |
