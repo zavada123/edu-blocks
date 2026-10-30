@@ -1,38 +1,26 @@
 import { describe, expect, test } from "vitest"
 import { levels } from "../levels/index.ts"
-import type { Level } from "./level.ts"
 import { heroLevelOf, maxXp, xpFor, xpGain } from "./xp.ts"
-
-const level = (tier: Level["tier"]): Level => ({
-  id: "t",
-  grade: 4,
-  title: "",
-  task: [],
-  map: ["#S.F#"],
-  blocks: ["move"],
-  goals: [{ type: "finish" }],
-  ...(tier === undefined ? {} : { tier })
-})
 
 describe("xpFor", () => {
   test("gives nothing for a failed run", () => {
-    expect(xpFor(level("challenge"), { stars: 0, firstTry: true })).toBe(0)
+    expect(xpFor("challenge", { stars: 0, firstTry: true })).toBe(0)
   })
 
   test("gives the most for three stars at the first try", () => {
-    expect(xpFor(level("intro"), { stars: 3, firstTry: true })).toBe(35)
-    expect(xpFor(level("challenge"), { stars: 3, firstTry: true })).toBe(maxXp(level("challenge")))
-    expect(maxXp(level("challenge"))).toBe(60)
+    expect(xpFor("intro", { stars: 3, firstTry: true })).toBe(35)
+    expect(xpFor("challenge", { stars: 3, firstTry: true })).toBe(maxXp("challenge"))
+    expect(maxXp("challenge")).toBe(60)
   })
 
   test("gives more for more stars, for the first try and for a harder tier", () => {
-    expect(xpFor(level("practice"), { stars: 1, firstTry: false })).toBe(25)
-    expect(xpFor(level("practice"), { stars: 2, firstTry: false })).toBe(30)
-    expect(xpFor(level("practice"), { stars: 2, firstTry: true })).toBe(40)
+    expect(xpFor("practice", { stars: 1, firstTry: false })).toBe(25)
+    expect(xpFor("practice", { stars: 2, firstTry: false })).toBe(30)
+    expect(xpFor("practice", { stars: 2, firstTry: true })).toBe(40)
   })
 
-  test("treats a level without a tier as an intro level", () => {
-    expect(xpFor(level(undefined), { stars: 3, firstTry: false })).toBe(25)
+  test("counts at most three stars", () => {
+    expect(xpFor("intro", { stars: 7, firstTry: false })).toBe(25)
   })
 })
 

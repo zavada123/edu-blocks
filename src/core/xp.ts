@@ -1,5 +1,3 @@
-import type { Level } from "./level.ts"
-
 /** How hard a level is in its chapter: a new idea, the same idea in another form, or a level to think over. */
 export type Tier = "intro" | "practice" | "challenge"
 
@@ -11,11 +9,11 @@ export const STAR_XP = 5
 export const FIRST_TRY_XP = 10
 
 /** The most XP a level gives: three stars at the first try. */
-export const maxXp = (level: Level): number => TIER_XP[level.tier ?? "intro"] + 3 * STAR_XP + FIRST_TRY_XP
+export const maxXp = (tier: Tier): number => TIER_XP[tier] + 3 * STAR_XP + FIRST_TRY_XP
 
-/** XP of one run. A failed run gives none. */
-export const xpFor = (level: Level, run: { readonly stars: 0 | 1 | 2 | 3; readonly firstTry: boolean }): number =>
-  run.stars === 0 ? 0 : TIER_XP[level.tier ?? "intro"] + run.stars * STAR_XP + (run.firstTry ? FIRST_TRY_XP : 0)
+/** XP of one run of a level of this tier (`level.tier ?? "intro"`). A failed run gives none. */
+export const xpFor = (tier: Tier, run: { readonly stars: number; readonly firstTry: boolean }): number =>
+  run.stars <= 0 ? 0 : TIER_XP[tier] + Math.min(run.stars, 3) * STAR_XP + (run.firstTry ? FIRST_TRY_XP : 0)
 
 /** XP a run adds to the hero: only the part above the best earlier run of the level, so replays give nothing to farm. */
 export const xpGain = (xp: number, bestBefore: number): number => Math.max(0, xp - bestBefore)

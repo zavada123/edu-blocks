@@ -124,7 +124,7 @@ XP uses the same pure functions on both sides. Count `firstTry` from your own re
 ```ts
 import { heroLevelOf, xpFor, xpGain } from "edu-blocks/core"
 
-const xp = xpFor(level, { stars: result.stars, firstTry })  // tier XP + 5 per star + 10 for the first try
+const xp = xpFor(level.tier ?? "intro", { stars: result.stars, firstTry })  // tier XP + 5 per star + 10 for the first try
 const gain = xpGain(xp, bestXpOfThisLevel)                 // only the part above the best earlier run
 heroLevelOf(totalXp)                                        // { level, from, next }
 ```

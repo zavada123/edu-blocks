@@ -229,7 +229,7 @@ export const EduBlocks = ({
     const result = judgeProgram(level, prog)
     const firstTry = failedRef.current === 0
     if (!result.passed) failedRef.current += 1
-    const runXp = xpFor(level, { stars: result.stars, firstTry })
+    const runXp = xpFor(level.tier ?? "intro", { stars: result.stars, firstTry })
     const gain = xpGain(runXp, xp?.best ?? 0)
     const reward: Reward = { gain, firstTry, total: xp === undefined ? null : xp.total + gain }
     const finish = () => {
