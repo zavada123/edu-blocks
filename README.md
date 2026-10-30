@@ -1,52 +1,93 @@
-# edu-blocks — програмуємо з роботом
+<h1 align="center">edu-blocks</h1>
 
-Ігровий тренажер блокового програмування для 3–6 класу. Учень складає програму з блоків, як у Scratch 3, і веде робота лабіринтом: збирає кристали, доходить до прапорця. За рівень дає від 1 до 3 зірок: чим коротша програма, тим більше зірок. Працює в браузері на комп'ютері, планшеті й телефоні.
+<p align="center">
+  <b>A game-based block programming trainer for grades 3–6, with Scratch 3-style blocks.</b><br>
+  Students program a ninja through a winter village, carry firewood, catch fish and earn stars. Programs are graded by a small deterministic interpreter that also runs on the server.
+</p>
 
-**Демо:** https://zavada123.github.io/edu-blocks/ (кристали за зірки й маленький магазин героїв у демо — для прикладу, у EduProstir їх рахує сервер).
+<p align="center">
+  <a href="https://github.com/zavada123/edu-blocks/actions/workflows/pages.yml"><img alt="Build and deploy" src="https://github.com/zavada123/edu-blocks/actions/workflows/pages.yml/badge.svg?branch=main"></a>
+  <a href="https://zavada123.github.io/edu-blocks/"><img alt="Live demo" src="https://img.shields.io/badge/demo-live-2ea44f?logo=githubpages&logoColor=white"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white">
+  <img alt="React 19" src="https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=black">
+</p>
 
-## Що вміє
+<p align="center">
+  <a href="https://zavada123.github.io/edu-blocks/"><b>Live demo</b></a> ·
+  <a href="https://github.com/zavada123/edu-blocks/actions/workflows/pages.yml"><b>CI &amp; deploys</b></a> ·
+  <a href="#installation">Installation</a> ·
+  <a href="#usage">Usage</a> ·
+  <a href="#api">API</a>
+</p>
 
-- Блоки виглядають і називаються так само, як в українському Scratch 3: «повторити», «якщо … то», «інакше», «повторити до», «не», «коли прапорець натиснуто». Діти потім легко перейдуть до справжнього Scratch.
-- Блоки робота: «крок уперед», «поворот ліворуч», «поворот праворуч», «зібрати кристал» і питання «попереду стіна?», «тут кристал?», «на прапорці?».
-- Кожен рівень відкриває лише свої блоки.
-- Редактор тримає програму в рушії Scratch (TurboWarp VM), а перевіряє її невеликий інтерпретатор, що виконує цикли й розгалуження в тому самому порядку, що й Scratch.
-- Під час запуску робот рухається покроково, а блок, який зараз виконується, світиться.
-- Після запуску тренажер каже, що не так: робот врізався в стіну, програма закінчилась раніше, цикл ніколи не закінчується. Є підказка рівня.
-- На телефоні поле зверху, блоки знизу, палітра без стовпчика категорій. Блоки перетягують пальцем.
-- Великий режим для 3 класу.
-- Чотири вигляди героя (`skin`): ніндзя (типово), робот, ровер, бджілка. Продає й вибирає їх застосунок.
+<p align="center">
+  <a href="https://zavada123.github.io/edu-blocks/"><img src="docs/screenshot.png" alt="edu-blocks: a pixel-art winter village with a ninja next to a Scratch-style block program" width="800"></a>
+</p>
 
-## Як описати рівень
+## Why
 
-Рівень — це об'єкт `Level` (`src/levels`): мапа, які блоки доступні та що треба зробити. Програмувати не треба.
+Young students meet programming through Scratch, but a free-form Scratch project is hard to grade. `edu-blocks` keeps the exact look and wording of Ukrainian Scratch 3 blocks and wraps them in short levels with a clear goal and a reason for it: the stove went out, so fetch the firewood; the tea needs water, so walk to the well. A level gives 1–3 stars, and shorter programs earn more. The same check runs in the browser and on your server, so the student always sees the grade the server will give.
+
+The student-facing interface is in Ukrainian. It was built for [EduProstir](https://eduprostir.com), a Ukrainian learning platform. The demo's crystal rewards and small hero shop are only an example: in EduProstir the server awards them.
+
+## Features
+
+- **Real Scratch 3 blocks:** the same shapes and the same Ukrainian names ("повторити", "якщо … то", "інакше", "повторити до", "не", "коли прапорець натиснуто"), so students move to real Scratch easily.
+- **Hero blocks:** "step forward", "turn left", "turn right", "take", and the sensing questions "wall ahead?", "anything here?", "reached the goal?".
+- **One concept per level:** every level unlocks only its own blocks.
+- **Animated runs:** the hero walks step by step and the running block is highlighted.
+- **Story scenes** (`scene`): summer or winter, a path, pond ice or a bridge, items (crystals, firewood, apples, fish, a key, campfires that light up), a goal (flag, well, grandma, home) and houses around. Pixel art from Ninja Adventure.
+- **A meadow around every level** doubles the cells on the map; it is scenery only.
+- **Clear feedback:** the hero hit an obstacle, the program ended too early, the loop never ends. Each level has a hint.
+- **Mobile-first layout:** field on top, blocks below, a palette without the category column, drag blocks with a finger.
+- **Large mode** for grade 3.
+- **Four hero skins** (`skin`): ninja (default), robot, rover and bee. Your app decides how they are sold or unlocked.
+- **Deterministic grading:** an interpreter that follows Scratch 3's execution order, tested against the TurboWarp VM on hundreds of random programs.
+
+## Installation
+
+Install straight from GitHub and pin a commit. The built package is committed in `lib/`, so nothing is compiled on install.
+
+```bash
+npm install github:zavada123/edu-blocks#<commit>
+```
+
+`edu-blocks/react` already bundles the Scratch VM and the block editor, so your bundler needs no extra configuration. Peer dependencies: `react` and `react-dom` 19 or newer.
+
+Block icons live in `edu-blocks/blocks-media/`. Copy them to your site's public folder and pass that path as `media`.
+
+## Usage
+
+### Describe a level
+
+A level is a `Level`: the map, the available blocks and the goal. No code is needed.
 
 ```ts
+import type { Level } from "edu-blocks/core"
+
 const level: Level = {
   id: "g4-repeat",
   grade: 4,
   title: "Повторення",
   task: ["Збери всі п'ять кристалів.", "Спробуй блок «повторити»: так програма буде коротшою."],
-  // # стіна, . підлога, S старт, c кристал, F прапорець. Робот на старті дивиться праворуч (dir змінює це).
+  // # wall, . floor, S start, c crystal, F flag. The hero starts facing right (dir changes that).
   map: ["#############", "#S.c.c.c.c.c#", "#############"],
   blocks: ["move", "collect", "repeat"],
   goals: [{ type: "crystals" }],
-  // Найбільше блоків для трьох і для двох зірок. Блок «коли прапорець натиснуто» не рахується.
+  // Most blocks allowed for three and for two stars. The "when flag clicked" hat is not counted.
   stars: { three: 4, two: 10 },
   hint: "Знайди дії, які повторюються: «крок, крок, зібрати». Поклади їх у «повторити»."
 }
 ```
 
-Цілі (`goals`): `crystals` — зібрати всі кристали, `finish` — стояти на прапорці. Блоки (`blocks`): `move`, `turnLeft`, `turnRight`, `collect`, `wallAhead`, `onCrystal`, `atFinish`, `repeat`, `forever`, `repeatUntil`, `if`, `ifElse`, `not`, `and`, `or`.
+- **Goals** (`goals`): `crystals` (take every item on a `c` cell), `finish` (stand on the `F` cell).
+- **Scene** (`scene`, optional): `theme` (`summer`, `winter`), `ground` (`path`, `ice`, `bridge`), `item` (`crystal`, `wood`, `apple`, `fish`, `key`, `campfire`), `finish` (`flag`, `well`, `grandma`, `home`) and `props` (`house`, `woodshed` with `x`, `y` in cells). It changes only the looks and the goal text, never the rules.
+- **Blocks** (`blocks`): `move`, `turnLeft`, `turnRight`, `collect`, `wallAhead`, `onCrystal`, `atFinish`, `repeat`, `forever`, `repeatUntil`, `if`, `ifElse`, `not`, `and`, `or`.
 
-Для кожного рівня в `src/levels/solutions.ts` лежить еталонне розв'язання. Тест перевіряє, що воно проходить на три зірки, тож рівень без розв'язку не потрапить у пакет.
+Every built-in level has a reference solution in `src/levels/solutions.ts`, and a test checks that it earns three stars, so a level without a working solution never ships.
 
-## Як вбудувати
-
-```bash
-npm install github:zavada123/edu-blocks#<коміт>
-```
-
-Зібраний пакет лежить у репозиторії (папка `lib`). `edu-blocks/react` уже містить рушій і блоки, тож застосунку не треба налаштовувати збирач. Іконки блоків лежать у `edu-blocks/blocks-media/`: скопіюйте їх у публічну папку сайту і передайте шлях у `media`.
+### Render the editor
 
 ```tsx
 import { EduBlocks } from "edu-blocks/react"
@@ -62,50 +103,63 @@ import "edu-blocks/style.css"
 />
 ```
 
-| Властивість | Що робить |
-|---|---|
-| `level` | Рівень. Щоб показати інший, змініть `key` |
-| `skin` | Вигляд героя: `ninja` (типово), `robot`, `rover`, `bee` |
-| `large` | Великі блоки й поле для 3 класу |
-| `program` | Збережена програма: учень продовжує з того місця |
-| `media` | Шлях до іконок блоків, зі скісною рискою в кінці |
-| `onComplete(report)` | Після кожного запуску: `levelId`, `passed`, `stars`, `blocks`, `reason` і сама `program` |
-| `onProgramChange(program)` | Після кожної зміни блоків: для застосунку, що має власну кнопку «Перевірити» |
+An empty level title (`title: ""`) is not shown, so your app can render the task text itself.
 
-Порожня назва рівня (`title: ""`) не показується: так застосунок може показати умову завдання сам.
+### Grade on the server
 
-### Перевірка на сервері
-
-Програма — це об'єкт `blocks` спрайта з project.json Scratch 3. Сервер не довіряє `passed` і `stars` з браузера: він сам перевіряє програму і рахує зірки. Лише тоді можна нараховувати кристали.
+A program is the `blocks` object of a sprite from a Scratch 3 `project.json`. The server should not trust `passed` and `stars` from the browser: it checks the program and counts the stars itself, and only then awards crystals.
 
 ```ts
 import { judgeProgram, levels } from "edu-blocks/core"
 
 const result = judgeProgram(level, report.program)
-result.passed  // усі цілі виконано
+result.passed  // all goals met
 result.stars   // 0–3
-result.reason  // null, "crashed", "goalsNotMet", "tooLong", "noStart" або "badProgram"
+result.reason  // null, "crashed", "goalsNotMet", "tooLong", "noStart" or "badProgram"
 ```
 
-`judgeProgram` — невеликий інтерпретатор блоків рівня, без рушія Scratch: він синхронний, працює за мілісекунди і не потребує scratch-vm на сервері. Браузер перевіряє програму тією самою функцією, тож учень бачить той самий результат, що й сервер. Інтерпретатор повторює порядок виконання Scratch 3: кожен скрипт «коли прапорець натиснуто» — окремий потік, потоки по черзі виконують по одному кроку циклу. Тести порівнюють його з рушієм TurboWarp на сотнях випадкових програм.
+`judgeProgram` is a small interpreter for the level blocks with no Scratch VM: it is synchronous, takes milliseconds and does not need `scratch-vm` on the server. The browser uses the same function, so the student sees exactly the server's result. It follows Scratch 3's execution order: every "when flag clicked" script is its own thread, and threads take turns running one loop iteration each.
 
-Програма обмежена: до 300 блоків, лише блоки цього рівня, до 1000 дій робота. Нескінченний цикл зупиняється за кількістю кроків, а не за часом, тож на сервері й на повільному телефоні результат однаковий. Пошкоджена програма (блоки замкнулися в коло) теж зупиняється.
+Programs are limited to 300 blocks, the blocks of the level and 1,000 hero actions. An infinite loop is stopped by a step count rather than a timer, so the result is the same on a server and on a slow phone. A broken program (blocks linked in a cycle) is stopped too.
 
-## Розробка
+## API
+
+| Entry point | Contents |
+|---|---|
+| `edu-blocks/react` | The `EduBlocks` component and the `EduBlocksProps`, `BlocksReport` and `Skin` types |
+| `edu-blocks/core` | Built-in `levels` and `solutions`, `judgeProgram`, `checkProgram`, the world model and limits. No React and no VM, safe for Node |
+| `edu-blocks/style.css` | Styles for the component |
+| `edu-blocks/blocks-media/*` | Block icons to serve from your site |
+
+### `<EduBlocks>` props
+
+| Prop | Description |
+|---|---|
+| `level` | The level. To show another one, change the component `key` |
+| `skin` | Hero look: `ninja` (default), `robot`, `rover` or `bee` |
+| `large` | Bigger blocks and field for grade 3 |
+| `program` | A saved program: the student continues where they left off |
+| `media` | Path to the block icons, with a trailing slash |
+| `onComplete(report)` | After every run: `levelId`, `passed`, `stars`, `blocks`, `reason` and the `program` itself |
+| `onProgramChange(program)` | After every block change, for apps with their own Check button |
+
+## Development
 
 ```bash
 npm install
-npm run dev        # демо на http://localhost:5173 (?level=g4-if&solve відкриває рівень із розв'язком)
-npm test           # тести ядра й еталонних розв'язків
-npm run build      # збірка демо в dist/
-npm run build:lib  # збірка пакета в lib/ (комітьте lib разом зі змінами)
+npm run dev        # demo at http://localhost:5173 (?level=g4-if&solve opens a level with its solution)
+npm test           # core and reference-solution tests (Vitest)
+npm run build      # type check and build the demo into dist/
+npm run build:lib  # build the package into lib/ (commit lib/ with your changes)
 ```
 
-## Ліцензії та сторонній код
+Every push to `main` runs the tests and deploys the demo to GitHub Pages: see the [workflow runs](https://github.com/zavada123/edu-blocks/actions/workflows/pages.yml).
 
-Код пакета — MIT. Пакет використовує:
+## License and third-party code
 
-- [TurboWarp scratch-vm](https://github.com/TurboWarp/scratch-vm) — рушій, у якому редактор тримає програму. Він уже зібраний у `edu-blocks/react`; `edu-blocks/core` його не потребує. Ліцензія MPL-2.0: змінені файли рушія треба було б відкрити, але пакет рушій не змінює.
-- [scratch-blocks](https://github.com/scratchfoundation/scratch-blocks) 1.3.0 — редактор блоків. Ліцензія Apache-2.0, переклади блоків — BSD-3-Clause. Версія scratch-blocks від TurboWarp має GPL-3.0, тому її не взято.
+The package code is [MIT](LICENSE). It uses:
 
-Піксельна графіка поля (герої, дерева, кущі, каміння, стежка, кристали, прапорець) — з набору [Ninja Adventure](https://pixel-boy.itch.io/ninja-adventure-asset-pack) від Pixel-boy, ліцензія CC0; звідки кожен файл — у `src/ui/sprites/CREDITS.md`. Назва Scratch, кіт Scratch та інші персонажі Scratch — торгові марки MIT, тренажер їх не використовує й не пов'язаний зі Scratch Foundation.
+- [TurboWarp scratch-vm](https://github.com/TurboWarp/scratch-vm) — the engine the editor keeps the program in. It is bundled into `edu-blocks/react`; `edu-blocks/core` does not need it. Licensed under MPL-2.0; the package does not modify the engine.
+- [scratch-blocks](https://github.com/scratchfoundation/scratch-blocks) 1.3.0 — the block editor. Licensed under Apache-2.0, block translations under BSD-3-Clause. TurboWarp's fork of scratch-blocks is GPL-3.0, so it is not used.
+
+The pixel art of the field (heroes, trees, houses, items) comes from [Ninja Adventure](https://pixel-boy.itch.io/ninja-adventure-asset-pack) by Pixel-boy, released under CC0; [`src/ui/sprites/CREDITS.md`](src/ui/sprites/CREDITS.md) lists where each file comes from. Scratch, the Scratch Cat and other Scratch characters are trademarks of MIT; this trainer does not use them and is not affiliated with the Scratch Foundation.

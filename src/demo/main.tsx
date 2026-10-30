@@ -72,7 +72,7 @@ const Demo = () => {
   return (
     <div className="demo">
       <header className="demo-head">
-        <strong>Програмуємо з роботом</strong>
+        <strong>Зима в селі</strong>
         <label>
           <span className="demo-visually-hidden">Рівень</span>
           <select value={id} onChange={(e) => setId(e.target.value)}>
