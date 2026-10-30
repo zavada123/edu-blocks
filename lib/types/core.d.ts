@@ -12,3 +12,4 @@ export * from "./core/world.ts";
 export { levels } from "./levels/index.ts";
 export { solutions } from "./levels/solutions.ts";
 export * from "./core/xp.ts";
+export { adviseRun, MAX_ADVICE } from "./core/advice.ts";
