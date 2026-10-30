@@ -69,7 +69,7 @@ const heroExtension = (level: Level | null, session: Session | null) =>
     getInfo() {
       return {
         id: HERO_EXTENSION_ID,
-        name: "Робот",
+        name: "Герой",
         color1: HERO_COLOR,
         color2: "#0DA57A",
         color3: "#0B8E69",

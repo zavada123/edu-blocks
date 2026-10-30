@@ -31,7 +31,7 @@ export const toolboxXml = (palette: ReadonlyArray<BlockName>, flat = false): str
   if (flat) return `<xml style="display: none">${hero}${control}${operators}<block type="event_whenflagclicked"/></xml>`
   return [
     "<xml style=\"display: none\">",
-    category("hero", { name: "Робот", colour: HERO_COLOR, secondary: "#0B8E69" }, hero),
+    category("hero", { name: "Герой", colour: HERO_COLOR, secondary: "#0B8E69" }, hero),
     control === "" ? "" : category("control", CONTROL, control),
     operators === "" ? "" : category("operators", OPERATORS, operators),
     category("events", EVENTS, '<block type="event_whenflagclicked"/>'),

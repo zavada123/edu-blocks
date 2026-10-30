@@ -28,3 +28,19 @@
 | `sprout.png` | плитка 0,128 |
 | `crystal.png` | `background-elements/tileset.png`, плитка 128,192 |
 | `flag.png` | `background-elements/flag.gif`, 4 кадри в один ряд |
+| `house.png` | `background-elements/tileset.png`, 64×48 з 0,0 |
+| `woodshed.png` | `background-elements/tileset.png`, 48×32 з 256,0 |
+| `well.png` | плитка 48,112 |
+| `wood.png` | плитка 144,288 |
+| `twig.png`, `twigs.png` | плитки 0,288 і 16,288 |
+| `snow.png` | плитка 224,304 |
+| `snow-rock.png`, `snow-ball.png`, `snow-pine-small.png`, `snow-shrub.png` | плитки 96,384 · 112,384 · 96,400 · 96,336 |
+| `snow-tree.png` | 32×32 з 0,352 |
+| `ice.png` | плитка 336,304 |
+| `bridge.png` | плитка 272,64 |
+| `water.png` | плитка 320,112 |
+| `apple.png` | плитка 16,272 |
+| `key.png` | `items/gold-key.png` |
+| `fish.png` | `items/food/fish.png` |
+| `grandma.png` | `characters/4.png` |
+| `fire.png` | `assets/graphics/Fire.png` з https://github.com/konyd/action-rpg-template (вогонь із Ninja Adventure) |

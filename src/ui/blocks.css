@@ -73,6 +73,16 @@
   transition: transform 0.25s ease-in-out;
 }
 
+.eb-ice-hole {
+  fill: #1d4f6e;
+}
+
+.eb-doormat {
+  fill: #9b5b34;
+  stroke: #5e3216;
+  stroke-width: 1;
+}
+
 .eb-hero-shadow {
   fill: rgba(0, 0, 0, 0.25);
 }

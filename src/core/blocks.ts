@@ -11,10 +11,10 @@ export const HERO_BLOCKS: ReadonlyArray<{ readonly name: HeroBlock; readonly tex
   { name: "move", text: "крок уперед", boolean: false },
   { name: "turnLeft", text: "поворот ліворуч ↺", boolean: false },
   { name: "turnRight", text: "поворот праворуч ↻", boolean: false },
-  { name: "collect", text: "зібрати кристал", boolean: false },
+  { name: "collect", text: "взяти", boolean: false },
   { name: "wallAhead", text: "попереду стіна?", boolean: true },
-  { name: "onCrystal", text: "тут кристал?", boolean: true },
-  { name: "atFinish", text: "на прапорці?", boolean: true }
+  { name: "onCrystal", text: "тут щось є?", boolean: true },
+  { name: "atFinish", text: "дійшов до мети?", boolean: true }
 ]
 
 const HERO_NAMES: ReadonlySet<string> = new Set(HERO_BLOCKS.map((b) => b.name))

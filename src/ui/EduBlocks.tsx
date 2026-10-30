@@ -58,7 +58,7 @@ for (const b of HERO_BLOCKS) {
 }
 
 const FAIL_TEXT: Readonly<Record<FailReason, string>> = {
-  crashed: "Робот врізався в стіну.",
+  crashed: "Герой урізався в перешкоду.",
   goalsNotMet: "Програма закінчилась, а завдання ще не виконане.",
   tooLong: "Програма працює задовго. Можливо, цикл ніколи не закінчується.",
   noStart: "Поклади нагору програми блок «коли натиснуто прапорець».",
@@ -216,13 +216,13 @@ export const EduBlocks = ({ level, skin = "ninja", large = false, program, media
           <ul className="eb-goals">
             {level.goals.map((g) => (
               <li key={g.type} className={goalMet(world, g) ? "eb-goal-ok" : ""}>
-                {describeGoal(g, start)}
+                {describeGoal(g, start, level.scene)}
               </li>
             ))}
           </ul>
         </header>
         <div className="eb-field-wrap">
-          <Field world={world} skin={skin} />
+          <Field world={world} skin={skin} scene={level.scene} />
         </div>
         <div className="eb-controls">
           <button type="button" className="eb-run" onClick={run} disabled={running}>

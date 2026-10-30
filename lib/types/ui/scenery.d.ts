@@ -31,5 +31,11 @@ export interface Scenery {
 }
 /** A small integer hash of a cell: the same cell always gets the same number. */
 export declare const cellHash: (x: number, y: number, salt?: number) => number;
-export declare const buildScenery: (world: Pick<World, "width" | "height" | "walls" | "finish">) => Scenery;
+export interface SceneryOptions {
+    /** Cells under props (a house, a woodshed): nothing else grows there. */
+    readonly reserved?: ReadonlySet<string>;
+    /** Walls of the level stay bare, as the water under a bridge. The meadow still gets its scenery. */
+    readonly bareWalls?: boolean;
+}
+export declare const buildScenery: (world: Pick<World, "width" | "height" | "walls" | "finish">, { reserved, bareWalls }?: SceneryOptions) => Scenery;
 export {};
