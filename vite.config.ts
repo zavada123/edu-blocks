@@ -7,6 +7,10 @@ export default defineConfig({
   ...vmCompat,
   base: "./",
   plugins: [react(), blocksMedia(), ...vmCompat.plugins],
+  build: {
+    // The game and the level editor.
+    rollupOptions: { input: { main: "index.html", editor: "editor.html" } }
+  },
   test: {
     include: ["src/**/*.test.ts"]
   }

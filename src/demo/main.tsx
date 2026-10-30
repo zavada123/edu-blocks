@@ -73,6 +73,9 @@ const Demo = () => {
     <div className="demo">
       <header className="demo-head">
         <strong>Зима в селі</strong>
+        <a className="demo-editor-link" href="./editor.html">
+          Редактор рівнів
+        </a>
         <label>
           <span className="demo-visually-hidden">Рівень</span>
           <select value={id} onChange={(e) => setId(e.target.value)}>

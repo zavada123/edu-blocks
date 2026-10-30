@@ -258,7 +258,8 @@ export const Field = ({ world, skin, scene = {} }: { readonly world: World; read
         )
       })}
       {scenery.decor.map(({ x, y, kind }) => {
-        const href = ground === "path" || x < 0 || y < 0 || x >= width || y >= height ? season.decor[kind] : null
+        // The path has its own texture now: flowers and grass grow only in the meadow.
+        const href = x < 0 || y < 0 || x >= width || y >= height ? season.decor[kind] : null
         return href === null ? null : (
           <g key={`d${cellKey(x, y)}`} transform={center(x, y)}>
             <Tile href={href} />

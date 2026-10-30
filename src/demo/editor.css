@@ -1,0 +1,209 @@
+.ed {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.ed-link {
+  color: #93c5fd;
+}
+
+.ed-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 16px;
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px));
+  align-items: start;
+}
+
+.ed-stage,
+.ed-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.ed-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ed-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 4px 10px;
+  border: 2px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.ed-tool-on {
+  border-color: #0f766e;
+  background: #ccfbf1;
+}
+
+.ed-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.ed-icon-sheet {
+  display: inline-block;
+  background-position: 0 0;
+  background-repeat: no-repeat;
+}
+
+.ed-playing {
+  height: 100dvh;
+}
+
+.ed-map {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  touch-action: none;
+}
+
+.ed-map .eb-field {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+}
+
+.ed-grid {
+  position: absolute;
+  display: grid;
+}
+
+.ed-cell {
+  border: 1px dashed rgb(15 23 42 / 18%);
+  background: transparent;
+  padding: 0;
+  cursor: crosshair;
+}
+
+.ed-cell:hover {
+  background: rgb(255 255 255 / 30%);
+  outline: 2px solid #0f766e;
+  outline-offset: -2px;
+}
+
+.ed-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 8%);
+}
+
+.ed-card h2 {
+  margin: 4px 0 0;
+  font-size: 0.95rem;
+}
+
+.ed-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+}
+
+.ed-card input:not([type="checkbox"], [type="radio"]),
+.ed-card select,
+.ed-card textarea {
+  font: inherit;
+  padding: 6px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  min-width: 0;
+}
+
+.ed-card .ed-check {
+  flex-direction: row;
+  align-items: center;
+}
+
+.ed-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: end;
+}
+
+.ed-row > label {
+  flex: 1 1 100px;
+}
+
+.ed-row > label:has(input[type="radio"]) {
+  flex: 0 0 auto;
+  flex-direction: row;
+  align-items: center;
+}
+
+.ed-blocks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 8px;
+}
+
+.ed-code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.8rem;
+  resize: vertical;
+}
+
+.ed-issues {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ed-error {
+  color: #b91c1c;
+}
+
+.ed-warning {
+  color: #92400e;
+}
+
+.ed-ok {
+  color: #047857;
+  margin: 0;
+}
+
+.ed-note {
+  margin: 0;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.ed-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 16px;
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+@media (max-width: 900px) {
+  .ed-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

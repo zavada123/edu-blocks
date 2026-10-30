@@ -138,7 +138,7 @@ Programs are limited to 300 blocks, the blocks of the level and 1,000 hero actio
 | Entry point | Contents |
 |---|---|
 | `edu-blocks/react` | The `EduBlocks` component and the `EduBlocksProps`, `BlocksReport`, `HeroXp` and `Skin` types |
-| `edu-blocks/core` | Built-in `levels` and `solutions`, `judgeProgram`, `checkProgram`, the XP functions, the world model and limits. No React and no VM, safe for Node |
+| `edu-blocks/core` | Built-in `levels` and `solutions`, `judgeProgram`, `checkProgram`, `adviseRun`, the level kit, the XP functions, the world model and limits. No React and no VM, safe for Node |
 | `edu-blocks/style.css` | Styles for the component |
 | `edu-blocks/blocks-media/*` | Block icons to serve from your site |
 
@@ -155,11 +155,25 @@ Programs are limited to 300 blocks, the blocks of the level and 1,000 hero actio
 | `onComplete(report)` | After every run: `levelId`, `passed`, `stars`, `blocks`, `reason`, `firstTry`, `xp` and the `program` itself |
 | `onProgramChange(program)` | After every block change, for apps with their own Check button |
 
+### Level editor and level kit
+
+`editor.html` (link «Редактор рівнів» in the demo) is a visual level editor. Paint the map with the pack pictures (path, wall, item, goal, start, a house or a woodshed), pick the season, floor, items and goal, the palette blocks and the star limits. The editor checks the level as you go, lets you try it in the trainer (a passed run can set the three-star limit) and gives the level as code for `src/levels/index.ts` or as JSON. Work is kept in the browser.
+
+The same tools are in `edu-blocks/core` for scripts and servers:
+
+| Function | What it does |
+|---|---|
+| `emptyMap(w, h)`, `setTile(map, x, y, tile)`, `resizeMap(map, w, h)`, `tileAt(map, x, y)` | Make and change a map; one start and one goal are kept |
+| `checkLevel(level)` | Errors that keep a level from being played (no start, items cut off by walls, a goal without its block…) and warnings |
+| `plainRoute(level)` | A route without loops that passes the level, or `null` |
+| `levelSource(level)` | The level as code for `src/levels/index.ts` |
+| `adviseRun(level, program, result)` | Advice after a run: what is missing and what is extra in this program |
+
 ## Development
 
 ```bash
 npm install
-npm run dev        # demo at http://localhost:5173 (?level=g4-if&solve opens a level with its solution)
+npm run dev        # demo at http://localhost:5173 (?level=g4-if&solve opens a level with its solution, /editor.html is the level editor)
 npm test           # core and reference-solution tests (Vitest)
 npm run build      # type check and build the demo into dist/
 npm run build:lib  # build the package into lib/ (commit lib/ with your changes)
