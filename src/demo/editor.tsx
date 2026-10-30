@@ -2,13 +2,13 @@ import { StrictMode, useEffect, useMemo, useRef, useState } from "react"
 import { createRoot } from "react-dom/client"
 import { HERO_BLOCKS } from "../core/blocks.ts"
 import { checkLevel, emptyMap, levelSource, MAP_LIMITS, type MapTile, plainRoute, resizeMap, setTile } from "../core/kit.ts"
-import type { BlockName, FinishKind, Goal, ItemKind, Level, NpcKind, PropKind, Scene } from "../core/level.ts"
-import { parseMap, type Direction } from "../core/world.ts"
+import { type BlockName, type FinishKind, type Goal, type ItemKind, type Level, type NpcKind, type PropKind, type Scene, startWorld } from "../core/level.ts"
+import { BOSS_HP, DEFAULT_HEARTS, DEFAULT_SIGHT, type Direction, type EnemyKind, type EnemySpec, type EnemyWalk, parseMap } from "../core/world.ts"
 import type { Tier } from "../core/xp.ts"
 import { levels } from "../levels/index.ts"
 import { type BlocksReport, EduBlocks } from "../ui/EduBlocks.tsx"
 import { Field } from "../ui/Field.tsx"
-import { ITEM_TILES, NPCS, PROPS } from "../ui/look.ts"
+import { ENEMIES, ITEM_TILES, NPCS, PROPS } from "../ui/look.ts"
 import { buildScenery } from "../ui/scenery.ts"
 import bushTile from "../ui/sprites/bush.png"
 import flagStrip from "../ui/sprites/flag.png"
@@ -24,7 +24,7 @@ import "./editor.css"
 
 const STORE = "eb-editor-level"
 
-type Tool = MapTile | PropKind | "npc"
+type Tool = MapTile | PropKind | "npc" | "enemy"
 
 const TILE_TOOLS: ReadonlyArray<{ readonly tool: MapTile; readonly name: string }> = [
   { tool: "floor", name: "Стежка" },
@@ -47,6 +47,26 @@ const PEOPLE: ReadonlyArray<{ readonly id: NpcKind; readonly name: string }> = [
   { id: "villager", name: "Сусід" },
   { id: "hunter", name: "Мисливець" }
 ]
+
+const MONSTERS: ReadonlyArray<{ readonly id: EnemyKind; readonly name: string }> = [
+  { id: "slime", name: "Слиз" },
+  { id: "spirit", name: "Сніговий дух" },
+  { id: "goblin", name: "Гоблін" },
+  { id: "skull", name: "Череп" },
+  { id: "flame", name: "Вогник" },
+  { id: "bear", name: "Ведмідь" },
+  { id: "toad", name: "Жаба" }
+]
+
+const WALKS: ReadonlyArray<{ readonly id: EnemyWalk; readonly name: string }> = [
+  { id: "stand", name: "стоїть" },
+  { id: "across", name: "ходить ліворуч-праворуч" },
+  { id: "updown", name: "ходить вгору-вниз" }
+]
+
+/** The most hit points and sight the editor offers. */
+const MAX_HP = 9
+const MAX_SIGHT = 12
 
 const OTHER_BLOCKS: ReadonlyArray<{ readonly name: BlockName; readonly text: string }> = [
   { name: "repeat", text: "повторити N" },
@@ -112,11 +132,26 @@ const load = (): Level => {
 
 /** Optional fields left empty are dropped, so the code reads as the levels in the library. */
 const tidy = (level: Level): Level => {
-  const { hint, ...rest } = level
-  return hint === undefined || hint.trim() === "" ? rest : level
+  const { hint, enemies, hearts, ...rest } = level
+  return {
+    ...rest,
+    ...(hint === undefined || hint.trim() === "" ? {} : { hint }),
+    ...(enemies === undefined || enemies.length === 0 ? {} : { enemies }),
+    ...(hearts === undefined || enemies === undefined || enemies.length === 0 ? {} : { hearts })
+  }
 }
 
-const Icon = ({ tool, item, who }: { readonly tool: Tool; readonly item: ItemKind; readonly who: NpcKind }) => {
+/** Every cell inside the border becomes floor; the start, the finish and the items stay. */
+const openGlade = (map: Level["map"]): Level["map"] =>
+  map.map((row, y) =>
+    [...row].map((sign, x) => (y === 0 || x === 0 || y === map.length - 1 || x === row.length - 1 || sign !== "#" ? sign : ".")).join("")
+  )
+
+const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, Math.round(Number.isFinite(n) ? n : min)))
+
+const Icon = ({ tool, item, who, monster }: { readonly tool: Tool; readonly item: ItemKind; readonly who: NpcKind; readonly monster: EnemyKind }) => {
+  if (tool === "enemy")
+    return <span className="ed-icon ed-icon-sheet" style={{ backgroundImage: `url(${ENEMIES[monster]})`, backgroundSize: "96px 96px" }} />
   if (tool === "npc")
     return (
       <span className="ed-icon ed-icon-sheet" style={{ backgroundImage: `url(${NPCS[who]})`, backgroundSize: "96px 168px" }} />
@@ -159,7 +194,7 @@ const MapCanvas = ({
   readonly onPaint: (x: number, y: number) => void
 }) => {
   const painting = useRef(false)
-  const world = useMemo(() => parseMap(level.map, level.dir), [level.map, level.dir])
+  const world = useMemo(() => startWorld(level), [level])
   const { view } = buildScenery(world)
   useEffect(() => {
     const stop = () => {
@@ -168,7 +203,7 @@ const MapCanvas = ({
     window.addEventListener("pointerup", stop)
     return () => window.removeEventListener("pointerup", stop)
   }, [])
-  const dragPaints = tool !== "house" && tool !== "woodshed" && tool !== "start" && tool !== "finish" && tool !== "npc"
+  const dragPaints = tool !== "house" && tool !== "woodshed" && tool !== "start" && tool !== "finish" && tool !== "npc" && tool !== "enemy"
   return (
     <div className="ed-map" style={{ aspectRatio: `${view.width} / ${view.height}` }}>
       <Field world={world} skin="ninja" scene={level.scene} />
@@ -232,6 +267,90 @@ const Issues = ({ level }: { readonly level: Level }) => {
   )
 }
 
+/** The enemies on the map, each with its own settings. */
+const Enemies = ({ level, onChange }: { readonly level: Level; readonly onChange: (patch: Partial<Level>) => void }) => {
+  const enemies = level.enemies ?? []
+  const set = (i: number, patch: Partial<EnemySpec>) =>
+    onChange({ enemies: enemies.map((e, j) => (j === i ? { ...e, ...patch } : e)) })
+  return (
+    <section className="ed-card">
+      <h2>Вороги</h2>
+      <label>
+        Сердечок у героя
+        <input
+          type="number"
+          min={1}
+          max={MAX_HP}
+          value={level.hearts ?? DEFAULT_HEARTS}
+          onChange={(e) => onChange({ hearts: clamp(Number(e.target.value), 1, MAX_HP) })}
+        />
+      </label>
+      {enemies.length === 0 && <p className="ed-note">Вибери інструмент «Ворог» і клацни по стежці. Другий клік прибирає ворога.</p>}
+      <ol className="ed-enemies">
+        {enemies.map((e, i) => (
+          <li key={`${e.x},${e.y}`}>
+            <div className="ed-row">
+              <span className="ed-icon ed-icon-sheet" style={{ backgroundImage: `url(${ENEMIES[e.kind]})`, backgroundSize: "96px 96px" }} />
+              <strong>
+                ({e.x}, {e.y})
+              </strong>
+              <select aria-label="Хто" value={e.kind} onChange={(ev) => set(i, { kind: ev.target.value as EnemyKind })}>
+                {MONSTERS.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+              <button type="button" onClick={() => onChange({ enemies: enemies.filter((_, j) => j !== i) })}>
+                Прибрати
+              </button>
+            </div>
+            <div className="ed-row">
+              <label>
+                Поки героя не бачить
+                <select value={e.walk ?? "stand"} onChange={(ev) => set(i, { walk: ev.target.value as EnemyWalk })}>
+                  {WALKS.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label title="За скільки клітинок ворог помічає героя й іде до нього. 0 — не йде, б'є лише впритул.">
+                Бачить за X клітинок
+                <input
+                  type="number"
+                  min={0}
+                  max={MAX_SIGHT}
+                  value={e.sight ?? DEFAULT_SIGHT}
+                  onChange={(ev) => set(i, { sight: clamp(Number(ev.target.value), 0, MAX_SIGHT) })}
+                />
+              </label>
+              <label>
+                Ударів витримує
+                <input
+                  type="number"
+                  min={1}
+                  max={MAX_HP}
+                  value={e.hp ?? (e.boss === true ? BOSS_HP : 1)}
+                  onChange={(ev) => set(i, { hp: clamp(Number(ev.target.value), 1, MAX_HP) })}
+                />
+              </label>
+              <label className="ed-check">
+                <input type="checkbox" checked={e.boss === true} onChange={(ev) => set(i, { boss: ev.target.checked })} /> Бос
+              </label>
+            </div>
+          </li>
+        ))}
+      </ol>
+      <p className="ed-note">
+        Ворог ходить після кожної дії героя. Коли герой ближче ніж X клітинок, ворог іде до нього, а впритул замахується і
+        наступним ходом б'є: мінус сердечко. Бос більший, б'є навіть під ударами.
+      </p>
+    </section>
+  )
+}
+
 const Export = ({ level, onImport }: { readonly level: Level; readonly onImport: (level: Level) => void }) => {
   const [format, setFormat] = useState<"ts" | "json">("ts")
   const [copied, setCopied] = useState(false)
@@ -248,6 +367,7 @@ const Export = ({ level, onImport }: { readonly level: Level; readonly onImport:
     try {
       const parsed = JSON.parse(paste) as Level
       parseMap(parsed.map, parsed.dir)
+      startWorld(parsed)
       onImport(parsed)
       setError("")
       setPaste("")
@@ -292,6 +412,7 @@ const Editor = () => {
   const [level, setLevel] = useState<Level>(load)
   const [tool, setTool] = useState<Tool>("floor")
   const [who, setWho] = useState<NpcKind>("grandpa")
+  const [monster, setMonster] = useState<EnemyKind>("slime")
   const [playing, setPlaying] = useState(false)
   const [lastRun, setLastRun] = useState<BlocksReport | null>(null)
   const scene: Scene = level.scene ?? {}
@@ -324,6 +445,14 @@ const Editor = () => {
         const npcs = l.scene?.npcs ?? []
         const here = npcs.some((n) => n.x === x && n.y === y)
         return { ...l, scene: { ...l.scene, npcs: here ? npcs.filter((n) => n.x !== x || n.y !== y) : [...npcs, { who, x, y }] } }
+      })
+      return
+    }
+    if (tool === "enemy") {
+      setLevel((l) => {
+        const enemies = l.enemies ?? []
+        const here = enemies.some((e) => e.x === x && e.y === y)
+        return { ...l, enemies: here ? enemies.filter((e) => e.x !== x || e.y !== y) : [...enemies, { kind: monster, x, y }] }
       })
       return
     }
@@ -403,13 +532,13 @@ const Editor = () => {
                   onClick={() => setTool(t.tool)}
                   aria-pressed={tool === t.tool}
                 >
-                  <Icon tool={t.tool} item={scene.item ?? "crystal"} who={who} />
+                  <Icon tool={t.tool} item={scene.item ?? "crystal"} who={who} monster={monster} />
                   {t.name}
                 </button>
               ))}
               <span className={tool === "npc" ? "ed-tool ed-tool-on" : "ed-tool"}>
                 <button type="button" className="ed-tool-plain" onClick={() => setTool("npc")} aria-pressed={tool === "npc"}>
-                  <Icon tool="npc" item={scene.item ?? "crystal"} who={who} />
+                  <Icon tool="npc" item={scene.item ?? "crystal"} who={who} monster={monster} />
                   Людина
                 </button>
                 <select
@@ -428,14 +557,39 @@ const Editor = () => {
                   ))}
                 </select>
               </span>
+              <span className={tool === "enemy" ? "ed-tool ed-tool-on" : "ed-tool"}>
+                <button type="button" className="ed-tool-plain" onClick={() => setTool("enemy")} aria-pressed={tool === "enemy"}>
+                  <Icon tool="enemy" item={scene.item ?? "crystal"} who={who} monster={monster} />
+                  Ворог
+                </button>
+                <select
+                  aria-label="Який ворог"
+                  value={monster}
+                  onChange={(e) => {
+                    const found = MONSTERS.find((m) => m.id === e.target.value)
+                    if (found !== undefined) setMonster(found.id)
+                    setTool("enemy")
+                  }}
+                >
+                  {MONSTERS.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name}
+                    </option>
+                  ))}
+                </select>
+              </span>
               <button type="button" className="ed-tool" onClick={() => updateScene({ props: [], npcs: [] })}>
                 Прибрати будинки й людей
+              </button>
+              <button type="button" className="ed-tool" onClick={() => update({ enemies: [] })}>
+                Прибрати ворогів
               </button>
             </div>
             <MapCanvas level={level} tool={tool} onPaint={paint} />
             <p className="ed-note">
               Клацни або веди мишею по клітинках. Стіни стають деревами й кущами, луг навколо малюється сам. Хату ставлять дверима
-              на клітинку, по якій клацнули. Людей краще ставити на стіну біля стежки, другий клік прибирає людину.
+              на клітинку, по якій клацнули. Людей краще ставити на стіну біля стежки, другий клік прибирає людину. Ворогів ставлять
+              на стежку, а налаштовують праворуч, у картці «Вороги».
             </p>
             <Issues level={level} />
           </section>
@@ -513,6 +667,9 @@ const Editor = () => {
                   </select>
                 </label>
               </div>
+              <button type="button" onClick={() => update({ map: openGlade(level.map) })}>
+                Галявина: усе всередині — вільне місце
+              </button>
             </section>
             <section className="ed-card">
               <h2>Сцена</h2>
@@ -574,6 +731,10 @@ const Editor = () => {
                 <input type="checkbox" checked={goalOn("finish")} onChange={(e) => setGoal("finish", e.target.checked)} /> Дійти
                 до мети
               </label>
+              <label className="ed-check">
+                <input type="checkbox" checked={goalOn("enemies")} onChange={(e) => setGoal("enemies", e.target.checked)} />{" "}
+                Перемогти всіх ворогів
+              </label>
               <h2>Блоки в палітрі</h2>
               <div className="ed-blocks">
                 {ALL_BLOCKS.map((b) => (
@@ -621,6 +782,7 @@ const Editor = () => {
                 </div>
               )}
             </section>
+            <Enemies level={level} onChange={update} />
             <Export level={level} onImport={setLevel} />
           </aside>
         </main>

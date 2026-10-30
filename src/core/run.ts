@@ -1,9 +1,9 @@
 import VirtualMachine, { type BlockUtility, type Runtime } from "scratch-vm"
 import vmLog from "scratch-vm/src/util/log.js"
 import { HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID } from "./blocks.ts"
-import { allGoalsMet, type Level } from "./level.ts"
+import { allGoalsMet, type Level, startWorld } from "./level.ts"
 import { checkProgram, type FailReason, MAX_ACTIONS, MAX_FRAMES, PASSES_PER_FRAME, type Program, resultOf, type RunResult, type Session } from "./program.ts"
-import { type Action, applyAction, atFinish, onCrystal, parseMap, wallAhead } from "./world.ts"
+import { type Action, applyAction, atFinish, enemyAhead, onCrystal, wallAhead } from "./world.ts"
 
 /**
  * The program in the TurboWarp VM. The editor uses the VM to keep the program in project.json form; the run
@@ -84,6 +84,7 @@ const heroExtension = (level: Level | null, session: Session | null) =>
       session.frames.push({ action, outcome, blockId: util.thread.peekStack() ?? null, world })
       if (outcome === "crashed") this.finish("crashed")
       else if (allGoalsMet(level, world)) this.finish(null)
+      else if (world.hearts === 0) this.finish("defeated")
       else if (session.frames.length >= MAX_ACTIONS) this.finish("tooLong")
     }
 
@@ -106,6 +107,9 @@ const heroExtension = (level: Level | null, session: Session | null) =>
     collect(_args: unknown, util: BlockUtility) {
       this.act("collect", util)
     }
+    attack(_args: unknown, util: BlockUtility) {
+      this.act("attack", util)
+    }
     wallAhead() {
       return session !== null && wallAhead(session.world)
     }
@@ -114,6 +118,9 @@ const heroExtension = (level: Level | null, session: Session | null) =>
     }
     atFinish() {
       return session !== null && atFinish(session.world)
+    }
+    enemyAhead() {
+      return session !== null && enemyAhead(session.world)
     }
   }
 
@@ -155,7 +162,7 @@ export const createVm = (level: Level | null, session: Session | null): VirtualM
 /** Runs the program on the level from the start hat «коли натиснуто прапорець» and checks the goals. */
 export const runProgram = (level: Level, program: Program): Promise<RunResult> =>
   withVmLock(async () => {
-    const session: Session = { world: parseMap(level.map, level.dir), frames: [], done: false, reason: null }
+    const session: Session = { world: startWorld(level), frames: [], done: false, reason: null }
     const checked = checkProgram(level, program)
     if ("error" in checked) return resultOf(level, { ...session, reason: "badProgram" }, 0, { detail: checked.error })
     if (!checked.hasStart) return resultOf(level, { ...session, reason: "noStart" }, checked.blocks)

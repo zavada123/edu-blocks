@@ -78,4 +78,27 @@ describe("level kit", () => {
     expect(source).toContain('id: "my-1"')
     expect(source).toContain('map: [\n    "#####"')
   })
+
+  test("enemies: on a wall, on the start, a goal without enemies, no «вдарити»", () => {
+    const lvl: Level = { ...base, map: ["######", "#S..c#", "######"], goals: [{ type: "enemies" }], enemies: [] }
+    expect(checkLevel(lvl).map((i) => i.text).join(" ")).toContain("ворогів на мапі немає")
+    const bad: Level = { ...lvl, enemies: [{ kind: "slime", x: 0, y: 0 }, { kind: "slime", x: 1, y: 1 }] }
+    const texts = checkLevel(bad).map((i) => i.text).join(" ")
+    expect(texts).toContain("на стіні")
+    expect(texts).toContain("на старті")
+    expect(texts).toContain("немає «вдарити»")
+  })
+
+  test("the plain route strikes the enemies in the way and wins", () => {
+    const lvl: Level = {
+      ...base,
+      map: ["#######", "#S...F#", "#######"],
+      blocks: ["move", "attack"],
+      goals: [{ type: "enemies" }, { type: "finish" }],
+      enemies: [{ kind: "goblin", x: 3, y: 1, hp: 2, walk: "across" }]
+    }
+    const route = plainRoute(lvl)
+    expect(route).toContain("attack")
+    expect(judgeProgram(lvl, buildProgram(route ?? []))).toMatchObject({ passed: true })
+  })
 })

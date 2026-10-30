@@ -1,5 +1,5 @@
 import type { Step } from "./build.ts";
-import type { Level } from "./level.ts";
+import { type Level } from "./level.ts";
 import { type MapRows } from "./world.ts";
 /**
  * Level kit: what a level editor (or a script) needs to make a level from the map signs and the scene pictures.
@@ -32,8 +32,10 @@ export interface Issue {
 /** What keeps a level from being played (errors) and what would make it better (warnings). */
 export declare const checkLevel: (level: Level) => ReadonlyArray<Issue>;
 /**
- * A plain route without loops: to the nearest item each time, then to the finish. Good to check that a level can be
- * done and to see how long a program without «повторити» is. Null when the level cannot be done.
+ * A plain route without loops: to the nearest item each time, then to the nearest enemy (struck until it falls)
+ * when the goal asks for it, then to the finish. An enemy in the way is struck too. The route is played on the
+ * real rules, so walking enemies are followed. Good to check that a level can be done and to see how long a program
+ * without «повторити» is. Null when the level cannot be done this way.
  */
 export declare const plainRoute: (level: Level) => ReadonlyArray<Step> | null;
 /** The level as a TypeScript object for `src/levels/index.ts`. */

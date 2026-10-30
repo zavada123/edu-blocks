@@ -25,17 +25,63 @@ export interface World {
     };
     /** Set once the hero walked into a wall. The run stops there. */
     readonly crashed: boolean;
+    /** Enemies of the level, beaten ones too (with no hp left), in the order they act. */
+    readonly enemies: ReadonlyArray<Enemy>;
+    /** Hearts the hero has left. At 0 the run stops. */
+    readonly hearts: number;
+    readonly maxHearts: number;
 }
+/** Monsters from the pack. Which one only changes the picture. */
+export type EnemyKind = "slime" | "spirit" | "goblin" | "skull" | "flame" | "bear" | "toad";
+/** How an enemy moves while the hero is far: stands, walks left and right, or walks up and down. */
+export type EnemyWalk = "stand" | "across" | "updown";
+/** An enemy as a level puts it on the map. */
+export interface EnemySpec {
+    readonly kind: EnemyKind;
+    readonly x: number;
+    readonly y: number;
+    /** Hits it takes. 1 by default, 3 for a boss. */
+    readonly hp?: number;
+    /** It comes for the hero once the hero is this many steps away or closer. 2 by default; 0 never comes. */
+    readonly sight?: number;
+    readonly walk?: EnemyWalk;
+    /** A boss is drawn bigger and shows its hp. */
+    readonly boss?: boolean;
+}
+export interface Enemy {
+    readonly id: number;
+    readonly kind: EnemyKind;
+    readonly x: number;
+    readonly y: number;
+    readonly hp: number;
+    readonly maxHp: number;
+    readonly sight: number;
+    readonly walk: EnemyWalk;
+    /** Where a walking enemy goes now: +1 right or down, -1 left or up. */
+    readonly heading: 1 | -1;
+    /** Set when the enemy stands next to the hero and swings: it hits on its next turn if the hero is still there. */
+    readonly swinging: boolean;
+    readonly boss: boolean;
+}
+export declare const DEFAULT_HEARTS = 3;
+export declare const DEFAULT_SIGHT = 2;
+export declare const BOSS_HP = 3;
+export declare const enemyOf: (spec: EnemySpec, id: number) => Enemy;
+export declare const isAlive: (enemy: Enemy) => boolean;
+export declare const enemiesLeft: (world: World) => number;
 export declare const cellKey: (x: number, y: number) => string;
 export declare const parseMap: (rows: MapRows, dir?: Direction) => World;
 export declare const isWall: (world: World, x: number, y: number) => boolean;
 export declare const cellAhead: (world: World) => Cell;
 export declare const wallAhead: (world: World) => boolean;
+export declare const enemyAt: (world: World, x: number, y: number) => Enemy | undefined;
+export declare const enemyAhead: (world: World) => boolean;
 export declare const onCrystal: (world: World) => boolean;
 export declare const atFinish: (world: World) => boolean;
-export type Action = "move" | "turnLeft" | "turnRight" | "collect";
+export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack";
 /** What one action did, for the animation and the error message. */
-export type Outcome = "moved" | "crashed" | "turned" | "collected" | "nothingToCollect";
+export type Outcome = "moved" | "crashed" | "turned" | "collected" | "nothingToCollect" | "enemyHit" | "enemyDown" | "swingMissed";
+/** One hero action, then the enemies' turn. A crash ends the run at once, so enemies do not move after it. */
 export declare const applyAction: (world: World, action: Action) => {
     readonly world: World;
     readonly outcome: Outcome;

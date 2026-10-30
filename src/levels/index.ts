@@ -101,6 +101,58 @@ export const levels: ReadonlyArray<Level> = [
     scene: { theme: "winter", ground: "bridge", item: "key" }
   },
   {
+    id: "g5-spirit",
+    grade: 5,
+    tier: "intro",
+    title: "Сніговий дух",
+    task: [
+      "Дорогу до криниці стереже сніговий дух. Він стоїть, а коли ніндзя підходить на дві клітинки, біжить назустріч.",
+      "Вдар духа і дійди до криниці."
+    ],
+    map: ["#########", "#S.....F#", "#########"],
+    blocks: ["move", "attack", "repeat"],
+    goals: [{ type: "finish" }],
+    enemies: [{ kind: "spirit", x: 4, y: 1 }],
+    stars: { three: 4, two: 7 },
+    hint: "Зроби крок — дух підбіжить упритул. Тоді «вдарити», а далі йди до криниці.",
+    scene: { theme: "winter", finish: "well" }
+  },
+  {
+    id: "g5-glade",
+    grade: 5,
+    tier: "practice",
+    title: "Дрова на галявині",
+    task: [
+      "На галявині лежать дрова, а по ній туди-сюди повзає слиз.",
+      "Галявина велика: обери свій шлях. Збери всі дрова, а слиз обійди або вдар."
+    ],
+    map: ["#########", "#S......#", "#..#..c.#", "#.c.....#", "#....#..#", "#.....c.#", "#########"],
+    blocks: ["move", "turnLeft", "turnRight", "collect", "attack", "repeat"],
+    goals: [{ type: "crystals" }],
+    enemies: [{ kind: "slime", x: 4, y: 3, walk: "across", sight: 1 }],
+    stars: { three: 20, two: 28 },
+    hint: "Слиз помічає ніндзю лише впритул. Якщо він на шляху — «вдарити», інакше обійди його.",
+    scene: { theme: "winter", item: "wood", npcs: [{ who: "hunter", x: 3, y: 2 }] }
+  },
+  {
+    id: "g5-guards",
+    grade: 5,
+    tier: "challenge",
+    title: "Варта біля комори",
+    task: ["Біля комори вештаються гобліни. Прожени всіх.", "Питай «попереду ворог?»: якщо так — бий, а ні — іди далі."],
+    map: ["##########", "#S.......#", "##########"],
+    blocks: ["move", "attack", "repeat", "repeatUntil", "if", "ifElse", "enemyAhead", "wallAhead"],
+    goals: [{ type: "enemies" }],
+    enemies: [
+      { kind: "goblin", x: 4, y: 1, walk: "across", sight: 2 },
+      { kind: "goblin", x: 7, y: 1, walk: "across", sight: 2 }
+    ],
+    hearts: 3,
+    stars: { three: 5, two: 8 },
+    hint: "Повторюй: якщо попереду ворог, то вдарити, інакше крок.",
+    scene: { theme: "winter", props: [{ kind: "woodshed", x: 7, y: -1 }] }
+  },
+  {
     id: "g6-nested",
     grade: 6,
     tier: "practice",
@@ -125,5 +177,23 @@ export const levels: ReadonlyArray<Level> = [
     stars: { three: 6, two: 9 },
     hint: "Повторюй, доки не дійдеш до мети: якщо попереду стіна, то поверни, інакше зроби крок.",
     scene: { theme: "winter", finish: "home", props: [HOME] }
+  },
+  {
+    id: "g6-bear",
+    grade: 6,
+    tier: "challenge",
+    title: "Ведмідь-шатун",
+    task: [
+      "Узимку прокинувся ведмідь-шатун і не пускає ніндзю до бабусі.",
+      "Він витримує три удари і б'є у відповідь. Підійди, коли він поруч, і бий, доки не впаде."
+    ],
+    map: ["#########", "#S......#", "#######.#", "#F......#", "#########"],
+    blocks: ["move", "turnLeft", "turnRight", "attack", "repeat", "repeatUntil", "enemyAhead", "wallAhead", "atFinish", "if", "ifElse"],
+    goals: [{ type: "enemies" }, { type: "finish" }],
+    enemies: [{ kind: "bear", x: 6, y: 1, boss: true, sight: 2 }],
+    hearts: 3,
+    stars: { three: 11, two: 16 },
+    hint: "Іди, доки попереду не з'явиться ведмідь, тоді вдар тричі. Далі шлях до бабусі вільний.",
+    scene: { theme: "winter", finish: "grandma" }
   }
 ]

@@ -1,16 +1,19 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react"
 import type { Npc, Prop, Scene } from "../core/level.ts"
-import { cellKey, type Direction, type World } from "../core/world.ts"
-import { FLOORS, ITEM_TILES, NPCS, PROPS, propCells, seasonOf, type Swaying, waterTile } from "./look.ts"
+import { type Cell, cellKey, type Direction, type Enemy, isAlive, type World } from "../core/world.ts"
+import { ENEMIES, FLOORS, ITEM_TILES, NPCS, PROPS, propCells, seasonOf, type Swaying, waterTile } from "./look.ts"
 import { buildScenery, cellHash } from "./scenery.ts"
 import { meadowTile, PATH_SHEET_COLUMNS, pathPiece } from "./terrain.ts"
 import beeSheet from "./sprites/bee.png"
 import fireStrip from "./sprites/fire.png"
 import flagStrip from "./sprites/flag.png"
 import grandmaSheet from "./sprites/grandma.png"
+import heartSheet from "./sprites/heart.png"
 import ninjaSheet from "./sprites/ninja.png"
 import robotSheet from "./sprites/robot.png"
 import roverSheet from "./sprites/rover.png"
+import slashStrip from "./sprites/slash.png"
+import smokeStrip from "./sprites/smoke.png"
 import wellTile from "./sprites/well.png"
 
 /** Hero looks. The app sells and picks them; the package only draws them. */
@@ -36,6 +39,14 @@ const MEADOW_TILES = 7
 /** The snowfall picture (320×240) drawn at half size, so the flakes match the 16-pixel tiles. */
 const SNOW_W = 160
 const SNOW_H = 120
+
+const ENEMY_SHEET_HEIGHT = 64
+const BOSS_SCALE = 1.5
+const FX = 32
+const HEART = 9
+/** Columns of heart.png: a full heart first, an empty one last. */
+const HEART_FULL = 0
+const HEART_EMPTY = 4
 
 const WALK_FRAMES = 4
 const FRAME_MS = 70
@@ -195,6 +206,89 @@ const Villager = ({ npc, still }: { readonly npc: Npc; readonly still: boolean }
   )
 }
 
+/** An effect played once when it appears: a slash on a hit enemy, smoke where an enemy was beaten. */
+const Burst = ({ href, frames }: { readonly href: string; readonly frames: number }) => (
+  <svg x={-FX / 2} y={-FX / 2} width={FX} height={FX} viewBox={`0 0 ${FX} ${FX}`} pointerEvents="none">
+    <image
+      href={href}
+      width={FX * frames}
+      height={FX}
+      className="eb-burst"
+      style={{ ["--eb-burst-to" as string]: `${-FX * frames}px`, animationTimingFunction: `steps(${frames})` }}
+    />
+  </svg>
+)
+
+/** Where an enemy looks: at the hero when it comes for them, along its way when it walks. */
+const faceOf = (enemy: Enemy, hero: Cell): Direction => {
+  const dx = hero.x - enemy.x
+  const dy = hero.y - enemy.y
+  const near = Math.abs(dx) + Math.abs(dy) <= Math.max(1, enemy.sight)
+  if (near) return Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? "right" : "left") : dy > 0 ? "down" : "up"
+  if (enemy.walk === "across") return enemy.heading === 1 ? "right" : "left"
+  if (enemy.walk === "updown") return enemy.heading === 1 ? "down" : "up"
+  return "down"
+}
+
+/** Hit points over a boss or a strong enemy. */
+const HpBar = ({ enemy, top }: { readonly enemy: Enemy; readonly top: number }) => {
+  const w = Math.min(14, enemy.maxHp * 3 + 1)
+  return (
+    <g transform={`translate(${-w / 2} ${top})`}>
+      <rect width={w} height={3} rx={1} className="eb-hp-back" />
+      <rect x={0.5} y={0.5} width={((w - 1) * enemy.hp) / enemy.maxHp} height={2} rx={0.5} className="eb-hp" />
+    </g>
+  )
+}
+
+const EnemyFigure = ({ enemy, hero, still }: { readonly enemy: Enemy; readonly hero: Cell; readonly still: boolean }) => {
+  const alive = isAlive(enemy)
+  const scale = enemy.boss ? BOSS_SCALE : 1
+  const look = (
+    <svg x={-CELL / 2} y={-CELL / 2} width={CELL} height={CELL} viewBox={`${COLUMN[faceOf(enemy, hero)] * CELL} 0 ${CELL} ${CELL}`}>
+      <image href={ENEMIES[enemy.kind]} width={CELL * 4} height={ENEMY_SHEET_HEIGHT}>
+        {!still && (
+          <animate
+            attributeName="y"
+            values={`0;${-CELL};${-2 * CELL};${-3 * CELL}`}
+            dur={enemy.boss ? "0.9s" : "0.6s"}
+            calcMode="discrete"
+            repeatCount="indefinite"
+            begin={`-${(enemy.id % 4) * 0.15}s`}
+          />
+        )}
+      </image>
+    </svg>
+  )
+  return (
+    <g className="eb-enemy" style={{ transform: `translate(${enemy.x * CELL + CELL / 2}px, ${enemy.y * CELL + CELL / 2}px)` }}>
+      {alive && (
+        <>
+          <ellipse cx={0} cy={7} rx={5 * scale} ry={1.5 * scale} className="eb-hero-shadow" />
+          <g transform={`translate(0 ${(1 - scale) * 6}) scale(${scale})`}>
+            <g className={enemy.swinging ? "eb-enemy-swing" : undefined}>{look}</g>
+          </g>
+          {(enemy.boss || enemy.maxHp > 1) && <HpBar enemy={enemy} top={-CELL / 2 - 4 - (scale - 1) * 12} />}
+        </>
+      )}
+      {enemy.hp < enemy.maxHp && alive && <Burst key={`hit${enemy.hp}`} href={slashStrip} frames={4} />}
+      {!alive && <Burst key="down" href={smokeStrip} frames={6} />}
+    </g>
+  )
+}
+
+/** The hero's hearts in the top-left corner of the field. */
+const Hearts = ({ hearts, max, x, y }: { readonly hearts: number; readonly max: number; readonly x: number; readonly y: number }) => (
+  <g transform={`translate(${x} ${y})`} aria-label={`Сердечок: ${hearts} з ${max}`}>
+    <rect x={-1.5} y={-1.5} width={max * (HEART + 1) + 2} height={HEART + 3} rx={3} className="eb-hearts-back" />
+    {Array.from({ length: max }, (_, i) => (
+      <svg key={i} x={i * (HEART + 1)} y={0} width={HEART} height={HEART} viewBox={`${(i < hearts ? HEART_FULL : HEART_EMPTY) * CELL} 0 ${CELL} ${CELL}`}>
+        <image href={heartSheet} width={CELL * 5} height={CELL} />
+      </svg>
+    ))}
+  </g>
+)
+
 const at = (key: string) => {
   const [x, y] = key.split(",").map(Number)
   return { x: x ?? 0, y: y ?? 0 }
@@ -345,9 +439,12 @@ export const Field = ({ world, skin, scene = {} }: { readonly world: World; read
           </g>
         )
       })}
+      {world.enemies.map((e) => (
+        <EnemyFigure key={`e${e.id}`} enemy={e} hero={world.hero} still={still} />
+      ))}
       <g className="eb-hero" style={{ transform: `translate(${world.hero.x * CELL + CELL / 2}px, ${world.hero.y * CELL + CELL / 2}px)` }}>
         <ellipse cx={0} cy={7} rx={5} ry={1.5} className="eb-hero-shadow" />
-        <g className={world.crashed ? "eb-hero-crashed" : undefined}>
+        <g key={`h${world.hearts}`} className={world.crashed ? "eb-hero-crashed" : world.hearts < world.maxHearts ? "eb-hero-hurt" : undefined}>
           <Frame href={sheet.href} height={sheet.height} col={COLUMN[world.hero.dir]} row={frame} />
         </g>
       </g>
@@ -362,6 +459,7 @@ export const Field = ({ world, skin, scene = {} }: { readonly world: World; read
           pointerEvents="none"
         />
       )}
+      {world.enemies.length > 0 && <Hearts hearts={world.hearts} max={world.maxHearts} x={view.x * CELL + 3} y={view.y * CELL + 3} />}
     </svg>
   )
 }

@@ -92,6 +92,63 @@
   filter: drop-shadow(0 0 1.5px #ff3355);
 }
 
+.eb-enemy {
+  transition: transform 0.25s ease-in-out;
+}
+
+/* An enemy next to the hero raises its weapon: it hits on its next turn. */
+.eb-enemy-swing {
+  animation: eb-swing 0.35s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 1.2px #ff3355);
+}
+
+.eb-hero-hurt {
+  animation: eb-hurt 0.45s ease-out 1;
+}
+
+.eb-burst {
+  animation-name: eb-burst;
+  animation-duration: 0.45s;
+  animation-fill-mode: forwards;
+}
+
+.eb-hp-back {
+  fill: rgba(30, 20, 30, 0.75);
+}
+
+.eb-hp {
+  fill: #e8434f;
+}
+
+.eb-hearts-back {
+  fill: rgba(30, 20, 30, 0.45);
+}
+
+@keyframes eb-swing {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-1.5px);
+  }
+}
+
+@keyframes eb-hurt {
+  0%,
+  60% {
+    filter: brightness(2.2) drop-shadow(0 0 1.5px #ff3355);
+  }
+  100% {
+    filter: none;
+  }
+}
+
+@keyframes eb-burst {
+  to {
+    transform: translateX(var(--eb-burst-to));
+  }
+}
+
 .eb-crystal {
   animation: eb-bob 1.2s ease-in-out infinite alternate;
 }
@@ -112,8 +169,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .eb-burst {
+    display: none;
+  }
   .eb-hero,
   .eb-hero-crashed,
+  .eb-enemy,
+  .eb-enemy-swing,
+  .eb-hero-hurt,
   .eb-crystal {
     animation: none;
     transition: none;

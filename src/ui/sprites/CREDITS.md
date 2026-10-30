@@ -52,3 +52,6 @@
 | `bloom-orange.png` | `background-elements/plant.gif`, 4 кадри в ряд |
 | `snowfall.png` | `background-elements/snow.png` |
 | `npc-grandpa.png`, `npc-boy.png`, `npc-girl.png`, `npc-villager.png`, `npc-hunter.png`, `npc-kid.png` | `characters/9.png`, `6.png`, `17.png`, `25.png`, `14.png`, `19.png` |
+| `enemy-slime.png`, `enemy-spirit.png`, `enemy-goblin.png`, `enemy-skull.png`, `enemy-flame.png`, `enemy-bear.png`, `enemy-toad.png` | `monsters/18.png`, `7.png`, `3.png`, `19.png`, `2.png`, `8.png`, `14.png` |
+| `heart.png` | `hud/heart.png` |
+| `slash.png`, `smoke.png` | `fx/7.png`, `fx/18.png` |

@@ -1,6 +1,18 @@
 import type { Step } from "./build.ts"
-import type { BlockName, Level } from "./level.ts"
-import { type Cell, cellKey, type Direction, type MapRows, parseMap } from "./world.ts"
+import { allGoalsMet, type BlockName, type Level, startWorld } from "./level.ts"
+import {
+  type Action,
+  applyAction,
+  atFinish,
+  type Cell,
+  cellKey,
+  type Direction,
+  enemyAhead,
+  isAlive,
+  type MapRows,
+  parseMap,
+  type World
+} from "./world.ts"
 
 /**
  * Level kit: what a level editor (or a script) needs to make a level from the map signs and the scene pictures.
@@ -106,7 +118,7 @@ export const checkLevel = (level: Level): ReadonlyArray<Issue> => {
   const issues: Array<Issue> = []
   const error = (text: string) => issues.push({ level: "error", text })
   const warning = (text: string) => issues.push({ level: "warning", text })
-  const wants = (type: "crystals" | "finish") => level.goals.some((g) => g.type === type)
+  const wants = (type: "crystals" | "finish" | "enemies") => level.goals.some((g) => g.type === type)
   const has = (b: BlockName) => level.blocks.includes(b)
 
   if (level.title.trim() === "") error("Немає назви рівня")
@@ -115,6 +127,19 @@ export const checkLevel = (level: Level): ReadonlyArray<Issue> => {
   if (wants("finish") && world.finish === null) error("Мета — дійти до F, а на мапі немає F")
   if (!has("move")) error("У палітрі немає «крок уперед»: герой не зрушить")
   if (wants("crystals") && !has("collect")) error("Предмети треба брати, а в палітрі немає «взяти»")
+  const enemies = level.enemies ?? []
+  if (wants("enemies") && enemies.length === 0) error("Мета — перемогти ворогів, а ворогів на мапі немає")
+  if (enemies.length > 0 && !has("attack"))
+    (wants("enemies") ? error : warning)("На мапі є вороги, а в палітрі немає «вдарити»: їх можна лише обійти")
+  const taken = new Set<string>()
+  for (const e of enemies) {
+    const key = cellKey(e.x, e.y)
+    if (world.walls.has(key) || e.x < 0 || e.y < 0 || e.x >= world.width || e.y >= world.height)
+      error(`Ворог на (${e.x}, ${e.y}) стоїть на стіні або поза мапою`)
+    else if (e.x === world.hero.x && e.y === world.hero.y) error("Ворог стоїть на старті героя")
+    else if (taken.has(key)) error(`Два вороги на одній клітинці (${e.x}, ${e.y})`)
+    taken.add(key)
+  }
 
   const open = reachable(level.map)
   const lost = [...world.crystals].filter((key) => !open.has(key)).length
@@ -123,6 +148,8 @@ export const checkLevel = (level: Level): ReadonlyArray<Issue> => {
     error("Герой не дійде до мети F: її відрізають стіни")
   if (!wants("crystals") && world.totalCrystals > 0) warning("На мапі є предмети, але мета їх не просить")
   if (!wants("finish") && world.finish !== null) warning("На мапі є F, але мета не просить до неї дійти")
+  const lostEnemies = enemies.filter((e) => !open.has(cellKey(e.x, e.y))).length
+  if (wants("enemies") && lostEnemies > 0) error(`Герой не дійде до ${lostEnemies} ворог${lostEnemies === 1 ? "а" : "ів"}: їх відрізають стіни`)
 
   const onPath = (level.scene?.npcs ?? []).filter((n) => !world.walls.has(cellKey(n.x, n.y)) && n.x >= 0 && n.y >= 0 && n.x < world.width && n.y < world.height)
   if (onPath.length > 0) warning("Людина стоїть на стежці: герой пройде крізь неї. Краще постав її на стіну поруч")
@@ -162,44 +189,65 @@ const walk = (map: MapRows, from: Cell, to: Cell): ReadonlyArray<Cell> | null =>
   return null
 }
 
+/** Hero actions a plain route may take before it gives up. */
+const ROUTE_LIMIT = 500
+
 /**
- * A plain route without loops: to the nearest item each time, then to the finish. Good to check that a level can be
- * done and to see how long a program without «повторити» is. Null when the level cannot be done.
+ * A plain route without loops: to the nearest item each time, then to the nearest enemy (struck until it falls)
+ * when the goal asks for it, then to the finish. An enemy in the way is struck too. The route is played on the
+ * real rules, so walking enemies are followed. Good to check that a level can be done and to see how long a program
+ * without «повторити» is. Null when the level cannot be done this way.
  */
 export const plainRoute = (level: Level): ReadonlyArray<Step> | null => {
   if (checkLevel(level).some((i) => i.level === "error")) return null
-  const world = parseMap(level.map, level.dir)
+  let world: World = startWorld(level)
   const steps: Array<Step> = []
-  let at: Cell = world.hero
-  let dir: Direction = world.hero.dir
-  const goTo = (target: Cell): boolean => {
-    const path = walk(level.map, at, target)
-    if (path === null) return false
-    for (const cell of path) {
-      const want = directionTo(at, cell)
-      if (TURN_RIGHT[TURN_RIGHT[dir]] === want) steps.push("turnRight", "turnRight")
-      else if (TURN_RIGHT[dir] === want) steps.push("turnRight")
-      else if (TURN_RIGHT[want] === dir) steps.push("turnLeft")
-      dir = want
-      steps.push("move")
-      at = cell
-    }
+  /** False when the run is lost or too long. */
+  const act = (action: Extract<Action, Step>): boolean => {
+    steps.push(action)
+    world = applyAction(world, action).world
+    return allGoalsMet(level, world) || (!world.crashed && world.hearts > 0 && steps.length < ROUTE_LIMIT)
+  }
+  const face = (want: Direction): boolean => {
+    const dir = world.hero.dir
+    if (TURN_RIGHT[TURN_RIGHT[dir]] === want) return act("turnRight") && act("turnRight")
+    if (TURN_RIGHT[dir] === want) return act("turnRight")
+    if (TURN_RIGHT[want] === dir) return act("turnLeft")
     return true
   }
-  const left = new Set(level.goals.some((g) => g.type === "crystals") ? world.crystals : [])
-  while (left.size > 0) {
-    const nearest = [...left]
-      .map((key) => {
-        const [x = 0, y = 0] = key.split(",").map(Number)
-        return { key, cell: { x, y }, length: walk(level.map, at, { x, y })?.length ?? Infinity }
-      })
-      .sort((a, b) => a.length - b.length)[0]
-    if (nearest === undefined || !goTo(nearest.cell)) return null
-    steps.push("collect")
-    left.delete(nearest.key)
+  /** One step toward a cell (striking an enemy in the way); false when there is no way or the run is lost. */
+  const advance = (target: Cell): boolean => {
+    const next = walk(level.map, world.hero, target)?.[0]
+    if (next === undefined) return false
+    if (!face(directionTo(world.hero, next))) return false
+    return act(enemyAhead(world) ? "attack" : "move")
   }
-  if (level.goals.some((g) => g.type === "finish") && world.finish !== null && !goTo(world.finish)) return null
-  return steps
+  const nearest = <T extends Cell>(cells: ReadonlyArray<T>): T | undefined =>
+    cells
+      .map((cell) => ({ cell, length: walk(level.map, world.hero, cell)?.length ?? Infinity }))
+      .filter((c) => c.length < Infinity)
+      .sort((a, b) => a.length - b.length)[0]?.cell
+  const done = () => allGoalsMet(level, world)
+  const wants = (type: "crystals" | "finish" | "enemies") => level.goals.some((g) => g.type === type)
+
+  while (wants("crystals") && world.crystals.size > 0 && !done()) {
+    const item = nearest([...world.crystals].map((key) => {
+      const [x = 0, y = 0] = key.split(",").map(Number)
+      return { x, y }
+    }))
+    if (item === undefined) return null
+    if (world.hero.x === item.x && world.hero.y === item.y) {
+      if (!act("collect")) return null
+    } else if (!advance(item)) return null
+  }
+  while (wants("enemies") && world.enemies.some(isAlive) && !done()) {
+    const enemy = nearest(world.enemies.filter(isAlive))
+    if (enemy === undefined || !advance(enemy)) return done() ? steps : null
+  }
+  while (wants("finish") && world.finish !== null && !atFinish(world) && !done()) {
+    if (!advance(world.finish)) return null
+  }
+  return done() ? steps : null
 }
 
 /** The level as a TypeScript object for `src/levels/index.ts`. */

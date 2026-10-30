@@ -64,4 +64,23 @@ describe("adviseRun", () => {
       "Герой ходить без кінця. Перевір умову в «повторити до»: чи стане вона колись правдою?"
     ])
   })
+
+  test("walking into an enemy: strike first, and ask «попереду ворог?» where the palette has it", () => {
+    const tips = advise("g5-guards", [{ repeat: 4, body: ["move"] }])
+    expect(tips[0]).toContain("наткнувся на ворога")
+    expect(tips[1]).toContain("якщо попереду ворог?")
+    expect(advise("g5-spirit", ["move", "move"])).toHaveLength(1)
+  })
+
+  test("beaten by a boss: how many blows are left", () => {
+    const tips = advise("g6-bear", [{ until: "enemyAhead", body: ["move"] }, "attack", { repeat: 6, body: ["turnLeft"] }])
+    expect(tips[0]).toContain("замахується")
+    expect(tips.join(" ")).toContain("Лишилось 2 удари")
+  })
+
+  test("enemies left and blows into the air", () => {
+    const tips = advise("g5-guards", ["attack", "move", "attack"])
+    expect(tips.join(" ")).toContain("Лишилось ворогів: 2")
+    expect(tips.join(" ")).toContain("влучив у порожнечу")
+  })
 })

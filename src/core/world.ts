@@ -27,7 +27,74 @@ export interface World {
   readonly hero: Cell & { readonly dir: Direction }
   /** Set once the hero walked into a wall. The run stops there. */
   readonly crashed: boolean
+  /** Enemies of the level, beaten ones too (with no hp left), in the order they act. */
+  readonly enemies: ReadonlyArray<Enemy>
+  /** Hearts the hero has left. At 0 the run stops. */
+  readonly hearts: number
+  readonly maxHearts: number
 }
+
+/** Monsters from the pack. Which one only changes the picture. */
+export type EnemyKind = "slime" | "spirit" | "goblin" | "skull" | "flame" | "bear" | "toad"
+
+/** How an enemy moves while the hero is far: stands, walks left and right, or walks up and down. */
+export type EnemyWalk = "stand" | "across" | "updown"
+
+/** An enemy as a level puts it on the map. */
+export interface EnemySpec {
+  readonly kind: EnemyKind
+  readonly x: number
+  readonly y: number
+  /** Hits it takes. 1 by default, 3 for a boss. */
+  readonly hp?: number
+  /** It comes for the hero once the hero is this many steps away or closer. 2 by default; 0 never comes. */
+  readonly sight?: number
+  readonly walk?: EnemyWalk
+  /** A boss is drawn bigger and shows its hp. */
+  readonly boss?: boolean
+}
+
+export interface Enemy {
+  readonly id: number
+  readonly kind: EnemyKind
+  readonly x: number
+  readonly y: number
+  readonly hp: number
+  readonly maxHp: number
+  readonly sight: number
+  readonly walk: EnemyWalk
+  /** Where a walking enemy goes now: +1 right or down, -1 left or up. */
+  readonly heading: 1 | -1
+  /** Set when the enemy stands next to the hero and swings: it hits on its next turn if the hero is still there. */
+  readonly swinging: boolean
+  readonly boss: boolean
+}
+
+export const DEFAULT_HEARTS = 3
+export const DEFAULT_SIGHT = 2
+export const BOSS_HP = 3
+
+export const enemyOf = (spec: EnemySpec, id: number): Enemy => {
+  const boss = spec.boss === true
+  const hp = Math.max(1, Math.round(spec.hp ?? (boss ? BOSS_HP : 1)))
+  return {
+    id,
+    kind: spec.kind,
+    x: spec.x,
+    y: spec.y,
+    hp,
+    maxHp: hp,
+    sight: Math.max(0, Math.round(spec.sight ?? DEFAULT_SIGHT)),
+    walk: spec.walk ?? "stand",
+    heading: 1,
+    swinging: false,
+    boss
+  }
+}
+
+export const isAlive = (enemy: Enemy): boolean => enemy.hp > 0
+
+export const enemiesLeft = (world: World): number => world.enemies.filter(isAlive).length
 
 export const cellKey = (x: number, y: number): string => `${x},${y}`
 
@@ -66,7 +133,10 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
     crystals,
     totalCrystals: crystals.size,
     hero: { x: s.x, y: s.y, dir },
-    crashed: false
+    crashed: false,
+    enemies: [],
+    hearts: DEFAULT_HEARTS,
+    maxHearts: DEFAULT_HEARTS
   }
 }
 
@@ -83,20 +153,37 @@ export const wallAhead = (world: World): boolean => {
   return isWall(world, next.x, next.y)
 }
 
+export const enemyAt = (world: World, x: number, y: number): Enemy | undefined =>
+  world.enemies.find((e) => isAlive(e) && e.x === x && e.y === y)
+
+export const enemyAhead = (world: World): boolean => {
+  const next = cellAhead(world)
+  return enemyAt(world, next.x, next.y) !== undefined
+}
+
 export const onCrystal = (world: World): boolean => world.crystals.has(cellKey(world.hero.x, world.hero.y))
 
 export const atFinish = (world: World): boolean =>
   world.finish !== null && world.hero.x === world.finish.x && world.hero.y === world.finish.y
 
-export type Action = "move" | "turnLeft" | "turnRight" | "collect"
+export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack"
 
 /** What one action did, for the animation and the error message. */
-export type Outcome = "moved" | "crashed" | "turned" | "collected" | "nothingToCollect"
+export type Outcome =
+  | "moved"
+  | "crashed"
+  | "turned"
+  | "collected"
+  | "nothingToCollect"
+  | "enemyHit"
+  | "enemyDown"
+  | "swingMissed"
 
-export const applyAction = (world: World, action: Action): { readonly world: World; readonly outcome: Outcome } => {
+const heroAction = (world: World, action: Action): { readonly world: World; readonly outcome: Outcome } => {
   if (action === "move") {
     const next = cellAhead(world)
-    if (isWall(world, next.x, next.y)) return { world: { ...world, crashed: true }, outcome: "crashed" }
+    if (isWall(world, next.x, next.y) || enemyAt(world, next.x, next.y) !== undefined)
+      return { world: { ...world, crashed: true }, outcome: "crashed" }
     return { world: { ...world, hero: { ...world.hero, x: next.x, y: next.y } }, outcome: "moved" }
   }
   if (action === "turnLeft" || action === "turnRight") {
@@ -104,9 +191,89 @@ export const applyAction = (world: World, action: Action): { readonly world: Wor
     const dir = CLOCKWISE[(i + (action === "turnRight" ? 1 : 3)) % 4] ?? world.hero.dir
     return { world: { ...world, hero: { ...world.hero, dir } }, outcome: "turned" }
   }
+  if (action === "attack") {
+    const next = cellAhead(world)
+    const target = enemyAt(world, next.x, next.y)
+    if (target === undefined) return { world, outcome: "swingMissed" }
+    // A blow stops an enemy's swing, but not a boss's: a boss hits back while it is struck.
+    const enemies = world.enemies.map((e) => (e.id === target.id ? { ...e, hp: e.hp - 1, swinging: e.swinging && e.boss } : e))
+    return { world: { ...world, enemies }, outcome: target.hp > 1 ? "enemyHit" : "enemyDown" }
+  }
   const key = cellKey(world.hero.x, world.hero.y)
   if (!world.crystals.has(key)) return { world, outcome: "nothingToCollect" }
   const crystals = new Set(world.crystals)
   crystals.delete(key)
   return { world: { ...world, crystals }, outcome: "collected" }
+}
+
+const distance = (a: Cell, b: Cell): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
+
+/** Cells an enemy may step on: floor with no hero and no other enemy. */
+const freeFor = (world: World, enemies: ReadonlyArray<Enemy>, self: Enemy, x: number, y: number): boolean =>
+  !isWall(world, x, y) &&
+  !(world.hero.x === x && world.hero.y === y) &&
+  !enemies.some((e) => e.id !== self.id && isAlive(e) && e.x === x && e.y === y)
+
+/** The first step of a shortest way from the enemy to a cell next to the hero, or null when there is none. */
+const stepToward = (world: World, enemies: ReadonlyArray<Enemy>, self: Enemy): Cell | null => {
+  const first = new Map<string, Cell>()
+  const seen = new Set([cellKey(self.x, self.y)])
+  let wave: ReadonlyArray<Cell> = [self]
+  // The way is searched only as far as the enemy sees, and a little more to go around a tree.
+  for (let d = 0; wave.length > 0 && d <= self.sight * 2 + 2; d++) {
+    const next: Array<Cell> = []
+    for (const c of wave) {
+      if (distance(c, world.hero) === 1) return first.get(cellKey(c.x, c.y)) ?? null
+      for (const dir of CLOCKWISE) {
+        const x = c.x + DELTA[dir].x
+        const y = c.y + DELTA[dir].y
+        const key = cellKey(x, y)
+        if (seen.has(key) || !freeFor(world, enemies, self, x, y)) continue
+        seen.add(key)
+        first.set(key, first.get(cellKey(c.x, c.y)) ?? { x, y })
+        next.push({ x, y })
+      }
+    }
+    wave = next
+  }
+  return null
+}
+
+/** One enemy's turn: swing or hit when next to the hero, come closer when it sees the hero, walk its way otherwise. */
+const enemyTurn = (world: World, enemies: ReadonlyArray<Enemy>, self: Enemy): { readonly enemy: Enemy; readonly hit: boolean } => {
+  const near = distance(self, world.hero)
+  if (near === 1) return self.swinging ? { enemy: { ...self, swinging: false }, hit: true } : { enemy: { ...self, swinging: true }, hit: false }
+  const calm = { ...self, swinging: false }
+  if (self.sight > 0 && near <= self.sight) {
+    const step = stepToward(world, enemies, self)
+    if (step !== null) return { enemy: { ...calm, x: step.x, y: step.y }, hit: false }
+  }
+  if (self.walk === "stand") return { enemy: calm, hit: false }
+  const along = (heading: 1 | -1): Cell =>
+    self.walk === "across" ? { x: self.x + heading, y: self.y } : { x: self.x, y: self.y + heading }
+  for (const heading of [self.heading, self.heading === 1 ? -1 : 1] as const) {
+    const to = along(heading)
+    if (freeFor(world, enemies, self, to.x, to.y)) return { enemy: { ...calm, x: to.x, y: to.y, heading }, hit: false }
+  }
+  return { enemy: calm, hit: false }
+}
+
+/** After each hero action every enemy that is still up takes its turn, in order. */
+const enemiesTurn = (world: World): World => {
+  if (!world.enemies.some(isAlive)) return world
+  let enemies = world.enemies
+  let hearts = world.hearts
+  for (const self of world.enemies) {
+    if (!isAlive(self)) continue
+    const { enemy, hit } = enemyTurn(world, enemies, self)
+    enemies = enemies.map((e) => (e.id === enemy.id ? enemy : e))
+    if (hit) hearts = Math.max(0, hearts - 1)
+  }
+  return { ...world, enemies, hearts }
+}
+
+/** One hero action, then the enemies' turn. A crash ends the run at once, so enemies do not move after it. */
+export const applyAction = (world: World, action: Action): { readonly world: World; readonly outcome: Outcome } => {
+  const done = heroAction(world, action)
+  return done.outcome === "crashed" ? done : { world: enemiesTurn(done.world), outcome: done.outcome }
 }

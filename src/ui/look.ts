@@ -1,5 +1,5 @@
 import type { ItemKind, NpcKind, Prop, PropKind, Scene } from "../core/level.ts"
-import { cellKey } from "../core/world.ts"
+import { cellKey, type EnemyKind } from "../core/world.ts"
 import type { Decor, Obstacle } from "./scenery.ts"
 import appleTile from "./sprites/apple.png"
 import bloomOrangeStrip from "./sprites/bloom-orange.png"
@@ -17,6 +17,13 @@ import houseImage from "./sprites/house.png"
 import iceTile from "./sprites/ice.png"
 import keyImage from "./sprites/key.png"
 import meadowSheet from "./sprites/meadow.png"
+import enemyBearSheet from "./sprites/enemy-bear.png"
+import enemyFlameSheet from "./sprites/enemy-flame.png"
+import enemyGoblinSheet from "./sprites/enemy-goblin.png"
+import enemySkullSheet from "./sprites/enemy-skull.png"
+import enemySlimeSheet from "./sprites/enemy-slime.png"
+import enemySpiritSheet from "./sprites/enemy-spirit.png"
+import enemyToadSheet from "./sprites/enemy-toad.png"
 import npcBoySheet from "./sprites/npc-boy.png"
 import npcGirlSheet from "./sprites/npc-girl.png"
 import npcGrandpaSheet from "./sprites/npc-grandpa.png"
@@ -126,6 +133,17 @@ export const NPCS: Readonly<Record<NpcKind, string>> = {
   villager: npcVillagerSheet,
   hunter: npcHunterSheet,
   kid: npcKidSheet
+}
+
+/** Monster sheets: 64×64, a column per direction and a row per frame. */
+export const ENEMIES: Readonly<Record<EnemyKind, string>> = {
+  slime: enemySlimeSheet,
+  spirit: enemySpiritSheet,
+  goblin: enemyGoblinSheet,
+  skull: enemySkullSheet,
+  flame: enemyFlameSheet,
+  bear: enemyBearSheet,
+  toad: enemyToadSheet
 }
 
 /** The cells a prop covers, so the scenery leaves them free. */

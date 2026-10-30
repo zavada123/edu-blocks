@@ -155,6 +155,27 @@ Programs are limited to 300 blocks, the blocks of the level and 1,000 hero actio
 | `onComplete(report)` | After every run: `levelId`, `passed`, `stars`, `blocks`, `reason`, `firstTry`, `xp` and the `program` itself |
 | `onProgramChange(program)` | After every block change, for apps with their own Check button |
 
+### Enemies and bosses
+
+A level can put enemies on floor cells with `enemies` and give the hero `hearts` (3 by default). The game stays
+turn-based: after each hero action (a turn too) every enemy takes its turn.
+
+```ts
+enemies: [
+  { kind: "goblin", x: 4, y: 1, walk: "across", sight: 2 }, // walks left and right, comes when the hero is 2 cells away
+  { kind: "bear", x: 6, y: 3, boss: true, hp: 3, sight: 3 }  // a boss: bigger, shows its hit points, hits back while struck
+],
+hearts: 3,
+goals: [{ type: "enemies" }, { type: "finish" }]
+```
+
+- `walk`: `stand`, `across` or `updown` while the hero is far. `sight` (X): within X steps the enemy walks up to the
+  hero, around walls too; 0 means it never comes.
+- An enemy next to the hero swings, and on its next turn hits for one heart. A blow stops a plain enemy's swing, not a boss's.
+- Blocks `attack` («вдарити») and `enemyAhead` («попереду ворог?»). Walking into an enemy is a crash; no hearts left is the
+  fail reason `defeated`.
+- Kinds: `slime`, `spirit`, `goblin`, `skull`, `flame`, `bear`, `toad` (Ninja Adventure monsters).
+
 ### Level editor and level kit
 
 `editor.html` (link «Редактор рівнів» in the demo) is a visual level editor. Paint the map with the pack pictures (path, wall, item, goal, start, a house or a woodshed), pick the season, floor, items and goal, the palette blocks and the star limits. The editor checks the level as you go, lets you try it in the trainer (a passed run can set the three-star limit) and gives the level as code for `src/levels/index.ts` or as JSON. Work is kept in the browser.
