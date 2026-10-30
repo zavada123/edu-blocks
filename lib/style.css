@@ -9,7 +9,8 @@
   --eb-ok-button: #0b7a5c;
   --eb-bad: #ff6680;
   display: grid;
-  grid-template-columns: minmax(300px, 380px) 1fr;
+  /* The field column takes about half the width: the field is the game, the blocks need less. */
+  grid-template-columns: minmax(340px, 1fr) minmax(420px, 1fr);
   height: 100%;
   min-height: 0;
   background: var(--eb-bg);
@@ -62,25 +63,61 @@
 
 .eb-field {
   width: 100%;
-  max-height: 40vh;
-  background: #e9eef8;
+  max-height: 68vh;
   border-radius: 10px;
-}
-
-.eb-floor {
-  fill: #fff;
-}
-
-.eb-wall {
-  fill: #8d96b3;
+  /* Pixel art stays sharp at any size. */
+  image-rendering: pixelated;
 }
 
 .eb-hero {
   transition: transform 0.25s ease-in-out;
 }
 
-.eb-hero-turn {
-  transition: transform 0.2s ease-in-out;
+.eb-ice-hole {
+  fill: #1d4f6e;
+}
+
+.eb-doormat {
+  fill: #9b5b34;
+  stroke: #5e3216;
+  stroke-width: 1;
+}
+
+.eb-hero-shadow {
+  fill: rgba(0, 0, 0, 0.25);
+}
+
+.eb-hero-crashed {
+  animation: eb-shake 0.3s ease-in-out 2;
+  filter: drop-shadow(0 0 1.5px #ff3355);
+}
+
+.eb-crystal {
+  animation: eb-bob 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes eb-bob {
+  to {
+    transform: translateY(-1.5px);
+  }
+}
+
+@keyframes eb-shake {
+  25% {
+    transform: translateX(-1.5px);
+  }
+  75% {
+    transform: translateX(1.5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eb-hero,
+  .eb-hero-crashed,
+  .eb-crystal {
+    animation: none;
+    transition: none;
+  }
 }
 
 .eb-controls {
@@ -192,7 +229,7 @@
   .eb-stage {
     flex: 0 1 auto;
     gap: 6px;
-    max-height: 50%;
+    max-height: 62%;
     padding: 8px 12px;
     border-right: 0;
     border-bottom: 1px solid var(--eb-line);
@@ -212,7 +249,7 @@
   }
 
   .eb-field {
-    max-height: 24vh;
+    max-height: 34vh;
   }
 
   .eb-controls button {
@@ -231,6 +268,41 @@
 
   .eb-verdict-close {
     display: block;
+  }
+}
+
+.eb-xp {
+  margin-top: 8px !important;
+}
+
+.eb-xp strong {
+  color: #6b3fa0;
+}
+
+.eb-xp-bar {
+  height: 8px;
+  margin: 6px 0 2px;
+  border-radius: 4px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.eb-xp-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: #8a55c8;
+  transition: width 0.6s ease-out;
+}
+
+.eb-xp-level {
+  font-size: 0.85rem;
+  color: #3d4256;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eb-xp-bar span {
+    transition: none;
   }
 }
 /*$vite$:1*/

@@ -10,6 +10,17 @@ export interface BlocksReport {
     readonly blocks: number;
     readonly reason: FailReason | null;
     readonly program: Program;
+    /** No run of the level failed before this one since the editor opened. */
+    readonly firstTry: boolean;
+    /** XP of this run (`xpFor`). The hero gets only the part above the best earlier run. */
+    readonly xp: number;
+}
+/** The hero's XP before the run, from the app: the result then shows the gain and the hero level. */
+export interface HeroXp {
+    /** All XP of the hero. */
+    readonly total: number;
+    /** The best XP of this level so far. */
+    readonly best: number;
 }
 export interface EduBlocksProps {
     readonly level: Level;
@@ -22,8 +33,9 @@ export interface EduBlocksProps {
     readonly media?: string;
     /** Milliseconds per hero action in the animation. */
     readonly speed?: number;
+    readonly xp?: HeroXp;
     readonly onComplete?: (report: BlocksReport) => void;
     /** After each change of the blocks, with the program as it is now. An app that has its own check button sends it. */
     readonly onProgramChange?: (program: Program) => void;
 }
-export declare const EduBlocks: ({ level, skin, large, program, media, speed, onComplete, onProgramChange }: EduBlocksProps) => import("react").JSX.Element;
+export declare const EduBlocks: ({ level, skin, large, program, media, speed, xp, onComplete, onProgramChange }: EduBlocksProps) => import("react").JSX.Element;

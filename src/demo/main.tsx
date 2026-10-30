@@ -1,6 +1,7 @@
 import { StrictMode, useState } from "react"
 import { createRoot } from "react-dom/client"
 import { buildProgram } from "../core/build.ts"
+import { heroLevelOf } from "../core/xp.ts"
 import { levels } from "../levels/index.ts"
 import { solutions } from "../levels/solutions.ts"
 import { type BlocksReport, EduBlocks } from "../ui/EduBlocks.tsx"
@@ -14,12 +15,12 @@ const showSolution = params.has("solve")
 const firstLevel = levels.find((l) => l.id === params.get("level")) ?? levels[0]
 if (!firstLevel) throw new Error("Немає жодного рівня")
 
-/** Crystals for each new star. In EduProstir the server counts them; the demo keeps them in the browser. */
-const CRYSTALS_PER_STAR = 10
-const SKINS: ReadonlyArray<{ readonly id: Skin; readonly name: string; readonly price: number }> = [
-  { id: "robot", name: "Робот", price: 0 },
-  { id: "rover", name: "Ровер", price: 30 },
-  { id: "bee", name: "Бджілка", price: 60 }
+/** Looks open at a hero level. In EduProstir the server counts the XP; the demo keeps it in the browser. */
+const SKINS: ReadonlyArray<{ readonly id: Skin; readonly name: string; readonly heroLevel: number }> = [
+  { id: "ninja", name: "Ніндзя", heroLevel: 1 },
+  { id: "robot", name: "Робот", heroLevel: 2 },
+  { id: "rover", name: "Ровер", heroLevel: 3 },
+  { id: "bee", name: "Бджілка", heroLevel: 4 }
 ]
 
 const load = <T,>(key: string, fallback: T): T => {
@@ -39,31 +40,31 @@ const save = (key: string, value: unknown) => {
   }
 }
 
-/** Demo page: levels, crystals for stars and a small shop of hero looks. */
+interface Best {
+  readonly stars: number
+  readonly xp: number
+}
+
+/** Demo page: levels, XP for the best run of each level and hero looks that open with the hero level. */
 const Demo = () => {
   const [id, setId] = useState(firstLevel.id)
-  const [best, setBest] = useState<Record<string, number>>(() => load("eb-best", {}))
-  const [owned, setOwned] = useState<ReadonlyArray<Skin>>(() => load("eb-owned", ["robot"]))
-  const [skin, setSkin] = useState<Skin>(() => load("eb-skin", "robot"))
+  const [best, setBest] = useState<Record<string, Best>>(() => load("eb-best-xp", {}))
+  const [skin, setSkin] = useState<Skin>(() => load("eb-skin", "ninja"))
   const level = levels.find((l) => l.id === id) ?? firstLevel
 
-  const spent = SKINS.filter((s) => owned.includes(s.id)).reduce((sum, s) => sum + s.price, 0)
-  const crystals = Object.values(best).reduce((sum, stars) => sum + stars * CRYSTALS_PER_STAR, 0) - spent
+  const total = Object.values(best).reduce((sum, b) => sum + b.xp, 0)
+  const hero = heroLevelOf(total)
 
   const onComplete = (report: BlocksReport) => {
-    if (report.stars <= (best[report.levelId] ?? 0)) return
-    const next = { ...best, [report.levelId]: report.stars }
+    const old = best[report.levelId] ?? { stars: 0, xp: 0 }
+    if (report.stars <= old.stars && report.xp <= old.xp) return
+    const next = { ...best, [report.levelId]: { stars: Math.max(old.stars, report.stars), xp: Math.max(old.xp, report.xp) } }
     setBest(next)
-    save("eb-best", next)
+    save("eb-best-xp", next)
   }
 
   const pick = (s: (typeof SKINS)[number]) => {
-    if (!owned.includes(s.id)) {
-      if (crystals < s.price) return
-      const next = [...owned, s.id]
-      setOwned(next)
-      save("eb-owned", next)
-    }
+    if (hero.level < s.heroLevel) return
     setSkin(s.id)
     save("eb-skin", s.id)
   }
@@ -71,19 +72,19 @@ const Demo = () => {
   return (
     <div className="demo">
       <header className="demo-head">
-        <strong>Програмуємо з роботом</strong>
+        <strong>Зима в селі</strong>
         <label>
           <span className="demo-visually-hidden">Рівень</span>
           <select value={id} onChange={(e) => setId(e.target.value)}>
             {levels.map((l) => (
               <option key={l.id} value={l.id}>
-                {l.grade} клас · {l.title} {"★".repeat(best[l.id] ?? 0)}
+                {l.grade} клас · {l.title} {"★".repeat(best[l.id]?.stars ?? 0)}
               </option>
             ))}
           </select>
         </label>
-        <span className="demo-crystals" aria-label={`Кристалів: ${crystals}`}>
-          💎 {crystals}
+        <span className="demo-crystals" aria-label={`Рівень героя ${hero.level}, ${total} XP`}>
+          Рівень {hero.level} · {total} XP
         </span>
         <span className="demo-shop">
           {SKINS.map((s) => (
@@ -92,10 +93,10 @@ const Demo = () => {
               type="button"
               className={s.id === skin ? "demo-skin demo-skin-on" : "demo-skin"}
               onClick={() => pick(s)}
-              disabled={!owned.includes(s.id) && crystals < s.price}
+              disabled={hero.level < s.heroLevel}
             >
               {s.name}
-              {!owned.includes(s.id) && ` · 💎${s.price}`}
+              {hero.level < s.heroLevel && ` · рівень ${s.heroLevel}`}
             </button>
           ))}
         </span>
@@ -106,6 +107,7 @@ const Demo = () => {
           level={level}
           skin={skin}
           large={level.grade === 3}
+          xp={{ total, best: best[level.id]?.xp ?? 0 }}
           onComplete={onComplete}
           {...(showSolution ? { program: buildProgram(solutions[level.id] ?? []) } : {})}
         />

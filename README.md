@@ -2,7 +2,7 @@
 
 <p align="center">
   <b>A game-based block programming trainer for grades 3–6, with Scratch 3-style blocks.</b><br>
-  Students program a robot through a maze, collect crystals and earn stars. Programs are graded by a small deterministic interpreter that also runs on the server.
+  Students program a ninja through a winter village, carry firewood, catch fish and earn stars. Programs are graded by a small deterministic interpreter that also runs on the server.
 </p>
 
 <p align="center">
@@ -22,25 +22,28 @@
 </p>
 
 <p align="center">
-  <a href="https://zavada123.github.io/edu-blocks/"><img src="docs/screenshot.png" alt="edu-blocks: a maze with a robot and crystals next to a Scratch-style block program" width="800"></a>
+  <a href="https://zavada123.github.io/edu-blocks/"><img src="docs/screenshot.png" alt="edu-blocks: a pixel-art winter village with a ninja next to a Scratch-style block program" width="800"></a>
 </p>
 
 ## Why
 
-Young students meet programming through Scratch, but a free-form Scratch project is hard to grade. `edu-blocks` keeps the exact look and wording of Ukrainian Scratch 3 blocks and wraps them in short levels with a clear goal: guide the robot, collect the crystals, reach the flag. A level gives 1–3 stars, and shorter programs earn more. The same check runs in the browser and on your server, so the student always sees the grade the server will give.
+Young students meet programming through Scratch, but a free-form Scratch project is hard to grade. `edu-blocks` keeps the exact look and wording of Ukrainian Scratch 3 blocks and wraps them in short levels with a clear goal and a reason for it: the stove went out, so fetch the firewood; the tea needs water, so walk to the well. A level gives 1–3 stars, and shorter programs earn more. The same check runs in the browser and on your server, so the student always sees the grade the server will give.
 
 The student-facing interface is in Ukrainian. It was built for [EduProstir](https://eduprostir.com), a Ukrainian learning platform. The demo's crystal rewards and small hero shop are only an example: in EduProstir the server awards them.
 
 ## Features
 
 - **Real Scratch 3 blocks:** the same shapes and the same Ukrainian names ("повторити", "якщо … то", "інакше", "повторити до", "не", "коли прапорець натиснуто"), so students move to real Scratch easily.
-- **Robot blocks:** "step forward", "turn left", "turn right", "collect crystal", and the sensing questions "wall ahead?", "crystal here?", "on the flag?".
+- **Hero blocks:** "step forward", "turn left", "turn right", "take", and the sensing questions "wall ahead?", "anything here?", "reached the goal?".
 - **One concept per level:** every level unlocks only its own blocks.
-- **Animated runs:** the robot moves step by step and the running block is highlighted.
-- **Clear feedback:** the robot hit a wall, the program ended too early, the loop never ends. Each level has a hint.
+- **Animated runs:** the hero walks step by step and the running block is highlighted.
+- **Story scenes** (`scene`): summer or winter, a path, pond ice or a bridge, items (crystals, firewood, apples, fish, a key, campfires that light up), a goal (flag, well, grandma, home) and houses around. Pixel art from Ninja Adventure.
+- **A meadow around every level** doubles the cells on the map; it is scenery only.
+- **XP and hero levels:** a run gives XP for the level tier (`tier`: intro, practice or challenge), for each star and for a pass at the first try. The hero gets only the part above the best earlier run, so replays give nothing to farm.
+- **Clear feedback:** the hero hit an obstacle, the program ended too early, the loop never ends. Each level has a hint.
 - **Mobile-first layout:** field on top, blocks below, a palette without the category column, drag blocks with a finger.
 - **Large mode** for grade 3.
-- **Three hero skins** (`skin`): robot, rover and bee. Your app decides how they are sold or unlocked.
+- **Four hero skins** (`skin`): ninja (default), robot, rover and bee. Your app decides how they are sold or unlocked.
 - **Deterministic grading:** an interpreter that follows Scratch 3's execution order, tested against the TurboWarp VM on hundreds of random programs.
 
 ## Installation
@@ -69,7 +72,7 @@ const level: Level = {
   grade: 4,
   title: "Повторення",
   task: ["Збери всі п'ять кристалів.", "Спробуй блок «повторити»: так програма буде коротшою."],
-  // # wall, . floor, S start, c crystal, F flag. The robot starts facing right (dir changes that).
+  // # wall, . floor, S start, c crystal, F flag. The hero starts facing right (dir changes that).
   map: ["#############", "#S.c.c.c.c.c#", "#############"],
   blocks: ["move", "collect", "repeat"],
   goals: [{ type: "crystals" }],
@@ -79,7 +82,8 @@ const level: Level = {
 }
 ```
 
-- **Goals** (`goals`): `crystals` (collect all crystals), `finish` (stand on the flag).
+- **Goals** (`goals`): `crystals` (take every item on a `c` cell), `finish` (stand on the `F` cell).
+- **Scene** (`scene`, optional): `theme` (`summer`, `winter`), `ground` (`path`, `ice`, `bridge`), `item` (`crystal`, `wood`, `apple`, `fish`, `key`, `campfire`), `finish` (`flag`, `well`, `grandma`, `home`) and `props` (`house`, `woodshed` with `x`, `y` in cells). It changes only the looks and the goal text, never the rules.
 - **Blocks** (`blocks`): `move`, `turnLeft`, `turnRight`, `collect`, `wallAhead`, `onCrystal`, `atFinish`, `repeat`, `forever`, `repeatUntil`, `if`, `ifElse`, `not`, `and`, `or`.
 
 Every built-in level has a reference solution in `src/levels/solutions.ts`, and a test checks that it earns three stars, so a level without a working solution never ships.
@@ -93,7 +97,7 @@ import "edu-blocks/style.css"
 <EduBlocks
   key={level.id}
   level={level}
-  skin="robot"
+  skin="ninja"
   media="/blocks-media/"
   program={savedProgram}
   onComplete={(report) => sendToServer(report)}
@@ -115,16 +119,26 @@ result.stars   // 0–3
 result.reason  // null, "crashed", "goalsNotMet", "tooLong", "noStart" or "badProgram"
 ```
 
+XP uses the same pure functions on both sides. Count `firstTry` from your own record of earlier failed runs:
+
+```ts
+import { heroLevelOf, xpFor, xpGain } from "edu-blocks/core"
+
+const xp = xpFor(level.tier ?? "intro", { stars: result.stars, firstTry })  // tier XP + 5 per star + 10 for the first try
+const gain = xpGain(xp, bestXpOfThisLevel)                 // only the part above the best earlier run
+heroLevelOf(totalXp)                                        // { level, from, next }
+```
+
 `judgeProgram` is a small interpreter for the level blocks with no Scratch VM: it is synchronous, takes milliseconds and does not need `scratch-vm` on the server. The browser uses the same function, so the student sees exactly the server's result. It follows Scratch 3's execution order: every "when flag clicked" script is its own thread, and threads take turns running one loop iteration each.
 
-Programs are limited to 300 blocks, the blocks of the level and 1,000 robot actions. An infinite loop is stopped by a step count rather than a timer, so the result is the same on a server and on a slow phone. A broken program (blocks linked in a cycle) is stopped too.
+Programs are limited to 300 blocks, the blocks of the level and 1,000 hero actions. An infinite loop is stopped by a step count rather than a timer, so the result is the same on a server and on a slow phone. A broken program (blocks linked in a cycle) is stopped too.
 
 ## API
 
 | Entry point | Contents |
 |---|---|
-| `edu-blocks/react` | The `EduBlocks` component and the `EduBlocksProps`, `BlocksReport` and `Skin` types |
-| `edu-blocks/core` | Built-in `levels` and `solutions`, `judgeProgram`, `checkProgram`, the world model and limits. No React and no VM, safe for Node |
+| `edu-blocks/react` | The `EduBlocks` component and the `EduBlocksProps`, `BlocksReport`, `HeroXp` and `Skin` types |
+| `edu-blocks/core` | Built-in `levels` and `solutions`, `judgeProgram`, `checkProgram`, the XP functions, the world model and limits. No React and no VM, safe for Node |
 | `edu-blocks/style.css` | Styles for the component |
 | `edu-blocks/blocks-media/*` | Block icons to serve from your site |
 
@@ -133,11 +147,12 @@ Programs are limited to 300 blocks, the blocks of the level and 1,000 robot acti
 | Prop | Description |
 |---|---|
 | `level` | The level. To show another one, change the component `key` |
-| `skin` | Hero look: `robot`, `rover` or `bee` |
+| `skin` | Hero look: `ninja` (default), `robot`, `rover` or `bee` |
 | `large` | Bigger blocks and field for grade 3 |
 | `program` | A saved program: the student continues where they left off |
 | `media` | Path to the block icons, with a trailing slash |
-| `onComplete(report)` | After every run: `levelId`, `passed`, `stars`, `blocks`, `reason` and the `program` itself |
+| `xp` | The hero's XP before the run: `{ total, best }`, where `best` is the best XP of this level. The result then shows the gain and the bar to the next hero level |
+| `onComplete(report)` | After every run: `levelId`, `passed`, `stars`, `blocks`, `reason`, `firstTry`, `xp` and the `program` itself |
 | `onProgramChange(program)` | After every block change, for apps with their own Check button |
 
 ## Development
@@ -159,4 +174,4 @@ The package code is [MIT](LICENSE). It uses:
 - [TurboWarp scratch-vm](https://github.com/TurboWarp/scratch-vm) — the engine the editor keeps the program in. It is bundled into `edu-blocks/react`; `edu-blocks/core` does not need it. Licensed under MPL-2.0; the package does not modify the engine.
 - [scratch-blocks](https://github.com/scratchfoundation/scratch-blocks) 1.3.0 — the block editor. Licensed under Apache-2.0, block translations under BSD-3-Clause. TurboWarp's fork of scratch-blocks is GPL-3.0, so it is not used.
 
-The robot, crystals and map are drawn in this project (`src/ui/Field.tsx`). Scratch, the Scratch Cat and other Scratch characters are trademarks of MIT; this trainer does not use them and is not affiliated with the Scratch Foundation.
+The pixel art of the field (heroes, trees, houses, items) comes from [Ninja Adventure](https://pixel-boy.itch.io/ninja-adventure-asset-pack) by Pixel-boy, released under CC0; [`src/ui/sprites/CREDITS.md`](src/ui/sprites/CREDITS.md) lists where each file comes from, and [`src/ui/sprites/ASSETS.md`](src/ui/sprites/ASSETS.md) gives the size, frames and role of each sprite. [`docs/assets/ninja-adventure.json`](docs/assets/ninja-adventure.json) describes every file of the pack. Scratch, the Scratch Cat and other Scratch characters are trademarks of MIT; this trainer does not use them and is not affiliated with the Scratch Foundation.

@@ -8,6 +8,7 @@ import { describeGoal, goalMet, type Level } from "../core/level.ts"
 import { judgeProgram } from "../core/judge.ts"
 import type { FailReason, Program, RunResult } from "../core/program.ts"
 import { createVm, projectFor, settle, withVmLock } from "../core/run.ts"
+import { heroLevelOf, xpFor, xpGain } from "../core/xp.ts"
 import { parseMap, type World } from "../core/world.ts"
 import { Field, type Skin } from "./Field.tsx"
 import { toolboxXml } from "./toolbox.ts"
@@ -21,6 +22,18 @@ export interface BlocksReport {
   readonly blocks: number
   readonly reason: FailReason | null
   readonly program: Program
+  /** No run of the level failed before this one since the editor opened. */
+  readonly firstTry: boolean
+  /** XP of this run (`xpFor`). The hero gets only the part above the best earlier run. */
+  readonly xp: number
+}
+
+/** The hero's XP before the run, from the app: the result then shows the gain and the hero level. */
+export interface HeroXp {
+  /** All XP of the hero. */
+  readonly total: number
+  /** The best XP of this level so far. */
+  readonly best: number
 }
 
 export interface EduBlocksProps {
@@ -34,6 +47,7 @@ export interface EduBlocksProps {
   readonly media?: string
   /** Milliseconds per hero action in the animation. */
   readonly speed?: number
+  readonly xp?: HeroXp
   readonly onComplete?: (report: BlocksReport) => void
   /** After each change of the blocks, with the program as it is now. An app that has its own check button sends it. */
   readonly onProgramChange?: (program: Program) => void
@@ -58,7 +72,7 @@ for (const b of HERO_BLOCKS) {
 }
 
 const FAIL_TEXT: Readonly<Record<FailReason, string>> = {
-  crashed: "Робот врізався в стіну.",
+  crashed: "Герой урізався в перешкоду.",
   goalsNotMet: "Програма закінчилась, а завдання ще не виконане.",
   tooLong: "Програма працює задовго. Можливо, цикл ніколи не закінчується.",
   noStart: "Поклади нагору програми блок «коли натиснуто прапорець».",
@@ -71,7 +85,18 @@ const PROGRAM_EVENTS: ReadonlySet<string> = new Set(["create", "delete", "change
 /** Editor width (px) below which the palette turns compact. */
 const COMPACT_WIDTH = 560
 
-type Phase = { readonly kind: "edit" } | { readonly kind: "running" } | { readonly kind: "done"; readonly result: RunResult }
+/** What a passed run gave the hero, as it stood when the run ended. */
+interface Reward {
+  readonly gain: number
+  readonly firstTry: boolean
+  /** The hero's XP after the run, when the app told it. */
+  readonly total: number | null
+}
+
+type Phase =
+  | { readonly kind: "edit" }
+  | { readonly kind: "running" }
+  | { readonly kind: "done"; readonly result: RunResult; readonly reward: Reward }
 
 /** The program as in project.json, with the block ids of the editor (vm.toJSON() would shorten them). */
 const heroProgram = (vm: VirtualMachine): Program => {
@@ -89,7 +114,17 @@ const Stars = ({ count }: { readonly count: number }) => (
   </span>
 )
 
-export const EduBlocks = ({ level, skin = "robot", large = false, program, media = "./blocks-media/", speed = 350, onComplete, onProgramChange }: EduBlocksProps) => {
+export const EduBlocks = ({
+  level,
+  skin = "ninja",
+  large = false,
+  program,
+  media = "./blocks-media/",
+  speed = 350,
+  xp,
+  onComplete,
+  onProgramChange
+}: EduBlocksProps) => {
   const start = useMemo(() => parseMap(level.map, level.dir), [level])
   const [world, setWorld] = useState<World>(start)
   const [phase, setPhase] = useState<Phase>({ kind: "edit" })
@@ -100,6 +135,11 @@ export const EduBlocks = ({ level, skin = "robot", large = false, program, media
   const vmRef = useRef<VirtualMachine | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const glowRef = useRef<string | null>(null)
+  // Failed runs of this level since the editor opened: the first try bonus needs none.
+  const failedRef = useRef(0)
+  useEffect(() => {
+    failedRef.current = 0
+  }, [level])
   // The first program only: a new `program` prop for the same level does not reset the student's work.
   const initialProgram = useRef(program)
   // The latest callback, so a new function from the app does not rebuild the editor.
@@ -187,12 +227,26 @@ export const EduBlocks = ({ level, skin = "robot", large = false, program, media
     setPhase({ kind: "running" })
     const prog = heroProgram(vm)
     const result = judgeProgram(level, prog)
+    const firstTry = failedRef.current === 0
+    if (!result.passed) failedRef.current += 1
+    const runXp = xpFor(level.tier ?? "intro", { stars: result.stars, firstTry })
+    const gain = xpGain(runXp, xp?.best ?? 0)
+    const reward: Reward = { gain, firstTry, total: xp === undefined ? null : xp.total + gain }
     const finish = () => {
       setGlow(null)
       setWorld(result.world)
-      setPhase({ kind: "done", result })
+      setPhase({ kind: "done", result, reward })
       setVerdictOpen(true)
-      onComplete?.({ levelId: level.id, passed: result.passed, stars: result.stars, blocks: result.blocks, reason: result.reason, program: prog })
+      onComplete?.({
+        levelId: level.id,
+        passed: result.passed,
+        stars: result.stars,
+        blocks: result.blocks,
+        reason: result.reason,
+        program: prog,
+        firstTry,
+        xp: runXp
+      })
     }
     const play = (i: number) => {
       const frame = result.frames[i]
@@ -202,7 +256,7 @@ export const EduBlocks = ({ level, skin = "robot", large = false, program, media
       timerRef.current = setTimeout(() => play(i + 1), speed)
     }
     play(0)
-  }, [level, onComplete, reset, setGlow, speed])
+  }, [level, onComplete, reset, setGlow, speed, xp])
 
   const running = phase.kind === "running"
   return (
@@ -216,13 +270,13 @@ export const EduBlocks = ({ level, skin = "robot", large = false, program, media
           <ul className="eb-goals">
             {level.goals.map((g) => (
               <li key={g.type} className={goalMet(world, g) ? "eb-goal-ok" : ""}>
-                {describeGoal(g, start)}
+                {describeGoal(g, start, level.scene)}
               </li>
             ))}
           </ul>
         </header>
         <div className="eb-field-wrap">
-          <Field world={world} skin={skin} />
+          <Field world={world} skin={skin} scene={level.scene} />
         </div>
         <div className="eb-controls">
           <button type="button" className="eb-run" onClick={run} disabled={running}>
@@ -232,7 +286,7 @@ export const EduBlocks = ({ level, skin = "robot", large = false, program, media
             <span aria-hidden="true">↺</span> Спочатку
           </button>
         </div>
-        {phase.kind === "done" && verdictOpen && <Verdict level={level} result={phase.result} onClose={() => setVerdictOpen(false)} />}
+        {phase.kind === "done" && verdictOpen && <Verdict level={level} result={phase.result} reward={phase.reward} onClose={() => setVerdictOpen(false)} />}
       </section>
       <div className="eb-editor" ref={editorRef} />
     </div>
@@ -245,7 +299,45 @@ const CloseButton = ({ onClose }: { readonly onClose: () => void }) => (
   </button>
 )
 
-const Verdict = ({ level, result, onClose }: { readonly level: Level; readonly result: RunResult; readonly onClose: () => void }) => {
+/** The XP of a passed run and, when the app told the hero's XP, the bar to the next hero level. */
+const XpLine = ({ reward }: { readonly reward: Reward }) => {
+  const note = reward.gain === 0 ? "Це не краще за твій рекорд, XP не додано." : reward.firstTry ? "З першої спроби!" : ""
+  if (reward.total === null)
+    return (
+      <p className="eb-xp">
+        <strong>+{reward.gain} XP</strong> {note}
+      </p>
+    )
+  const hero = heroLevelOf(reward.total)
+  const up = reward.gain > 0 && heroLevelOf(reward.total - reward.gain).level < hero.level
+  const share = hero.next === null ? 1 : (reward.total - hero.from) / (hero.next - hero.from)
+  return (
+    <div className="eb-xp">
+      <p>
+        <strong>+{reward.gain} XP</strong> {up ? `Новий рівень героя: ${hero.level}!` : note}
+      </p>
+      <div className="eb-xp-bar" role="img" aria-label={`Рівень героя ${hero.level}: ${reward.total} XP${hero.next === null ? "" : ` з ${hero.next}`}`}>
+        <span style={{ width: `${Math.round(share * 100)}%` }} />
+      </div>
+      <p className="eb-xp-level">
+        Рівень {hero.level} · {reward.total}
+        {hero.next === null ? "" : ` / ${hero.next}`} XP
+      </p>
+    </div>
+  )
+}
+
+const Verdict = ({
+  level,
+  result,
+  reward,
+  onClose
+}: {
+  readonly level: Level
+  readonly result: RunResult
+  readonly reward: Reward
+  readonly onClose: () => void
+}) => {
   if (result.passed) {
     const better = level.stars !== undefined && result.stars < 3 ? ` Для трьох зірок вистачить ${level.stars.three} блоків.` : ""
     return (
@@ -254,6 +346,7 @@ const Verdict = ({ level, result, onClose }: { readonly level: Level; readonly r
         <p>
           Рівень пройдено! Блоків: {result.blocks}.{better}
         </p>
+        <XpLine reward={reward} />
         <CloseButton onClose={onClose} />
       </div>
     )

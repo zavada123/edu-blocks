@@ -10,5 +10,5 @@ export const solutions: Readonly<Record<string, ReadonlyArray<Step>>> = {
   "g4-if": [{ repeat: 8, body: ["move", { if: "onCrystal", then: ["collect"] }] }],
   "g4-until": [{ until: "wallAhead", body: ["move"] }, "collect"],
   "g6-nested": [{ repeat: 4, body: [{ repeat: 3, body: ["move"] }, "collect", "turnRight"] }],
-  "g6-maze": [{ until: "atFinish", body: [{ if: "wallAhead", then: ["turnRight"], else: ["move"] }] }]
+  "g6-maze": [{ until: "atFinish", body: [{ if: "wallAhead", then: ["turnLeft"], else: ["move"] }] }]
 }
