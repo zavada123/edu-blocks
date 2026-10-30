@@ -27,7 +27,14 @@
 | `flag.png` | Прапорець фінішу: 4 кадри | 64×16 | 16×16 | 4 | background-elements/flag.gif |
 | `flower.png` | Квітка: декор луки | 16×16 | — | 1 | tileset 16,128 |
 | `grandma.png` | Бабуся: фініш рівня «Пиріг для бабусі» | 64×32 | 16×16 | 8 | characters/4.png, сиве волосся і світліша шкіра |
-| `grass.png` | Трава: літній фон луки | 16×16 | — | 1 | tileset 352,176 |
+| `grass.png` | Трава: літній фон луки | 16×16 | — | 1 | tileset_floor 0,192 |
+| `meadow.png` | Трава з травинками й кущиками, вибір за хешем клітинки | 112×16 | 16×16 | 7 | tileset_floor |
+| `snow-meadow.png` | Те саме для снігу | 112×16 | 16×16 | 7 | meadow.png |
+| `path-summer.png` | Стежка влітку: 47 шматків «blob», див. `terrain.ts` | 176×96 | 16×16 | 66 | tileset_floor 0,112 |
+| `path-winter.png` | Протоптана стежка в снігу | 176×96 | 16×16 | 66 | tileset_floor 176,224 |
+| `bloom-white.png` | Кущ з білою квіткою, гойдається | 64×16 | 16×16 | 4 | tileset_animated |
+| `bloom-orange.png` | Кущ з помаранчевою квіткою, гойдається | 64×16 | 16×16 | 4 | plant.gif |
+| `snowfall.png` | Сніг, що падає над полем | 320×240 | — | 1 | background-elements/snow.png |
 | `house.png` | Будинок героя (3 рівні) | 64×48 | — | 1 | tileset 0,0, 64×48 |
 | `ice.png` | Лід ставка: підлога | 16×16 | — | 1 | tileset 336,304 |
 | `key.png` | Ключ: предмет | 12×8 | — | 1 | items/gold-key.png |

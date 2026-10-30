@@ -12,7 +12,7 @@
 | `robot.png` | `characters/20.png` |
 | `rover.png` | `characters/21.png` |
 | `bee.png` | `monsters/10.png` |
-| `grass.png` | `background-elements/tileset.png`, плитка 352,176 |
+| `grass.png` | `tileset_floor.png` (офіційний проєкт Godot), плитка 0,192 |
 | `bush.png` | `background-elements/tileset.png`, плитка 144,240 |
 | `path.png` | `background-elements/tileset.png`, плитка 320,176 |
 | `tree.png` | `background-elements/tileset.png`, 32×32 з 96,160 |
@@ -44,3 +44,10 @@
 | `fish.png` | `items/food/fish.png` |
 | `grandma.png` | `characters/4.png`, волосся перефарбоване в сиве, шкіра світліша |
 | `fire.png` | `assets/graphics/Fire.png` з https://github.com/konyd/action-rpg-template (вогонь із Ninja Adventure) |
+| `path-summer.png` | `tileset_floor.png` (офіційний проєкт Godot), 176×96 з 0,112; трава зроблена прозорою |
+| `path-winter.png` | `tileset_floor.png`, 176×96 з 176,224; тло прозоре, край перефарбований у сніг |
+| `meadow.png` | `tileset_floor.png`, 7 плиток трави з 0,176–112,192 |
+| `snow-meadow.png` | `meadow.png`, перефарбована в сніг |
+| `bloom-white.png` | `tileset_animated.png` (офіційний проєкт Godot), 4 кадри |
+| `bloom-orange.png` | `background-elements/plant.gif`, 4 кадри в ряд |
+| `snowfall.png` | `background-elements/snow.png` |
