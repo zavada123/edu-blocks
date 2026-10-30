@@ -1,26 +1,47 @@
-import { useEffect, useId, useState } from "react"
+import { useEffect, useId, useMemo, useState } from "react"
 import { cellKey, type Direction, type World } from "../core/world.ts"
+import { buildScenery, type Decor, type Obstacle } from "./scenery.ts"
 import beeSheet from "./sprites/bee.png"
+import bushRoundTile from "./sprites/bush-round.png"
 import bushTile from "./sprites/bush.png"
 import crystalTile from "./sprites/crystal.png"
+import fernTile from "./sprites/fern.png"
 import flagStrip from "./sprites/flag.png"
 import grassTile from "./sprites/grass.png"
+import ninjaSheet from "./sprites/ninja.png"
 import pathTile from "./sprites/path.png"
+import petalsTile from "./sprites/petals.png"
 import robotSheet from "./sprites/robot.png"
+import rockTile from "./sprites/rock.png"
 import roverSheet from "./sprites/rover.png"
+import stumpTile from "./sprites/stump.png"
+import sunflowerTile from "./sprites/sunflower.png"
+import treeImage from "./sprites/tree.png"
 
 /** Hero looks. The app sells and picks them; the package only draws them. */
-export type Skin = "robot" | "rover" | "bee"
+export type Skin = "ninja" | "robot" | "rover" | "bee"
 
 /** Pixel art from the Ninja Adventure pack (CC0), see sprites/CREDITS.md. One cell is one 16×16 tile. */
 const CELL = 16
 
 /** A sheet has a column per direction and a row per walking frame. */
 const SHEETS: Readonly<Record<Skin, { readonly href: string; readonly height: number }>> = {
+  ninja: { href: ninjaSheet, height: 112 },
   robot: { href: robotSheet, height: 112 },
   rover: { href: roverSheet, height: 112 },
   bee: { href: beeSheet, height: 64 }
 }
+
+const OBSTACLE_TILES: Readonly<Record<Obstacle, string>> = {
+  bush: bushTile,
+  bushRound: bushRoundTile,
+  fern: fernTile,
+  rock: rockTile,
+  stump: stumpTile,
+  sunflower: sunflowerTile
+}
+
+const DECOR_TILES: Readonly<Record<Decor, string>> = { petals: petalsTile }
 
 const COLUMN: Readonly<Record<Direction, number>> = { down: 0, up: 1, left: 2, right: 3 }
 
@@ -44,14 +65,6 @@ const Flag = () => (
   </svg>
 )
 
-const cells = (world: World) =>
-  Array.from({ length: world.width * world.height }, (_, i) => {
-    const x = i % world.width
-    const y = Math.floor(i / world.width)
-    const key = cellKey(x, y)
-    return { key, x, y, wall: world.walls.has(key) }
-  })
-
 /** Steps through the walking frames once each time the hero moves to another cell. */
 const useWalkFrame = (x: number, y: number): number => {
   const [frame, setFrame] = useState(0)
@@ -71,6 +84,8 @@ export const Field = ({ world, skin }: { readonly world: World; readonly skin: S
   const grassId = `eb-grass-${useId().replace(/:/g, "")}`
   const frame = useWalkFrame(world.hero.x, world.hero.y)
   const sheet = SHEETS[skin]
+  const { width, height, walls, finish } = world
+  const scenery = useMemo(() => buildScenery({ width, height, walls, finish }), [width, height, walls, finish])
   const center = (x: number, y: number) => `translate(${x * CELL + CELL / 2} ${y * CELL + CELL / 2})`
   return (
     <svg className="eb-field" viewBox={`0 0 ${world.width * CELL} ${world.height * CELL}`} role="img" aria-label="Поле гри">
@@ -79,12 +94,29 @@ export const Field = ({ world, skin }: { readonly world: World; readonly skin: S
           <image href={grassTile} width={CELL} height={CELL} />
         </pattern>
       </defs>
-      {/* Walls are bushes on the grass; the hero walks on a sandy path. */}
+      {/* The hero walks on a sandy path; walls are trees, bushes and rocks on the grass. */}
       <rect width={world.width * CELL} height={world.height * CELL} fill={`url(#${grassId})`} />
-      {cells(world).map(({ key, x, y, wall }) => (
-        <g key={key} transform={center(x, y)}>
-          <Tile href={wall ? bushTile : pathTile} />
+      {Array.from({ length: world.width * world.height }, (_, i) => {
+        const x = i % world.width
+        const y = Math.floor(i / world.width)
+        return world.walls.has(cellKey(x, y)) ? null : (
+          <g key={cellKey(x, y)} transform={center(x, y)}>
+            <Tile href={pathTile} />
+          </g>
+        )
+      })}
+      {scenery.decor.map(({ x, y, kind }) => (
+        <g key={`d${cellKey(x, y)}`} transform={center(x, y)}>
+          <Tile href={DECOR_TILES[kind]} />
         </g>
+      ))}
+      {scenery.obstacles.map(({ x, y, kind }) => (
+        <g key={`o${cellKey(x, y)}`} transform={center(x, y)}>
+          <Tile href={OBSTACLE_TILES[kind]} />
+        </g>
+      ))}
+      {scenery.trees.map(({ x, y }) => (
+        <image key={`t${cellKey(x, y)}`} href={treeImage} x={x * CELL} y={y * CELL} width={CELL * 2} height={CELL * 2} />
       ))}
       {world.finish !== null && (
         <g transform={center(world.finish.x, world.finish.y)}>

@@ -14,7 +14,7 @@
 - Після запуску тренажер каже, що не так: робот врізався в стіну, програма закінчилась раніше, цикл ніколи не закінчується. Є підказка рівня.
 - На телефоні поле зверху, блоки знизу, палітра без стовпчика категорій. Блоки перетягують пальцем.
 - Великий режим для 3 класу.
-- Три вигляди героя (`skin`): робот, ровер, бджілка. Продає й вибирає їх застосунок.
+- Чотири вигляди героя (`skin`): ніндзя (типово), робот, ровер, бджілка. Продає й вибирає їх застосунок.
 
 ## Як описати рівень
 
@@ -55,7 +55,7 @@ import "edu-blocks/style.css"
 <EduBlocks
   key={level.id}
   level={level}
-  skin="robot"
+  skin="ninja"
   media="/blocks-media/"
   program={savedProgram}
   onComplete={(report) => sendToServer(report)}
@@ -65,7 +65,7 @@ import "edu-blocks/style.css"
 | Властивість | Що робить |
 |---|---|
 | `level` | Рівень. Щоб показати інший, змініть `key` |
-| `skin` | Вигляд героя: `robot`, `rover`, `bee` |
+| `skin` | Вигляд героя: `ninja` (типово), `robot`, `rover`, `bee` |
 | `large` | Великі блоки й поле для 3 класу |
 | `program` | Збережена програма: учень продовжує з того місця |
 | `media` | Шлях до іконок блоків, зі скісною рискою в кінці |
@@ -108,4 +108,4 @@ npm run build:lib  # збірка пакета в lib/ (комітьте lib р�
 - [TurboWarp scratch-vm](https://github.com/TurboWarp/scratch-vm) — рушій, у якому редактор тримає програму. Він уже зібраний у `edu-blocks/react`; `edu-blocks/core` його не потребує. Ліцензія MPL-2.0: змінені файли рушія треба було б відкрити, але пакет рушій не змінює.
 - [scratch-blocks](https://github.com/scratchfoundation/scratch-blocks) 1.3.0 — редактор блоків. Ліцензія Apache-2.0, переклади блоків — BSD-3-Clause. Версія scratch-blocks від TurboWarp має GPL-3.0, тому її не взято.
 
-Піксельна графіка поля (робот, кущі, стежка, кристали, прапорець) — з набору [Ninja Adventure](https://pixel-boy.itch.io/ninja-adventure-asset-pack) від Pixel-boy, ліцензія CC0; звідки кожен файл — у `src/ui/sprites/CREDITS.md`. Назва Scratch, кіт Scratch та інші персонажі Scratch — торгові марки MIT, тренажер їх не використовує й не пов'язаний зі Scratch Foundation.
+Піксельна графіка поля (герої, дерева, кущі, каміння, стежка, кристали, прапорець) — з набору [Ninja Adventure](https://pixel-boy.itch.io/ninja-adventure-asset-pack) від Pixel-boy, ліцензія CC0; звідки кожен файл — у `src/ui/sprites/CREDITS.md`. Назва Scratch, кіт Scratch та інші персонажі Scratch — торгові марки MIT, тренажер їх не використовує й не пов'язаний зі Scratch Foundation.

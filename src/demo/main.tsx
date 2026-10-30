@@ -17,7 +17,8 @@ if (!firstLevel) throw new Error("Немає жодного рівня")
 /** Crystals for each new star. In EduProstir the server counts them; the demo keeps them in the browser. */
 const CRYSTALS_PER_STAR = 10
 const SKINS: ReadonlyArray<{ readonly id: Skin; readonly name: string; readonly price: number }> = [
-  { id: "robot", name: "Робот", price: 0 },
+  { id: "ninja", name: "Ніндзя", price: 0 },
+  { id: "robot", name: "Робот", price: 15 },
   { id: "rover", name: "Ровер", price: 30 },
   { id: "bee", name: "Бджілка", price: 60 }
 ]
@@ -43,8 +44,8 @@ const save = (key: string, value: unknown) => {
 const Demo = () => {
   const [id, setId] = useState(firstLevel.id)
   const [best, setBest] = useState<Record<string, number>>(() => load("eb-best", {}))
-  const [owned, setOwned] = useState<ReadonlyArray<Skin>>(() => load("eb-owned", ["robot"]))
-  const [skin, setSkin] = useState<Skin>(() => load("eb-skin", "robot"))
+  const [owned, setOwned] = useState<ReadonlyArray<Skin>>(() => load("eb-owned", ["ninja"]))
+  const [skin, setSkin] = useState<Skin>(() => load("eb-skin", "ninja"))
   const level = levels.find((l) => l.id === id) ?? firstLevel
 
   const spent = SKINS.filter((s) => owned.includes(s.id)).reduce((sum, s) => sum + s.price, 0)

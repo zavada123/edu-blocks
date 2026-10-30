@@ -9,7 +9,7 @@
   --eb-ok-button: #0b7a5c;
   --eb-bad: #ff6680;
   display: grid;
-  grid-template-columns: minmax(300px, 380px) 1fr;
+  grid-template-columns: minmax(320px, 460px) 1fr;
   height: 100%;
   min-height: 0;
   background: var(--eb-bg);
@@ -62,7 +62,7 @@
 
 .eb-field {
   width: 100%;
-  max-height: 40vh;
+  max-height: 52vh;
   border-radius: 10px;
   /* Pixel art stays sharp at any size. */
   image-rendering: pixelated;
@@ -238,7 +238,7 @@
   }
 
   .eb-field {
-    max-height: 24vh;
+    max-height: 30vh;
   }
 
   .eb-controls button {

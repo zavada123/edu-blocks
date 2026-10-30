@@ -89,7 +89,7 @@ const Stars = ({ count }: { readonly count: number }) => (
   </span>
 )
 
-export const EduBlocks = ({ level, skin = "robot", large = false, program, media = "./blocks-media/", speed = 350, onComplete, onProgramChange }: EduBlocksProps) => {
+export const EduBlocks = ({ level, skin = "ninja", large = false, program, media = "./blocks-media/", speed = 350, onComplete, onProgramChange }: EduBlocksProps) => {
   const start = useMemo(() => parseMap(level.map, level.dir), [level])
   const [world, setWorld] = useState<World>(start)
   const [phase, setPhase] = useState<Phase>({ kind: "edit" })
