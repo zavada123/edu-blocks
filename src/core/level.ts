@@ -1,4 +1,5 @@
 import { atFinish, type Direction, type MapRows, type World } from "./world.ts"
+import type { Tier } from "./xp.ts"
 
 /** Blocks a level can put into the palette. Hero blocks and the Scratch blocks with the same meaning. */
 export type BlockName =
@@ -62,6 +63,8 @@ export interface Level {
   readonly hint?: string
   /** Summer, crystals and a flag when left out. */
   readonly scene?: Scene
+  /** Sets the XP of the level. An intro level when left out. */
+  readonly tier?: Tier
 }
 
 export const goalMet = (world: World, goal: Goal): boolean =>

@@ -39,6 +39,7 @@ The student-facing interface is in Ukrainian. It was built for [EduProstir](http
 - **Animated runs:** the hero walks step by step and the running block is highlighted.
 - **Story scenes** (`scene`): summer or winter, a path, pond ice or a bridge, items (crystals, firewood, apples, fish, a key, campfires that light up), a goal (flag, well, grandma, home) and houses around. Pixel art from Ninja Adventure.
 - **A meadow around every level** doubles the cells on the map; it is scenery only.
+- **XP and hero levels:** a run gives XP for the level tier (`tier`: intro, practice or challenge), for each star and for a pass at the first try. The hero gets only the part above the best earlier run, so replays give nothing to farm.
 - **Clear feedback:** the hero hit an obstacle, the program ended too early, the loop never ends. Each level has a hint.
 - **Mobile-first layout:** field on top, blocks below, a palette without the category column, drag blocks with a finger.
 - **Large mode** for grade 3.
@@ -118,6 +119,16 @@ result.stars   // 0–3
 result.reason  // null, "crashed", "goalsNotMet", "tooLong", "noStart" or "badProgram"
 ```
 
+XP uses the same pure functions on both sides. Count `firstTry` from your own record of earlier failed runs:
+
+```ts
+import { heroLevelOf, xpFor, xpGain } from "edu-blocks/core"
+
+const xp = xpFor(level, { stars: result.stars, firstTry })  // tier XP + 5 per star + 10 for the first try
+const gain = xpGain(xp, bestXpOfThisLevel)                 // only the part above the best earlier run
+heroLevelOf(totalXp)                                        // { level, from, next }
+```
+
 `judgeProgram` is a small interpreter for the level blocks with no Scratch VM: it is synchronous, takes milliseconds and does not need `scratch-vm` on the server. The browser uses the same function, so the student sees exactly the server's result. It follows Scratch 3's execution order: every "when flag clicked" script is its own thread, and threads take turns running one loop iteration each.
 
 Programs are limited to 300 blocks, the blocks of the level and 1,000 hero actions. An infinite loop is stopped by a step count rather than a timer, so the result is the same on a server and on a slow phone. A broken program (blocks linked in a cycle) is stopped too.
@@ -126,8 +137,8 @@ Programs are limited to 300 blocks, the blocks of the level and 1,000 hero actio
 
 | Entry point | Contents |
 |---|---|
-| `edu-blocks/react` | The `EduBlocks` component and the `EduBlocksProps`, `BlocksReport` and `Skin` types |
-| `edu-blocks/core` | Built-in `levels` and `solutions`, `judgeProgram`, `checkProgram`, the world model and limits. No React and no VM, safe for Node |
+| `edu-blocks/react` | The `EduBlocks` component and the `EduBlocksProps`, `BlocksReport`, `HeroXp` and `Skin` types |
+| `edu-blocks/core` | Built-in `levels` and `solutions`, `judgeProgram`, `checkProgram`, the XP functions, the world model and limits. No React and no VM, safe for Node |
 | `edu-blocks/style.css` | Styles for the component |
 | `edu-blocks/blocks-media/*` | Block icons to serve from your site |
 
@@ -140,7 +151,8 @@ Programs are limited to 300 blocks, the blocks of the level and 1,000 hero actio
 | `large` | Bigger blocks and field for grade 3 |
 | `program` | A saved program: the student continues where they left off |
 | `media` | Path to the block icons, with a trailing slash |
-| `onComplete(report)` | After every run: `levelId`, `passed`, `stars`, `blocks`, `reason` and the `program` itself |
+| `xp` | The hero's XP before the run: `{ total, best }`, where `best` is the best XP of this level. The result then shows the gain and the bar to the next hero level |
+| `onComplete(report)` | After every run: `levelId`, `passed`, `stars`, `blocks`, `reason`, `firstTry`, `xp` and the `program` itself |
 | `onProgramChange(program)` | After every block change, for apps with their own Check button |
 
 ## Development

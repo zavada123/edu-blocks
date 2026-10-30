@@ -1,4 +1,5 @@
 import { type Direction, type MapRows, type World } from "./world.ts";
+import type { Tier } from "./xp.ts";
 /** Blocks a level can put into the palette. Hero blocks and the Scratch blocks with the same meaning. */
 export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "wallAhead" | "onCrystal" | "atFinish" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or";
 /** What the hero must achieve. All goals of a level are checked together. */
@@ -48,6 +49,8 @@ export interface Level {
     readonly hint?: string;
     /** Summer, crystals and a flag when left out. */
     readonly scene?: Scene;
+    /** Sets the XP of the level. An intro level when left out. */
+    readonly tier?: Tier;
 }
 export declare const goalMet: (world: World, goal: Goal) => boolean;
 export declare const allGoalsMet: (level: Level, world: World) => boolean;
