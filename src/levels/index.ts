@@ -4,7 +4,8 @@ import type { Level } from "../core/level.ts"
  * The course in the order a student plays it, chapter by chapter (see `chapters.ts`): steps and turns, loops,
  * branches, the loop with a condition, traps and few steps, and enemies. In each chapter a new idea comes first,
  * then practice, then a challenge. The ids keep their old grade prefix: saved progress refers to them.
- * Together they tell one story, «Зима в селі»: each level gives the hero a reason to go somewhere.
+ * Together they tell one story, «Рік у селі», from autumn through winter and spring to summer: each level gives the
+ * hero a reason to go somewhere.
  * The reference solution of each level is in `solutions.ts`.
  */
 
@@ -16,13 +17,13 @@ export const levels: ReadonlyArray<Level> = [
     id: "g3-steps",
     tier: "intro",
     title: "Холодна хата",
-    task: ["Надворі мороз, а в хаті згасла піч.", "Вийди з хати, дійди до дровітні й візьми дрова."],
+    task: ["Надворі осінній холод, а в хаті згасла піч.", "Вийди з хати, дійди до дровітні й візьми дрова."],
     map: ["#######", "#S...c#", "#######"],
     blocks: ["move", "collect"],
     goals: [{ type: "crystals" }],
     stars: { three: 5, two: 7 },
     hint: "Порахуй клітинки до дров: стільки разів потрібен блок «крок уперед».",
-    scene: { theme: "winter", item: "wood", props: [HOME, { kind: "woodshed", x: 4, y: -1 }], npcs: [{ who: "kid", x: 3, y: 2 }] }
+    scene: { theme: "autumn", item: "wood", props: [HOME, { kind: "woodshed", x: 4, y: -1 }], npcs: [{ who: "kid", x: 3, y: 2 }] }
   },
   {
     id: "g3-turn",
@@ -34,7 +35,7 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }],
     stars: { three: 6, two: 8 },
     hint: "Ніндзя повертається на місці. Після повороту він іде туди, куди дивиться.",
-    scene: { theme: "winter", item: "wood", props: [HOME, { kind: "woodshed", x: 4, y: 2 }] }
+    scene: { theme: "autumn", item: "wood", props: [HOME, { kind: "woodshed", x: 4, y: 2 }] }
   },
   {
     id: "g3-gate",
@@ -46,7 +47,7 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "finish" }],
     stars: { three: 5, two: 7 },
     hint: "Спершу два кроки, потім поворот ліворуч і ще два кроки.",
-    scene: { theme: "winter", finish: "home" }
+    scene: { theme: "autumn", finish: "home" }
   },
   {
     id: "g3-logs",
@@ -58,7 +59,7 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }],
     stars: { three: 10, two: 13 },
     hint: "Візьми перше поліно, дійди до кінця стежки, поверни праворуч і йди до другого.",
-    scene: { theme: "winter", item: "wood", props: [HOME, { kind: "woodshed", x: 6, y: -1 }] }
+    scene: { theme: "autumn", item: "wood", props: [HOME, { kind: "woodshed", x: 6, y: -1 }] }
   },
   {
     id: "g3-finish",
@@ -70,31 +71,31 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "finish" }],
     stars: { three: 8, two: 10 },
     hint: "Перед кожним поворотом подумай, куди дивиться ніндзя: праворуч для нього — це його права рука.",
-    scene: { theme: "winter", finish: "well", props: [HOME] }
+    scene: { theme: "autumn", finish: "well", props: [HOME] }
   },
   {
     id: "g3-zigzag",
     tier: "challenge",
-    title: "Між кучугурами",
-    task: ["Діти кличуть кататися на санчатах.", "Стежка до гірки петляє між кучугурами: то вниз, то вправо. Не загрузни в снігу."],
+    title: "Між калюжами",
+    task: ["Друзі кличуть стрибати в купі листя.", "Стежка петляє між калюжами: то вниз, то вправо. Не ступи в калюжу."],
     map: ["#######", "#S.####", "##..###", "###..##", "####.F#", "#######"],
     blocks: ["move", "turnLeft", "turnRight"],
     goals: [{ type: "finish" }],
     stars: { three: 13, two: 16 },
     hint: "Крок, праворуч, крок, ліворуч — і так знову. Помічаєш, що дії повторюються?",
-    scene: { theme: "winter", npcs: [{ who: "girl", x: 6, y: 3 }] }
+    scene: { theme: "autumn", npcs: [{ who: "girl", x: 6, y: 3 }] }
   },
   {
     id: "g4-road",
     tier: "intro",
     title: "Дорога до лісу",
-    task: ["Дідусь чекає в лісі з санями дров.", "Дорога пряма, але довга. Скільки кроків? Поклади «крок уперед» у «повторити»."],
+    task: ["Дідусь чекає в лісі з возом дров.", "Дорога пряма, але довга. Скільки кроків? Поклади «крок уперед» у «повторити»."],
     map: ["##############", "#S..........F#", "##############"],
     blocks: ["move", "repeat"],
     goals: [{ type: "finish" }],
     stars: { three: 2, two: 4 },
     hint: "Порахуй клітинки до прапорця і впиши це число в «повторити».",
-    scene: { theme: "winter", npcs: [{ who: "grandpa", x: 12, y: 2 }] }
+    scene: { theme: "autumn", npcs: [{ who: "grandpa", x: 12, y: 2 }] }
   },
   {
     id: "g4-repeat",
@@ -106,7 +107,7 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }],
     stars: { three: 4, two: 10 },
     hint: "Знайди дії, які повторюються: «крок, крок, взяти». Поклади їх у «повторити».",
-    scene: { theme: "winter", item: "apple", props: [HOME] }
+    scene: { theme: "autumn", item: "apple", props: [HOME] }
   },
   {
     id: "g4-corner",
@@ -118,7 +119,7 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }],
     stars: { three: 6, two: 9 },
     hint: "Один «повторити» для кроків праворуч, поворот, і другий «повторити» для кроків униз.",
-    scene: { theme: "winter", item: "wood", npcs: [{ who: "hunter", x: 6, y: 3 }] }
+    scene: { theme: "autumn", item: "wood", npcs: [{ who: "hunter", x: 6, y: 3 }] }
   },
   {
     id: "g4-stairs",
@@ -130,7 +131,7 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "finish" }],
     stars: { three: 5, two: 9 },
     hint: "Одна сходинка — це «крок, ліворуч, крок, праворуч». Скільки сходинок?",
-    scene: { theme: "winter", finish: "grandma", props: [{ kind: "house", x: 3.5, y: -2 }] }
+    scene: { theme: "autumn", finish: "grandma", props: [{ kind: "house", x: 3.5, y: -2 }] }
   },
   {
     id: "g4-sled",
@@ -346,7 +347,7 @@ export const levels: ReadonlyArray<Level> = [
     tier: "intro",
     title: "Сніговий дух",
     task: [
-      "Дорогу до криниці стереже сніговий дух. Він стоїть, а коли ніндзя підходить на дві клітинки, біжить назустріч.",
+      "Сніг тане, та сніговий дух ще стереже дорогу до криниці. Він стоїть, а коли ніндзя підходить на дві клітинки, біжить назустріч.",
       "Вдар духа і дійди до криниці."
     ],
     map: ["#########", "#S.....F#", "#########"],
@@ -355,14 +356,14 @@ export const levels: ReadonlyArray<Level> = [
     enemies: [{ kind: "spirit", x: 4, y: 1 }],
     stars: { three: 4, two: 7 },
     hint: "Зроби крок — дух підбіжить упритул. Тоді «вдарити», а далі йди до криниці.",
-    scene: { theme: "winter", finish: "well" }
+    scene: { theme: "spring", finish: "well" }
   },
   {
     id: "g5-glade",
     tier: "practice",
     title: "Дрова на галявині",
     task: [
-      "На галявині лежать дрова, а по ній туди-сюди повзає слиз.",
+      "Після весняного дощу на галявині лежать дрова, а по ній туди-сюди повзає слиз.",
       "Галявина велика: обери свій шлях. Збери всі дрова, а слиз обійди або вдар."
     ],
     map: ["#########", "#S......#", "#..#..c.#", "#.c.....#", "#....#..#", "#.....c.#", "#########"],
@@ -371,7 +372,7 @@ export const levels: ReadonlyArray<Level> = [
     enemies: [{ kind: "slime", x: 4, y: 3, walk: "across", sight: 1 }],
     stars: { three: 20, two: 28 },
     hint: "Слиз помічає ніндзю лише впритул. Якщо він на шляху — «вдарити», інакше обійди його.",
-    scene: { theme: "winter", item: "wood", npcs: [{ who: "hunter", x: 3, y: 2 }] }
+    scene: { theme: "spring", item: "wood", npcs: [{ who: "hunter", x: 3, y: 2 }] }
   },
   {
     id: "g5-guards",
@@ -388,14 +389,14 @@ export const levels: ReadonlyArray<Level> = [
     hearts: 3,
     stars: { three: 5, two: 8 },
     hint: "Повторюй: якщо попереду ворог, то вдарити, інакше крок.",
-    scene: { theme: "winter", props: [{ kind: "woodshed", x: 7, y: -1 }] }
+    scene: { theme: "summer", props: [{ kind: "woodshed", x: 7, y: -1 }] }
   },
   {
     id: "g6-bear",
     tier: "challenge",
-    title: "Ведмідь-шатун",
+    title: "Ведмідь по мед",
     task: [
-      "Узимку прокинувся ведмідь-шатун і не пускає ніндзю до бабусі.",
+      "Ведмідь вийшов з лісу по мед і не пускає ніндзю до бабусі.",
       "Він витримує три удари і б'є у відповідь. Підійди, коли він поруч, і бий, доки не впаде."
     ],
     map: ["#########", "#S......#", "#######.#", "#F......#", "#########"],
@@ -405,6 +406,6 @@ export const levels: ReadonlyArray<Level> = [
     hearts: 3,
     stars: { three: 11, two: 16 },
     hint: "Іди, доки попереду не з'явиться ведмідь, тоді вдар тричі. Далі шлях до бабусі вільний.",
-    scene: { theme: "winter", finish: "grandma" }
+    scene: { theme: "summer", finish: "grandma" }
   }
 ]

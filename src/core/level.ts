@@ -49,9 +49,12 @@ export interface Npc {
   readonly y: number
 }
 
+export type Season = "spring" | "summer" | "autumn" | "winter"
+
 /** How the level looks: the season, the floor, the things on the map. The rules of the game stay the same. */
 export interface Scene {
-  readonly theme?: "summer" | "winter"
+  /** The season: summer when left out. Spring brings rain, autumn falling leaves, winter snow. */
+  readonly theme?: Season
   /** The cells the hero walks on: a path, the ice of a pond or the planks of a bridge over water. */
   readonly ground?: "path" | "ice" | "bridge"
   readonly item?: ItemKind
