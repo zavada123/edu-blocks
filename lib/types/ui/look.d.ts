@@ -7,6 +7,14 @@ export interface Swaying {
     readonly href: string;
     readonly frames: number;
 }
+/** Weather over the whole field: a picture (320×240, drawn at half size) that drifts down in a loop. */
+export interface Weather {
+    readonly href: string;
+    /** How far the picture drifts sideways in one loop, as a share of its width. */
+    readonly drift: number;
+    /** Seconds for one loop. */
+    readonly seconds: number;
+}
 /** The pictures of one season. A decor without a picture is left out (no flowers in the snow). */
 export interface Season {
     /** One ground tile, or a sheet of 7 meadow tiles (see `meadowTile`). */
@@ -14,8 +22,10 @@ export interface Season {
     readonly meadow: string | null;
     /** The 11×6 sheet of path pieces (see terrain.ts). */
     readonly path: string;
-    /** Snow falling over the whole field. */
-    readonly snowfall: string | null;
+    /** Snow, rain or leaves falling over the whole field. */
+    readonly weather: Weather | null;
+    /** Traps are thin ice in this season, pits in the ground otherwise. */
+    readonly icy: boolean;
     readonly tree: string;
     readonly obstacles: Readonly<Record<Obstacle, string>>;
     /** Obstacles drawn as swaying bushes instead of the still picture. */

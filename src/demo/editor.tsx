@@ -2,7 +2,7 @@ import { StrictMode, useEffect, useMemo, useRef, useState } from "react"
 import { createRoot } from "react-dom/client"
 import { HERO_BLOCKS } from "../core/blocks.ts"
 import { checkLevel, emptyMap, levelSource, MAP_LIMITS, type MapTile, plainRoute, resizeMap, setTile } from "../core/kit.ts"
-import { type BlockName, type FinishKind, type Goal, type ItemKind, type Level, type NpcKind, type PropKind, type Scene, startWorld } from "../core/level.ts"
+import { type BlockName, type FinishKind, type Goal, type ItemKind, type Level, type NpcKind, type PropKind, type Scene, type Season, startWorld } from "../core/level.ts"
 import { BOSS_HP, DEFAULT_HEARTS, DEFAULT_SIGHT, type Direction, type EnemyKind, type EnemySpec, type EnemyWalk, parseMap } from "../core/world.ts"
 import type { Tier } from "../core/xp.ts"
 import { levels } from "../levels/index.ts"
@@ -86,6 +86,13 @@ const OTHER_BLOCKS: ReadonlyArray<{ readonly name: BlockName; readonly text: str
 const ALL_BLOCKS: ReadonlyArray<{ readonly name: BlockName; readonly text: string }> = [
   ...HERO_BLOCKS.map((b) => ({ name: b.name, text: b.text })),
   ...OTHER_BLOCKS
+]
+
+const SEASONS: ReadonlyArray<{ readonly id: Season; readonly name: string }> = [
+  { id: "spring", name: "весна (дощ)" },
+  { id: "summer", name: "літо" },
+  { id: "autumn", name: "осінь (листопад)" },
+  { id: "winter", name: "зима (сніг)" }
 ]
 
 const ITEMS: ReadonlyArray<{ readonly id: ItemKind; readonly name: string }> = [
@@ -687,10 +694,13 @@ const Editor = () => {
                   Пора року
                   <select
                     value={scene.theme ?? "summer"}
-                    onChange={(e) => updateScene({ theme: e.target.value === "winter" ? "winter" : "summer" })}
+                    onChange={(e) => updateScene({ theme: SEASONS.find((x) => x.id === e.target.value)?.id ?? "summer" })}
                   >
-                    <option value="summer">літо</option>
-                    <option value="winter">зима</option>
+                    {SEASONS.map((x) => (
+                      <option key={x.id} value={x.id}>
+                        {x.name}
+                      </option>
+                    ))}
                   </select>
                 </label>
                 <label>

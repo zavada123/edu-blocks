@@ -73,7 +73,7 @@ const Demo = () => {
   return (
     <div className="demo">
       <header className="demo-head">
-        <strong>Зима в селі</strong>
+        <strong>Рік у селі</strong>
         <a className="demo-editor-link" href="./editor.html">
           Редактор рівнів
         </a>

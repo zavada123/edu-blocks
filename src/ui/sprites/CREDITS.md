@@ -55,3 +55,7 @@
 | `enemy-slime.png`, `enemy-spirit.png`, `enemy-goblin.png`, `enemy-skull.png`, `enemy-flame.png`, `enemy-bear.png`, `enemy-toad.png` | `monsters/18.png`, `7.png`, `3.png`, `19.png`, `2.png`, `8.png`, `14.png` |
 | `heart.png` | `hud/heart.png` |
 | `slash.png`, `smoke.png` | `fx/7.png`, `fx/18.png` |
+
+Осінні й весняні варіанти трави, луки, дерев і кущів перефарбовано з плиток цього пака (CC0 дозволяє зміни).
+`tree-blossom.png` — `background-elements/tileset.png`, 32×32 з 64,256. `leaves.png`, `leaffall.png` і `rain.png`
+намальовано для цієї гри; їх можна використовувати на тих самих умовах CC0.
