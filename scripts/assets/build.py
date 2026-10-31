@@ -1,6 +1,6 @@
 """Builds the asset manifests and copies the pictures and sounds into place.
 
-    python3 scripts/assets/build.py --ninja <dir> --sunnyside <dir> --crops <dir> --farm-kit <dir> --farm <dir> --village <dir> \
+    python3 scripts/assets/build.py --ninja <dir> --sunnyside <dir> --crops <dir> --farm-kit <dir> --farm <dir> --village <dir> --tiny-swords <dir> \
         --out assets --private-out <folder outside the repo> --work <temp dir>
 
 Each --<pack> points at the unpacked pack folder (the one with LICENSE.txt, Sunnyside_World_Assets, and so on).
@@ -18,11 +18,12 @@ import farm_kit
 import ninja
 import private
 import sunnyside
+import tiny_swords
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    for name in ("ninja", "sunnyside", "crops", "farm-kit", "farm", "village"):
+    for name in ("ninja", "sunnyside", "crops", "farm-kit", "farm", "village", "tiny-swords"):
         parser.add_argument(f"--{name}", type=Path)
     parser.add_argument("--out", type=Path, required=True, help="assets/ folder of the repository")
     parser.add_argument("--private-out", type=Path, help="folder outside the repository for packs that may not be shared")
@@ -43,6 +44,8 @@ def main() -> None:
             packs.append(private.farm(args.farm, args.private_out / "farm-rpg"))
         if args.village:
             packs.append(private.village(args.village, args.private_out / "village-top-down"))
+        if args.tiny_swords:
+            packs.append(tiny_swords.build(args.tiny_swords, args.private_out / "tiny-swords"))
     for pack in packs:
         pack.write()
         counts: dict[str, int] = {}

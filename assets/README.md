@@ -16,7 +16,7 @@
 https://danieldiggle.itch.io/sunnyside (воно є тут і в `sunnyside/LICENSE.md`). Не можна перепаковувати чи продавати
 файли, використовувати для NFT і для навчання ШІ. Тож ці файли не можна виносити з гри в окремий набір.
 
-**Не в репозиторії.** Tiny Farm RPG (Maeve Devs) і Village Top Down (Pixeljad) дозволяють використовувати графіку в іграх,
+**Не в репозиторії.** Tiny Farm RPG (Maeve Devs), Village Top Down (Pixeljad) і Tiny Swords (Pixel Frog) дозволяють використовувати графіку в іграх,
 але забороняють викладати самі файли, навіть змінені. Репозиторій публічний, тому їхні картинки й маніфести лежать
 окремо, у файлах проєкту EduProstir (`edu-blocks/assets-private/`). Формат той самий.
 
@@ -97,7 +97,7 @@ const rect = frameAt(sprite, "walk", "left", msSinceStart) // { file, sx, sy, w,
 python3 scripts/assets/build.py \
   --ninja "<…>/Ninja Adventure - Asset Pack" \
   --sunnyside "<…>/Sunnyside_World_Assets" --crops "<…>/FarmingCrops16x16" --farm-kit "<…>/assets" \
-  --farm "<…>/Farm RPG FREE 16x16 - Tiny Asset Pack" --village "<…>/TILESET VILLAGE TOP DOWN" \
+  --farm "<…>/Farm RPG FREE 16x16 - Tiny Asset Pack" --village "<…>/TILESET VILLAGE TOP DOWN" --tiny-swords "<…>/Tiny Swords" \
   --out assets --private-out "<папка поза репозиторієм>" --work "<тимчасова папка>"
 ```
 
