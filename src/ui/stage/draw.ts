@@ -15,6 +15,9 @@ import smokeStrip from "../sprites/smoke.png"
 import wellTile from "../sprites/well.png"
 import { meadowTile, PATH_SHEET_COLUMNS, pathPiece } from "../terrain.ts"
 import { image } from "./images.ts"
+import { spriteOf } from "./packs.ts"
+import { drawFigure, drawPlaced, isAnimated, layerOf, placedDepth } from "./sprites.ts"
+import { walkClip } from "../../core/assets.ts"
 import type { Effect, EnemyPose, HeroPose, StagePose } from "./playback.ts"
 import type { HeroId } from "../../core/heroes.ts"
 
@@ -135,6 +138,11 @@ export const drawGround = (ctx: Ctx, { world, scene, season, scenery }: GroundIn
       } else picture(ctx, wall ? waterTile : FLOORS[ground], x * CELL, y * CELL, CELL, CELL)
     }
   }
+  // Pictures of the packs that lie flat and still: tiles, water, a rug.
+  for (const placed of scene.sprites ?? []) {
+    const found = spriteOf(placed.asset)
+    if (found !== null && layerOf(placed, found) === "ground" && !isAnimated(placed, found)) drawPlaced(ctx, placed, 0)
+  }
   for (const { x, y, kind } of scenery.decor) {
     // The path has its own texture: flowers and grass grow only in the meadow.
     const href = x < 0 || y < 0 || x >= width || y >= height ? season.decor[kind] : null
@@ -184,6 +192,11 @@ const villager = (ctx: Ctx, npc: Npc, now: number, still: boolean) => {
   const cx = npc.x * CELL + CELL / 2
   const cy = npc.y * CELL + CELL / 2
   shadow(ctx, cx, cy)
+  const look = npc.look === undefined ? null : spriteOf(npc.look)
+  if (look !== null) {
+    drawFigure(ctx, look, { cx, bottom: cy + CELL / 2, now: still ? 0 : now + (cellHash(npc.x, npc.y, 11) % 8) * 300 })
+    return
+  }
   const row = still ? 0 : (NPC_STEPS[loopFrame(now, 2.4, 8, (cellHash(npc.x, npc.y, 11) % 8) * 0.3)] ?? 0)
   piece(ctx, NPCS[npc.who], 0, row, cx - CELL / 2, cy - CELL / 2)
 }
@@ -227,7 +240,10 @@ const flame = (ctx: Ctx, cx: number, cy: number, now: number, still: boolean) =>
   blit(ctx, fireStrip, frame * 8, 0, 8, 12, cx - 4, cy - 10)
 }
 
-const finishLook = (ctx: Ctx, kind: NonNullable<Scene["finish"]>, cx: number, cy: number, now: number, still: boolean) => {
+const finishLook = (ctx: Ctx, scene: Scene, cx: number, cy: number, now: number, still: boolean) => {
+  const kind = scene.finish ?? "flag"
+  const own = scene.finishLook === undefined ? null : spriteOf(scene.finishLook)
+  if (own !== null && drawFigure(ctx, own, { cx, bottom: cy + CELL / 2, now: still ? 0 : now }) !== null) return
   const x = cx - CELL / 2
   const y = cy - CELL / 2
   if (kind === "flag") blit(ctx, flagStrip, (still ? 0 : loopFrame(now, 0.6, 4)) * CELL, 0, CELL, CELL, x, y)
@@ -242,7 +258,14 @@ const finishLook = (ctx: Ctx, kind: NonNullable<Scene["finish"]>, cx: number, cy
   }
 }
 
-const itemLook = (ctx: Ctx, kind: ItemKind, cx: number, cy: number, lit: boolean, now: number, still: boolean) => {
+const itemLook = (ctx: Ctx, scene: Scene, cx: number, cy: number, lit: boolean, now: number, still: boolean) => {
+  const kind = scene.item ?? "crystal"
+  const own = scene.itemLook === undefined ? null : spriteOf(scene.itemLook)
+  if (own !== null) {
+    drawFigure(ctx, own, { cx, bottom: cy + CELL / 2, clip: null, now })
+    if (lit) flame(ctx, cx, cy, now, still)
+    return
+  }
   if (kind === "fish") ellipse(ctx, cx, cy + 1, 7, 5, "#1d4f6e")
   // Crystals bob up and down.
   const bob = kind === "crystal" && !still ? -1.5 * (0.5 - 0.5 * Math.cos(Math.PI * ((now / 1200) % 2))) : 0
@@ -285,11 +308,31 @@ const enemyFigure = (ctx: Ctx, pose: EnemyPose, hero: HeroPose, now: number, sti
   // A boss stands on the same ground line: it grows upwards.
   const x = cx - size / 2
   const y = cy + (1 - scale) * 6 - size / 2 + swing
-  const draw = () => blit(ctx, ENEMIES[enemy.kind], COLUMN[pose.face] * CELL, row * CELL, CELL, CELL, x, y, size, size)
+  const look = enemy.look === undefined ? null : spriteOf(enemy.look)
+  let top = cy - CELL / 2 - (scale - 1) * 12
+  const draw = () => {
+    if (look === null) {
+      blit(ctx, ENEMIES[enemy.kind], COLUMN[pose.face] * CELL, row * CELL, CELL, CELL, x, y, size, size)
+      return
+    }
+    // A pack enemy plays its walk; a picture drawn facing one way is turned to the hero.
+    const side = look.sprite.layout === "side" && pose.face === "left"
+    const big = (look.sprite.frame?.[1] ?? look.sprite.size[1]) > look.pack.cell
+    const drawn = drawFigure(ctx, look, {
+      cx,
+      bottom: cy + CELL / 2 + swing,
+      clip: still ? undefined : walkClip(look.sprite),
+      dir: pose.face,
+      now: still ? 0 : now + enemy.id * 150,
+      flip: side,
+      scale: big ? 1 : scale
+    })
+    if (drawn !== null) top = drawn + 4
+  }
   if (pose.flash > 0) withFilter(ctx, `brightness(${1 + 1.5 * pose.flash})`, draw)
   else if (enemy.swinging) withFilter(ctx, `drop-shadow(0 0 1.2px ${DANGER})`, draw)
   else draw()
-  if (enemy.boss || enemy.maxHp > 1) hpBar(ctx, cx, cy - CELL / 2 - 4 - (scale - 1) * 12, Math.max(0, enemy.hp), enemy.maxHp)
+  if (enemy.boss || enemy.maxHp > 1) hpBar(ctx, cx, top - 4, Math.max(0, enemy.hp), enemy.maxHp)
   ctx.restore()
 }
 
@@ -335,7 +378,8 @@ const bubble = (ctx: Ctx, text: string, cx: number, cy: number, progress: number
   ctx.restore()
 }
 
-const effect = (ctx: Ctx, fx: Effect, item: ItemKind) => {
+const effect = (ctx: Ctx, fx: Effect, scene: Scene, now: number) => {
+  const item: ItemKind = scene.item ?? "crystal"
   const cx = fx.x * CELL + CELL / 2
   const cy = fx.y * CELL + CELL / 2
   if (fx.kind === "slash" || fx.kind === "smoke") {
@@ -349,7 +393,10 @@ const effect = (ctx: Ctx, fx: Effect, item: ItemKind) => {
     if (item === "campfire") return
     ctx.save()
     ctx.globalAlpha = 1 - Math.max(0, fx.progress - 0.6) / 0.4
-    picture(ctx, ITEM_TILES[item], cx - 6, cy - CELL / 2 - 9 * Math.min(1, fx.progress * 2), 12, item === "key" ? 8 : 12)
+    const rise = 9 * Math.min(1, fx.progress * 2)
+    const own = scene.itemLook === undefined ? null : spriteOf(scene.itemLook)
+    if (own !== null) drawFigure(ctx, own, { cx, bottom: cy + 4 - rise, clip: null, now, scale: 0.75 })
+    else picture(ctx, ITEM_TILES[item], cx - 6, cy - CELL / 2 - rise, 12, item === "key" ? 8 : 12)
     ctx.restore()
     return
   }
@@ -404,22 +451,33 @@ export const drawActors = (ctx: Ctx, input: ActorsInput) => {
   const { pose, scene, season, now, still, skin } = input
   const { world } = pose
   const item = scene.item ?? "crystal"
+  const sprites = (scene.sprites ?? []).map((placed) => ({ placed, found: spriteOf(placed.asset) }))
+  // Pictures of the packs that lie flat and move: water, flowers in the wind.
+  for (const { placed, found } of sprites) {
+    if (found !== null && layerOf(placed, found) === "ground" && isAnimated(placed, found)) drawPlaced(ctx, placed, still ? 0 : now)
+  }
   swayingBushes(ctx, input)
   for (const npc of scene.npcs ?? []) villager(ctx, npc, now, still)
   for (const key of world.traps) {
     const [tx = 0, ty = 0] = key.split(",").map(Number)
     trap(ctx, tx * CELL + CELL / 2, ty * CELL + CELL / 2, season.icy, world.fell && Math.round(pose.hero.x) === tx && Math.round(pose.hero.y) === ty)
   }
-  if (world.finish !== null) finishLook(ctx, scene.finish ?? "flag", world.finish.x * CELL + CELL / 2, world.finish.y * CELL + CELL / 2, now, still)
+  if (world.finish !== null) finishLook(ctx, scene, world.finish.x * CELL + CELL / 2, world.finish.y * CELL + CELL / 2, now, still)
   for (const { x, y } of input.items) {
     const taken = !world.crystals.has(cellKey(x, y))
     if (taken && item !== "campfire") continue
-    itemLook(ctx, item, x * CELL + CELL / 2, y * CELL + CELL / 2, taken, now, still)
+    itemLook(ctx, scene, x * CELL + CELL / 2, y * CELL + CELL / 2, taken, now, still)
   }
   // Who stands lower on the field is drawn later, so a figure in front covers the one behind.
-  const figures = [...pose.enemies.map((e) => ({ y: e.y, draw: () => enemyFigure(ctx, e, pose.hero, now, still) })), { y: pose.hero.y + 0.01, draw: () => heroFigure(ctx, pose.hero, skin, now) }]
+  const figures = [
+    ...sprites
+      .filter(({ placed, found }) => found !== null && layerOf(placed, found) === "object")
+      .map(({ placed }) => ({ y: placedDepth(placed) - 0.01, draw: () => drawPlaced(ctx, placed, still ? 0 : now) })),
+    ...pose.enemies.map((e) => ({ y: e.y, draw: () => enemyFigure(ctx, e, pose.hero, now, still) })),
+    { y: pose.hero.y + 0.01, draw: () => heroFigure(ctx, pose.hero, skin, now) }
+  ]
   for (const f of figures.sort((a, b) => a.y - b.y)) f.draw()
-  for (const fx of pose.effects) effect(ctx, fx, item)
+  for (const fx of pose.effects) effect(ctx, fx, scene, now)
   // With less motion the weather stays as a still picture.
   weather(ctx, still ? { ...input, now: 0 } : input)
   hud(ctx, input)

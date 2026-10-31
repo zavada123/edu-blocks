@@ -6,15 +6,18 @@
 const cache = new Map<string, HTMLImageElement>()
 const waiting = new Set<() => void>()
 
+/** Tells the fields that something they draw has arrived: a picture or an asset pack. */
+export const notifyLoaded = () => {
+  for (const callback of [...waiting]) callback()
+}
+
 /** The picture, ready to draw, or null while it loads. */
 export const image = (href: string): HTMLImageElement | null => {
   let img = cache.get(href)
   if (img === undefined) {
     img = new Image()
     img.decoding = "async"
-    img.onload = () => {
-      for (const callback of [...waiting]) callback()
-    }
+    img.onload = notifyLoaded
     img.src = href
     cache.set(href, img)
   }

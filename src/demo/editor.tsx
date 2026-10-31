@@ -1,16 +1,20 @@
-import { StrictMode, useEffect, useMemo, useRef, useState } from "react"
+import { StrictMode, useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
 import { HERO_BLOCKS } from "../core/blocks.ts"
 import { checkLevel, emptyMap, levelSource, MAP_LIMITS, type MapTile, plainRoute, resizeMap, setTile } from "../core/kit.ts"
+import { storyIssues } from "../core/story.ts"
 import { type BlockName, type FinishKind, type Goal, type ItemKind, type Level, type NpcKind, type PropKind, type Scene, type Season, startWorld } from "../core/level.ts"
+import { AssetBrowser, Thumb } from "./editor/AssetBrowser.tsx"
+import { type Brush, paint, erase } from "./editor/edit.ts"
+import { useHistory } from "./editor/history.ts"
+import { MapCanvas } from "./editor/MapCanvas.tsx"
+import { findSprite, SpritesCard, useLevelPacks } from "./editor/SpritesCard.tsx"
 import { BOSS_HP, DEFAULT_HEARTS, DEFAULT_SIGHT, type Direction, type EnemyKind, type EnemySpec, type EnemyWalk, parseMap } from "../core/world.ts"
 import type { Tier } from "../core/xp.ts"
 import { levels } from "../levels/index.ts"
 import { chapterOf } from "../levels/chapters.ts"
 import { type BlocksReport, EduBlocks } from "../ui/EduBlocks.tsx"
-import { Stage } from "../ui/stage/Stage.tsx"
 import { ENEMIES, ITEM_TILES, NPCS, PROPS } from "../ui/look.ts"
-import { buildScenery } from "../ui/scenery.ts"
 import bushTile from "../ui/sprites/bush.png"
 import flagStrip from "../ui/sprites/flag.png"
 import ninjaSheet from "../ui/sprites/ninja.png"
@@ -19,15 +23,17 @@ import "./demo.css"
 import "./editor.css"
 
 /**
- * Level editor: paint the map with the pack pictures, set the scene and the blocks, see what keeps the level from
- * being played, try it in the trainer and copy it into `src/levels/index.ts`. The work is kept in this browser.
+ * Level editor: paint the map, place pictures from every asset pack (decor, tiles, houses, animals, the looks of
+ * enemies, villagers, items and the goal), set the scene and the blocks, see what keeps the level from being played
+ * or where its text and its field disagree, try it in the trainer and copy it into `src/levels/index.ts`. The left
+ * button paints, the right button erases; Ctrl+Z undoes. The work is kept in this browser.
  */
 
 const STORE = "eb-editor-level"
 /** The largest step limit the editor offers. */
 const MAX_STEP_LIMIT = 200
 
-type Tool = MapTile | PropKind | "npc" | "enemy"
+type Tool = MapTile | PropKind | "npc" | "enemy" | "erase"
 
 const TILE_TOOLS: ReadonlyArray<{ readonly tool: MapTile; readonly name: string }> = [
   { tool: "floor", name: "Стежка" },
@@ -178,6 +184,7 @@ const Icon = ({ tool, item, who, monster }: { readonly tool: Tool; readonly item
       <span className="ed-icon ed-icon-sheet" style={{ backgroundImage: `url(${flagStrip})`, backgroundSize: "96px 24px" }} />
     )
   if (tool === "trap") return <span className="ed-icon ed-icon-trap" aria-hidden="true" />
+  if (tool === "erase") return <span className="ed-icon ed-icon-erase" aria-hidden="true" />
   if (tool === "floor")
     return (
       <span
@@ -196,67 +203,8 @@ const Icon = ({ tool, item, who, monster }: { readonly tool: Tool; readonly item
   return href === null ? null : <img className="ed-icon" src={href} alt="" />
 }
 
-/** The map with the real field under it; a grid of cells on top takes the clicks. */
-const MapCanvas = ({
-  level,
-  tool,
-  onPaint
-}: {
-  readonly level: Level
-  readonly tool: Tool
-  readonly onPaint: (x: number, y: number) => void
-}) => {
-  const painting = useRef(false)
-  const world = useMemo(() => startWorld(level), [level])
-  const { view } = buildScenery(world)
-  useEffect(() => {
-    const stop = () => {
-      painting.current = false
-    }
-    window.addEventListener("pointerup", stop)
-    return () => window.removeEventListener("pointerup", stop)
-  }, [])
-  const dragPaints = tool !== "house" && tool !== "woodshed" && tool !== "start" && tool !== "finish" && tool !== "npc" && tool !== "enemy"
-  return (
-    <div className="ed-map" style={{ aspectRatio: `${view.width} / ${view.height}` }}>
-      <Stage start={world} skin="ninja" scene={level.scene} />
-      <div
-        className="ed-grid"
-        style={{
-          left: `${(-view.x / view.width) * 100}%`,
-          top: `${(-view.y / view.height) * 100}%`,
-          width: `${(world.width / view.width) * 100}%`,
-          height: `${(world.height / view.height) * 100}%`,
-          gridTemplateColumns: `repeat(${world.width}, 1fr)`
-        }}
-      >
-        {Array.from({ length: world.width * world.height }, (_, i) => {
-          const x = i % world.width
-          const y = Math.floor(i / world.width)
-          return (
-            <button
-              key={i}
-              type="button"
-              className="ed-cell"
-              aria-label={`Клітинка ${x + 1}, ${y + 1}`}
-              onPointerDown={(e) => {
-                e.preventDefault()
-                painting.current = dragPaints
-                onPaint(x, y)
-              }}
-              onPointerEnter={() => {
-                if (painting.current) onPaint(x, y)
-              }}
-            />
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
 const Issues = ({ level }: { readonly level: Level }) => {
-  const issues = checkLevel(level)
+  const issues = [...checkLevel(level), ...storyIssues(level)]
   const route = plainRoute(level)
   return (
     <section className="ed-card" aria-live="polite">
@@ -281,8 +229,15 @@ const Issues = ({ level }: { readonly level: Level }) => {
 }
 
 /** The enemies on the map, each with its own settings. */
+const EnemyIcon = ({ spec, packs }: { readonly spec: EnemySpec; readonly packs: ReturnType<typeof useLevelPacks> }) => {
+  const found = spec.look === undefined ? null : findSprite(packs, spec.look)
+  if (found !== null) return <Thumb pack={found.pack} sprite={found.sprite} box={24} />
+  return <span className="ed-icon ed-icon-sheet" style={{ backgroundImage: `url(${ENEMIES[spec.kind]})`, backgroundSize: "96px 96px" }} />
+}
+
 const Enemies = ({ level, onChange }: { readonly level: Level; readonly onChange: (patch: Partial<Level>) => void }) => {
   const enemies = level.enemies ?? []
+  const packs = useLevelPacks(level)
   const set = (i: number, patch: Partial<EnemySpec>) =>
     onChange({ enemies: enemies.map((e, j) => (j === i ? { ...e, ...patch } : e)) })
   return (
@@ -298,12 +253,12 @@ const Enemies = ({ level, onChange }: { readonly level: Level; readonly onChange
           onChange={(e) => onChange({ hearts: clamp(Number(e.target.value), 1, MAX_HP) })}
         />
       </label>
-      {enemies.length === 0 && <p className="ed-note">Вибери інструмент «Ворог» і клацни по стежці. Другий клік прибирає ворога.</p>}
+      {enemies.length === 0 && <p className="ed-note">Вибери інструмент «Ворог» або ворога в «Ассетах з паків» і клацни по стежці. Права кнопка прибирає ворога.</p>}
       <ol className="ed-enemies">
         {enemies.map((e, i) => (
           <li key={`${e.x},${e.y}`}>
             <div className="ed-row">
-              <span className="ed-icon ed-icon-sheet" style={{ backgroundImage: `url(${ENEMIES[e.kind]})`, backgroundSize: "96px 96px" }} />
+              <EnemyIcon spec={e} packs={packs} />
               <strong>
                 ({e.x}, {e.y})
               </strong>
@@ -317,6 +272,15 @@ const Enemies = ({ level, onChange }: { readonly level: Level; readonly onChange
               <button type="button" onClick={() => onChange({ enemies: enemies.filter((_, j) => j !== i) })}>
                 Прибрати
               </button>
+              {e.look !== undefined && (
+                <button
+                  type="button"
+                  title="Повернути звичайний вигляд ворога"
+                  onClick={() => onChange({ enemies: enemies.map((x, j) => (j === i ? (({ look: _, ...rest }) => rest)(x) : x)) })}
+                >
+                  Без картинки
+                </button>
+              )}
             </div>
             <div className="ed-row">
               <label>
@@ -421,11 +385,64 @@ const Export = ({ level, onImport }: { readonly level: Level; readonly onImport:
   )
 }
 
+const ERASE_TOOL: { readonly tool: Tool; readonly name: string } = { tool: "erase", name: "Гумка" }
+
+/** The toolbar button that stands for a brush; pictures from the packs have none. */
+const toolOf = (brush: Brush): Tool | null => {
+  switch (brush.kind) {
+    case "tile":
+      return brush.tile
+    case "prop":
+      return brush.prop
+    case "npc":
+      return brush.look === undefined ? "npc" : null
+    case "enemy":
+      return brush.look === undefined ? "enemy" : null
+    case "erase":
+      return "erase"
+    case "sprite":
+      return null
+  }
+}
+
+const brushOf = (tool: Tool, who: NpcKind, monster: EnemyKind): Brush => {
+  if (tool === "erase") return { kind: "erase" }
+  if (tool === "npc") return { kind: "npc", who }
+  if (tool === "enemy") return { kind: "enemy", monster }
+  if (tool === "house" || tool === "woodshed") return { kind: "prop", prop: tool }
+  return { kind: "tile", tile: tool }
+}
+
+/** What the brush from the asset library puts on the map. */
+const BrushNote = ({ brush, level }: { readonly brush: Brush; readonly level: Level }) => {
+  const ref = brush.kind === "sprite" ? brush.asset : "look" in brush ? brush.look : undefined
+  const packs = useLevelPacks({ ...level, scene: { ...level.scene, sprites: ref === undefined ? [] : [{ asset: ref, x: 0, y: 0 }] } })
+  const found = ref === undefined ? null : findSprite(packs, ref)
+  const what =
+    brush.kind === "enemy"
+      ? "ворога з таким виглядом (на стежку)"
+      : brush.kind === "npc"
+        ? "людину чи тварину, що стоїть (краще на стіну біля стежки)"
+        : brush.kind === "sprite" && brush.tiles !== undefined
+          ? `плитки ${brush.tiles[2]}×${brush.tiles[3]} від лівого верхнього кута клітинки`
+          : "картинку на клітинку"
+  return (
+    <p className="ed-brush">
+      {found !== null && <Thumb pack={found.pack} sprite={found.sprite} box={28} />}
+      Пензель: <strong>{found?.sprite.name ?? ref}</strong> — {what}.
+    </p>
+  )
+}
+
 const Editor = () => {
-  const [level, setLevel] = useState<Level>(load)
-  const [tool, setTool] = useState<Tool>("floor")
+  const history = useHistory<Level>(load)
+  const level = history.value
+  const setLevel = history.set
+  const [brush, setBrush] = useState<Brush>({ kind: "tile", tile: "floor" })
   const [who, setWho] = useState<NpcKind>("grandpa")
   const [monster, setMonster] = useState<EnemyKind>("slime")
+  const tool = toolOf(brush)
+  const setTool = (next: Tool) => setBrush(brushOf(next, who, monster))
   const [playing, setPlaying] = useState(false)
   const [lastRun, setLastRun] = useState<BlocksReport | null>(null)
   const scene: Scene = level.scene ?? {}
@@ -444,33 +461,7 @@ const Editor = () => {
   const update = (patch: Partial<Level>) => setLevel((l) => ({ ...l, ...patch }))
   const updateScene = (patch: Partial<Scene>) => setLevel((l) => ({ ...l, scene: { ...l.scene, ...patch } }))
 
-  const paint = (x: number, y: number) => {
-    if (tool === "house" || tool === "woodshed") {
-      const look = PROPS[tool]
-      // The door of a house opens onto the clicked cell.
-      const prop = { kind: tool, x: x - (tool === "house" ? 1.5 : 1), y: y - look.height }
-      setLevel((l) => ({ ...l, scene: { ...l.scene, props: [...(l.scene?.props ?? []), prop] } }))
-      return
-    }
-    if (tool === "npc") {
-      // A second click on a villager takes them away.
-      setLevel((l) => {
-        const npcs = l.scene?.npcs ?? []
-        const here = npcs.some((n) => n.x === x && n.y === y)
-        return { ...l, scene: { ...l.scene, npcs: here ? npcs.filter((n) => n.x !== x || n.y !== y) : [...npcs, { who, x, y }] } }
-      })
-      return
-    }
-    if (tool === "enemy") {
-      setLevel((l) => {
-        const enemies = l.enemies ?? []
-        const here = enemies.some((e) => e.x === x && e.y === y)
-        return { ...l, enemies: here ? enemies.filter((e) => e.x !== x || e.y !== y) : [...enemies, { kind: monster, x, y }] }
-      })
-      return
-    }
-    setLevel((l) => ({ ...l, map: setTile(l.map, x, y, tool) }))
-  }
+  const onCell = (x: number, y: number, erasing: boolean) => history.amend((l) => (erasing ? erase(l, x, y) : paint(l, brush, x, y)))
 
   const toggle = <T,>(list: ReadonlyArray<T>, value: T, on: boolean): ReadonlyArray<T> =>
     on ? [...list.filter((v) => v !== value), value] : list.filter((v) => v !== value)
@@ -506,6 +497,12 @@ const Editor = () => {
         <button type="button" className="demo-skin" onClick={() => setLevel(blank())}>
           Новий
         </button>
+        <button type="button" className="demo-skin" onClick={history.undo} disabled={!history.canUndo} title="Ctrl+Z">
+          ↶ Назад
+        </button>
+        <button type="button" className="demo-skin" onClick={history.redo} disabled={!history.canRedo} title="Ctrl+Shift+Z">
+          ↷ Вперед
+        </button>
         <button
           type="button"
           className="demo-skin demo-skin-on"
@@ -537,7 +534,7 @@ const Editor = () => {
         <main className="ed-main">
           <section className="ed-stage">
             <div className="ed-tools" role="toolbar" aria-label="Чим малювати">
-              {[...TILE_TOOLS, ...PROP_TOOLS].map((t) => (
+              {[...TILE_TOOLS, ...PROP_TOOLS, ERASE_TOOL].map((t) => (
                 <button
                   key={t.tool}
                   type="button"
@@ -559,8 +556,10 @@ const Editor = () => {
                   value={who}
                   onChange={(e) => {
                     const found = PEOPLE.find((p) => p.id === e.target.value)
-                    if (found !== undefined) setWho(found.id)
-                    setTool("npc")
+                    if (found !== undefined) {
+                      setWho(found.id)
+                      setBrush({ kind: "npc", who: found.id })
+                    }
                   }}
                 >
                   {PEOPLE.map((p) => (
@@ -580,8 +579,10 @@ const Editor = () => {
                   value={monster}
                   onChange={(e) => {
                     const found = MONSTERS.find((m) => m.id === e.target.value)
-                    if (found !== undefined) setMonster(found.id)
-                    setTool("enemy")
+                    if (found !== undefined) {
+                      setMonster(found.id)
+                      setBrush({ kind: "enemy", monster: found.id })
+                    }
                   }}
                 >
                   {MONSTERS.map((m) => (
@@ -591,21 +592,27 @@ const Editor = () => {
                   ))}
                 </select>
               </span>
-              <button type="button" className="ed-tool" onClick={() => updateScene({ props: [], npcs: [] })}>
-                Прибрати будинки й людей
+              <button type="button" className="ed-tool" onClick={() => updateScene({ props: [], npcs: [], sprites: [] })}>
+                Прибрати будинки, людей і картинки
               </button>
               <button type="button" className="ed-tool" onClick={() => update({ enemies: [] })}>
                 Прибрати ворогів
               </button>
             </div>
-            <MapCanvas level={level} tool={tool} onPaint={paint} />
+            {brush.kind === "sprite" || ("look" in brush && brush.look !== undefined) ? <BrushNote brush={brush} level={level} /> : null}
+            <MapCanvas level={level} brush={brush} onStroke={history.begin} onCell={onCell} />
             <p className="ed-note">
-              Клацни або веди мишею по клітинках. Стіни стають деревами й кущами, луг навколо малюється сам. Хату ставлять дверима
-              на клітинку, по якій клацнули. Людей краще ставити на стіну біля стежки, другий клік прибирає людину. Ворогів ставлять
-              на стежку, а налаштовують праворуч, у картці «Вороги».
+              <strong>Ліва кнопка</strong> малює, <strong>права</strong> прибирає те, що зверху: ворога, людину, картинку, хату, а
+              предмет, пастку чи мету перетворює на стежку. Веди мишею, щоб малювати стежку, стіни чи плитки. Ctrl+Z скасовує.
+              Стіни стають деревами й кущами, луг навколо малюється сам, на ньому теж можна ставити картинки. Хату ставлять дверима
+              на клітинку, по якій клацнули. Людей краще ставити на стіну біля стежки. Ворогів ставлять на стежку, а налаштовують
+              праворуч, у картці «Вороги».
             </p>
             <Issues level={level} />
           </section>
+          <aside className="ed-lib">
+            <AssetBrowser level={level} brush={brush} onBrush={setBrush} onLevel={setLevel} />
+          </aside>
           <aside className="ed-side">
             <section className="ed-card">
               <h2>Рівень</h2>
@@ -803,6 +810,7 @@ const Editor = () => {
                 </div>
               )}
             </section>
+            <SpritesCard level={level} onChange={setLevel} />
             <Enemies level={level} onChange={update} />
             <Export level={level} onImport={setLevel} />
           </aside>

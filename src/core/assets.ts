@@ -178,3 +178,77 @@ export const packProblems = (pack: AssetPack): ReadonlyArray<string> => {
   }
   return problems
 }
+
+// ── Pictures of a level ─────────────────────────────────────────────────────────────────────────────────────────
+
+/** The pack and the sprite of an asset reference `"<pack>:<sprite id>"`, or null when it is not one. */
+export const parseAssetRef = (ref: string): { readonly pack: string; readonly id: string } | null => {
+  const at = ref.indexOf(":")
+  if (at <= 0 || at === ref.length - 1) return null
+  return { pack: ref.slice(0, at), id: ref.slice(at + 1) }
+}
+
+export const assetRef = (pack: string, id: string): string => `${pack}:${id}`
+
+/** Every asset reference of a level: its sprites, the looks of its items, goal, villagers and enemies. */
+export const assetRefsOf = (level: {
+  readonly scene?: {
+    readonly sprites?: ReadonlyArray<{ readonly asset: string }>
+    readonly npcs?: ReadonlyArray<{ readonly look?: string }>
+    readonly itemLook?: string
+    readonly finishLook?: string
+  }
+  readonly enemies?: ReadonlyArray<{ readonly look?: string }>
+}): ReadonlyArray<string> => {
+  const scene = level.scene ?? {}
+  const refs = [
+    ...(scene.sprites ?? []).map((s) => s.asset),
+    ...(scene.npcs ?? []).map((n) => n.look),
+    ...(level.enemies ?? []).map((e) => e.look),
+    scene.itemLook,
+    scene.finishLook
+  ]
+  return [...new Set(refs.filter((r): r is string => r !== undefined))]
+}
+
+/** The packs a level needs. */
+export const packsOf = (level: Parameters<typeof assetRefsOf>[0]): ReadonlyArray<string> => [
+  ...new Set(assetRefsOf(level).flatMap((ref) => parseAssetRef(ref)?.pack ?? []))
+]
+
+/** Clips a figure plays when nothing else is asked, best first. */
+const IDLE_CLIPS: ReadonlyArray<string> = ["idle", "play", "walk", "grow"]
+
+/** The clip a sprite plays standing on the field: its `idle` (or the like) or the first one; null when it has none. */
+export const restClip = (sprite: SpriteAsset): string | null => {
+  const names = Object.keys(sprite.clips ?? {})
+  return IDLE_CLIPS.find((n) => names.includes(n)) ?? names[0] ?? null
+}
+
+/** The clip of a walking figure: `walk`, else what it plays at rest. */
+export const walkClip = (sprite: SpriteAsset): string | null => (sprite.clips?.walk !== undefined ? "walk" : restClip(sprite))
+
+/**
+ * One still frame that shows what the sprite is, for an icon: the `icon` clip of a crop, the ripe last stage of a
+ * growing crop, the first frame of the rest clip facing down, or the whole picture.
+ */
+export const iconFrame = (sprite: SpriteAsset): FrameRect => {
+  const clips = sprite.clips ?? {}
+  const icon = clips.icon
+  if (icon !== undefined) {
+    const { frames, flip } = clipFrames(icon)
+    if (frames[0] !== undefined) return frameRect(sprite, frames[0], icon, flip)
+  }
+  const grow = clips.grow
+  if (grow !== undefined) {
+    const { frames } = clipFrames(grow)
+    const last = frames[frames.length - 1]
+    if (last !== undefined) return frameRect(sprite, last, grow)
+  }
+  const rest = restClip(sprite)
+  if (rest !== null) {
+    const frame = frameAt(sprite, rest, "down", 0)
+    if (frame !== null) return frame
+  }
+  return frameRect(sprite, 0)
+}
