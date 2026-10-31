@@ -36,7 +36,7 @@ const PATH_SHEET_ROWS = 6
 const NPC_SHEET_HEIGHT = 112
 const SEAM = 0.15
 const MEADOW_TILES = 7
-/** The snowfall picture (320×240) drawn at half size, so the flakes match the 16-pixel tiles. */
+/** The weather picture (320×240) drawn at half size, so flakes, drops and leaves match the 16-pixel tiles. */
 const SNOW_W = 160
 const SNOW_H = 120
 
@@ -359,16 +359,16 @@ export const Field = ({ world, skin, scene = {} }: { readonly world: World; read
         <pattern id={grassId} width={CELL} height={CELL} patternUnits="userSpaceOnUse">
           <image href={season.grass} width={CELL} height={CELL} />
         </pattern>
-        {season.snowfall !== null && (
+        {season.weather !== null && (
           <pattern id={snowId} width={SNOW_W} height={SNOW_H} patternUnits="userSpaceOnUse">
-            <image href={season.snowfall} width={SNOW_W} height={SNOW_H} />
+            <image href={season.weather.href} width={SNOW_W} height={SNOW_H} />
             {!still && (
               <animateTransform
                 attributeName="patternTransform"
                 type="translate"
                 from="0 0"
-                to={`${SNOW_W / 4} ${SNOW_H}`}
-                dur="9s"
+                to={`${SNOW_W * season.weather.drift} ${SNOW_H}`}
+                dur={`${season.weather.seconds}s`}
                 repeatCount="indefinite"
               />
             )}
@@ -454,7 +454,7 @@ export const Field = ({ world, skin, scene = {} }: { readonly world: World; read
         const { x, y } = at(key)
         return (
           <g key={`x${key}`} transform={center(x, y)}>
-            <Trap winter={season.snowfall !== null} broken={world.fell && world.hero.x === x && world.hero.y === y} />
+            <Trap winter={season.icy} broken={world.fell && world.hero.x === x && world.hero.y === y} />
           </g>
         )
       })}
@@ -484,14 +484,14 @@ export const Field = ({ world, skin, scene = {} }: { readonly world: World; read
           <Frame href={sheet.href} height={sheet.height} col={COLUMN[world.hero.dir]} row={frame} />
         </g>
       </g>
-      {season.snowfall !== null && (
+      {season.weather !== null && (
         <rect
           x={view.x * CELL}
           y={view.y * CELL}
           width={view.width * CELL}
           height={view.height * CELL}
           fill={`url(#${snowId})`}
-          className="eb-snowfall"
+          className="eb-weather"
           pointerEvents="none"
         />
       )}
