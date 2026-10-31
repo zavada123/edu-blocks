@@ -62,12 +62,6 @@ const Stars = ({ count }: { readonly count: number }) => (
   </span>
 )
 
-const CloseButton = ({ onClose }: { readonly onClose: () => void }) => (
-  <button type="button" className="eb-verdict-close" onClick={onClose}>
-    Зрозуміло
-  </button>
-)
-
 /** The XP of a passed run and, when the app told the hero's XP, the bar to the next hero level. */
 const XpLine = ({ reward }: { readonly reward: Reward }) => {
   const note = reward.gain === 0 ? "Це не краще за твій рекорд, XP не додано." : reward.firstTry ? "З першої спроби!" : ""
@@ -85,7 +79,7 @@ const XpLine = ({ reward }: { readonly reward: Reward }) => {
       <p>
         <strong>+{reward.gain} XP</strong> {up ? `Новий рівень героя: ${hero.level}!` : note}
       </p>
-      <div className="eb-xp-bar" role="img" aria-label={`Рівень героя ${hero.level}: ${reward.total} XP${hero.next === null ? "" : ` з ${hero.next}`}`}>
+      <div className="eb-bar" role="img" aria-label={`Рівень героя ${hero.level}: ${reward.total} XP${hero.next === null ? "" : ` з ${hero.next}`}`}>
         <span style={{ width: `${Math.round(share * 100)}%` }} />
       </div>
       <p className="eb-xp-level">
@@ -108,13 +102,15 @@ const Advice = ({ tips }: { readonly tips: ReadonlyArray<string> }) =>
 
 const HINTED: ReadonlySet<FailReason> = new Set(["crashed", "trapped", "tired", "defeated", "goalsNotMet"])
 
+/** The result over the field: stars and XP for a pass, what went wrong and a hint for a fail. */
 export const Verdict = ({
   level,
   result,
   reward,
   advice,
   language,
-  onClose
+  onClose,
+  onNext
 }: {
   readonly level: Level
   readonly result: RunResult
@@ -122,26 +118,46 @@ export const Verdict = ({
   readonly advice: ReadonlyArray<string>
   readonly language: Language
   readonly onClose: () => void
+  /** «Далі»: the app opens the next level. */
+  readonly onNext: (() => void) | undefined
 }) => {
   if (result.passed) {
     const size = language === "python" ? `Розмір програми: ${result.blocks}.` : `Блоків: ${result.blocks}.`
     return (
-      <div className="eb-verdict eb-verdict-ok" role="status">
-        <Stars count={result.stars} />
-        <p>Рівень пройдено!{advice.length === 0 ? ` ${size}` : ""}</p>
-        <Advice tips={advice} />
-        <XpLine reward={reward} />
-        <CloseButton onClose={onClose} />
+      <div className="eb-verdict-layer">
+        <div className="eb-verdict eb-verdict-ok eb-frame eb-parchment" role="dialog" aria-modal="false" aria-labelledby="eb-verdict-title">
+          <Stars count={result.stars} />
+          <h3 id="eb-verdict-title">Рівень пройдено!</h3>
+          {advice.length === 0 ? <p>{size}</p> : <Advice tips={advice} />}
+          <XpLine reward={reward} />
+          <div className="eb-verdict-actions">
+            <button type="button" className="eb-btn" onClick={onClose} autoFocus={onNext === undefined}>
+              Ще раз
+            </button>
+            {onNext !== undefined && (
+              <button type="button" className="eb-btn eb-btn-go" onClick={onNext} autoFocus>
+                Далі →
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     )
   }
   const reason = result.reason ?? "goalsNotMet"
   return (
-    <div className="eb-verdict eb-verdict-fail" role="status">
-      <p>{failText(result, language)}</p>
-      <Advice tips={advice} />
-      {level.hint !== undefined && HINTED.has(reason) && <p className="eb-hint">Підказка: {level.hint}</p>}
-      <CloseButton onClose={onClose} />
+    <div className="eb-verdict-layer">
+      <div className="eb-verdict eb-verdict-fail eb-frame eb-parchment" role="dialog" aria-modal="false" aria-labelledby="eb-verdict-title">
+        <h3 id="eb-verdict-title">Ще не вийшло</h3>
+        <p>{failText(result, language)}</p>
+        <Advice tips={advice} />
+        {level.hint !== undefined && HINTED.has(reason) && <p className="eb-hint">Підказка: {level.hint}</p>}
+        <div className="eb-verdict-actions">
+          <button type="button" className="eb-btn eb-btn-gold" onClick={onClose} autoFocus>
+            Спробувати ще
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

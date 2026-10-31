@@ -80,6 +80,13 @@ const Demo = () => {
     save("eb-best-xp", next)
   }
 
+  // «Далі» opens the next level of the course; the last level has none.
+  const next = levels[levels.indexOf(level) + 1]
+  const navigation = {
+    progress: Object.fromEntries(Object.entries(best).map(([levelId, b]) => [levelId, b.stars])),
+    ...(next === undefined ? {} : { onNext: () => setId(next.id) })
+  }
+
   const pick = (s: (typeof SKINS)[number]) => {
     if (hero.level < s.heroLevel) return
     setSkin(s.id)
@@ -110,9 +117,6 @@ const Demo = () => {
             </button>
           ))}
         </span>
-        <span className="demo-crystals" aria-label={`Рівень героя ${hero.level}, ${total} XP`}>
-          Рівень {hero.level} · {total} XP
-        </span>
         <span className="demo-shop">
           {SKINS.map((s) => (
             <button
@@ -138,6 +142,7 @@ const Demo = () => {
             xp={{ total, best: best[level.id]?.xp ?? 0 }}
             onComplete={onComplete}
             onSourceChange={onSourceChange}
+            {...navigation}
             {...(sources[level.id] === undefined ? {} : { source: sources[level.id] })}
           />
         ) : (
@@ -148,6 +153,7 @@ const Demo = () => {
             large={isFirstChapter(level.id)}
             xp={{ total, best: best[level.id]?.xp ?? 0 }}
             onComplete={onComplete}
+            {...navigation}
             {...(showSolution ? { program: solutionProgram(level.id) } : {})}
           />
         )}

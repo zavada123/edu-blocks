@@ -1,9 +1,10 @@
 import { autocompletion, closeBrackets, closeBracketsKeymap, type Completion, type CompletionContext } from "@codemirror/autocomplete"
 import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands"
 import { python } from "@codemirror/lang-python"
-import { bracketMatching, defaultHighlightStyle, indentOnInput, indentUnit, syntaxHighlighting } from "@codemirror/language"
+import { bracketMatching, HighlightStyle, indentOnInput, indentUnit, syntaxHighlighting } from "@codemirror/language"
 import { EditorState, type Extension, RangeSetBuilder, StateEffect, StateField } from "@codemirror/state"
 import { Decoration, type DecorationSet, EditorView, highlightActiveLine, keymap, lineNumbers } from "@codemirror/view"
+import { tags } from "@lezer/highlight"
 import { useEffect, useRef } from "react"
 import { HERO_NAME, type PythonMethod } from "../../core/python/api.ts"
 
@@ -80,16 +81,35 @@ const completions = (methods: ReadonlyArray<PythonMethod>) => (context: Completi
   return { from: word.from, options: KEYWORD_COMPLETIONS }
 }
 
+/** The colours of the code, from the tokens of the game screen (theme.css). */
+const highlight = HighlightStyle.define([
+  { tag: [tags.keyword, tags.controlKeyword, tags.operatorKeyword, tags.definitionKeyword, tags.moduleKeyword], color: "var(--eb-code-kw)" },
+  { tag: [tags.function(tags.variableName), tags.function(tags.propertyName), tags.propertyName], color: "var(--eb-code-fn)" },
+  { tag: [tags.number, tags.bool, tags.null], color: "var(--eb-code-num-lit)" },
+  { tag: [tags.string, tags.special(tags.string)], color: "var(--eb-code-str)" },
+  { tag: tags.comment, color: "var(--eb-code-comment)", fontStyle: "italic" },
+  { tag: tags.invalid, color: "var(--eb-bad-soft)" }
+])
+
 const theme = (large: boolean): Extension =>
-  EditorView.theme({
-    "&": { height: "100%", fontSize: large ? "19px" : "16px", background: "#fff" },
-    ".cm-scroller": { fontFamily: "ui-monospace, 'Cascadia Code', 'Fira Code', Menlo, Consolas, monospace", lineHeight: "1.55" },
-    ".cm-content": { padding: "8px 0" },
-    ".cm-gutters": { background: "#f4f6f8", color: "#8a94a0", border: "none" },
-    ".cm-activeLine": { background: "#f6f9ff" },
-    ".eb-code-run": { background: "#fff2b3 !important", boxShadow: "inset 4px 0 0 #f5b400" },
-    ".eb-code-error": { background: "#ffe1e1 !important", boxShadow: "inset 4px 0 0 #e5484d" }
-  })
+  EditorView.theme(
+    {
+      "&": { height: "100%", fontSize: large ? "19px" : "16px", background: "var(--eb-code-bg)", color: "var(--eb-code-fg)" },
+      ".cm-scroller": { fontFamily: "var(--eb-font-code)", lineHeight: "1.6" },
+      ".cm-content": { padding: "10px 0", caretColor: "var(--eb-gold)" },
+      ".cm-cursor, .cm-dropCursor": { borderLeft: "3px solid var(--eb-gold)" },
+      "&.cm-focused .cm-selectionBackground, .cm-selectionBackground, ::selection": { background: "rgb(127 208 240 / 0.28) !important" },
+      ".cm-gutters": { background: "var(--eb-code-bg)", color: "var(--eb-code-num)", border: "none", paddingLeft: "6px" },
+      ".cm-activeLine": { background: "rgb(255 255 255 / 0.04)" },
+      ".cm-activeLineGutter": { background: "transparent", color: "var(--eb-code-fg)" },
+      ".cm-matchingBracket": { background: "rgb(242 181 58 / 0.25)", outline: "none" },
+      ".cm-tooltip": { background: "var(--eb-code-head)", color: "var(--eb-code-fg)", border: "2px solid var(--eb-edge)" },
+      ".cm-tooltip-autocomplete > ul > li[aria-selected]": { background: "var(--eb-gold)", color: "var(--eb-edge)" },
+      ".eb-code-run": { background: "var(--eb-code-run) !important", boxShadow: "inset 4px 0 0 var(--eb-gold)" },
+      ".eb-code-error": { background: "var(--eb-code-error) !important", boxShadow: "inset 4px 0 0 var(--eb-bad)" }
+    },
+    { dark: true }
+  )
 
 export const CodeEditor = ({
   initial,
@@ -135,7 +155,7 @@ export const CodeEditor = ({
           indentUnit.of("    "),
           EditorState.tabSize.of(4),
           python(),
-          syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+          syntaxHighlighting(highlight),
           autocompletion({ override: [completions(methods)], icons: false }),
           keymap.of([...closeBracketsKeymap, ...defaultKeymap, ...historyKeymap, indentWithTab]),
           marksField,

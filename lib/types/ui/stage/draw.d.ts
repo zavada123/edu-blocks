@@ -13,6 +13,8 @@ import type { StagePose } from "./playback.ts";
 export declare const CELL = 16;
 /** Hero looks. The app sells and picks them; the package only draws them. */
 export type Skin = "ninja" | "robot" | "rover" | "bee";
+/** The sheet of a hero look: its first frame is the hero facing down, for a portrait. */
+export declare const heroSheetOf: (skin: Skin) => string;
 type Ctx = CanvasRenderingContext2D;
 export interface GroundInput {
     readonly world: World;

@@ -1,8 +1,8 @@
 import type { Level } from "../core/level.ts";
 import type { FailReason } from "../core/program.ts";
+import { type GameNavigation } from "./GameScreen.tsx";
 import type { Skin } from "./stage/Stage.tsx";
 import { type HeroXp } from "./Verdict.tsx";
-import "./blocks.css";
 import "./python.css";
 /**
  * The game with Python code instead of blocks, as in Tynker or CodeCombat: the field on one side, the code on the
@@ -20,7 +20,7 @@ export interface PythonReport {
     readonly firstTry: boolean;
     readonly xp: number;
 }
-export interface EduPythonProps {
+export interface EduPythonProps extends GameNavigation {
     readonly level: Level;
     readonly skin?: Skin;
     /** Bigger text for the youngest. */
@@ -36,4 +36,4 @@ export interface EduPythonProps {
 }
 /** The code a level opens with when there is no saved program. */
 export declare const starterSource: () => string;
-export declare const EduPython: ({ level, skin, large, source, speed, xp, onComplete, onSourceChange }: EduPythonProps) => import("react").JSX.Element;
+export declare const EduPython: ({ level, skin, large, source, speed, xp, onComplete, onSourceChange, onMap, onNext, progress }: EduPythonProps) => import("react").JSX.Element;

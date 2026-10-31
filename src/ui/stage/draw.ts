@@ -38,6 +38,9 @@ const SHEETS: Readonly<Record<Skin, { readonly href: string; readonly rows: numb
   bee: { href: beeSheet, rows: 4 }
 }
 
+/** The sheet of a hero look: its first frame is the hero facing down, for a portrait. */
+export const heroSheetOf = (skin: Skin): string => SHEETS[skin].href
+
 const COLUMN: Readonly<Record<Direction, number>> = { down: 0, up: 1, left: 2, right: 3 }
 const ATTACK_ROW = 4
 const POSE_ROW = 6

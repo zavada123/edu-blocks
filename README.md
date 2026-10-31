@@ -142,7 +142,7 @@ Programs are limited to 300 blocks, the blocks of the level and 1,000 hero actio
 | `edu-blocks/react` | The `EduBlocks` component and the `EduBlocksProps`, `BlocksReport`, `HeroXp` and `Skin` types |
 | `edu-blocks/python` | The `EduPython` component (Python code instead of blocks) and its `EduPythonProps` and `PythonReport` types. It loads neither the Scratch VM nor the block editor |
 | `edu-blocks/core` | Built-in `levels` and `solutions`, `judgeProgram`, `judgePython`, `PYTHON_METHODS`, `checkProgram`, `adviseRun`, the level kit, the XP functions, the world model and limits. No React and no VM, safe for Node |
-| `edu-blocks/style.css` | Styles for the component |
+| `edu-blocks/style.css` | Styles of the game screen, with its fonts inside (about 150 kB) |
 | `edu-blocks/blocks-media/*` | Block icons to serve from your site |
 
 ### `<EduBlocks>` props
@@ -158,6 +158,17 @@ Programs are limited to 300 blocks, the blocks of the level and 1,000 hero actio
 | `xp` | The hero's XP before the run: `{ total, best }`, where `best` is the best XP of this level. The result then shows the gain and the bar to the next hero level |
 | `onComplete(report)` | After every run: `levelId`, `passed`, `stars`, `blocks`, `reason`, `firstTry`, `xp` and the `program` itself |
 | `onProgramChange(program)` | After every block change, for apps with their own Check button |
+| `onMap()` | Shows «← Мапа» in the bar over the game, to go back to the course |
+| `onNext()` | Shows «Далі →» in the result of a passed run, to open the next level |
+| `progress` | Stars of the passed levels by level id: the bar marks the passed levels of the chapter |
+
+### Game screen
+
+Both components draw the same screen in a pixel frame of wood, parchment and slate: a bar with the chapter, its levels
+and the hero's level and XP; the field with its time line and buttons; the task with goals that tick as the hero meets
+them; the editor; and the result over the field. The colours, fonts and parts are tokens in
+[`src/ui/theme.css`](src/ui/theme.css). The screen fills the height of its box (at least 520 px); in a box lower than
+760 px the task and the code bar get smaller, and in a window narrower than 760 px the parts stand in one column.
 
 ### Enemies and bosses
 
@@ -282,5 +293,7 @@ The package code is [MIT](LICENSE). It uses:
 
 - [TurboWarp scratch-vm](https://github.com/TurboWarp/scratch-vm) — the engine the editor keeps the program in. It is bundled into `edu-blocks/react`; `edu-blocks/core` does not need it. Licensed under MPL-2.0; the package does not modify the engine.
 - [scratch-blocks](https://github.com/scratchfoundation/scratch-blocks) 1.3.0 — the block editor. Licensed under Apache-2.0, block translations under BSD-3-Clause. TurboWarp's fork of scratch-blocks is GPL-3.0, so it is not used.
+
+The fonts are [Tiny5](https://github.com/Gissio/font_tiny5), [Golos Text](https://github.com/googlefonts/golos-text) and [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono), under the SIL Open Font License 1.1 ([`src/ui/fonts`](src/ui/fonts)); the package has only their Latin and Cyrillic letters.
 
 The pixel art of the field (heroes, trees, houses, items) comes from [Ninja Adventure](https://pixel-boy.itch.io/ninja-adventure-asset-pack) by Pixel-boy, released under CC0; [`src/ui/sprites/CREDITS.md`](src/ui/sprites/CREDITS.md) lists where each file comes from, and [`src/ui/sprites/ASSETS.md`](src/ui/sprites/ASSETS.md) gives the size, frames and role of each sprite. [`docs/assets/ninja-adventure.json`](docs/assets/ninja-adventure.json) describes every file of the pack. Scratch, the Scratch Cat and other Scratch characters are trademarks of MIT; this trainer does not use them and is not affiliated with the Scratch Foundation.

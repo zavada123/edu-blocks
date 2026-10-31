@@ -1,0 +1,216 @@
+@import "./fonts/fonts.css";
+
+/*
+ * The look of the game: a pixel frame of wood, parchment and slate around the pixel field, so the screen reads as one
+ * game and not as a web page with a game in it. Every colour is a token here; the parts below use only tokens.
+ *
+ * A pixel border is four hard shadows, one per side: the corners stay notched, as on a sprite. The shadows sit
+ * outside the box, so a framed part keeps a margin of the border's width.
+ */
+.eb-root {
+  /* Ground of the screen and its text. */
+  --eb-bg: #1b2621;
+  --eb-bg-check: rgb(255 255 255 / 0.025);
+  --eb-fg: #f4e7c8;
+  --eb-fg-soft: #b9c4bc;
+  /* Parchment: the task and the result. Text on it has 7:1 contrast. */
+  --eb-parch: #f3e3bd;
+  --eb-parch-deep: #e6d09f;
+  --eb-parch-line: #b9975d;
+  --eb-ink: #3a2616;
+  --eb-ink-soft: #6b4f33;
+  /* Wood: the frame of the field and the map button. */
+  --eb-edge: #24160d;
+  --eb-wood: #7a4b26;
+  --eb-wood-hi: #a36a37;
+  --eb-wood-lo: #4e2e15;
+  /* Slate: the code and the quiet controls. */
+  --eb-slate: #2c3a33;
+  --eb-slate-line: #46574e;
+  --eb-stone: #55636f;
+  /* Signals. White text on --eb-go and --eb-stone has 4.5:1 contrast; dark text on --eb-gold has 7:1. */
+  --eb-go: #387f27;
+  --eb-go-dark: #285c1b;
+  --eb-gold: #f2b53a;
+  --eb-gold-dark: #a8720f;
+  --eb-star-off: #cdb88a;
+  --eb-ice: #7fd0f0;
+  --eb-ice-dark: #4f9fc4;
+  --eb-bad: #b8392f;
+  --eb-bad-soft: #f6d3c8;
+  /* Code. */
+  --eb-code-bg: #20272e;
+  --eb-code-head: #2b343d;
+  --eb-code-fg: #e9e2cf;
+  --eb-code-num: #86919b;
+  --eb-code-kw: #f2b53a;
+  --eb-code-fn: #8fd0f0;
+  --eb-code-num-lit: #f0a36b;
+  --eb-code-str: #a9d77a;
+  --eb-code-comment: #8b958f;
+  --eb-code-run: rgb(242 181 58 / 0.18);
+  --eb-code-error: rgb(232 90 74 / 0.22);
+
+  --eb-font-pixel: "Edu Pixel", "Courier New", monospace;
+  --eb-font-text: "Edu Text", "Segoe UI", system-ui, sans-serif;
+  --eb-font-code: "Edu Code", ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+  /* The pixel of the frame: borders are 4px, small parts 3px or 2px. */
+  --eb-px: 4px;
+
+  background-color: var(--eb-bg);
+  background-image:
+    linear-gradient(45deg, var(--eb-bg-check) 25%, transparent 25%, transparent 75%, var(--eb-bg-check) 75%),
+    linear-gradient(45deg, var(--eb-bg-check) 25%, transparent 25%, transparent 75%, var(--eb-bg-check) 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
+  color: var(--eb-fg);
+  font-family: var(--eb-font-text);
+  font-size: 15px;
+}
+
+.eb-root *,
+.eb-root *::before,
+.eb-root *::after {
+  box-sizing: border-box;
+}
+
+/* ---- Frames ---- */
+
+.eb-frame {
+  --eb-frame-edge: var(--eb-edge);
+  --eb-frame-inner: 0 0 0 0 transparent;
+  margin: var(--eb-px);
+  box-shadow:
+    0 calc(-1 * var(--eb-px)) 0 0 var(--eb-frame-edge),
+    0 var(--eb-px) 0 0 var(--eb-frame-edge),
+    calc(-1 * var(--eb-px)) 0 0 0 var(--eb-frame-edge),
+    var(--eb-px) 0 0 0 var(--eb-frame-edge),
+    var(--eb-frame-inner);
+}
+
+.eb-parchment {
+  --eb-frame-inner: inset 0 4px 0 0 rgb(255 255 255 / 0.35), inset 0 -4px 0 0 rgb(0 0 0 / 0.1);
+  background: var(--eb-parch);
+  color: var(--eb-ink);
+}
+
+.eb-wood {
+  --eb-frame-inner: inset 4px 4px 0 0 var(--eb-wood-hi), inset -4px -4px 0 0 var(--eb-wood-lo);
+  background: var(--eb-wood);
+}
+
+.eb-slate {
+  background: var(--eb-code-bg);
+  color: var(--eb-code-fg);
+}
+
+/* ---- Buttons ---- */
+
+.eb-btn {
+  --eb-btn-bg: var(--eb-stone);
+  --eb-btn-fg: #fff;
+  --eb-btn-edge: var(--eb-edge);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  margin: 3px;
+  padding: 6px 14px 9px;
+  border: 0;
+  border-radius: 0;
+  background: var(--eb-btn-bg);
+  color: var(--eb-btn-fg);
+  font: 400 18px/1 var(--eb-font-pixel);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow:
+    0 -3px 0 0 var(--eb-btn-edge),
+    0 3px 0 0 var(--eb-btn-edge),
+    -3px 0 0 0 var(--eb-btn-edge),
+    3px 0 0 0 var(--eb-btn-edge),
+    inset 0 -4px 0 0 rgb(0 0 0 / 0.28),
+    inset 0 3px 0 0 rgb(255 255 255 / 0.22);
+}
+
+.eb-btn:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.eb-btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow:
+    0 -3px 0 0 var(--eb-btn-edge),
+    0 3px 0 0 var(--eb-btn-edge),
+    -3px 0 0 0 var(--eb-btn-edge),
+    3px 0 0 0 var(--eb-btn-edge),
+    inset 0 3px 0 0 rgb(0 0 0 / 0.28);
+}
+
+.eb-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.eb-root :focus-visible {
+  outline: 3px solid var(--eb-gold);
+  outline-offset: 4px;
+}
+
+.eb-btn-go {
+  --eb-btn-bg: var(--eb-go);
+}
+
+.eb-btn-gold {
+  --eb-btn-bg: var(--eb-gold);
+  --eb-btn-fg: var(--eb-edge);
+}
+
+.eb-btn-wood {
+  --eb-btn-bg: var(--eb-wood);
+}
+
+.eb-btn-icon {
+  min-width: 44px;
+  padding-inline: 8px;
+  font-family: var(--eb-font-text);
+  font-size: 18px;
+}
+
+.eb-btn-small {
+  min-height: 34px;
+  padding: 4px 10px 7px;
+  font-size: 15px;
+}
+
+/* ---- Bars ---- */
+
+.eb-bar {
+  position: relative;
+  height: 10px;
+  background: var(--eb-slate);
+  box-shadow: 0 0 0 2px var(--eb-edge);
+  overflow: hidden;
+}
+
+.eb-bar > span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: repeating-linear-gradient(90deg, var(--eb-ice) 0 8px, var(--eb-ice-dark) 8px 10px);
+  transition: width 0.6s steps(12, end);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eb-bar > span {
+    transition: none;
+  }
+}
+
+.eb-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

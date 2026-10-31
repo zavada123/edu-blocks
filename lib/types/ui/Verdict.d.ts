@@ -24,11 +24,14 @@ export declare const rewardOf: (level: Level, result: RunResult, firstTry: boole
     readonly runXp: number;
     readonly reward: Reward;
 };
-export declare const Verdict: ({ level, result, reward, advice, language, onClose }: {
+/** The result over the field: stars and XP for a pass, what went wrong and a hint for a fail. */
+export declare const Verdict: ({ level, result, reward, advice, language, onClose, onNext }: {
     readonly level: Level;
     readonly result: RunResult;
     readonly reward: Reward;
     readonly advice: ReadonlyArray<string>;
     readonly language: Language;
     readonly onClose: () => void;
+    /** «Далі»: the app opens the next level. */
+    readonly onNext: (() => void) | undefined;
 }) => import("react").JSX.Element;

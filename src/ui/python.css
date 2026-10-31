@@ -1,54 +1,55 @@
-/* The Python editor: the methods of the level above the code, the code fills the rest. */
-.eb-code-pane {
-  display: flex;
-  flex-direction: column;
-  background: #fff;
-}
-
+/* The Python editor: the commands of the level above the code, the code fills the rest, the output under it. */
 .eb-palette {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   padding: 10px 12px;
-  border-bottom: 1px solid var(--eb-line);
-  background: var(--eb-bg);
+  background: var(--eb-code-head);
+  border-bottom: var(--eb-px) solid var(--eb-edge);
 }
 
 .eb-chip {
-  padding: 5px 9px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  font: 600 0.85rem/1.2 ui-monospace, "Cascadia Code", "Fira Code", Menlo, Consolas, monospace;
+  --eb-chip-bg: #3c4a58;
+  --eb-chip-fg: var(--eb-code-fg);
+  margin: 2px;
+  padding: 5px 9px 7px;
+  border: 0;
+  border-radius: 0;
+  background: var(--eb-chip-bg);
+  color: var(--eb-chip-fg);
+  box-shadow: inset 0 -3px 0 rgb(0 0 0 / 0.3), 0 0 0 2px var(--eb-edge);
+  font: 400 0.85rem/1.2 var(--eb-font-code);
   cursor: pointer;
 }
 
-.eb-chip:focus-visible {
-  outline: 3px solid var(--eb-accent);
-  outline-offset: 1px;
+.eb-chip:hover {
+  filter: brightness(1.15);
+}
+
+.eb-chip:active {
+  transform: translateY(1px);
 }
 
 .eb-chip-hero {
-  background: #dff7ee;
-  border-color: #9fe0c7;
-  color: #0a5c44;
+  --eb-chip-bg: #2f5a2a;
+  --eb-chip-fg: #e3f5d8;
 }
 
 .eb-chip-sense {
-  background: #e6f0ff;
-  border-color: #a9c8ff;
-  color: #1d4f9c;
+  --eb-chip-bg: #24536a;
+  --eb-chip-fg: #d8f1fb;
 }
 
 .eb-chip-code {
-  background: #fff4dc;
-  border-color: #f2d28c;
-  color: #7a4b00;
+  --eb-chip-bg: #5e4419;
+  --eb-chip-fg: #fbe7c0;
 }
 
 .eb-code {
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
+  background: var(--eb-code-bg);
 }
 
 .eb-code .cm-editor {
@@ -65,11 +66,23 @@
   margin: 0;
   padding: 8px 12px;
   overflow: auto;
-  border-top: 1px solid var(--eb-line);
-  background: #1f2430;
-  color: #e6e9ef;
-  font: 0.9rem/1.4 ui-monospace, "Cascadia Code", "Fira Code", Menlo, Consolas, monospace;
+  border-top: var(--eb-px) solid var(--eb-edge);
+  background: #161b20;
+  color: var(--eb-code-str);
+  font: 0.9rem/1.45 var(--eb-font-code);
   white-space: pre-wrap;
+}
+
+@container eb-screen (max-height: 760px) {
+  .eb-palette {
+    gap: 4px;
+    padding: 6px 10px;
+  }
+
+  .eb-chip {
+    padding: 3px 7px 5px;
+    font-size: 0.8rem;
+  }
 }
 
 .eb-large .eb-chip {

@@ -7,12 +7,11 @@ import { HERO_NAME, type PythonMethod, pythonMethodsOf } from "../core/python/ap
 import { judgePython } from "../core/python/judge.ts"
 import { CodeEditor, type CodeEditorApi } from "./code/CodeEditor.tsx"
 import { useFullScreen } from "./fullscreen.ts"
-import { GameStage } from "./GameStage.tsx"
+import { type GameNavigation, GameScreen } from "./GameScreen.tsx"
 import { frameIndexAt } from "./stage/playback.ts"
 import type { Skin } from "./stage/Stage.tsx"
 import { usePlayer } from "./Timeline.tsx"
 import { type HeroXp, type Reward, rewardOf, Verdict } from "./Verdict.tsx"
-import "./blocks.css"
 import "./python.css"
 
 /**
@@ -33,7 +32,7 @@ export interface PythonReport {
   readonly xp: number
 }
 
-export interface EduPythonProps {
+export interface EduPythonProps extends GameNavigation {
   readonly level: Level
   readonly skin?: Skin
   /** Bigger text for the youngest. */
@@ -79,7 +78,7 @@ type Phase =
   | { readonly kind: "running" }
   | { readonly kind: "done"; readonly result: RunResult; readonly reward: Reward }
 
-export const EduPython = ({ level, skin = "ninja", large = false, source, speed = 400, xp, onComplete, onSourceChange }: EduPythonProps) => {
+export const EduPython = ({ level, skin = "ninja", large = false, source, speed = 400, xp, onComplete, onSourceChange, onMap, onNext, progress }: EduPythonProps) => {
   const start = useMemo(() => startWorld(level), [level])
   const methods = useMemo(() => pythonMethodsOf(level.blocks), [level])
   const snippets = useMemo(() => snippetsOf(level, methods), [level, methods])
@@ -131,45 +130,51 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
   }, [])
   const onChange = useCallback((code: string) => onSourceChange?.(code), [onSourceChange])
 
+  const navigation = { onMap, progress }
+  const xpTotal = phase.kind === "done" && phase.reward.total !== null ? phase.reward.total : xp?.total
   return (
-    <div ref={rootRef} className={["eb-root", "eb-python", large ? "eb-large" : "", full ? "eb-full" : ""].filter(Boolean).join(" ")}>
-      <GameStage
-        level={level}
-        start={start}
-        result={result}
-        player={player}
-        skin={skin}
-        running={phase.kind === "running"}
-        editing={phase.kind === "edit"}
-        full={full}
-        onRun={run}
-        onReset={reset}
-        onFull={toggleFull}
-      >
-        {phase.kind === "done" && verdictOpen && (
-          <Verdict level={level} result={phase.result} reward={phase.reward} advice={[]} language="python" onClose={() => setVerdictOpen(false)} />
-        )}
-      </GameStage>
-      <div className="eb-editor eb-code-pane">
-        <div className="eb-palette" role="toolbar" aria-label="Команди рівня: натисни, щоб додати в код">
-          {methods.map((m) => (
-            <button key={m.name} type="button" className={m.sensor === undefined ? "eb-chip eb-chip-hero" : "eb-chip eb-chip-sense"} title={m.doc} onClick={() => editorRef.current?.api.insert(`${HERO_NAME}.${m.name}()`)}>
-              {HERO_NAME}.{m.signature}
-            </button>
-          ))}
-          {snippets.map((s) => (
-            <button key={s.code} type="button" className="eb-chip eb-chip-code" title={s.doc} onClick={() => editorRef.current?.api.insert(s.code)}>
-              {s.code}
-            </button>
-          ))}
-        </div>
-        <CodeEditor initial={initial.current} methods={methods} large={large} runLine={runLine} errorLine={errorLine} onChange={onChange} onReady={onReady} />
-        {output.length > 0 && (
-          <pre className="eb-output" aria-label="Що надрукувала програма">
-            {output.join("\n")}
-          </pre>
-        )}
+    <GameScreen
+      rootRef={rootRef}
+      className={["eb-root", "eb-python", large ? "eb-large" : "", full ? "eb-full" : ""].filter(Boolean).join(" ")}
+      level={level}
+      start={start}
+      result={result}
+      player={player}
+      skin={skin}
+      running={phase.kind === "running"}
+      editing={phase.kind === "edit"}
+      full={full}
+      xpTotal={xpTotal}
+      navigation={navigation}
+      editorTitle="Код героя"
+      onRun={run}
+      onReset={reset}
+      onFull={toggleFull}
+      verdict={
+        phase.kind === "done" &&
+        verdictOpen && (
+          <Verdict level={level} result={phase.result} reward={phase.reward} advice={[]} language="python" onClose={() => setVerdictOpen(false)} onNext={onNext} />
+        )
+      }
+    >
+      <div className="eb-palette" role="toolbar" aria-label="Команди рівня: натисни, щоб додати в код">
+        {methods.map((m) => (
+          <button key={m.name} type="button" className={m.sensor === undefined ? "eb-chip eb-chip-hero" : "eb-chip eb-chip-sense"} title={m.doc} onClick={() => editorRef.current?.api.insert(`${HERO_NAME}.${m.name}()`)}>
+            {HERO_NAME}.{m.signature}
+          </button>
+        ))}
+        {snippets.map((s) => (
+          <button key={s.code} type="button" className="eb-chip eb-chip-code" title={s.doc} onClick={() => editorRef.current?.api.insert(s.code)}>
+            {s.code}
+          </button>
+        ))}
       </div>
-    </div>
+      <CodeEditor initial={initial.current} methods={methods} large={large} runLine={runLine} errorLine={errorLine} onChange={onChange} onReady={onReady} />
+      {output.length > 0 && (
+        <pre className="eb-output" aria-label="Що надрукувала програма">
+          {output.join("\n")}
+        </pre>
+      )}
+    </GameScreen>
   )
 }

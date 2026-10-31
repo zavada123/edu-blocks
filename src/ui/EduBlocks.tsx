@@ -10,13 +10,12 @@ import { judgeProgram } from "../core/judge.ts"
 import type { FailReason, Program, RunResult } from "../core/program.ts"
 import { createVm, projectFor, settle, withVmLock } from "../core/run.ts"
 import { useFullScreen } from "./fullscreen.ts"
-import { GameStage } from "./GameStage.tsx"
+import { type GameNavigation, GameScreen } from "./GameScreen.tsx"
 import { frameIndexAt } from "./stage/playback.ts"
 import type { Skin } from "./stage/Stage.tsx"
 import { usePlayer } from "./Timeline.tsx"
 import { toolboxXml } from "./toolbox.ts"
 import { type HeroXp, type Reward, rewardOf, Verdict } from "./Verdict.tsx"
-import "./blocks.css"
 
 /** What the trainer gives the app after each run. The server runs `program` again before it trusts `passed`. */
 export interface BlocksReport {
@@ -34,7 +33,7 @@ export interface BlocksReport {
 
 export type { HeroXp } from "./Verdict.tsx"
 
-export interface EduBlocksProps {
+export interface EduBlocksProps extends GameNavigation {
   readonly level: Level
   readonly skin?: Skin
   /** Bigger blocks and field for the youngest: the first chapter of the course. */
@@ -95,7 +94,10 @@ export const EduBlocks = ({
   speed = 400,
   xp,
   onComplete,
-  onProgramChange
+  onProgramChange,
+  onMap,
+  onNext,
+  progress
 }: EduBlocksProps) => {
   const start = useMemo(() => startWorld(level), [level])
   const [result, setResult] = useState<RunResult | null>(null)
@@ -233,27 +235,34 @@ export const EduBlocks = ({
   }, [level, onComplete, reset, restart, xp])
 
   const running = phase.kind === "running"
+  const navigation = { onMap, progress }
+  const xpTotal = phase.kind === "done" && phase.reward.total !== null ? phase.reward.total : xp?.total
   return (
-    <div ref={rootRef} className={["eb-root", large ? "eb-large" : "", full ? "eb-full" : ""].filter(Boolean).join(" ")}>
-      <GameStage
-        level={level}
-        start={start}
-        result={result}
-        player={player}
-        skin={skin}
-        running={running}
-        editing={phase.kind === "edit"}
-        full={full}
-        onRun={run}
-        onReset={reset}
-        onFull={toggleFull}
-      >
-        {phase.kind === "done" && verdictOpen && (
-          <Verdict level={level} result={phase.result} reward={phase.reward} advice={phase.advice} language="blocks" onClose={() => setVerdictOpen(false)} />
-        )}
-      </GameStage>
+    <GameScreen
+      rootRef={rootRef}
+      className={["eb-root", large ? "eb-large" : "", full ? "eb-full" : ""].filter(Boolean).join(" ")}
+      level={level}
+      start={start}
+      result={result}
+      player={player}
+      skin={skin}
+      running={running}
+      editing={phase.kind === "edit"}
+      full={full}
+      xpTotal={xpTotal}
+      navigation={navigation}
+      editorTitle="Блоки героя"
+      onRun={run}
+      onReset={reset}
+      onFull={toggleFull}
+      verdict={
+        phase.kind === "done" &&
+        verdictOpen && (
+          <Verdict level={level} result={phase.result} reward={phase.reward} advice={phase.advice} language="blocks" onClose={() => setVerdictOpen(false)} onNext={onNext} />
+        )
+      }
+    >
       <div className="eb-editor" ref={editorRef} />
-    </div>
+    </GameScreen>
   )
 }
-
