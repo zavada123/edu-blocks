@@ -100,3 +100,36 @@ export declare const clipDuration: (clip: AssetClip, direction?: Direction) => n
 export declare const clipIndices: (clip: AssetClip) => ReadonlyArray<number>;
 /** Mistakes in a manifest that would draw the wrong part of a picture or nothing. Picture sizes are checked by the caller. */
 export declare const packProblems: (pack: AssetPack) => ReadonlyArray<string>;
+/** The pack and the sprite of an asset reference `"<pack>:<sprite id>"`, or null when it is not one. */
+export declare const parseAssetRef: (ref: string) => {
+    readonly pack: string;
+    readonly id: string;
+} | null;
+export declare const assetRef: (pack: string, id: string) => string;
+/** Every asset reference of a level: its sprites, the looks of its items, goal, villagers and enemies. */
+export declare const assetRefsOf: (level: {
+    readonly scene?: {
+        readonly sprites?: ReadonlyArray<{
+            readonly asset: string;
+        }>;
+        readonly npcs?: ReadonlyArray<{
+            readonly look?: string;
+        }>;
+        readonly itemLook?: string;
+        readonly finishLook?: string;
+    };
+    readonly enemies?: ReadonlyArray<{
+        readonly look?: string;
+    }>;
+}) => ReadonlyArray<string>;
+/** The packs a level needs. */
+export declare const packsOf: (level: Parameters<typeof assetRefsOf>[0]) => ReadonlyArray<string>;
+/** The clip a sprite plays standing on the field: its `idle` (or the like) or the first one; null when it has none. */
+export declare const restClip: (sprite: SpriteAsset) => string | null;
+/** The clip of a walking figure: `walk`, else what it plays at rest. */
+export declare const walkClip: (sprite: SpriteAsset) => string | null;
+/**
+ * One still frame that shows what the sprite is, for an icon: the `icon` clip of a crop, the ripe last stage of a
+ * growing crop, the first frame of the rest clip facing down, or the whole picture.
+ */
+export declare const iconFrame: (sprite: SpriteAsset) => FrameRect;

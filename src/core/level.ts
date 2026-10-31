@@ -51,6 +51,38 @@ export interface Npc {
   /** The cell the villager stands on. Best on a wall or meadow cell, so the hero does not walk through them. */
   readonly x: number
   readonly y: number
+  /** A picture from an asset pack instead of the villager's own (`AssetRef`): any character or animal. */
+  readonly look?: AssetRef
+}
+
+/**
+ * A picture from an asset pack: `"<pack>:<sprite id>"`, as `"ninja-adventure:animal/cat"`. See `assets/README.md`.
+ * The pack is loaded by the field when a level needs it; until then the picture is not drawn.
+ */
+export type AssetRef = string
+
+/**
+ * A picture from an asset pack placed on the field. Only looks: it never changes where the hero can go, so a house
+ * or a fence the hero must not cross stands on wall cells (`#`).
+ */
+export interface PlacedSprite {
+  readonly asset: AssetRef
+  /** The cell. Halves are fine, and so are cells outside the map: the meadow lies there. */
+  readonly x: number
+  readonly y: number
+  /**
+   * A part of a tileset, in its cells: column, row, width and height. It is drawn from the top-left corner of the
+   * cell. Without it the sprite stands on the cell: the bottom middle of its frame on the bottom middle of the cell.
+   */
+  readonly tiles?: readonly [col: number, row: number, width: number, height: number]
+  /** The animation to play; the sprite's `idle` or first clip when left out, a still picture when it has none. */
+  readonly clip?: string
+  /** Which way a sprite with directions looks. Down by default. */
+  readonly dir?: Direction
+  /** `ground` lies flat under everything (tiles, water, flowers); `object` stands up and hides what is behind it. */
+  readonly layer?: "ground" | "object"
+  /** Mirrored left to right. */
+  readonly flip?: boolean
 }
 
 export type Season = "spring" | "summer" | "autumn" | "winter"
@@ -65,6 +97,12 @@ export interface Scene {
   readonly finish?: FinishKind
   readonly props?: ReadonlyArray<Prop>
   readonly npcs?: ReadonlyArray<Npc>
+  /** Pictures from the asset packs: decor, buildings, animals, tiles. See `PlacedSprite`. */
+  readonly sprites?: ReadonlyArray<PlacedSprite>
+  /** How the items on `c` cells look, from an asset pack; `item` still names them in the goal. */
+  readonly itemLook?: AssetRef
+  /** How the goal on the `F` cell looks, from an asset pack; `finish` still names it in the goal. */
+  readonly finishLook?: AssetRef
 }
 
 export interface Level {

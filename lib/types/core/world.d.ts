@@ -54,6 +54,8 @@ export interface EnemySpec {
     readonly walk?: EnemyWalk;
     /** A boss is drawn bigger and shows its hp. */
     readonly boss?: boolean;
+    /** A picture from an asset pack (`"<pack>:<sprite id>"`) instead of the kind's own. Only looks. */
+    readonly look?: string;
 }
 export interface Enemy {
     readonly id: number;
@@ -69,6 +71,8 @@ export interface Enemy {
     /** Set when the enemy stands next to the hero and swings: it hits on its next turn if the hero is still there. */
     readonly swinging: boolean;
     readonly boss: boolean;
+    /** The picture from an asset pack, when the level gave one. */
+    readonly look?: string;
 }
 export declare const DEFAULT_HEARTS = 3;
 export declare const DEFAULT_SIGHT = 2;

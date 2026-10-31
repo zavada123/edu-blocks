@@ -8,3 +8,6 @@ export type { HeroXp } from "./ui/Verdict.tsx";
 export type { Skin } from "./ui/stage/Stage.tsx";
 export { HEROES, heroOpen } from "./core/heroes.ts";
 export type { Hero, HeroId } from "./core/heroes.ts";
+/** Where the asset packs are (`<base><pack>/manifest.json`); `./packs/` by default. */
+export { loadPack, loadPackList, setAssetBase } from "./ui/stage/packs.ts";
+export type { PackInfo } from "./ui/stage/packs.ts";

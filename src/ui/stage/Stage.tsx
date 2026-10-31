@@ -8,6 +8,7 @@ import { CELL, drawActors, drawGround, type Skin } from "./draw.ts"
 import { cellAt, type Cell, drawHover } from "./hover.ts"
 import { whenLoaded } from "./images.ts"
 import { poseAt } from "./playback.ts"
+import { placedCells } from "./sprites.ts"
 
 export type { Skin }
 
@@ -51,6 +52,7 @@ export interface StageProps {
 }
 
 const NO_FRAMES: ReadonlyArray<Frame> = []
+const NO_SCENE: Scene = {}
 
 /** The value of the program's counter after a frame, on levels with the «лічильник» block. */
 const counterOf = (frame: Frame | null): string | undefined => {
@@ -62,19 +64,21 @@ const counterOf = (frame: Frame | null): string | undefined => {
  * The game field on a canvas. The ground is drawn once; the hero, the enemies and the effects are drawn on every
  * animation frame from `poseAt(start, frames, time)`, so the timeline can stop or jump anywhere.
  */
-export const Stage = ({ start, frames = NO_FRAMES, time = 0, skin, scene = {} }: StageProps) => {
+export const Stage = ({ start, frames = NO_FRAMES, time = 0, skin, scene = NO_SCENE }: StageProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const still = useReducedMotion()
   const season = seasonOf(scene)
   const { width, height, walls, finish } = start
   const props = scene.props
   const npcs = scene.npcs
+  const sprites = scene.sprites
   const ground = scene.ground ?? "path"
   const scenery = useMemo(() => {
     const reserved = new Set(propCells(props ?? []))
     for (const n of npcs ?? []) reserved.add(cellKey(n.x, n.y))
+    for (const s of sprites ?? []) for (const key of placedCells(s)) reserved.add(key)
     return buildScenery({ width, height, walls, finish }, { reserved, bareWalls: ground === "bridge" })
-  }, [width, height, walls, finish, props, npcs, ground])
+  }, [width, height, walls, finish, props, npcs, sprites, ground])
   const items = useMemo(() => [...start.crystals].map((key) => {
     const [x = 0, y = 0] = key.split(",").map(Number)
     return { x, y }
@@ -126,10 +130,18 @@ export const Stage = ({ start, frames = NO_FRAMES, time = 0, skin, scene = {} }:
     }
 
     let frame = 0
+    // The ground is painted again when the scene or the map changes, as in the level editor.
+    let paintedScene: Scene | null = null
+    let paintedStart: World | null = null
     const paint = (now: number) => {
       fit()
-      if (!groundReady) paintGround()
       const s = live.current
+      if (s.scene !== paintedScene || s.start !== paintedStart) groundReady = false
+      if (!groundReady) {
+        paintGround()
+        paintedScene = s.scene
+        paintedStart = s.start
+      }
       ctx.setTransform(1, 0, 0, 1, 0, 0)
       ctx.imageSmoothingEnabled = false
       ctx.clearRect(0, 0, canvas.width, canvas.height)

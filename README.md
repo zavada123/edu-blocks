@@ -85,7 +85,7 @@ const level: Level = {
 ```
 
 - **Goals** (`goals`): `crystals` (take every item on a `c` cell), `finish` (stand on the `F` cell).
-- **Scene** (`scene`, optional): `theme` (`summer`, `winter`), `ground` (`path`, `ice`, `bridge`), `item` (`crystal`, `wood`, `apple`, `fish`, `key`, `campfire`), `finish` (`flag`, `well`, `grandma`, `home`) and `props` (`house`, `woodshed` with `x`, `y` in cells). It changes only the looks and the goal text, never the rules.
+- **Scene** (`scene`, optional): `theme` (`summer`, `winter`), `ground` (`path`, `ice`, `bridge`), `item` (`crystal`, `wood`, `apple`, `fish`, `key`, `campfire`), `finish` (`flag`, `well`, `grandma`, `home`) `props` (`house`, `woodshed` with `x`, `y` in cells), and pictures from the asset packs (`sprites`, `itemLook`, `finishLook`; see [Pictures from asset packs](#pictures-from-asset-packs)). It changes only the looks and the goal text, never the rules.
 - **Blocks** (`blocks`): `move`, `turnLeft`, `turnRight`, `collect`, `wallAhead`, `onCrystal`, `atFinish`, `repeat`, `forever`, `repeatUntil`, `if`, `ifElse`, `not`, `and`, `or`.
 
 Every built-in level has a reference solution in `src/levels/solutions.ts`, and a test checks that it earns three stars, so a level without a working solution never ships.
@@ -264,7 +264,35 @@ use both.
 
 ### Level editor and level kit
 
-`editor.html` (link «Редактор рівнів» in the demo) is a visual level editor. Paint the map with the pack pictures (path, wall, item, goal, start, a house or a woodshed), pick the season, floor, items and goal, the palette blocks and the star limits. The editor checks the level as you go, lets you try it in the trainer (a passed run can set the three-star limit) and gives the level as code for `src/levels/index.ts` or as JSON. Work is kept in the browser.
+`editor.html` (link «Редактор рівнів» in the demo) is a visual level builder:
+
+- **Map:** the left button paints (path, wall, item, trap, goal, start, a house, a woodshed, villagers, enemies), dragging paints a line, and the right button erases what is on top of a cell: an enemy, a villager, a picture, a house; an item, a trap or the goal turns back into path. The browser menu never opens over the map. The meadow around the level takes pictures too. Ctrl+Z / Ctrl+Shift+Z undo and redo.
+- **Asset library:** every pack the build serves (`assets/*/manifest.json`), by kind (tiles, big props, decor, people, animals, enemies, bosses, items, crops, weapons, effects), with a search. A picture becomes the brush: a picture on the field, a villager or an enemy with that look, or the look of the level's items or goal. A tileset opens as a sheet: drag over it to cut one tile or a whole house, bridge or fence and stamp it on the map.
+- **Pictures on the map:** each with its animation, direction, layer (flat ground or a standing object), mirror, order and a nudge by half a cell.
+- **Checks as you go:** what keeps the level from being played, and where its text and its field disagree (`storyIssues`: a task that sends the hero home without a house, «apples» while the items are crystals, enemies or a bridge the field lacks, the wrong season).
+- Try the level in the trainer (a passed run can set the three-star limit), and copy it as code for `src/levels/index.ts` or as JSON. Work is kept in the browser.
+
+#### Pictures from asset packs
+
+A level can use any picture of the packs by reference `"<pack>:<sprite id>"`, such as `"ninja-adventure:animal/cat"`. They are only looks: the rules stay with the map, so a house the hero must not cross stands on wall cells.
+
+```ts
+scene: {
+  sprites: [
+    { asset: "ninja-adventure:tileset/house", x: 2, y: -3, tiles: [0, 0, 4, 4] }, // 4×4 tiles of a tileset from the cell's top-left corner
+    { asset: "ninja-adventure:prop/boat", x: 6, y: 5 },                            // stands on the cell; plays its idle clip
+    { asset: "ninja-adventure:animal/cat", x: -1, y: 2, clip: "walk", flip: true }  // the meadow is fine too
+  ],
+  itemLook: "ninja-adventure:item/apple",       // items on `c` cells look like this
+  finishLook: "sunnyside:prop/windmill",        // the goal on `F` looks like this
+  npcs: [{ who: "villager", x: 0, y: 1, look: "ninja-adventure:character/boy" }]
+},
+enemies: [{ kind: "slime", x: 4, y: 1, look: "ninja-adventure:enemy/beast" }]
+```
+
+A sprite has optional `clip`, `dir`, `layer` (`ground` lies under everything, `object` stands and hides what is behind it; tiles and animated terrain are ground by default) and `flip`. The field loads a pack when a level needs it, from `./packs/<pack>/manifest.json`; a site that keeps the packs elsewhere calls `setAssetBase(url)` from `edu-blocks/react` or `edu-blocks/python` once. `checkLevel` and the server check ignore pictures, so grading never depends on them.
+
+The demo build copies `assets/<pack>/` to `dist/packs/` with a `packs/index.json` list for the editor (sounds are left out). Packs that may not be published (see `assets/README.md`) are added only at build time: set `EDU_BLOCKS_PRIVATE_ASSETS` to a folder of pack folders, and `npm run dev` or `npm run build` serves them too. The public GitHub Pages build never sets it.
 
 The same tools are in `edu-blocks/core` for scripts and servers:
 
@@ -272,6 +300,8 @@ The same tools are in `edu-blocks/core` for scripts and servers:
 |---|---|
 | `emptyMap(w, h)`, `setTile(map, x, y, tile)`, `resizeMap(map, w, h)`, `tileAt(map, x, y)` | Make and change a map; one start and one goal are kept |
 | `checkLevel(level)` | Errors that keep a level from being played (no start, items cut off by walls, a goal without its block…) and warnings |
+| `storyIssues(level)` | Advice where the text of a level and its field disagree: a house, the items, the goal, enemies, a bridge, the season |
+| `assetRefsOf(level)`, `packsOf(level)`, `parseAssetRef(ref)` | The pack pictures a level uses and the packs it needs |
 | `plainRoute(level)` | A route without loops that passes the level, or `null` |
 | `levelSource(level)` | The level as code for `src/levels/index.ts` |
 | `adviseRun(level, program, result)` | Advice after a run: what is missing and what is extra in this program |
