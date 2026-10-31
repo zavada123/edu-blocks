@@ -1,5 +1,5 @@
 import VirtualMachine from "scratch-vm";
-import { type Level } from "./level.ts";
+import type { Level } from "./level.ts";
 import { type Program, type RunResult, type Session } from "./program.ts";
 /** A project with the stage and one sprite whose blocks are the program. */
 export declare const projectFor: (program: Program) => object;

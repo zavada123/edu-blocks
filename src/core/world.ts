@@ -198,34 +198,75 @@ export type Outcome =
   | "enemyDown"
   | "swingMissed"
 
-const heroAction = (world: World, action: Action): { readonly world: World; readonly outcome: Outcome } => {
+/**
+ * What happened in the world, in the order it happened: the hero's action first, then each enemy's turn.
+ * A frame keeps the events, so an animation shows what was done, not only where everybody stands now.
+ */
+export type GameEvent =
+  | { readonly type: "heroMoved"; readonly from: Cell; readonly to: Cell }
+  | { readonly type: "heroTurned"; readonly from: Direction; readonly to: Direction }
+  /** The hero walked into a wall or an enemy. */
+  | { readonly type: "heroBumped"; readonly into: Cell }
+  | { readonly type: "heroFell"; readonly at: Cell }
+  /** No steps left: the hero could not move. */
+  | { readonly type: "heroTired" }
+  | { readonly type: "itemTaken"; readonly at: Cell }
+  | { readonly type: "nothingToTake"; readonly at: Cell }
+  /** The hero swung at the cell ahead, with or without an enemy there. */
+  | { readonly type: "heroSwung"; readonly at: Cell }
+  | { readonly type: "enemyHit"; readonly id: number; readonly hp: number }
+  | { readonly type: "enemyDown"; readonly id: number }
+  | { readonly type: "enemyMoved"; readonly id: number; readonly from: Cell; readonly to: Cell }
+  /** The enemy raised its weapon: it hits on its next turn if the hero is still next to it. */
+  | { readonly type: "enemyWindUp"; readonly id: number }
+  | { readonly type: "heroHurt"; readonly by: number; readonly hearts: number }
+
+export interface ActionResult {
+  readonly world: World
+  readonly outcome: Outcome
+  readonly events: ReadonlyArray<GameEvent>
+}
+
+const at = (c: Cell): Cell => ({ x: c.x, y: c.y })
+
+const heroAction = (world: World, action: Action): ActionResult => {
+  const here = at(world.hero)
   if (action === "move") {
     const next = cellAhead(world)
-    if (world.energy === 0) return { world, outcome: "tired" }
+    if (world.energy === 0) return { world, outcome: "tired", events: [{ type: "heroTired" }] }
     if (isWall(world, next.x, next.y) || enemyAt(world, next.x, next.y) !== undefined)
-      return { world: { ...world, crashed: true }, outcome: "crashed" }
+      return { world: { ...world, crashed: true }, outcome: "crashed", events: [{ type: "heroBumped", into: next }] }
     const energy = world.energy === null ? null : world.energy - 1
     const moved = { ...world, energy, hero: { ...world.hero, x: next.x, y: next.y } }
-    return world.traps.has(cellKey(next.x, next.y)) ? { world: { ...moved, fell: true }, outcome: "fell" } : { world: moved, outcome: "moved" }
+    const step: GameEvent = { type: "heroMoved", from: here, to: next }
+    return world.traps.has(cellKey(next.x, next.y))
+      ? { world: { ...moved, fell: true }, outcome: "fell", events: [step, { type: "heroFell", at: next }] }
+      : { world: moved, outcome: "moved", events: [step] }
   }
   if (action === "turnLeft" || action === "turnRight") {
     const i = CLOCKWISE.indexOf(world.hero.dir)
     const dir = CLOCKWISE[(i + (action === "turnRight" ? 1 : 3)) % 4] ?? world.hero.dir
-    return { world: { ...world, hero: { ...world.hero, dir } }, outcome: "turned" }
+    return { world: { ...world, hero: { ...world.hero, dir } }, outcome: "turned", events: [{ type: "heroTurned", from: world.hero.dir, to: dir }] }
   }
   if (action === "attack") {
     const next = cellAhead(world)
+    const swing: GameEvent = { type: "heroSwung", at: next }
     const target = enemyAt(world, next.x, next.y)
-    if (target === undefined) return { world, outcome: "swingMissed" }
+    if (target === undefined) return { world, outcome: "swingMissed", events: [swing] }
     // A blow stops an enemy's swing, but not a boss's: a boss hits back while it is struck.
     const enemies = world.enemies.map((e) => (e.id === target.id ? { ...e, hp: e.hp - 1, swinging: e.swinging && e.boss } : e))
-    return { world: { ...world, enemies }, outcome: target.hp > 1 ? "enemyHit" : "enemyDown" }
+    const down = target.hp <= 1
+    return {
+      world: { ...world, enemies },
+      outcome: down ? "enemyDown" : "enemyHit",
+      events: [swing, down ? { type: "enemyDown", id: target.id } : { type: "enemyHit", id: target.id, hp: target.hp - 1 }]
+    }
   }
   const key = cellKey(world.hero.x, world.hero.y)
-  if (!world.crystals.has(key)) return { world, outcome: "nothingToCollect" }
+  if (!world.crystals.has(key)) return { world, outcome: "nothingToCollect", events: [{ type: "nothingToTake", at: here }] }
   const crystals = new Set(world.crystals)
   crystals.delete(key)
-  return { world: { ...world, crystals }, outcome: "collected" }
+  return { world: { ...world, crystals }, outcome: "collected", events: [{ type: "itemTaken", at: here }] }
 }
 
 const distance = (a: Cell, b: Cell): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
@@ -280,25 +321,37 @@ const enemyTurn = (world: World, enemies: ReadonlyArray<Enemy>, self: Enemy): { 
   return { enemy: calm, hit: false }
 }
 
+/** The events of one enemy's turn, from the enemy before and after it. */
+const enemyEvents = (before: Enemy, after: Enemy, hit: boolean, hearts: number): ReadonlyArray<GameEvent> => {
+  if (hit) return [{ type: "heroHurt", by: after.id, hearts }]
+  if (after.swinging && !before.swinging) return [{ type: "enemyWindUp", id: after.id }]
+  if (after.x !== before.x || after.y !== before.y) return [{ type: "enemyMoved", id: after.id, from: at(before), to: at(after) }]
+  return []
+}
+
 /** After each hero action every enemy that is still up takes its turn, in order. */
-const enemiesTurn = (world: World): World => {
-  if (!world.enemies.some(isAlive)) return world
+const enemiesTurn = (world: World): { readonly world: World; readonly events: ReadonlyArray<GameEvent> } => {
+  if (!world.enemies.some(isAlive)) return { world, events: [] }
   let enemies = world.enemies
   let hearts = world.hearts
+  const events: Array<GameEvent> = []
   for (const self of world.enemies) {
     if (!isAlive(self)) continue
     const { enemy, hit } = enemyTurn(world, enemies, self)
     enemies = enemies.map((e) => (e.id === enemy.id ? enemy : e))
     if (hit) hearts = Math.max(0, hearts - 1)
+    events.push(...enemyEvents(self, enemy, hit, hearts))
   }
-  return { ...world, enemies, hearts }
+  return { world: { ...world, enemies, hearts }, events }
 }
 
 /** Outcomes that end the run at once: the enemies do not move after them. */
 export const isFatal = (outcome: Outcome): boolean => outcome === "crashed" || outcome === "fell" || outcome === "tired"
 
 /** One hero action, then the enemies' turn. A crash, a trap or the end of the steps ends the run at once. */
-export const applyAction = (world: World, action: Action): { readonly world: World; readonly outcome: Outcome } => {
+export const applyAction = (world: World, action: Action): ActionResult => {
   const done = heroAction(world, action)
-  return isFatal(done.outcome) ? done : { world: enemiesTurn(done.world), outcome: done.outcome }
+  if (isFatal(done.outcome)) return done
+  const turn = enemiesTurn(done.world)
+  return { world: turn.world, outcome: done.outcome, events: [...done.events, ...turn.events] }
 }

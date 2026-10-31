@@ -1,19 +1,17 @@
-import { HERO_EXTENSION_ID, START_OPCODE } from "./blocks.ts"
-import { allGoalsMet, type Level, startWorld } from "./level.ts"
+import { START_OPCODE } from "./blocks.ts"
+import { actionOfOpcode, heroAct, heroSense, newSession, sensorOfOpcode } from "./hero.ts"
+import type { Level } from "./level.ts"
 import {
   checkProgram,
   type FailReason,
-  fatalReason,
-  MAX_ACTIONS,
   MAX_FRAMES,
   MAX_PROGRAM_BLOCKS,
   PASSES_PER_FRAME,
   type Program,
   resultOf,
-  type RunResult,
-  type Session
+  type RunResult
 } from "./program.ts"
-import { type Action, applyAction, atFinish, enemyAhead, onCrystal, trapAhead, wallAhead } from "./world.ts"
+import type { Action } from "./world.ts"
 
 /**
  * Runs a program without the VM: a small interpreter for the blocks a level can have. Synchronous and pure,
@@ -38,14 +36,6 @@ interface Block {
   readonly topLevel: unknown
 }
 
-const HERO_ACTIONS: Readonly<Record<string, Action>> = {
-  [`${HERO_EXTENSION_ID}_move`]: "move",
-  [`${HERO_EXTENSION_ID}_turnLeft`]: "turnLeft",
-  [`${HERO_EXTENSION_ID}_turnRight`]: "turnRight",
-  [`${HERO_EXTENSION_ID}_collect`]: "collect",
-  [`${HERO_EXTENSION_ID}_attack`]: "attack"
-}
-
 /** The run stops: the hero is done, a limit is reached, or the program is damaged. */
 class Stop {
   constructor(readonly reason: FailReason | null) {}
@@ -63,7 +53,7 @@ const toNumber = (value: unknown): number => {
 }
 
 export const judgeProgram = (level: Level, program: Program): RunResult => {
-  const session: Session = { world: startWorld(level), frames: [], done: false, reason: null }
+  const session = newSession(level)
   const checked = checkProgram(level, program)
   if ("error" in checked) return resultOf(level, { ...session, reason: "badProgram" }, 0, { detail: checked.error })
   if (!checked.hasStart) return resultOf(level, { ...session, reason: "noStart" }, checked.blocks)
@@ -88,21 +78,7 @@ export const judgeProgram = (level: Level, program: Program): RunResult => {
   }
 
   const act = (action: Action, blockId: string) => {
-    if (session.done) return
-    const { world, outcome } = applyAction(session.world, action)
-    session.world = world
-    session.frames.push({ action, outcome, blockId, world })
-    const fatal = fatalReason(outcome)
-    if (fatal !== null) finish(fatal)
-    else if (allGoalsMet(level, world)) finish(null)
-    else if (world.hearts === 0) finish("defeated")
-    else if (session.frames.length >= MAX_ACTIONS) finish("tooLong")
-  }
-
-  const finish = (reason: FailReason | null) => {
-    session.done = true
-    session.reason = reason
-    throw new Stop(reason)
+    if (heroAct(level, session, action, { blockId })) throw new Stop(session.reason)
   }
 
   /** A Boolean input: an empty slot is false, as in Scratch. */
@@ -111,17 +87,9 @@ export const judgeProgram = (level: Level, program: Program): RunResult => {
     const block = blockAt(ref)
     if (block === null) return false
     step()
+    const sensor = sensorOfOpcode(block.opcode)
+    if (sensor !== undefined) return heroSense(session, sensor)
     switch (block.opcode) {
-      case `${HERO_EXTENSION_ID}_wallAhead`:
-        return wallAhead(session.world)
-      case `${HERO_EXTENSION_ID}_onCrystal`:
-        return onCrystal(session.world)
-      case `${HERO_EXTENSION_ID}_atFinish`:
-        return atFinish(session.world)
-      case `${HERO_EXTENSION_ID}_enemyAhead`:
-        return enemyAhead(session.world)
-      case `${HERO_EXTENSION_ID}_trapAhead`:
-        return trapAhead(session.world)
       case "operator_not":
         return !question(inputOf(block, "OPERAND"), depth + 1)
       case "operator_and":
@@ -150,7 +118,7 @@ export const judgeProgram = (level: Level, program: Program): RunResult => {
     let block = blockAt(id)
     while (block !== null && typeof id === "string") {
       step()
-      const action = HERO_ACTIONS[block.opcode]
+      const action = actionOfOpcode(block.opcode)
       if (action !== undefined) act(action, id)
       else yield* control(block, depth)
       id = block.next

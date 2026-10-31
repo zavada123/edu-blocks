@@ -1,4 +1,4 @@
-import { type Level } from "./level.ts";
+import type { Level } from "./level.ts";
 import { type Program, type RunResult } from "./program.ts";
 /**
  * Runs a program without the VM: a small interpreter for the blocks a level can have. Synchronous and pure,

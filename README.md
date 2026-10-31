@@ -176,6 +176,23 @@ goals: [{ type: "enemies" }, { type: "finish" }]
   fail reason `defeated`.
 - Kinds: `slime`, `spirit`, `goblin`, `skull`, `flame`, `bear`, `toad` (Ninja Adventure monsters).
 
+### Hero API and run frames
+
+Every way of programming drives the hero through one API in `edu-blocks/core`, so the game does not depend on the
+language: the block interpreter and the Scratch VM use it today, and Python can use it later.
+
+| Export | What it is |
+|---|---|
+| `HERO_ACTIONS` | The actions: `move`, `turnLeft`, `turnRight`, `collect`, `attack` |
+| `HERO_SENSORS` | The questions and how the world answers them: `wallAhead`, `onCrystal`, `atFinish`, `enemyAhead`, `trapAhead` |
+| `newSession(level)`, `heroAct(level, session, action, source)`, `heroSense(session, sensor)` | Run a level step by step: `heroAct` returns `true` once the run is over |
+
+Each frame of a `RunResult` has the `action`, its `outcome`, the `blockId` that made it, the `world` after it, the
+`goals` met so far (in the order of `level.goals`) and the `events` in the order they happened: `heroMoved`,
+`heroTurned`, `heroBumped`, `heroFell`, `heroTired`, `itemTaken`, `nothingToTake`, `heroSwung`, `enemyHit`,
+`enemyDown`, `enemyMoved`, `enemyWindUp` and `heroHurt`. An animation can play the events instead of guessing them
+from two worlds.
+
 ### Level editor and level kit
 
 `editor.html` (link «Редактор рівнів» in the demo) is a visual level editor. Paint the map with the pack pictures (path, wall, item, goal, start, a house or a woodshed), pick the season, floor, items and goal, the palette blocks and the star limits. The editor checks the level as you go, lets you try it in the trainer (a passed run can set the three-star limit) and gives the level as code for `src/levels/index.ts` or as JSON. Work is kept in the browser.
