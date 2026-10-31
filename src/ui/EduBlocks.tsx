@@ -10,8 +10,9 @@ import { judgeProgram } from "../core/judge.ts"
 import type { FailReason, Program, RunResult } from "../core/program.ts"
 import { createVm, projectFor, settle, withVmLock } from "../core/run.ts"
 import { heroLevelOf, xpFor, xpGain } from "../core/xp.ts"
-import type { World } from "../core/world.ts"
-import { Field, type Skin } from "./Field.tsx"
+import { frameIndexAt } from "./stage/playback.ts"
+import { type Skin, Stage } from "./stage/Stage.tsx"
+import { Timeline, usePlayer } from "./Timeline.tsx"
 import { toolboxXml } from "./toolbox.ts"
 import "./blocks.css"
 
@@ -46,7 +47,7 @@ export interface EduBlocksProps {
   readonly program?: Program
   /** Folder with the scratch-blocks icons (`scratch-blocks/media`), ending with a slash. */
   readonly media?: string
-  /** Milliseconds per hero action in the animation. */
+  /** Milliseconds per hero action in the animation at the normal speed (×1). */
   readonly speed?: number
   readonly xp?: HeroXp
   readonly onComplete?: (report: BlocksReport) => void
@@ -124,20 +125,22 @@ export const EduBlocks = ({
   large = false,
   program,
   media = "./blocks-media/",
-  speed = 350,
+  speed = 400,
   xp,
   onComplete,
   onProgramChange
 }: EduBlocksProps) => {
   const start = useMemo(() => startWorld(level), [level])
-  const [world, setWorld] = useState<World>(start)
+  const [result, setResult] = useState<RunResult | null>(null)
+  // What to do when the playback first reaches the end of the run: the verdict and the report.
+  const onEndRef = useRef<(() => void) | null>(null)
+  const player = usePlayer(speed, () => onEndRef.current?.())
   const [phase, setPhase] = useState<Phase>({ kind: "edit" })
   // On a phone the result covers the blocks until the student closes it.
   const [verdictOpen, setVerdictOpen] = useState(true)
   const editorRef = useRef<HTMLDivElement>(null)
   const workspaceRef = useRef<WorkspaceSvg | null>(null)
   const vmRef = useRef<VirtualMachine | null>(null)
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const glowRef = useRef<string | null>(null)
   const { rootRef, full, toggleFull } = useFullScreen()
   // Failed runs of this level since the editor opened: the first try bonus needs none.
@@ -163,7 +166,8 @@ export const EduBlocks = ({
     const el = editorRef.current
     if (el === null) return
     let disposed = false
-    setWorld(start)
+    onEndRef.current = null
+    setResult(null)
     setPhase({ kind: "edit" })
 
     // A narrow editor (a phone) gets a flat palette, a thinner flyout and smaller blocks.
@@ -210,7 +214,6 @@ export const EduBlocks = ({
     return () => {
       disposed = true
       observer.disconnect()
-      if (timerRef.current !== null) clearTimeout(timerRef.current)
       vmRef.current = null
       glowRef.current = null
       workspaceRef.current = null
@@ -218,12 +221,22 @@ export const EduBlocks = ({
     }
   }, [level, start, media, large])
 
+  const { seek, restart } = player
   const reset = useCallback(() => {
-    if (timerRef.current !== null) clearTimeout(timerRef.current)
+    onEndRef.current = null
+    seek(0)
     setGlow(null)
-    setWorld(start)
+    setResult(null)
     setPhase({ kind: "edit" })
-  }, [setGlow, start])
+  }, [seek, setGlow])
+
+  // The block of the action on the field lights up, also when the student steps or drags the timeline.
+  const frameIndex = result === null ? -1 : frameIndexAt(result.frames, player.time)
+  const atEnd = result !== null && player.time >= result.frames.length
+  const glowId = result === null || atEnd ? null : (result.frames[frameIndex]?.blockId ?? null)
+  useEffect(() => setGlow(glowId), [glowId, setGlow])
+  // The goals tick as the hero meets them.
+  const world = result === null ? start : (result.frames[Math.floor(player.time) - 1]?.world ?? start)
 
   const run = useCallback(() => {
     const vm = vmRef.current
@@ -238,8 +251,6 @@ export const EduBlocks = ({
     const gain = xpGain(runXp, xp?.best ?? 0)
     const reward: Reward = { gain, firstTry, total: xp === undefined ? null : xp.total + gain }
     const finish = () => {
-      setGlow(null)
-      setWorld(result.world)
       setPhase({ kind: "done", result, reward, advice: adviseRun(level, prog, result) })
       setVerdictOpen(true)
       onComplete?.({
@@ -253,15 +264,10 @@ export const EduBlocks = ({
         xp: runXp
       })
     }
-    const play = (i: number) => {
-      const frame = result.frames[i]
-      if (frame === undefined) return finish()
-      setWorld(frame.world)
-      setGlow(frame.blockId)
-      timerRef.current = setTimeout(() => play(i + 1), speed)
-    }
-    play(0)
-  }, [level, onComplete, reset, setGlow, speed, xp])
+    onEndRef.current = finish
+    setResult(result)
+    restart(result.frames.length)
+  }, [level, onComplete, reset, restart, xp])
 
   const running = phase.kind === "running"
   return (
@@ -281,10 +287,11 @@ export const EduBlocks = ({
           </ul>
         </header>
         <div className="eb-field-wrap">
-          <Field world={world} skin={skin} scene={level.scene} />
+          <Stage start={start} frames={result?.frames} time={player.time} skin={skin} scene={level.scene} />
         </div>
+        {result !== null && <Timeline player={player} length={result.frames.length} />}
         <div className="eb-controls">
-          <button type="button" className="eb-run" onClick={run} disabled={running}>
+          <button type="button" className="eb-run" onClick={run} disabled={running && player.playing}>
             <span aria-hidden="true">▶</span> Запустити
           </button>
           <button type="button" className="eb-reset" onClick={reset} disabled={phase.kind === "edit"}>

@@ -5,7 +5,7 @@ import { levels } from "../levels/index.ts"
 import { chapterOf, isFirstChapter } from "../levels/chapters.ts"
 import { solutionProgram } from "../levels/solutions.ts"
 import { type BlocksReport, EduBlocks } from "../ui/EduBlocks.tsx"
-import type { Skin } from "../ui/Field.tsx"
+import type { Skin } from "../ui/stage/Stage.tsx"
 import "./demo.css"
 
 // `?level=g4-if&solve` opens a level with its reference solution: for screenshots and for teachers.
