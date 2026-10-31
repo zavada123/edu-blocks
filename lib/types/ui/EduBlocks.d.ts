@@ -1,6 +1,7 @@
 import { type Level } from "../core/level.ts";
 import type { FailReason, Program } from "../core/program.ts";
-import { type Skin } from "./stage/Stage.tsx";
+import type { Skin } from "./stage/Stage.tsx";
+import { type HeroXp } from "./Verdict.tsx";
 import "./blocks.css";
 /** What the trainer gives the app after each run. The server runs `program` again before it trusts `passed`. */
 export interface BlocksReport {
@@ -15,13 +16,7 @@ export interface BlocksReport {
     /** XP of this run (`xpFor`). The hero gets only the part above the best earlier run. */
     readonly xp: number;
 }
-/** The hero's XP before the run, from the app: the result then shows the gain and the hero level. */
-export interface HeroXp {
-    /** All XP of the hero. */
-    readonly total: number;
-    /** The best XP of this level so far. */
-    readonly best: number;
-}
+export type { HeroXp } from "./Verdict.tsx";
 export interface EduBlocksProps {
     readonly level: Level;
     readonly skin?: Skin;

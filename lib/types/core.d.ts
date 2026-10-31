@@ -16,3 +16,7 @@ export { definitions, solutionProgram, solutions } from "./levels/solutions.ts";
 export * from "./core/xp.ts";
 export { adviseRun, MAX_ADVICE } from "./core/advice.ts";
 export * from "./core/kit.ts";
+export { judgePython, MAX_OUTPUT_LINES } from "./core/python/judge.ts";
+export { HERO_NAME, MAX_MOVE_STEPS, PYTHON_METHODS, pythonMethodsOf, type PythonMethod } from "./core/python/api.ts";
+export { MAX_PY_DEPTH, MAX_PY_STEPS } from "./core/python/interpreter.ts";
+export { MAX_SOURCE_LENGTH } from "./core/python/lexer.ts";

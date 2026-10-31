@@ -347,4 +347,94 @@
     transition: none;
   }
 }
+/* The Python editor: the methods of the level above the code, the code fills the rest. */
+.eb-code-pane {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.eb-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--eb-line);
+  background: var(--eb-bg);
+}
+
+.eb-chip {
+  padding: 5px 9px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font: 600 0.85rem/1.2 ui-monospace, "Cascadia Code", "Fira Code", Menlo, Consolas, monospace;
+  cursor: pointer;
+}
+
+.eb-chip:focus-visible {
+  outline: 3px solid var(--eb-accent);
+  outline-offset: 1px;
+}
+
+.eb-chip-hero {
+  background: #dff7ee;
+  border-color: #9fe0c7;
+  color: #0a5c44;
+}
+
+.eb-chip-sense {
+  background: #e6f0ff;
+  border-color: #a9c8ff;
+  color: #1d4f9c;
+}
+
+.eb-chip-code {
+  background: #fff4dc;
+  border-color: #f2d28c;
+  color: #7a4b00;
+}
+
+.eb-code {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.eb-code .cm-editor {
+  height: 100%;
+}
+
+.eb-code .cm-editor.cm-focused {
+  outline: none;
+}
+
+.eb-output {
+  flex: 0 0 auto;
+  max-height: 30%;
+  margin: 0;
+  padding: 8px 12px;
+  overflow: auto;
+  border-top: 1px solid var(--eb-line);
+  background: #1f2430;
+  color: #e6e9ef;
+  font: 0.9rem/1.4 ui-monospace, "Cascadia Code", "Fira Code", Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+}
+
+.eb-large .eb-chip {
+  font-size: 1rem;
+}
+
+@media (max-width: 760px) {
+  .eb-palette {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 6px 8px;
+  }
+
+  .eb-chip {
+    flex: 0 0 auto;
+    min-height: 36px;
+  }
+}
 /*$vite$:1*/

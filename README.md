@@ -45,6 +45,7 @@ The student-facing interface is in Ukrainian. It was built for [EduProstir](http
 - **Mobile-first layout:** field on top, blocks below, a palette without the category column, drag blocks with a finger.
 - **Large mode** for grade 3.
 - **Four hero skins** (`skin`): ninja (default), robot, rover and bee. Your app decides how they are sold or unlocked.
+- **Python code, as in Tynker or CodeCombat** (`edu-blocks/python`): the same levels with a code editor instead of blocks. `hero.move()`, `while not hero.at_finish():`, functions, variables and lists; the line the hero acts on lights up, and every mistake is explained in Ukrainian with its line.
 - **Deterministic grading:** an interpreter that follows Scratch 3's execution order, tested against the TurboWarp VM on hundreds of random programs.
 
 ## Installation
@@ -139,7 +140,8 @@ Programs are limited to 300 blocks, the blocks of the level and 1,000 hero actio
 | Entry point | Contents |
 |---|---|
 | `edu-blocks/react` | The `EduBlocks` component and the `EduBlocksProps`, `BlocksReport`, `HeroXp` and `Skin` types |
-| `edu-blocks/core` | Built-in `levels` and `solutions`, `judgeProgram`, `checkProgram`, `adviseRun`, the level kit, the XP functions, the world model and limits. No React and no VM, safe for Node |
+| `edu-blocks/python` | The `EduPython` component (Python code instead of blocks) and its `EduPythonProps` and `PythonReport` types. It loads neither the Scratch VM nor the block editor |
+| `edu-blocks/core` | Built-in `levels` and `solutions`, `judgeProgram`, `judgePython`, `PYTHON_METHODS`, `checkProgram`, `adviseRun`, the level kit, the XP functions, the world model and limits. No React and no VM, safe for Node |
 | `edu-blocks/style.css` | Styles for the component |
 | `edu-blocks/blocks-media/*` | Block icons to serve from your site |
 
@@ -181,7 +183,7 @@ goals: [{ type: "enemies" }, { type: "finish" }]
 ### Hero API and run frames
 
 Every way of programming drives the hero through one API in `edu-blocks/core`, so the game does not depend on the
-language: the block interpreter and the Scratch VM use it today, and Python can use it later.
+language: the block interpreter, the Scratch VM and the Python interpreter all use it.
 
 | Export | What it is |
 |---|---|
@@ -193,7 +195,44 @@ Each frame of a `RunResult` has the `action`, its `outcome`, the `blockId` that 
 `goals` met so far (in the order of `level.goals`) and the `events` in the order they happened: `heroMoved`,
 `heroTurned`, `heroBumped`, `heroFell`, `heroTired`, `itemTaken`, `nothingToTake`, `heroSwung`, `enemyHit`,
 `enemyDown`, `enemyMoved`, `enemyWindUp` and `heroHurt`. An animation can play the events instead of guessing them
-from two worlds. On a level with the counter a frame also has `counter`, the value after the action.
+from two worlds. On a level with the counter a frame also has `counter`, the value after the action, and a frame of a
+Python run has `line`, the line of the program that made it.
+
+### Python
+
+`<EduPython>` plays the same levels with Python code. The field and the time line are the same; the code editor
+(CodeMirror) shows the methods of the level above the code, and a tap puts one at the cursor. Its props are those of
+`<EduBlocks>` with `source` (a saved program) and `onSourceChange(source)` instead of `program`,
+`onProgramChange` and `media`; `onComplete` gets `source` and `size` instead of `program` and `blocks`.
+
+```tsx
+import { EduPython } from "edu-blocks/python"
+import "edu-blocks/style.css"
+
+<EduPython key={level.id} level={level} source={saved} onComplete={(report) => sendToServer(report)} />
+```
+
+On the server, grade the text with `judgePython(level, report.source)`: it returns the same `RunResult` as
+`judgeProgram`, with `line` for a mistake and `output` for what the program printed.
+
+| The hero in Python | Block |
+|---|---|
+| `hero.move()`, `hero.move(3)` | крок уперед |
+| `hero.turn_left()`, `hero.turn_right()` | поворот ліворуч / праворуч |
+| `hero.collect()`, `hero.attack()` | взяти, вдарити |
+| `hero.wall_ahead()`, `hero.item_here()`, `hero.at_finish()`, `hero.enemy_ahead()`, `hero.trap_ahead()` | the questions |
+
+A level opens the methods of its blocks; any other method is a mistake that says so. The language is the part of
+Python a course needs, run by a small interpreter in TypeScript (`src/core/python`), with no Pyodide: numbers, texts,
+`True`/`False`/`None`, lists with `append` and `pop`, `if`/`elif`/`else`, `while`, `for … in`, `break`, `continue`,
+`def` with `return` and `global`, `and`/`or`/`not`, chained comparisons, and `range`, `len`, `print`, `abs`, `min`,
+`max`, `sum`, `str`, `int`, `bool`. Words such as `import` or `class` get a message that the course does not need them.
+
+A run is limited to 200,000 interpreter steps, 100 nested calls and 1,000 hero actions, so an endless loop ends with
+`tooLong` the same way on a server and on a phone. Stars count the program like its blocks (`programSize`): a
+statement, a call, a variable and an operator are one each, numbers and texts are free, and `while not …:` is one
+«повторити до». The tests check that every level's solution and hundreds of random programs, written as blocks and
+as Python, play the same frames and earn the same stars.
 
 ### Counter and custom blocks
 

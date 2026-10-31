@@ -5,12 +5,16 @@ import { levels } from "../levels/index.ts"
 import { chapterOf, isFirstChapter } from "../levels/chapters.ts"
 import { solutionProgram } from "../levels/solutions.ts"
 import { type BlocksReport, EduBlocks } from "../ui/EduBlocks.tsx"
+import { EduPython, type PythonReport } from "../ui/EduPython.tsx"
 import type { Skin } from "../ui/stage/Stage.tsx"
 import "./demo.css"
 
 // `?level=g4-if&solve` opens a level with its reference solution: for screenshots and for teachers.
 const params = new URLSearchParams(location.search)
 const showSolution = params.has("solve")
+
+/** How the student programs: Scratch blocks or Python code. `?lang=python` opens Python. */
+type Language = "blocks" | "python"
 
 const firstLevel = levels.find((l) => l.id === params.get("level")) ?? levels[0]
 if (!firstLevel) throw new Error("Немає жодного рівня")
@@ -50,12 +54,25 @@ const Demo = () => {
   const [id, setId] = useState(firstLevel.id)
   const [best, setBest] = useState<Record<string, Best>>(() => load("eb-best-xp", {}))
   const [skin, setSkin] = useState<Skin>(() => load("eb-skin", "ninja"))
+  const [language, setLanguage] = useState<Language>(() => (params.get("lang") === "python" ? "python" : load<Language>("eb-language", "blocks")))
+  const [sources, setSources] = useState<Record<string, string>>(() => load("eb-python-sources", {}))
   const level = levels.find((l) => l.id === id) ?? firstLevel
 
   const total = Object.values(best).reduce((sum, b) => sum + b.xp, 0)
   const hero = heroLevelOf(total)
 
-  const onComplete = (report: BlocksReport) => {
+  const pickLanguage = (next: Language) => {
+    setLanguage(next)
+    save("eb-language", next)
+  }
+
+  const onSourceChange = (source: string) => {
+    const next = { ...sources, [level.id]: source }
+    setSources(next)
+    save("eb-python-sources", next)
+  }
+
+  const onComplete = (report: BlocksReport | PythonReport) => {
     const old = best[report.levelId] ?? { stars: 0, xp: 0 }
     if (report.stars <= old.stars && report.xp <= old.xp) return
     const next = { ...best, [report.levelId]: { stars: Math.max(old.stars, report.stars), xp: Math.max(old.xp, report.xp) } }
@@ -86,6 +103,13 @@ const Demo = () => {
             ))}
           </select>
         </label>
+        <span className="demo-shop" role="group" aria-label="Як програмувати">
+          {(["blocks", "python"] as const).map((l) => (
+            <button key={l} type="button" className={l === language ? "demo-skin demo-skin-on" : "demo-skin"} aria-pressed={l === language} onClick={() => pickLanguage(l)}>
+              {l === "blocks" ? "Блоки" : "Python"}
+            </button>
+          ))}
+        </span>
         <span className="demo-crystals" aria-label={`Рівень героя ${hero.level}, ${total} XP`}>
           Рівень {hero.level} · {total} XP
         </span>
@@ -105,15 +129,28 @@ const Demo = () => {
         </span>
       </header>
       <main className="demo-main">
-        <EduBlocks
-          key={level.id}
-          level={level}
-          skin={skin}
-          large={isFirstChapter(level.id)}
-          xp={{ total, best: best[level.id]?.xp ?? 0 }}
-          onComplete={onComplete}
-          {...(showSolution ? { program: solutionProgram(level.id) } : {})}
-        />
+        {language === "python" ? (
+          <EduPython
+            key={level.id}
+            level={level}
+            skin={skin}
+            large={isFirstChapter(level.id)}
+            xp={{ total, best: best[level.id]?.xp ?? 0 }}
+            onComplete={onComplete}
+            onSourceChange={onSourceChange}
+            {...(sources[level.id] === undefined ? {} : { source: sources[level.id] })}
+          />
+        ) : (
+          <EduBlocks
+            key={level.id}
+            level={level}
+            skin={skin}
+            large={isFirstChapter(level.id)}
+            xp={{ total, best: best[level.id]?.xp ?? 0 }}
+            onComplete={onComplete}
+            {...(showSolution ? { program: solutionProgram(level.id) } : {})}
+          />
+        )}
       </main>
     </div>
   )

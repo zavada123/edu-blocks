@@ -42,6 +42,8 @@ export const newSession = (level: Level): Session => ({ world: startWorld(level)
 export interface ActionSource {
   /** The block, for block programs. */
   readonly blockId: string | null
+  /** The line, for Python programs. */
+  readonly line?: number
   /** The counter at this moment, on a level with «лічильник». */
   readonly counter?: string
 }
@@ -55,7 +57,16 @@ export const heroAct = (level: Level, session: Session, action: Action, source: 
   if (session.done) return true
   const { world, outcome, events } = applyAction(session.world, action)
   session.world = world
-  session.frames.push({ action, outcome, blockId: source.blockId, events, goals: goalStatus(level, world), world, ...(source.counter === undefined ? {} : { counter: source.counter }) })
+  session.frames.push({
+    action,
+    outcome,
+    blockId: source.blockId,
+    events,
+    goals: goalStatus(level, world),
+    world,
+    ...(source.line === undefined ? {} : { line: source.line }),
+    ...(source.counter === undefined ? {} : { counter: source.counter })
+  })
   const fatal = fatalReason(outcome)
   if (fatal !== null) return end(session, fatal)
   if (allGoalsMet(level, world)) return end(session, null)
