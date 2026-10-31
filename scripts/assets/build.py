@@ -1,6 +1,6 @@
 """Builds the asset manifests and copies the pictures and sounds into place.
 
-    python3 scripts/assets/build.py --ninja <dir> --sunnyside <dir> --farm <dir> --village <dir> \
+    python3 scripts/assets/build.py --ninja <dir> --sunnyside <dir> --crops <dir> --farm-kit <dir> --farm <dir> --village <dir> \
         --out assets --private-out <folder outside the repo> --work <temp dir>
 
 Each --<pack> points at the unpacked pack folder (the one with LICENSE.txt, Sunnyside_World_Assets, and so on).
@@ -14,6 +14,7 @@ import json
 from pathlib import Path
 
 import crops
+import farm_kit
 import ninja
 import private
 import sunnyside
@@ -21,7 +22,7 @@ import sunnyside
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    for name in ("ninja", "sunnyside", "crops", "farm", "village"):
+    for name in ("ninja", "sunnyside", "crops", "farm-kit", "farm", "village"):
         parser.add_argument(f"--{name}", type=Path)
     parser.add_argument("--out", type=Path, required=True, help="assets/ folder of the repository")
     parser.add_argument("--private-out", type=Path, help="folder outside the repository for packs that may not be shared")
@@ -35,6 +36,8 @@ def main() -> None:
         packs.append(sunnyside.build(args.sunnyside, args.out / "sunnyside", args.work / "sunnyside"))
     if args.crops:
         packs.append(crops.build(args.crops, args.out / "farming-crops"))
+    if args.farm_kit:
+        packs.append(farm_kit.build(args.farm_kit, args.out / "farm-kit"))
     if args.private_out:
         if args.farm:
             packs.append(private.farm(args.farm, args.private_out / "farm-rpg"))
