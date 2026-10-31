@@ -10,6 +10,7 @@ export type BlockName =
   | "attack"
   | "wallAhead"
   | "enemyAhead"
+  | "trapAhead"
   | "onCrystal"
   | "atFinish"
   | "repeat"
@@ -61,7 +62,6 @@ export interface Scene {
 
 export interface Level {
   readonly id: string
-  readonly grade: 3 | 4 | 5 | 6
   readonly title: string
   /** Task lines for the student. */
   readonly task: ReadonlyArray<string>
@@ -78,6 +78,8 @@ export interface Level {
   readonly enemies?: ReadonlyArray<EnemySpec>
   /** Hearts of the hero. 3 by default; they matter only where there are enemies. */
   readonly hearts?: number
+  /** Steps («крок уперед») the hero may take. No limit when left out. */
+  readonly maxSteps?: number
   /** Summer, crystals and a flag when left out. */
   readonly scene?: Scene
   /** Sets the XP of the level. An intro level when left out. */
@@ -88,7 +90,8 @@ export interface Level {
 export const startWorld = (level: Level): World => {
   const world = parseMap(level.map, level.dir)
   const hearts = Math.max(1, Math.round(level.hearts ?? world.hearts))
-  return { ...world, enemies: (level.enemies ?? []).map(enemyOf), hearts, maxHearts: hearts }
+  const energy = level.maxSteps === undefined ? null : Math.max(0, Math.round(level.maxSteps))
+  return { ...world, enemies: (level.enemies ?? []).map(enemyOf), hearts, maxHearts: hearts, energy }
 }
 
 export const goalMet = (world: World, goal: Goal): boolean => {

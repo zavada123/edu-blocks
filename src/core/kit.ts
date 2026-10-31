@@ -9,6 +9,7 @@ import {
   type Direction,
   enemyAhead,
   isAlive,
+  isFatal,
   type MapRows,
   parseMap,
   type World
@@ -19,12 +20,12 @@ import {
  * Change a map cell by cell, check that the level can be played, find a plain route for the hero and write the
  * level as code for `src/levels/index.ts`.
  *
- * Map signs: `#` wall (trees, bushes or water under a bridge), `.` floor, `S` start, `c` item, `F` finish.
+ * Map signs: `#` wall (trees, bushes or water under a bridge), `.` floor, `S` start, `c` item, `F` finish, `x` trap.
  */
 
-export type MapTile = "wall" | "floor" | "start" | "item" | "finish"
+export type MapTile = "wall" | "floor" | "start" | "item" | "finish" | "trap"
 
-const SIGN: Readonly<Record<MapTile, string>> = { wall: "#", floor: ".", start: "S", item: "c", finish: "F" }
+const SIGN: Readonly<Record<MapTile, string>> = { wall: "#", floor: ".", start: "S", item: "c", finish: "F", trap: "x" }
 
 /** The smallest and the largest map a level can have, walls around it included. */
 export const MAP_LIMITS = { min: 3, max: 16 } as const
@@ -89,7 +90,7 @@ const STEPS_AROUND: ReadonlyArray<readonly [number, number]> = [
   [0, -1]
 ]
 
-/** Floor cells the hero can walk to from the start. */
+/** Floor cells the hero can walk to from the start without stepping on a trap. */
 const reachable = (map: MapRows): ReadonlySet<string> => {
   const world = parseMap(map)
   const seen = new Set([cellKey(world.hero.x, world.hero.y)])
@@ -99,7 +100,7 @@ const reachable = (map: MapRows): ReadonlySet<string> => {
       const x = c.x + dx
       const y = c.y + dy
       const key = cellKey(x, y)
-      if (x < 0 || y < 0 || x >= world.width || y >= world.height || world.walls.has(key) || seen.has(key)) continue
+      if (x < 0 || y < 0 || x >= world.width || y >= world.height || world.walls.has(key) || world.traps.has(key) || seen.has(key)) continue
       seen.add(key)
       queue.push({ x, y })
     }
@@ -143,9 +144,11 @@ export const checkLevel = (level: Level): ReadonlyArray<Issue> => {
 
   const open = reachable(level.map)
   const lost = [...world.crystals].filter((key) => !open.has(key)).length
-  if (lost > 0) error(`Герой не дійде до ${lost} предмет${lost === 1 ? "а" : "ів"}: їх відрізають стіни`)
+  if (lost > 0) error(`Герой не дійде до ${lost} предмет${lost === 1 ? "а" : "ів"}: їх відрізають стіни або пастки`)
   if (world.finish !== null && !open.has(cellKey(world.finish.x, world.finish.y)))
-    error("Герой не дійде до мети F: її відрізають стіни")
+    error("Герой не дійде до мети F: її відрізають стіни або пастки")
+  for (const e of enemies) if (world.traps.has(cellKey(e.x, e.y))) error(`Ворог на (${e.x}, ${e.y}) стоїть на пастці`)
+  if (level.maxSteps !== undefined && !(level.maxSteps >= 1)) error("Кроків має бути щонайменше 1")
   if (!wants("crystals") && world.totalCrystals > 0) warning("На мапі є предмети, але мета їх не просить")
   if (!wants("finish") && world.finish !== null) warning("На мапі є F, але мета не просить до неї дійти")
   const lostEnemies = enemies.filter((e) => !open.has(cellKey(e.x, e.y))).length
@@ -181,12 +184,44 @@ const walk = (map: MapRows, from: Cell, to: Cell): ReadonlyArray<Cell> | null =>
       const x = c.x + dx
       const y = c.y + dy
       const key = cellKey(x, y)
-      if (x < 0 || y < 0 || x >= world.width || y >= world.height || world.walls.has(key) || back.has(key)) continue
+      if (x < 0 || y < 0 || x >= world.width || y >= world.height || world.walls.has(key) || world.traps.has(key) || back.has(key)) continue
       back.set(key, c)
       queue.push({ x, y })
     }
   }
   return null
+}
+
+const cellOf = (key: string): Cell => {
+  const [x = 0, y = 0] = key.split(",").map(Number)
+  return { x, y }
+}
+
+/** Items up to this many are taken in the order with the fewest steps; more are taken nearest first. */
+const ORDER_LIMIT = 7
+
+/**
+ * The order of the items with the fewest steps from the start (and on to the finish when the level asks for it):
+ * on a level with few steps the nearest item first can be the wrong way. Empty when there are too many items.
+ */
+const itemOrder = (level: Level, world: World): ReadonlyArray<Cell> => {
+  const items = [...world.crystals].map(cellOf)
+  if (items.length === 0 || items.length > ORDER_LIMIT) return []
+  const finish = level.goals.some((g) => g.type === "finish") ? world.finish : null
+  const length = (a: Cell, b: Cell) => walk(level.map, a, b)?.length ?? Infinity
+  let best: { readonly cost: number; readonly order: ReadonlyArray<Cell> } = { cost: Infinity, order: [] }
+  const visit = (at: Cell, order: ReadonlyArray<Cell>, cost: number) => {
+    if (cost >= best.cost) return
+    const rest = items.filter((c) => !order.includes(c))
+    if (rest.length === 0) {
+      const total = finish === null ? cost : cost + length(at, finish)
+      if (total < best.cost) best = { cost: total, order }
+      return
+    }
+    for (const next of rest) visit(next, [...order, next], cost + length(at, next))
+  }
+  visit(world.hero, [], 0)
+  return best.order
 }
 
 /** Hero actions a plain route may take before it gives up. */
@@ -205,8 +240,9 @@ export const plainRoute = (level: Level): ReadonlyArray<Step> | null => {
   /** False when the run is lost or too long. */
   const act = (action: Extract<Action, Step>): boolean => {
     steps.push(action)
-    world = applyAction(world, action).world
-    return allGoalsMet(level, world) || (!world.crashed && world.hearts > 0 && steps.length < ROUTE_LIMIT)
+    const done = applyAction(world, action)
+    world = done.world
+    return allGoalsMet(level, world) || (!isFatal(done.outcome) && world.hearts > 0 && steps.length < ROUTE_LIMIT)
   }
   const face = (want: Direction): boolean => {
     const dir = world.hero.dir
@@ -230,11 +266,10 @@ export const plainRoute = (level: Level): ReadonlyArray<Step> | null => {
   const done = () => allGoalsMet(level, world)
   const wants = (type: "crystals" | "finish" | "enemies") => level.goals.some((g) => g.type === type)
 
+  const order = itemOrder(level, world)
   while (wants("crystals") && world.crystals.size > 0 && !done()) {
-    const item = nearest([...world.crystals].map((key) => {
-      const [x = 0, y = 0] = key.split(",").map(Number)
-      return { x, y }
-    }))
+    const left = order.filter((c) => world.crystals.has(cellKey(c.x, c.y)))
+    const item = left.length > 0 ? left[0] : nearest([...world.crystals].map(cellOf))
     if (item === undefined) return null
     if (world.hero.x === item.x && world.hero.y === item.y) {
       if (!act("collect")) return null

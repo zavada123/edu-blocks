@@ -6,6 +6,7 @@ import { type BlockName, type FinishKind, type Goal, type ItemKind, type Level, 
 import { BOSS_HP, DEFAULT_HEARTS, DEFAULT_SIGHT, type Direction, type EnemyKind, type EnemySpec, type EnemyWalk, parseMap } from "../core/world.ts"
 import type { Tier } from "../core/xp.ts"
 import { levels } from "../levels/index.ts"
+import { chapterOf } from "../levels/chapters.ts"
 import { type BlocksReport, EduBlocks } from "../ui/EduBlocks.tsx"
 import { Field } from "../ui/Field.tsx"
 import { ENEMIES, ITEM_TILES, NPCS, PROPS } from "../ui/look.ts"
@@ -23,6 +24,8 @@ import "./editor.css"
  */
 
 const STORE = "eb-editor-level"
+/** The largest step limit the editor offers. */
+const MAX_STEP_LIMIT = 200
 
 type Tool = MapTile | PropKind | "npc" | "enemy"
 
@@ -30,6 +33,7 @@ const TILE_TOOLS: ReadonlyArray<{ readonly tool: MapTile; readonly name: string 
   { tool: "floor", name: "Стежка" },
   { tool: "wall", name: "Стіна" },
   { tool: "item", name: "Предмет" },
+  { tool: "trap", name: "Пастка" },
   { tool: "finish", name: "Мета" },
   { tool: "start", name: "Старт" }
 ]
@@ -109,7 +113,6 @@ const DIRECTIONS: ReadonlyArray<{ readonly id: Direction; readonly name: string 
 
 const blank = (): Level => ({
   id: "my-level",
-  grade: 3,
   tier: "intro",
   title: "Новий рівень",
   task: ["Візьми всі предмети."],
@@ -165,6 +168,7 @@ const Icon = ({ tool, item, who, monster }: { readonly tool: Tool; readonly item
     return (
       <span className="ed-icon ed-icon-sheet" style={{ backgroundImage: `url(${flagStrip})`, backgroundSize: "96px 24px" }} />
     )
+  if (tool === "trap") return <span className="ed-icon ed-icon-trap" aria-hidden="true" />
   if (tool === "floor")
     return (
       <span
@@ -485,7 +489,7 @@ const Editor = () => {
             <option value="">Відкрити рівень з бібліотеки…</option>
             {levels.map((l) => (
               <option key={l.id} value={l.id}>
-                {l.grade} клас · {l.title}
+                {chapterOf(l.id)?.title ?? ""} · {l.title}
               </option>
             ))}
           </select>
@@ -606,14 +610,19 @@ const Editor = () => {
               </label>
               <div className="ed-row">
                 <label>
-                  Клас
-                  <select value={level.grade} onChange={(e) => update({ grade: Number(e.target.value) as Level["grade"] })}>
-                    {[3, 4, 5, 6].map((g) => (
-                      <option key={g} value={g}>
-                        {g}
-                      </option>
-                    ))}
-                  </select>
+                  Кроків не більше
+                  <input
+                    type="number"
+                    min={0}
+                    max={MAX_STEP_LIMIT}
+                    value={level.maxSteps ?? 0}
+                    title="0 — без обмеження"
+                    onChange={(e) => {
+                      const n = clamp(Number(e.target.value), 0, MAX_STEP_LIMIT)
+                      const { maxSteps: _, ...rest } = level
+                      setLevel(n === 0 ? rest : { ...rest, maxSteps: n })
+                    }}
+                  />
                 </label>
                 <label>
                   Складність

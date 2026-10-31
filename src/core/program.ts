@@ -19,8 +19,12 @@ export const MAX_FRAMES = 2_000
  */
 export const PASSES_PER_FRAME = 20
 
-/** `defeated`: the enemies took all the hearts. */
-export type FailReason = "badProgram" | "noStart" | "crashed" | "defeated" | "goalsNotMet" | "tooLong"
+/** `defeated`: the enemies took all the hearts. `trapped`: the hero stepped on a trap. `tired`: no steps left. */
+export type FailReason = "badProgram" | "noStart" | "crashed" | "trapped" | "tired" | "defeated" | "goalsNotMet" | "tooLong"
+
+/** The reason a run stops after this outcome, or null when it goes on. */
+export const fatalReason = (outcome: Outcome): FailReason | null =>
+  outcome === "crashed" ? "crashed" : outcome === "fell" ? "trapped" : outcome === "tired" ? "tired" : null
 
 export interface Frame {
   readonly action: Action

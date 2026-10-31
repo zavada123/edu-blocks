@@ -40,7 +40,7 @@ export interface HeroXp {
 export interface EduBlocksProps {
   readonly level: Level
   readonly skin?: Skin
-  /** Bigger blocks and field for grade 3. */
+  /** Bigger blocks and field for the youngest: the first chapter of the course. */
   readonly large?: boolean
   /** A saved program to open the level with. */
   readonly program?: Program
@@ -74,6 +74,8 @@ for (const b of HERO_BLOCKS) {
 
 const FAIL_TEXT: Readonly<Record<FailReason, string>> = {
   crashed: "Герой урізався в перешкоду.",
+  trapped: "Герой ступив на пастку.",
+  tired: "Герой утомився: кроки закінчились.",
   defeated: "Вороги забрали всі сердечка.",
   goalsNotMet: "Програма закінчилась, а завдання ще не виконане.",
   tooLong: "Програма працює задовго. Можливо, цикл ніколи не закінчується.",
@@ -418,7 +420,7 @@ const Verdict = ({
     <div className="eb-verdict eb-verdict-fail" role="status">
       <p>{reason === "badProgram" && result.detail !== undefined ? result.detail : FAIL_TEXT[reason]}</p>
       <Advice tips={advice} />
-      {level.hint !== undefined && (reason === "crashed" || reason === "defeated" || reason === "goalsNotMet") && <p className="eb-hint">Підказка: {level.hint}</p>}
+      {level.hint !== undefined && (reason === "crashed" || reason === "trapped" || reason === "tired" || reason === "defeated" || reason === "goalsNotMet") && <p className="eb-hint">Підказка: {level.hint}</p>}
       <CloseButton onClose={onClose} />
     </div>
   )

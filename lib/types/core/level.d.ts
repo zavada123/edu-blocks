@@ -1,7 +1,7 @@
 import { type Direction, type EnemySpec, type MapRows, type World } from "./world.ts";
 import type { Tier } from "./xp.ts";
 /** Blocks a level can put into the palette. Hero blocks and the Scratch blocks with the same meaning. */
-export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "wallAhead" | "enemyAhead" | "onCrystal" | "atFinish" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or";
+export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "wallAhead" | "enemyAhead" | "trapAhead" | "onCrystal" | "atFinish" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or";
 /** What the hero must achieve. All goals of a level are checked together. */
 export type Goal = {
     readonly type: "crystals";
@@ -42,7 +42,6 @@ export interface Scene {
 }
 export interface Level {
     readonly id: string;
-    readonly grade: 3 | 4 | 5 | 6;
     readonly title: string;
     /** Task lines for the student. */
     readonly task: ReadonlyArray<string>;
@@ -62,6 +61,8 @@ export interface Level {
     readonly enemies?: ReadonlyArray<EnemySpec>;
     /** Hearts of the hero. 3 by default; they matter only where there are enemies. */
     readonly hearts?: number;
+    /** Steps («крок уперед») the hero may take. No limit when left out. */
+    readonly maxSteps?: number;
     /** Summer, crystals and a flag when left out. */
     readonly scene?: Scene;
     /** Sets the XP of the level. An intro level when left out. */

@@ -289,6 +289,34 @@ const Hearts = ({ hearts, max, x, y }: { readonly hearts: number; readonly max: 
   </g>
 )
 
+/** A trap cell: thin ice with cracks in winter, a pit in the ground in summer. Once the hero fell in, the ice is broken. */
+const Trap = ({ winter, broken }: { readonly winter: boolean; readonly broken: boolean }) =>
+  winter ? (
+    <g className="eb-trap eb-trap-ice">
+      <rect x={-7} y={-6} width={14} height={12} rx={5} className="eb-trap-ice-sheet" />
+      {broken ? (
+        <ellipse cx={0} cy={0.5} rx={5.5} ry={4} className="eb-trap-water" />
+      ) : (
+        <path d="M-5 -3 L-1 0 L-3 4 M-1 0 L3 -1 L5 3 M3 -1 L4 -4" className="eb-trap-crack" />
+      )}
+    </g>
+  ) : (
+    <g className="eb-trap eb-trap-pit">
+      <ellipse cx={0} cy={1} rx={6.5} ry={5} className="eb-trap-rim" />
+      <ellipse cx={0} cy={1.5} rx={5} ry={3.6} className="eb-trap-hole" />
+    </g>
+  )
+
+/** Steps the hero has left on a level with a limit. */
+const Energy = ({ energy, x, y }: { readonly energy: number; readonly x: number; readonly y: number }) => (
+  <g transform={`translate(${x} ${y})`} aria-label={`Кроків залишилось: ${energy}`}>
+    <rect x={-1.5} y={-1.5} width={38} height={HEART + 3} rx={3} className="eb-hearts-back" />
+    <text x={1} y={HEART - 1.5} className="eb-energy">
+      кроків: {energy}
+    </text>
+  </g>
+)
+
 const at = (key: string) => {
   const [x, y] = key.split(",").map(Number)
   return { x: x ?? 0, y: y ?? 0 }
@@ -422,6 +450,14 @@ export const Field = ({ world, skin, scene = {} }: { readonly world: World; read
           <Villager npc={n} still={still} />
         </g>
       ))}
+      {[...world.traps].map((key) => {
+        const { x, y } = at(key)
+        return (
+          <g key={`x${key}`} transform={center(x, y)}>
+            <Trap winter={season.snowfall !== null} broken={world.fell && world.hero.x === x && world.hero.y === y} />
+          </g>
+        )
+      })}
       {finish !== null && (
         <g transform={center(finish.x, finish.y)}>
           <Finish kind={scene.finish ?? "flag"} />
@@ -444,7 +480,7 @@ export const Field = ({ world, skin, scene = {} }: { readonly world: World; read
       ))}
       <g className="eb-hero" style={{ transform: `translate(${world.hero.x * CELL + CELL / 2}px, ${world.hero.y * CELL + CELL / 2}px)` }}>
         <ellipse cx={0} cy={7} rx={5} ry={1.5} className="eb-hero-shadow" />
-        <g key={`h${world.hearts}`} className={world.crashed ? "eb-hero-crashed" : world.hearts < world.maxHearts ? "eb-hero-hurt" : undefined}>
+        <g key={`h${world.hearts}`} className={world.fell ? "eb-hero-fell" : world.crashed ? "eb-hero-crashed" : world.hearts < world.maxHearts ? "eb-hero-hurt" : undefined}>
           <Frame href={sheet.href} height={sheet.height} col={COLUMN[world.hero.dir]} row={frame} />
         </g>
       </g>
@@ -460,6 +496,9 @@ export const Field = ({ world, skin, scene = {} }: { readonly world: World; read
         />
       )}
       {world.enemies.length > 0 && <Hearts hearts={world.hearts} max={world.maxHearts} x={view.x * CELL + 3} y={view.y * CELL + 3} />}
+      {world.energy !== null && (
+        <Energy energy={world.energy} x={view.x * CELL + 3} y={view.y * CELL + (world.enemies.length > 0 ? HEART + 7 : 3)} />
+      )}
     </svg>
   )
 }

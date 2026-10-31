@@ -2,8 +2,8 @@ import VirtualMachine, { type BlockUtility, type Runtime } from "scratch-vm"
 import vmLog from "scratch-vm/src/util/log.js"
 import { HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID } from "./blocks.ts"
 import { allGoalsMet, type Level, startWorld } from "./level.ts"
-import { checkProgram, type FailReason, MAX_ACTIONS, MAX_FRAMES, PASSES_PER_FRAME, type Program, resultOf, type RunResult, type Session } from "./program.ts"
-import { type Action, applyAction, atFinish, enemyAhead, onCrystal, wallAhead } from "./world.ts"
+import { checkProgram, type FailReason, fatalReason, MAX_ACTIONS, MAX_FRAMES, PASSES_PER_FRAME, type Program, resultOf, type RunResult, type Session } from "./program.ts"
+import { type Action, applyAction, atFinish, enemyAhead, onCrystal, trapAhead, wallAhead } from "./world.ts"
 
 /**
  * The program in the TurboWarp VM. The editor uses the VM to keep the program in project.json form; the run
@@ -82,7 +82,8 @@ const heroExtension = (level: Level | null, session: Session | null) =>
       const { world, outcome } = applyAction(session.world, action)
       session.world = world
       session.frames.push({ action, outcome, blockId: util.thread.peekStack() ?? null, world })
-      if (outcome === "crashed") this.finish("crashed")
+      const fatal = fatalReason(outcome)
+      if (fatal !== null) this.finish(fatal)
       else if (allGoalsMet(level, world)) this.finish(null)
       else if (world.hearts === 0) this.finish("defeated")
       else if (session.frames.length >= MAX_ACTIONS) this.finish("tooLong")
@@ -121,6 +122,9 @@ const heroExtension = (level: Level | null, session: Session | null) =>
     }
     enemyAhead() {
       return session !== null && enemyAhead(session.world)
+    }
+    trapAhead() {
+      return session !== null && trapAhead(session.world)
     }
   }
 

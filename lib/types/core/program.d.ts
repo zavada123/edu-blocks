@@ -15,8 +15,10 @@ export declare const MAX_FRAMES = 2000;
  * instead, so a run gives the same result on a slow phone and on the server.
  */
 export declare const PASSES_PER_FRAME = 20;
-/** `defeated`: the enemies took all the hearts. */
-export type FailReason = "badProgram" | "noStart" | "crashed" | "defeated" | "goalsNotMet" | "tooLong";
+/** `defeated`: the enemies took all the hearts. `trapped`: the hero stepped on a trap. `tired`: no steps left. */
+export type FailReason = "badProgram" | "noStart" | "crashed" | "trapped" | "tired" | "defeated" | "goalsNotMet" | "tooLong";
+/** The reason a run stops after this outcome, or null when it goes on. */
+export declare const fatalReason: (outcome: Outcome) => FailReason | null;
 export interface Frame {
     readonly action: Action;
     readonly outcome: Outcome;

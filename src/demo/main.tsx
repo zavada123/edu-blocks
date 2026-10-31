@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client"
 import { buildProgram } from "../core/build.ts"
 import { heroLevelOf } from "../core/xp.ts"
 import { levels } from "../levels/index.ts"
+import { chapterOf, isFirstChapter } from "../levels/chapters.ts"
 import { solutions } from "../levels/solutions.ts"
 import { type BlocksReport, EduBlocks } from "../ui/EduBlocks.tsx"
 import type { Skin } from "../ui/Field.tsx"
@@ -81,7 +82,7 @@ const Demo = () => {
           <select value={id} onChange={(e) => setId(e.target.value)}>
             {levels.map((l) => (
               <option key={l.id} value={l.id}>
-                {l.grade} клас · {l.title} {"★".repeat(best[l.id]?.stars ?? 0)}
+                {chapterOf(l.id)?.title ?? ""} · {l.title} {"★".repeat(best[l.id]?.stars ?? 0)}
               </option>
             ))}
           </select>
@@ -109,7 +110,7 @@ const Demo = () => {
           key={level.id}
           level={level}
           skin={skin}
-          large={level.grade === 3}
+          large={isFirstChapter(level.id)}
           xp={{ total, best: best[level.id]?.xp ?? 0 }}
           onComplete={onComplete}
           {...(showSolution ? { program: buildProgram(solutions[level.id] ?? []) } : {})}

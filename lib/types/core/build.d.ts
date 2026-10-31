@@ -4,14 +4,14 @@ import type { Program } from "./program.ts";
  * A short way to write a program in code: reference solutions of the levels and tests.
  * `buildProgram(["move", { repeat: 3, body: ["move", "collect"] }])` gives the same blocks the editor makes.
  */
-export type Question = "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | {
+export type Question = "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | {
     readonly not: Question;
 } | {
     readonly and: readonly [Question, Question];
 } | {
     readonly or: readonly [Question, Question];
 };
-export type Step = Exclude<HeroBlock, "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead"> | {
+export type Step = Exclude<HeroBlock, "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead"> | {
     readonly repeat: number;
     readonly body: ReadonlyArray<Step>;
 } | {

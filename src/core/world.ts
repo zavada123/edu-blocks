@@ -11,7 +11,8 @@ export interface Cell {
 }
 
 /**
- * Map rows, top to bottom. `#` wall, `.` floor, `S` start, `c` crystal, `F` finish.
+ * Map rows, top to bottom. `#` wall, `.` floor, `S` start, `c` crystal, `F` finish, `x` trap (thin ice or a pit:
+ * the hero can step on it, and the run ends there).
  * A space or a cell outside the rows is a wall too.
  */
 export type MapRows = ReadonlyArray<string>
@@ -27,6 +28,12 @@ export interface World {
   readonly hero: Cell & { readonly dir: Direction }
   /** Set once the hero walked into a wall. The run stops there. */
   readonly crashed: boolean
+  /** Trap cells: floor that ends the run when the hero steps on it. */
+  readonly traps: ReadonlySet<string>
+  /** Set once the hero stepped on a trap. The run stops there. */
+  readonly fell: boolean
+  /** Steps the hero may still take, or null when the level has no limit. */
+  readonly energy: number | null
   /** Enemies of the level, beaten ones too (with no hp left), in the order they act. */
   readonly enemies: ReadonlyArray<Enemy>
   /** Hearts the hero has left. At 0 the run stops. */
@@ -110,6 +117,7 @@ const CLOCKWISE: ReadonlyArray<Direction> = ["up", "right", "down", "left"]
 export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
   const walls = new Set<string>()
   const crystals = new Set<string>()
+  const traps = new Set<string>()
   let start: Cell | null = null
   let finish: Cell | null = null
   const width = Math.max(0, ...rows.map((r) => r.length))
@@ -118,6 +126,7 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
       const ch = row[x] ?? " "
       if (ch === "#" || ch === " ") walls.add(cellKey(x, y))
       else if (ch === "c") crystals.add(cellKey(x, y))
+      else if (ch === "x") traps.add(cellKey(x, y))
       else if (ch === "S") start = { x, y }
       else if (ch === "F") finish = { x, y }
       else if (ch !== ".") throw new Error(`Невідомий знак «${ch}» на мапі, рядок ${y + 1}`)
@@ -134,6 +143,9 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
     totalCrystals: crystals.size,
     hero: { x: s.x, y: s.y, dir },
     crashed: false,
+    traps,
+    fell: false,
+    energy: null,
     enemies: [],
     hearts: DEFAULT_HEARTS,
     maxHearts: DEFAULT_HEARTS
@@ -161,6 +173,11 @@ export const enemyAhead = (world: World): boolean => {
   return enemyAt(world, next.x, next.y) !== undefined
 }
 
+export const trapAhead = (world: World): boolean => {
+  const next = cellAhead(world)
+  return world.traps.has(cellKey(next.x, next.y))
+}
+
 export const onCrystal = (world: World): boolean => world.crystals.has(cellKey(world.hero.x, world.hero.y))
 
 export const atFinish = (world: World): boolean =>
@@ -172,6 +189,8 @@ export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack"
 export type Outcome =
   | "moved"
   | "crashed"
+  | "fell"
+  | "tired"
   | "turned"
   | "collected"
   | "nothingToCollect"
@@ -182,9 +201,12 @@ export type Outcome =
 const heroAction = (world: World, action: Action): { readonly world: World; readonly outcome: Outcome } => {
   if (action === "move") {
     const next = cellAhead(world)
+    if (world.energy === 0) return { world, outcome: "tired" }
     if (isWall(world, next.x, next.y) || enemyAt(world, next.x, next.y) !== undefined)
       return { world: { ...world, crashed: true }, outcome: "crashed" }
-    return { world: { ...world, hero: { ...world.hero, x: next.x, y: next.y } }, outcome: "moved" }
+    const energy = world.energy === null ? null : world.energy - 1
+    const moved = { ...world, energy, hero: { ...world.hero, x: next.x, y: next.y } }
+    return world.traps.has(cellKey(next.x, next.y)) ? { world: { ...moved, fell: true }, outcome: "fell" } : { world: moved, outcome: "moved" }
   }
   if (action === "turnLeft" || action === "turnRight") {
     const i = CLOCKWISE.indexOf(world.hero.dir)
@@ -272,8 +294,11 @@ const enemiesTurn = (world: World): World => {
   return { ...world, enemies, hearts }
 }
 
-/** One hero action, then the enemies' turn. A crash ends the run at once, so enemies do not move after it. */
+/** Outcomes that end the run at once: the enemies do not move after them. */
+export const isFatal = (outcome: Outcome): boolean => outcome === "crashed" || outcome === "fell" || outcome === "tired"
+
+/** One hero action, then the enemies' turn. A crash, a trap or the end of the steps ends the run at once. */
 export const applyAction = (world: World, action: Action): { readonly world: World; readonly outcome: Outcome } => {
   const done = heroAction(world, action)
-  return done.outcome === "crashed" ? done : { world: enemiesTurn(done.world), outcome: done.outcome }
+  return isFatal(done.outcome) ? done : { world: enemiesTurn(done.world), outcome: done.outcome }
 }

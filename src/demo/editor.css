@@ -242,3 +242,9 @@
   border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 8px;
 }
+
+.ed-icon-trap {
+  display: inline-block;
+  border-radius: 50%;
+  background: radial-gradient(circle, #1e3a5f 0 40%, #93c5fd 45% 60%, transparent 62%);
+}

@@ -126,6 +126,49 @@
   fill: rgba(30, 20, 30, 0.45);
 }
 
+.eb-energy {
+  fill: #fff;
+  font: 700 6.5px/1 system-ui, sans-serif;
+}
+
+/* Traps: thin ice in winter, a pit in summer. */
+.eb-trap-ice-sheet {
+  fill: #cfe8ff;
+  stroke: #8fc3ef;
+  stroke-width: 0.6;
+}
+
+.eb-trap-crack {
+  fill: none;
+  stroke: #3d74a8;
+  stroke-width: 0.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.eb-trap-water {
+  fill: #1d4f7c;
+}
+
+.eb-trap-rim {
+  fill: #7a4a26;
+}
+
+.eb-trap-hole {
+  fill: #2b1a10;
+}
+
+.eb-hero-fell {
+  animation: eb-fall 0.5s ease-in forwards;
+}
+
+@keyframes eb-fall {
+  to {
+    transform: translateY(3px) scale(0.6);
+    opacity: 0.35;
+  }
+}
+
 @keyframes eb-swing {
   from {
     transform: translateY(0);
@@ -176,6 +219,7 @@
   }
   .eb-hero,
   .eb-hero-crashed,
+  .eb-hero-fell,
   .eb-enemy,
   .eb-enemy-swing,
   .eb-hero-hurt,
