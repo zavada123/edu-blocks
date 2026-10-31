@@ -5,6 +5,7 @@ import { cellKey, type World } from "../../core/world.ts"
 import { propCells, seasonOf } from "../look.ts"
 import { buildScenery } from "../scenery.ts"
 import { CELL, drawActors, drawGround, type Skin } from "./draw.ts"
+import { cellAt, type Cell, drawHover } from "./hover.ts"
 import { whenLoaded } from "./images.ts"
 import { poseAt } from "./playback.ts"
 
@@ -82,6 +83,8 @@ export const Stage = ({ start, frames = NO_FRAMES, time = 0, skin, scene = {} }:
   // The latest props for the drawing loop, which runs outside React.
   const live = useRef({ start, frames, time, skin, scene, season, scenery, items, still })
   live.current = { start, frames, time, skin, scene, season, scenery, items, still }
+  // The cell under the mouse: it is lit, so children can count the steps.
+  const hover = useRef<Cell | null>(null)
   // The screen reader hears the field as it is after the action that plays.
   const settledTime = Math.ceil(time)
   const label = useMemo(() => describe(poseAt(start, frames, settledTime).world), [start, frames, settledTime])
@@ -132,6 +135,7 @@ export const Stage = ({ start, frames = NO_FRAMES, time = 0, skin, scene = {} }:
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       ctx.drawImage(groundCanvas, 0, 0)
       ctx.setTransform(scale, 0, 0, scale, -view.x * CELL * scale, -view.y * CELL * scale)
+      if (hover.current !== null) drawHover(ctx, hover.current)
       const t = s.still && s.time % 1 !== 0 ? Math.ceil(s.time) : s.time
       const pose = poseAt(s.start, s.frames, t)
       drawActors(ctx, {
@@ -148,6 +152,16 @@ export const Stage = ({ start, frames = NO_FRAMES, time = 0, skin, scene = {} }:
       frame = requestAnimationFrame(paint)
     }
     frame = requestAnimationFrame(paint)
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return
+      const box = canvas.getBoundingClientRect()
+      hover.current = cellAt(e.clientX - box.left, e.clientY - box.top, box, view, live.current.start)
+    }
+    const onLeave = () => {
+      hover.current = null
+    }
+    canvas.addEventListener("pointermove", onMove)
+    canvas.addEventListener("pointerleave", onLeave)
     // A picture that arrives late is drawn into the ground too.
     const stop = whenLoaded(() => {
       groundReady = false
@@ -155,6 +169,8 @@ export const Stage = ({ start, frames = NO_FRAMES, time = 0, skin, scene = {} }:
     return () => {
       cancelAnimationFrame(frame)
       stop()
+      canvas.removeEventListener("pointermove", onMove)
+      canvas.removeEventListener("pointerleave", onLeave)
     }
   }, [scenery])
 

@@ -535,6 +535,10 @@
   height: 100dvh;
 }
 
+html.eb-page-full {
+  overflow: hidden;
+}
+
 /* ---- Phone and narrow window ---- */
 
 @media (max-width: 760px) {
