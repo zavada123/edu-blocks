@@ -16,10 +16,15 @@ declare module "scratch-blocks/dist/vertical.js" {
   export interface WorkspaceSvg {
     /** The zoom: screen pixels per workspace unit. */
     scale: number
+    /** Where the program is on the screen, in screen pixels. */
+    scrollX: number
+    scrollY: number
+    translate(x: number, y: number): void
     addChangeListener(listener: (event: unknown) => void): void
     removeChangeListener(listener: (event: unknown) => void): void
     getFlyout(): Flyout | null
-    getToolbox(): Toolbox | null
+    /** No toolbox (undefined) for a flat palette. */
+    getToolbox(): Toolbox | null | undefined
     glowBlock(id: string, glowing: boolean): void
     glowStack(id: string, glowing: boolean): void
     updateToolbox(toolbox: string): void

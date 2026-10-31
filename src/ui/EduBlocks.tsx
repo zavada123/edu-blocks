@@ -91,7 +91,7 @@ const heroProgram = (vm: VirtualMachine): Program => {
  * The zoom buttons and the mouse wheel zoom the blocks of the flyout too, not only the program: the student sees
  * the blocks to choose at the same size. The flyout grows with them.
  */
-const followZoomInFlyout = (ws: WorkspaceSvg, el: HTMLElement) => {
+const followZoomInFlyout = (ws: WorkspaceSvg, el: HTMLElement, toolboxXml: string) => {
   const startScale = ws.scale
   const baseWidth = ScratchBlocks.VerticalFlyout.prototype.DEFAULT_WIDTH
   const setScale = ws.setScale.bind(ws)
@@ -101,11 +101,20 @@ const followZoomInFlyout = (ws: WorkspaceSvg, el: HTMLElement) => {
     if (flyout === null || flyout.getWorkspace().scale === ws.scale) return
     flyout.getWorkspace().scale = ws.scale
     const width = Math.round(Math.min((baseWidth * ws.scale) / startScale, el.clientWidth * MAX_FLYOUT_SHARE))
-    const toolbox = ws.getToolbox()
-    // The toolbox is the categories and the flyout: it grows by what the flyout grows.
-    if (toolbox !== null) toolbox.width += width - flyout.DEFAULT_WIDTH
-    flyout.DEFAULT_WIDTH = width
-    toolbox?.refreshSelection()
+    // A flat palette (a narrow editor) has no toolbox: then the flyout is all.
+    const toolbox = ws.getToolbox() ?? null
+    if (toolbox === null) {
+      // This flyout lies over the program: the program moves by what the flyout grows, so it stays in sight.
+      ws.scrollX += width - flyout.DEFAULT_WIDTH
+      flyout.DEFAULT_WIDTH = width
+      ws.updateToolbox(toolboxXml)
+      ws.translate(ws.scrollX, ws.scrollY)
+    } else {
+      // The toolbox is the categories and the flyout: it grows by what the flyout grows.
+      toolbox.width += width - flyout.DEFAULT_WIDTH
+      flyout.DEFAULT_WIDTH = width
+      toolbox.refreshSelection()
+    }
     ScratchBlocks.svgResize(ws)
   }
 }
@@ -169,8 +178,9 @@ export const EduBlocks = ({
     const compact = el.clientWidth < COMPACT_WIDTH
     ScratchBlocks.VerticalFlyout.prototype.DEFAULT_WIDTH = compact ? 150 : 250
     ScratchBlocks.ScratchMsgs.setLocale("uk")
+    const toolbox = toolboxXml(level.blocks, compact, procedureName(level))
     const ws = ScratchBlocks.inject(el, {
-      toolbox: toolboxXml(level.blocks, compact, procedureName(level)),
+      toolbox,
       media,
       sounds: false,
       comments: false,
@@ -181,7 +191,7 @@ export const EduBlocks = ({
       zoom: { controls: true, wheel: true, startScale: (large ? 0.9 : 0.75) * (compact ? 0.75 : 1) }
     })
     workspaceRef.current = ws
-    followZoomInFlyout(ws, el)
+    followZoomInFlyout(ws, el, toolbox)
 
     void withVmLock(async () => {
       const vm = createVm(null, null)
