@@ -77,7 +77,15 @@ export const GameScreen = ({
   readonly children: ReactNode
 }) => {
   const [picking, setPicking] = useState(false)
-  const { onSkinChange } = navigation
+  const { onSkinChange, onMap } = navigation
+  // The map is on the page: the game leaves full screen first.
+  const toMap =
+    onMap === undefined
+      ? undefined
+      : () => {
+          if (full) onFull()
+          onMap()
+        }
   // The goals tick as the hero meets them.
   const world = result === null ? start : (result.frames[Math.floor(player.time) - 1]?.world ?? start)
   return (
@@ -87,7 +95,7 @@ export const GameScreen = ({
         skin={skin}
         xpTotal={xpTotal}
         progress={navigation.progress ?? {}}
-        onMap={navigation.onMap}
+        onMap={toMap}
         onPickHero={onSkinChange === undefined ? undefined : () => setPicking(true)}
       />
       <div className="eb-stage" role="group" aria-label="Поле">
