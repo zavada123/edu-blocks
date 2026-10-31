@@ -47,7 +47,7 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "finish" }],
     stars: { three: 5, two: 7 },
     hint: "Спершу два кроки, потім поворот ліворуч і ще два кроки.",
-    scene: { theme: "autumn", finish: "home" }
+    scene: { theme: "autumn", finish: "home", props: [{ kind: "house", x: 1.5, y: -2 }] }
   },
   {
     id: "g3-logs",
@@ -76,8 +76,8 @@ export const levels: ReadonlyArray<Level> = [
   {
     id: "g3-zigzag",
     tier: "challenge",
-    title: "Між калюжами",
-    task: ["Друзі кличуть стрибати в купі листя.", "Стежка петляє між калюжами: то вниз, то вправо. Не ступи в калюжу."],
+    title: "Звивиста стежка",
+    task: ["Друзі кличуть стрибати в купі листя.", "Стежка петляє між кущами: то вниз, то вправо. Не зійди зі стежки."],
     map: ["#######", "#S.####", "##..###", "###..##", "####.F#", "#######"],
     blocks: ["move", "turnLeft", "turnRight"],
     goals: [{ type: "finish" }],
@@ -89,7 +89,7 @@ export const levels: ReadonlyArray<Level> = [
     id: "g4-road",
     tier: "intro",
     title: "Дорога до лісу",
-    task: ["Дідусь чекає в лісі з возом дров.", "Дорога пряма, але довга. Скільки кроків? Поклади «крок уперед» у «повторити»."],
+    task: ["Дідусь чекає в лісі з возом дров і позначив місце прапорцем.", "Дорога пряма, але довга. Скільки кроків? Поклади «крок уперед» у «повторити»."],
     map: ["##############", "#S..........F#", "##############"],
     blocks: ["move", "repeat"],
     goals: [{ type: "finish" }],
@@ -119,7 +119,7 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }],
     stars: { three: 6, two: 9 },
     hint: "Один «повторити» для кроків праворуч, поворот, і другий «повторити» для кроків униз.",
-    scene: { theme: "autumn", item: "wood", npcs: [{ who: "hunter", x: 6, y: 3 }] }
+    scene: { theme: "autumn", item: "wood", props: [{ kind: "house", x: 3, y: 2 }], npcs: [{ who: "hunter", x: 6, y: 5 }] }
   },
   {
     id: "g4-stairs",
@@ -137,7 +137,7 @@ export const levels: ReadonlyArray<Level> = [
     id: "g4-sled",
     tier: "practice",
     title: "Гірка для санчат",
-    task: ["До великої гірки веде довга стежка між кучугурами.", "Знайди, що повторюється, і зроби програму короткою."],
+    task: ["Друзі позначили прапорцем велику гірку, а до неї веде довга стежка між кучугурами.", "Знайди, що повторюється, і зроби програму короткою."],
     map: ["#########", "#S.######", "##..#####", "###..####", "####..###", "#####..##", "######.F#", "#########"],
     blocks: ["move", "turnLeft", "turnRight", "repeat"],
     goals: [{ type: "finish" }],
@@ -172,8 +172,8 @@ export const levels: ReadonlyArray<Level> = [
   {
     id: "g4-fence",
     tier: "practice",
-    title: "Дрова вздовж паркану",
-    task: ["Дрова попадали з воза вздовж паркану, але не всюди.", "Іди вздовж паркану й бери поліно лише там, де воно є."],
+    title: "Дрова біля дровітні",
+    task: ["Дрова попадали з воза на стежку біля дровітні, але не всюди.", "Іди стежкою й бери поліно лише там, де воно є."],
     map: ["#########", "#S.cc..c#", "#######.#", "#######c#", "#######.#", "#######c#", "#########"],
     blocks: ["move", "turnLeft", "turnRight", "collect", "repeat", "if", "onCrystal"],
     goals: [{ type: "crystals" }],
@@ -184,20 +184,21 @@ export const levels: ReadonlyArray<Level> = [
   {
     id: "g5-snake",
     tier: "intro",
-    title: "Навколо ставка",
-    task: ["Лід на ставку тонкий, тож додому треба йти бережком.", "Повторюй: якщо попереду стіна — поверни праворуч, інакше зроби крок."],
-    map: ["########", "#S.....#", "######.#", "#F.....#", "########"],
+    title: "Навколо гаю",
+    task: ["Гай замело снігом, тож додому треба йти стежкою навколо нього.", "Повторюй: якщо попереду стіна — поверни праворуч, інакше зроби крок."],
+    map: ["########", "#.....F#", "#.######", "#.....S#", "########"],
+    dir: "left",
     blocks: ["move", "turnLeft", "turnRight", "repeat", "ifElse", "wallAhead"],
     goals: [{ type: "finish" }],
     stars: { three: 5, two: 8 },
     hint: "Блок «якщо… то… інакше» сам вирішує, що робити: повернути чи йти. Залишилось порахувати, скільки разів повторити.",
-    scene: { theme: "winter", finish: "home" }
+    scene: { theme: "winter", finish: "home", props: [{ kind: "house", x: 4.5, y: -2 }] }
   },
   {
     id: "g4-until",
     tier: "practice",
     title: "Довгий міст",
-    task: ["Комора зачинена, а ключ — у скрині на тому боці довгого мосту.", "Іди мостом, доки попереду не скінчиться міст, і візьми ключ."],
+    task: ["Комора зачинена, а ключ лежить на тому боці довгого мосту.", "Іди мостом, доки попереду не скінчиться міст, і візьми ключ."],
     map: ["############", "#S........c#", "############"],
     blocks: ["move", "collect", "repeatUntil", "wallAhead"],
     goals: [{ type: "crystals" }],
@@ -227,7 +228,7 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }, { type: "finish" }],
     stars: { three: 6, two: 9 },
     hint: "«Повторити до на меті?», а всередині: крок і «якщо тут щось є? то взяти».",
-    scene: { theme: "winter", item: "wood", finish: "home" }
+    scene: { theme: "winter", item: "wood", finish: "home", props: [{ kind: "house", x: 9.5, y: -2 }] }
   },
   {
     id: "g6-spiral",
@@ -263,7 +264,7 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "finish" }],
     stars: { three: 10, two: 12 },
     hint: "Пастку не можна переступити: зійди на нижній ряд, пройди повз неї й повернись на стежку.",
-    scene: { theme: "winter", ground: "ice", finish: "home" }
+    scene: { theme: "winter", ground: "ice", finish: "home", props: [{ kind: "house", x: 3.5, y: -2 }] }
   },
   {
     id: "p-field",
@@ -295,7 +296,7 @@ export const levels: ReadonlyArray<Level> = [
     id: "p-fires",
     tier: "challenge",
     title: "Три вогнища",
-    task: ["Вечоріє: у кутах галявини треба розпалити три вогнища.", "Сил вистачить на 15 кроків, а між деревами є ополонки. Вибери, з якого вогнища почати."],
+    task: ["Вечоріє: у кутах галявини треба розпалити три вогнища.", "Сил вистачить на 15 кроків, а на галявині є замерзлі калюжі з тонким льодом. Вибери, з якого вогнища почати."],
     map: ["#########", "#c.....c#", "#.x.x.x.#", "#...S...#", "#.x.x.x.#", "#......c#", "#########"],
     dir: "up",
     blocks: ["move", "turnLeft", "turnRight", "collect", "repeat"],
@@ -315,19 +316,19 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "finish" }],
     stars: { three: 8, two: 11 },
     hint: "Повторюй, доки не дійдеш до мети: якщо попереду пастка, то поверни ліворуч, крок і праворуч, інакше крок.",
-    scene: { theme: "winter", finish: "grandma" }
+    scene: { theme: "winter", ground: "ice", finish: "grandma" }
   },
   {
     id: "p-river",
     tier: "practice",
     title: "Обхід ополонок",
     task: ["Рибалки зробили на річці дві ополонки.", "Обхід біля кожної однаковий: напиши його один раз у «якщо попереду пастка»."],
-    map: ["#############", "###...##...##", "#S..x....x.F#", "#############"],
+    map: ["###############", "###...##...####", "#S..x....x...F#", "###############"],
     blocks: ["move", "turnLeft", "turnRight", "repeatUntil", "ifElse", "trapAhead", "atFinish"],
     goals: [{ type: "finish" }],
     stars: { three: 13, two: 17 },
     hint: "Якщо попереду пастка: ліворуч, крок, праворуч, два кроки, праворуч, крок, ліворуч. Інакше просто крок.",
-    scene: { theme: "winter", ground: "ice", finish: "home" }
+    scene: { theme: "winter", ground: "ice", finish: "home", props: [{ kind: "house", x: 11.5, y: -1 }] }
   },
   {
     id: "p-fork",
