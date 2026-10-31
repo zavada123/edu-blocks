@@ -29,6 +29,8 @@ export interface Frame {
     /** Which goals of the level are met after the action, in the order of `level.goals`. */
     readonly goals: ReadonlyArray<boolean>;
     readonly world: World;
+    /** The counter after the move, on a level with «лічильник». */
+    readonly counter?: string;
 }
 export interface RunResult {
     readonly levelId: string;

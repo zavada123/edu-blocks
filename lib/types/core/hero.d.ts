@@ -22,6 +22,8 @@ export declare const newSession: (level: Level) => Session;
 export interface ActionSource {
     /** The block, for block programs. */
     readonly blockId: string | null;
+    /** The counter at this moment, on a level with «лічильник». */
+    readonly counter?: string;
 }
 /**
  * The hero does one action, the enemies take their turn, and the frame is written down. Returns true when the run

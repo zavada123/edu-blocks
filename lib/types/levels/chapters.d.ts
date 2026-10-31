@@ -3,7 +3,7 @@ import type { Level } from "../core/level.ts";
  * The course in chapters by what a student learns, not by school grade: each chapter brings one new idea and
  * ends with a level that makes the student think. A student of any age starts with the first chapter.
  */
-export type ChapterId = "sequence" | "loops" | "conditions" | "while" | "puzzles" | "enemies";
+export type ChapterId = "sequence" | "loops" | "conditions" | "while" | "puzzles" | "enemies" | "counter";
 export interface Chapter {
     readonly id: ChapterId;
     readonly title: string;

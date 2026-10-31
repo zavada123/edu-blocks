@@ -1,10 +1,9 @@
 import { StrictMode, useState } from "react"
 import { createRoot } from "react-dom/client"
-import { buildProgram } from "../core/build.ts"
 import { heroLevelOf } from "../core/xp.ts"
 import { levels } from "../levels/index.ts"
 import { chapterOf, isFirstChapter } from "../levels/chapters.ts"
-import { solutions } from "../levels/solutions.ts"
+import { solutionProgram } from "../levels/solutions.ts"
 import { type BlocksReport, EduBlocks } from "../ui/EduBlocks.tsx"
 import type { Skin } from "../ui/Field.tsx"
 import "./demo.css"
@@ -113,7 +112,7 @@ const Demo = () => {
           large={isFirstChapter(level.id)}
           xp={{ total, best: best[level.id]?.xp ?? 0 }}
           onComplete={onComplete}
-          {...(showSolution ? { program: buildProgram(solutions[level.id] ?? []) } : {})}
+          {...(showSolution ? { program: solutionProgram(level.id) } : {})}
         />
       </main>
     </div>

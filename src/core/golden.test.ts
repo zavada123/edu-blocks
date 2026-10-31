@@ -2,7 +2,7 @@ import { createHash } from "node:crypto"
 import { readFileSync, writeFileSync } from "node:fs"
 import { describe, expect, test } from "vitest"
 import { levels } from "../levels/index.ts"
-import { solutions } from "../levels/solutions.ts"
+import { definitions, solutions } from "../levels/solutions.ts"
 import { buildProgram, type Question, type Step } from "./build.ts"
 import { judgeProgram } from "./judge.ts"
 import type { BlockName, Level } from "./level.ts"
@@ -81,9 +81,10 @@ const digest = (r: RunResult): string => {
 const runsOf = (level: Level): Record<string, string> => {
   const solution = solutions[level.id] ?? []
   const open: Level = { ...level, blocks: ALL_BLOCKS }
-  const runs: Record<string, string> = { solution: digest(judgeProgram(level, buildProgram(solution))) }
+  const definition = definitions[level.id]
+  const runs: Record<string, string> = { solution: digest(judgeProgram(level, buildProgram(solution, definition))) }
   for (let cut = 1; cut <= Math.min(3, solution.length); cut++)
-    runs[`solution-${cut}`] = digest(judgeProgram(level, buildProgram(solution.slice(0, -cut))))
+    runs[`solution-${cut}`] = digest(judgeProgram(level, buildProgram(solution.slice(0, -cut), definition)))
   const next = random([...level.id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 17))
   for (let i = 0; i < 25; i++) runs[`random-${i}`] = digest(judgeProgram(open, buildProgram(randomProgram(next))))
   return runs

@@ -191,7 +191,23 @@ Each frame of a `RunResult` has the `action`, its `outcome`, the `blockId` that 
 `goals` met so far (in the order of `level.goals`) and the `events` in the order they happened: `heroMoved`,
 `heroTurned`, `heroBumped`, `heroFell`, `heroTired`, `itemTaken`, `nothingToTake`, `heroSwung`, `enemyHit`,
 `enemyDown`, `enemyMoved`, `enemyWindUp` and `heroHurt`. An animation can play the events instead of guessing them
-from two worlds.
+from two worlds. On a level with the counter a frame also has `counter`, the value after the action.
+
+### Counter and custom blocks
+
+Two palette names bring Scratch blocks beyond the hero:
+
+- `"counter"`: «надати лічильник значення», «змінити лічильник на» and the (лічильник) reporter, as «Змінні» in
+  Scratch. There is one variable, `eb-counter`; it is 0 at the start of every run. «повторити (лічильник)» takes the
+  count once, when the loop starts.
+- `"procedure"`: the «визначити» hat of one custom block and its call, as «Мої блоки». The name comes from
+  `level.procedure` («мій блок» by default). The student does not make new blocks or arguments; a block may call
+  itself. «Без оновлення екрана» is refused, since in Scratch it depends on the clock.
+
+In code, `buildProgram` takes `{ set: n }`, `{ change: n }`, `{ repeat: "counter", body }` and `"call"`, and a second
+argument with the custom block: `buildProgram(["call", "call"], { name: "обійти", body: [...] })`. The interpreter
+keeps a stack of frames for each script, as the VM does, and the tests compare it with the VM on random programs that
+use both.
 
 ### Level editor and level kit
 

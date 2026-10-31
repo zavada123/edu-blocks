@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
 import { levels } from "../levels/index.ts"
-import { solutions } from "../levels/solutions.ts"
+import { definitions, solutions } from "../levels/solutions.ts"
 import { adviseRun, MAX_ADVICE } from "./advice.ts"
 import { buildProgram, type Step } from "./build.ts"
 import { judgeProgram } from "./judge.ts"
@@ -13,7 +13,7 @@ const level = (id: string): Level => {
 }
 
 const advise = (id: string, steps: ReadonlyArray<Step>) => {
-  const program = buildProgram(steps)
+  const program = buildProgram(steps, definitions[id])
   return adviseRun(level(id), program, judgeProgram(level(id), program))
 }
 

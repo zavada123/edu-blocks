@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
 import { levels } from "../levels/index.ts"
-import { solutions } from "../levels/solutions.ts"
+import { solutionProgram, solutions } from "../levels/solutions.ts"
 import { buildProgram } from "./build.ts"
 import type { Level } from "./level.ts"
 import { allowedOpcodes } from "./blocks.ts"
@@ -18,7 +18,7 @@ describe("reference solutions", () => {
   test.each(levels.map((l) => [l.id, l]))("%s passes with three stars", async (_id, lvl) => {
     const steps = solutions[lvl.id]
     expect(steps).toBeDefined()
-    const result = await runProgram(lvl, buildProgram(steps ?? []))
+    const result = await runProgram(lvl, solutionProgram(lvl.id))
     expect(result.reason).toBeNull()
     expect(result.passed).toBe(true)
     expect(result.stars).toBe(3)
@@ -122,8 +122,8 @@ describe("runProgram", () => {
 
   test("runs at the same time do not mix their heroes", async () => {
     const [a, b] = await Promise.all([
-      runProgram(level("g3-steps"), buildProgram(solutions["g3-steps"] ?? [])),
-      runProgram(level("g3-turn"), buildProgram(solutions["g3-turn"] ?? []))
+      runProgram(level("g3-steps"), solutionProgram("g3-steps")),
+      runProgram(level("g3-turn"), solutionProgram("g3-turn"))
     ])
     expect(a.passed && b.passed).toBe(true)
   })

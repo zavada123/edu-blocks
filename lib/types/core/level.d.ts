@@ -1,7 +1,11 @@
 import { type Direction, type EnemySpec, type MapRows, type World } from "./world.ts";
 import type { Tier } from "./xp.ts";
 /** Blocks a level can put into the palette. Hero blocks and the Scratch blocks with the same meaning. */
-export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "wallAhead" | "enemyAhead" | "trapAhead" | "onCrystal" | "atFinish" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or";
+export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "wallAhead" | "enemyAhead" | "trapAhead" | "onCrystal" | "atFinish" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or"
+/** «задати / змінити лічильник» and the (лічильник) reporter: one variable, as «Змінні» in Scratch. */
+ | "counter"
+/** A custom block of the level: its «визначити» hat and the call, as «Мої блоки» in Scratch. */
+ | "procedure";
 /** What the hero must achieve. All goals of a level are checked together. */
 export type Goal = {
     readonly type: "crystals";
@@ -65,6 +69,8 @@ export interface Level {
     readonly hearts?: number;
     /** Steps («крок уперед») the hero may take. No limit when left out. */
     readonly maxSteps?: number;
+    /** The name of the custom block when the palette has «procedure». «мій блок» when left out. */
+    readonly procedure?: string;
     /** Summer, crystals and a flag when left out. */
     readonly scene?: Scene;
     /** Sets the XP of the level. An intro level when left out. */

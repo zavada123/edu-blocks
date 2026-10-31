@@ -1,7 +1,7 @@
 import { serializeBlocks } from "scratch-vm/src/serialization/sb3.js"
 import { describe, expect, test } from "vitest"
 import { levels } from "../levels/index.ts"
-import { solutions } from "../levels/solutions.ts"
+import { solutionProgram } from "../levels/solutions.ts"
 import { buildProgram, type Question, type Step } from "./build.ts"
 import { judgeProgram } from "./judge.ts"
 import type { BlockName, Level } from "./level.ts"
@@ -82,7 +82,7 @@ const asEditorSaves = (program: Program): Promise<Program> =>
 
 describe("judgeProgram", () => {
   test.each(levels.map((l) => [l.id, l]))("%s: the reference solution passes with three stars", (_id, lvl) => {
-    const result = judgeProgram(lvl, buildProgram(solutions[lvl.id] ?? []))
+    const result = judgeProgram(lvl, solutionProgram(lvl.id))
     expect(result).toMatchObject({ passed: true, reason: null, stars: 3 })
   })
 
@@ -156,7 +156,7 @@ describe("judgeProgram", () => {
 
   test("reads the program in the form the editor saves", async () => {
     for (const lvl of levels) {
-      const saved = await asEditorSaves(buildProgram(solutions[lvl.id] ?? []))
+      const saved = await asEditorSaves(solutionProgram(lvl.id))
       expect(JSON.stringify(saved)).not.toContain("math_whole_number")
       expect(judgeProgram(lvl, saved)).toMatchObject({ passed: true, stars: 3 })
     }
