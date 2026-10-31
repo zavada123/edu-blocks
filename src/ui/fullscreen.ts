@@ -25,10 +25,14 @@ export const takeFullScreen = (now: number): boolean => {
 }
 
 /**
- * What goes into the browser's full screen: the element around the game. The app keeps it when it opens the next
- * level as a new game, so the browser stays in full screen; the game covers it (`.eb-full`).
+ * What goes into the browser's full screen: the whole page. The page stays when the app opens the next level as a
+ * new game, so the browser stays in full screen; the game covers the page (`.eb-full`). The block editor puts its
+ * number field and its menus on the page body, so they show in full screen too.
  */
-const targetOf = (root: HTMLElement): HTMLElement => root.parentElement ?? root
+const fullScreenTarget = (): HTMLElement => document.documentElement
+
+/** While the game covers the page, the page under it does not scroll. */
+const PAGE_CLASS = "eb-page-full"
 
 /**
  * Full screen for the game. The browser's full screen where it works; elsewhere (an iPhone) the game covers the
@@ -49,9 +53,7 @@ export const useFullScreen = () => {
 
   const enter = useCallback(() => {
     setFull(true)
-    const root = rootRef.current
-    if (root === null) return
-    const target = targetOf(root)
+    const target = fullScreenTarget()
     if (document.fullscreenElement === target) {
       owns.current = true
       return
@@ -62,11 +64,10 @@ export const useFullScreen = () => {
   useEffect(() => {
     if (takeFullScreen(Date.now())) enter()
     return () => {
-      const root = rootRef.current
       handOffFullScreen(fullRef.current, Date.now())
-      if (!owns.current || root === null) return
-      // No next game came: the element around the game leaves the browser's full screen.
-      const target = targetOf(root)
+      if (!owns.current) return
+      // No next game came: the page leaves the browser's full screen.
+      const target = fullScreenTarget()
       setTimeout(() => {
         if (handoffPending() && document.fullscreenElement === target) void document.exitFullscreen().catch(() => undefined)
       }, FULL_SCREEN_HANDOFF_MS)
@@ -75,8 +76,7 @@ export const useFullScreen = () => {
 
   useEffect(() => {
     const onChange = () => {
-      const root = rootRef.current
-      if (root !== null && document.fullscreenElement === targetOf(root)) owns.current = true
+      if (document.fullscreenElement === fullScreenTarget()) owns.current = true
       else if (owns.current) {
         owns.current = false
         setFull(false)
@@ -91,6 +91,13 @@ export const useFullScreen = () => {
     owns.current = false
     if (document.fullscreenElement !== null) void document.exitFullscreen().catch(() => undefined)
   }, [setFull])
+
+  useEffect(() => {
+    if (!full) return
+    const page = document.documentElement
+    page.classList.add(PAGE_CLASS)
+    return () => page.classList.remove(PAGE_CLASS)
+  }, [full])
 
   useEffect(() => {
     if (!full) return
