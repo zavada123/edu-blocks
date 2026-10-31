@@ -2,7 +2,7 @@ import type { BlockName } from "./level.ts";
 /** ID of the VM extension with the hero blocks. Opcodes in a program read `hero_move`. */
 export declare const HERO_EXTENSION_ID = "hero";
 export declare const HERO_COLOR = "#0FBD8C";
-export type HeroBlock = Extract<BlockName, "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead">;
+export type HeroBlock = Extract<BlockName, "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead">;
 /** Hero blocks in palette order. `boolean` blocks are the questions for «якщо» and «повторити до». */
 export declare const HERO_BLOCKS: ReadonlyArray<{
     readonly name: HeroBlock;

@@ -4,7 +4,7 @@ import type { BlockName } from "./level.ts"
 export const HERO_EXTENSION_ID = "hero"
 export const HERO_COLOR = "#0FBD8C"
 
-export type HeroBlock = Extract<BlockName, "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead">
+export type HeroBlock = Extract<BlockName, "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead">
 
 /** Hero blocks in palette order. `boolean` blocks are the questions for «якщо» and «повторити до». */
 export const HERO_BLOCKS: ReadonlyArray<{ readonly name: HeroBlock; readonly text: string; readonly boolean: boolean }> = [
@@ -16,7 +16,8 @@ export const HERO_BLOCKS: ReadonlyArray<{ readonly name: HeroBlock; readonly tex
   { name: "wallAhead", text: "попереду стіна?", boolean: true },
   { name: "onCrystal", text: "тут щось є?", boolean: true },
   { name: "atFinish", text: "дійшов до мети?", boolean: true },
-  { name: "enemyAhead", text: "попереду ворог?", boolean: true }
+  { name: "enemyAhead", text: "попереду ворог?", boolean: true },
+  { name: "trapAhead", text: "попереду пастка?", boolean: true }
 ]
 
 const HERO_NAMES: ReadonlySet<string> = new Set(HERO_BLOCKS.map((b) => b.name))

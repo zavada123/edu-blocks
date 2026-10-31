@@ -83,4 +83,13 @@ describe("adviseRun", () => {
     expect(tips.join(" ")).toContain("Лишилось ворогів: 2")
     expect(tips.join(" ")).toContain("влучив у порожнечу")
   })
+
+  test("a trap and a run out of steps say what went wrong", () => {
+    expect(judgeProgram(level("p-thin-ice"), buildProgram(["move", "move"])).reason).toBe("trapped")
+    expect(advise("p-thin-ice", ["move", "move"])[0]).toContain("пастку")
+    expect(advise("p-stairs", ["move", "move", "move"])).toContain("Спитай «попереду пастка?» перед кроком і обійди її, якщо так.")
+    const greedy: ReadonlyArray<Step> = ["move", "move", "collect", "move", "move", "move", "collect", "turnLeft", "turnLeft", { repeat: 8, body: ["move"] }, "collect"]
+    expect(judgeProgram(level("p-cold"), buildProgram(greedy)).reason).toBe("tired")
+    expect(advise("p-cold", greedy)[0]).toContain("зробив 11 кроків з 11")
+  })
 })

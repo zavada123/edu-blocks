@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
 import { goalMet, type Level, startWorld } from "./level.ts"
-import { type Action, applyAction, atFinish, cellKey, enemiesLeft, type EnemySpec, enemyAhead, onCrystal, parseMap, wallAhead, type World } from "./world.ts"
+import { type Action, applyAction, atFinish, cellKey, enemiesLeft, type EnemySpec, enemyAhead, onCrystal, parseMap, trapAhead, wallAhead, type World } from "./world.ts"
 
 describe("parseMap", () => {
   test("reads walls, crystals, start and finish", () => {
@@ -72,7 +72,6 @@ describe("applyAction", () => {
 describe("enemies", () => {
   const level = (enemies: ReadonlyArray<EnemySpec>, map: Level["map"] = ["#########", "#S......#", "#########"]): Level => ({
     id: "t",
-    grade: 5,
     title: "t",
     task: [],
     map,
@@ -148,5 +147,38 @@ describe("enemies", () => {
     expect(start.hearts).toBe(5)
     expect(goalMet(start, { type: "enemies" })).toBe(false)
     expect(goalMet(play(start, ["move", "attack"]), { type: "enemies" })).toBe(true)
+  })
+})
+
+describe("traps and steps", () => {
+  test("a trap is floor the hero can step on, and the run ends there", () => {
+    const world = parseMap(["#####", "#Sx.#", "#####"])
+    expect(world.traps.has(cellKey(2, 1))).toBe(true)
+    expect(trapAhead(world)).toBe(true)
+    const { world: next, outcome } = applyAction(world, "move")
+    expect(outcome).toBe("fell")
+    expect(next.fell).toBe(true)
+    expect(next.hero).toMatchObject({ x: 2, y: 1 })
+  })
+
+  test("a level with a step limit counts the steps, and the hero cannot step with none left", () => {
+    const level: Level = {
+      id: "t",
+      title: "t",
+      task: ["t"],
+      map: ["#####", "#S..#", "#####"],
+      blocks: ["move", "turnLeft"],
+      goals: [{ type: "finish" }],
+      maxSteps: 1
+    }
+    const start = startWorld(level)
+    expect(start.energy).toBe(1)
+    const once = applyAction(start, "move").world
+    expect(once.energy).toBe(0)
+    expect(applyAction(once, "turnLeft").outcome).toBe("turned")
+    const tired = applyAction(once, "move")
+    expect(tired.outcome).toBe("tired")
+    expect(tired.world.hero).toEqual(once.hero)
+    expect(parseMap(level.map).energy).toBeNull()
   })
 })

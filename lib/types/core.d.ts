@@ -10,6 +10,7 @@ export { checkProgram, MAX_ACTIONS, MAX_FRAMES, MAX_PROGRAM_BLOCKS } from "./cor
 export type { FailReason, Frame, Program, RunResult } from "./core/program.ts";
 export * from "./core/world.ts";
 export { levels } from "./levels/index.ts";
+export * from "./levels/chapters.ts";
 export { solutions } from "./levels/solutions.ts";
 export * from "./core/xp.ts";
 export { adviseRun, MAX_ADVICE } from "./core/advice.ts";

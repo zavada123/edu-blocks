@@ -38,5 +38,25 @@ export const solutions: Readonly<Record<string, ReadonlyArray<Step>>> = {
     { until: "enemyAhead", body: ["move"] },
     { repeat: 3, body: ["attack"] },
     { until: "atFinish", body: [{ if: "wallAhead", then: ["turnRight"], else: ["move"] }] }
-  ]
+  ],
+  "p-thin-ice": ["move", "turnRight", "move", "turnLeft", "move", "move", "turnLeft", "move", "turnRight", "move"],
+  "p-field": ["move", "move", "turnRight", { repeat: 4, body: ["move"] }, "turnLeft", "move"],
+  "p-cold": [
+    "turnLeft", "turnLeft", { repeat: 3, body: ["move"] }, "collect",
+    "turnLeft", "turnLeft", { repeat: 5, body: ["move"] }, "collect",
+    { repeat: 3, body: ["move"] }, "collect"
+  ],
+  "p-fires": [
+    "turnLeft", "move", "turnRight", "move", "move", "turnLeft", "move", "move", "collect",
+    "turnLeft", "turnLeft", { repeat: 6, body: ["move"] }, "collect",
+    "turnRight", { repeat: 4, body: ["move"] }, "collect"
+  ],
+  "p-stairs": [{ until: "atFinish", body: [{ if: "trapAhead", then: ["turnLeft", "move", "turnRight"], else: ["move"] }] }],
+  "p-river": [
+    {
+      until: "atFinish",
+      body: [{ if: "trapAhead", then: ["turnLeft", "move", "turnRight", "move", "move", "turnRight", "move", "turnLeft"], else: ["move"] }]
+    }
+  ],
+  "p-fork": [{ until: "atFinish", body: [{ if: "wallAhead", then: ["turnRight"], else: ["move"] }] }]
 }

@@ -8,7 +8,8 @@ export interface Cell {
     readonly y: number;
 }
 /**
- * Map rows, top to bottom. `#` wall, `.` floor, `S` start, `c` crystal, `F` finish.
+ * Map rows, top to bottom. `#` wall, `.` floor, `S` start, `c` crystal, `F` finish, `x` trap (thin ice or a pit:
+ * the hero can step on it, and the run ends there).
  * A space or a cell outside the rows is a wall too.
  */
 export type MapRows = ReadonlyArray<string>;
@@ -25,6 +26,12 @@ export interface World {
     };
     /** Set once the hero walked into a wall. The run stops there. */
     readonly crashed: boolean;
+    /** Trap cells: floor that ends the run when the hero steps on it. */
+    readonly traps: ReadonlySet<string>;
+    /** Set once the hero stepped on a trap. The run stops there. */
+    readonly fell: boolean;
+    /** Steps the hero may still take, or null when the level has no limit. */
+    readonly energy: number | null;
     /** Enemies of the level, beaten ones too (with no hp left), in the order they act. */
     readonly enemies: ReadonlyArray<Enemy>;
     /** Hearts the hero has left. At 0 the run stops. */
@@ -76,12 +83,15 @@ export declare const cellAhead: (world: World) => Cell;
 export declare const wallAhead: (world: World) => boolean;
 export declare const enemyAt: (world: World, x: number, y: number) => Enemy | undefined;
 export declare const enemyAhead: (world: World) => boolean;
+export declare const trapAhead: (world: World) => boolean;
 export declare const onCrystal: (world: World) => boolean;
 export declare const atFinish: (world: World) => boolean;
 export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack";
 /** What one action did, for the animation and the error message. */
-export type Outcome = "moved" | "crashed" | "turned" | "collected" | "nothingToCollect" | "enemyHit" | "enemyDown" | "swingMissed";
-/** One hero action, then the enemies' turn. A crash ends the run at once, so enemies do not move after it. */
+export type Outcome = "moved" | "crashed" | "fell" | "tired" | "turned" | "collected" | "nothingToCollect" | "enemyHit" | "enemyDown" | "swingMissed";
+/** Outcomes that end the run at once: the enemies do not move after them. */
+export declare const isFatal: (outcome: Outcome) => boolean;
+/** One hero action, then the enemies' turn. A crash, a trap or the end of the steps ends the run at once. */
 export declare const applyAction: (world: World, action: Action) => {
     readonly world: World;
     readonly outcome: Outcome;

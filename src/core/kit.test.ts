@@ -7,7 +7,6 @@ import type { Level } from "./level.ts"
 
 const base: Level = {
   id: "my-1",
-  grade: 3,
   title: "Мій рівень",
   task: ["Візьми дрова."],
   map: ["#####", "#S.c#", "#####"],
@@ -48,7 +47,7 @@ describe("level kit", () => {
       checkLevel(l)
         .filter((i) => i.level === "error")
         .map((i) => i.text)
-    expect(texts({ ...base, map: ["#####", "#S#c#", "#####"] })).toEqual(["Герой не дійде до 1 предмета: їх відрізають стіни"])
+    expect(texts({ ...base, map: ["#####", "#S#c#", "#####"] })).toEqual(["Герой не дійде до 1 предмета: їх відрізають стіни або пастки"])
     expect(texts({ ...base, blocks: ["move"] })).toEqual(["Предмети треба брати, а в палітрі немає «взяти»"])
     expect(texts({ ...base, goals: [{ type: "finish" }] })).toEqual(["Мета — дійти до F, а на мапі немає F"])
     expect(texts({ ...base, map: ["#####", "#..c#", "#####"] })).toEqual(["На мапі немає старту S"])

@@ -164,6 +164,19 @@ const enemyGoalAdvice = (level: Level, result: RunResult): ReadonlyArray<string>
 }
 
 /** What is extra in a program: a «взяти» on an empty cell, turns that cancel out. */
+const trapAdvice = (level: Level, result: RunResult): ReadonlyArray<string> => {
+  const tips = [`На ${result.frames.length}-й дії герой ступив на пастку. Обійди її: пастка — як стіна, тільки її не видно, поки не придивишся.`]
+  if (level.blocks.includes("trapAhead")) tips.push("Спитай «попереду пастка?» перед кроком і обійди її, якщо так.")
+  return tips
+}
+
+const tiredAdvice = (level: Level, result: RunResult): ReadonlyArray<string> => {
+  const moved = result.frames.filter((f) => f.action === "move" && f.outcome !== "tired").length
+  return [
+    `Герой зробив ${moved} ${steps(moved)} з ${level.maxSteps ?? moved} і втомився. Пошукай коротший шлях: зайві кроки туди й назад забирають сили.`
+  ]
+}
+
 const extraAdvice = (level: Level, frames: ReadonlyArray<Frame>): ReadonlyArray<string> => {
   const tips: Array<string> = []
   const empty = frames.filter((f) => f.outcome === "nothingToCollect").length
@@ -193,6 +206,10 @@ export const adviseRun = (level: Level, program: Program, result: RunResult): Re
   switch (result.reason) {
     case "crashed":
       return [...crashAdvice(level, result, has), ...extraAdvice(level, result.frames)].slice(0, MAX_ADVICE)
+    case "trapped":
+      return [...trapAdvice(level, result), ...extraAdvice(level, result.frames)].slice(0, MAX_ADVICE)
+    case "tired":
+      return [...tiredAdvice(level, result), ...extraAdvice(level, result.frames)].slice(0, MAX_ADVICE)
     case "defeated":
       return [...defeatAdvice(level, result), ...extraAdvice(level, result.frames)].slice(0, MAX_ADVICE)
     case "goalsNotMet":

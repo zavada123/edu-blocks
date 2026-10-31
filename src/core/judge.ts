@@ -3,6 +3,7 @@ import { allGoalsMet, type Level, startWorld } from "./level.ts"
 import {
   checkProgram,
   type FailReason,
+  fatalReason,
   MAX_ACTIONS,
   MAX_FRAMES,
   MAX_PROGRAM_BLOCKS,
@@ -12,7 +13,7 @@ import {
   type RunResult,
   type Session
 } from "./program.ts"
-import { type Action, applyAction, atFinish, enemyAhead, onCrystal, wallAhead } from "./world.ts"
+import { type Action, applyAction, atFinish, enemyAhead, onCrystal, trapAhead, wallAhead } from "./world.ts"
 
 /**
  * Runs a program without the VM: a small interpreter for the blocks a level can have. Synchronous and pure,
@@ -91,7 +92,8 @@ export const judgeProgram = (level: Level, program: Program): RunResult => {
     const { world, outcome } = applyAction(session.world, action)
     session.world = world
     session.frames.push({ action, outcome, blockId, world })
-    if (outcome === "crashed") finish("crashed")
+    const fatal = fatalReason(outcome)
+    if (fatal !== null) finish(fatal)
     else if (allGoalsMet(level, world)) finish(null)
     else if (world.hearts === 0) finish("defeated")
     else if (session.frames.length >= MAX_ACTIONS) finish("tooLong")
@@ -118,6 +120,8 @@ export const judgeProgram = (level: Level, program: Program): RunResult => {
         return atFinish(session.world)
       case `${HERO_EXTENSION_ID}_enemyAhead`:
         return enemyAhead(session.world)
+      case `${HERO_EXTENSION_ID}_trapAhead`:
+        return trapAhead(session.world)
       case "operator_not":
         return !question(inputOf(block, "OPERAND"), depth + 1)
       case "operator_and":

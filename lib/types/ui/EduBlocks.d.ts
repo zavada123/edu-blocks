@@ -25,7 +25,7 @@ export interface HeroXp {
 export interface EduBlocksProps {
     readonly level: Level;
     readonly skin?: Skin;
-    /** Bigger blocks and field for grade 3. */
+    /** Bigger blocks and field for the youngest: the first chapter of the course. */
     readonly large?: boolean;
     /** A saved program to open the level with. */
     readonly program?: Program;
