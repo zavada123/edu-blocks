@@ -90,7 +90,7 @@ export const GameScreen = ({
         onMap={navigation.onMap}
         onPickHero={onSkinChange === undefined ? undefined : () => setPicking(true)}
       />
-      <section className="eb-stage" aria-label="Поле">
+      <div className="eb-stage" role="group" aria-label="Поле">
         <div className="eb-field-frame eb-frame eb-wood">
           <Stage start={start} frames={result?.frames} time={player.time} skin={skin} scene={level.scene} />
         </div>
@@ -116,12 +116,12 @@ export const GameScreen = ({
           </div>
         </div>
         {verdict}
-      </section>
+      </div>
       <Quest level={level} start={start} world={world} />
-      <section className="eb-editor-pane eb-frame eb-slate" aria-label={editorTitle}>
+      <div className="eb-editor-pane eb-frame eb-slate" role="group" aria-label={editorTitle}>
         <h2 className="eb-editor-head">{editorTitle}</h2>
         {children}
-      </section>
+      </div>
       {picking && onSkinChange !== undefined && (
         <HeroPicker skin={skin} heroLevel={heroLevelOf(xpTotal ?? 0).level} onPick={onSkinChange} onClose={() => setPicking(false)} />
       )}

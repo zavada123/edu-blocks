@@ -160,7 +160,7 @@ export const CodeEditor = ({
           keymap.of([...closeBracketsKeymap, ...defaultKeymap, ...historyKeymap, indentWithTab]),
           marksField,
           theme(large),
-          EditorView.contentAttributes.of({ "aria-label": "Код програми на Python", spellcheck: "false", autocapitalize: "off", autocorrect: "off" }),
+          EditorView.contentAttributes.of({ "aria-label": "Код програми на Python", spellcheck: "false", autocapitalize: "off", autocorrect: "off", tabindex: "0" }),
           EditorView.updateListener.of((u) => {
             if (!u.docChanged) return
             textRef.current = u.state.doc.toString()
