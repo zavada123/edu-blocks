@@ -9,13 +9,14 @@
 | --- | --- | --- | --- |
 | [`ninja-adventure/`](ninja-adventure/) | [Pixel-boy, AAA](https://pixel-boy.itch.io/ninja-adventure-asset-pack) | CC0 1.0, без умов | 93 персонажі з ходьбою в 4 сторони, 66 ворогів, 20 босів, 63 тварини, 230 портретів, предмети, зброя, ефекти, 23 тайлсети, інтерфейс, 147 звуків |
 | [`farming-crops/`](farming-crops/) | [josehzz](https://opengameart.org/content/farming-crops-16x16) | CC0 1.0, без умов | 20 культур 16×16 (томат, пшениця, кукурудза, картопля, соняшник…): кліп `grow` з 5 стадіями від посіву до врожаю і `icon` з урожаєм |
+| [`farm-kit/`](farm-kit/) | невідомий, пак надав власник проєкту | дозвіл власника проєкту (файлу ліцензії в паку немає) | Фермер з капелюхом і без (стоїть, ходить, мотика, лопата, полив у 4 сторони), 19 культур: кліпи `grow` від насіння до врожаю і `withered`, іконки врожаю, висока трава, земля, паркан, дерева, предмети |
 | [`sunnyside/`](sunnyside/) | [Daniel Diggle](https://danieldiggle.itch.io/sunnyside) | Sunnyside World V1 | Селяни з 20 діями (вид збоку, шари: тіло, зачіска, інструмент), гоблін і скелет, тварини, 12 культур зі стадіями росту, вітряк, тайлсет, інтерфейс |
 
 **Sunnyside World** можна поширювати лише як частину навчального курсу і з посиланням на
 https://danieldiggle.itch.io/sunnyside (воно є тут і в `sunnyside/LICENSE.md`). Не можна перепаковувати чи продавати
 файли, використовувати для NFT і для навчання ШІ. Тож ці файли не можна виносити з гри в окремий набір.
 
-**Не в репозиторії.** Tiny Farm RPG (Maeve Devs) і Village Top Down (Pixeljad) дозволяють використовувати графіку в іграх,
+**Не в репозиторії.** Tiny Farm RPG (Maeve Devs), Village Top Down (Pixeljad) і Tiny Swords (Pixel Frog) дозволяють використовувати графіку в іграх,
 але забороняють викладати самі файли, навіть змінені. Репозиторій публічний, тому їхні картинки й маніфести лежать
 окремо, у файлах проєкту EduProstir (`edu-blocks/assets-private/`). Формат той самий.
 
@@ -29,11 +30,11 @@ https://danieldiggle.itch.io/sunnyside (воно є тут і в `sunnyside/LICE
 | `terrain` | Анімована земля: вода, водоспад, квіти, млин | 23 | |
 | `decor` | Декор без взаємодії: гриби, дерева, що гойдаються | | 6 |
 | `prop` | Великі предмети на полі: човен, вітряк | 5 | 5 |
-| `character` | Герої й мешканці | 93 | 8 шарів |
+| `character` | Герої й мешканці (+2 фермери у `farm-kit`) | 93 | 8 шарів |
 | `enemy` | Вороги | 66 | 2 |
 | `boss` | Боси з окремими діями (з'ява, атака, удар) | 28 | |
 | `animal` | Тварини | 63 | 7 |
-| `crop` | Культури зі стадіями росту | | 12 (+20 у `farming-crops`) |
+| `crop` | Культури зі стадіями росту | | 12 (+20 у `farming-crops`, +19 у `farm-kit`) |
 | `item` | Предмети: їжа, ресурси, скарби, зілля, сувої, інструменти | 93 | 8 |
 | `weapon` | Зброя: у руці, на землі, замах | 50 | |
 | `effect` | Удари, магія, стихії, дим, снаряди | 59 | 9 |
@@ -95,8 +96,8 @@ const rect = frameAt(sprite, "walk", "left", msSinceStart) // { file, sx, sy, w,
 ```sh
 python3 scripts/assets/build.py \
   --ninja "<…>/Ninja Adventure - Asset Pack" \
-  --sunnyside "<…>/Sunnyside_World_Assets" --crops "<…>/FarmingCrops16x16" \
-  --farm "<…>/Farm RPG FREE 16x16 - Tiny Asset Pack" --village "<…>/TILESET VILLAGE TOP DOWN" \
+  --sunnyside "<…>/Sunnyside_World_Assets" --crops "<…>/FarmingCrops16x16" --farm-kit "<…>/assets" \
+  --farm "<…>/Farm RPG FREE 16x16 - Tiny Asset Pack" --village "<…>/TILESET VILLAGE TOP DOWN" --tiny-swords "<…>/Tiny Swords" \
   --out assets --private-out "<папка поза репозиторієм>" --work "<тимчасова папка>"
 ```
 
