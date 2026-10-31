@@ -10,7 +10,7 @@ import { createVm, projectFor, runProgram, settle, withVmLock } from "./run.ts"
 
 const ALL_BLOCKS: ReadonlyArray<BlockName> = [
   "move", "turnLeft", "turnRight", "collect", "attack", "wallAhead", "onCrystal", "atFinish", "enemyAhead", "trapAhead",
-  "repeat", "forever", "repeatUntil", "if", "ifElse", "not", "and", "or"
+  "repeat", "forever", "repeatUntil", "if", "ifElse", "not", "and", "or", "counter", "procedure"
 ]
 
 const level = (id: string): Level => {
@@ -36,7 +36,8 @@ const random = (seed: number) => () => {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296
 }
 
-const randomProgram = (next: () => number): ReadonlyArray<Step> => {
+/** With `rich`, the steps also set and change the counter, repeat it and call the custom block. */
+const randomProgram = (next: () => number, rich = false): ReadonlyArray<Step> => {
   const pick = <T,>(xs: ReadonlyArray<T>): T => xs[Math.floor(next() * xs.length)] as T
   const question = (depth: number): Question => {
     const r = next()
@@ -47,6 +48,7 @@ const randomProgram = (next: () => number): ReadonlyArray<Step> => {
   const steps = (depth: number): ReadonlyArray<Step> =>
     Array.from({ length: 1 + Math.floor(next() * 4) }, (): Step => {
       const r = next()
+      if (rich && next() < 0.3) return pick<Step>([{ set: Math.floor(next() * 4) }, { change: pick([1, 1, 2, -1]) }, { repeat: "counter", body: steps(depth + 1) }, "call"])
       if (depth >= 3 || r < 0.55) return pick(["move", "move", "turnLeft", "turnRight", "collect", "attack"] as const)
       if (r < 0.7) return { repeat: Math.floor(next() * 6), body: steps(depth + 1) }
       if (r < 0.8) return { until: question(0), body: steps(depth + 1) }
@@ -56,6 +58,10 @@ const randomProgram = (next: () => number): ReadonlyArray<Step> => {
     })
   return steps(0)
 }
+
+/** A program with the counter and a custom block whose body is random too, so it may call itself. */
+const richProgram = (next: () => number): Program =>
+  buildProgram(randomProgram(next, true), next() < 0.8 ? { name: "обійти", body: randomProgram(next, true) } : undefined)
 
 /** Two scripts with their own start hats: the VM runs them as two threads. */
 const twoScripts = (a: Program, b: Program): Program => {
@@ -90,6 +96,52 @@ describe("judgeProgram", () => {
       }
     }
   }, 120_000)
+
+  test("gives the same result as the VM with the counter and a custom block", async () => {
+    const next = random(20261031)
+    for (const base of levels) {
+      const lvl: Level = { ...base, blocks: ALL_BLOCKS }
+      for (let i = 0; i < 30; i++) {
+        const program = richProgram(next)
+        expect(summary(judgeProgram(lvl, program)), JSON.stringify(program)).toEqual(summary(await runProgram(lvl, program)))
+      }
+    }
+  }, 120_000)
+
+  test("reads the counter and the custom block in the form the editor saves", async () => {
+    const next = random(31)
+    for (const base of levels.slice(0, 12)) {
+      const lvl: Level = { ...base, blocks: ALL_BLOCKS }
+      for (let i = 0; i < 10; i++) {
+        const program = richProgram(next)
+        const saved = await asEditorSaves(program)
+        expect(summary(judgeProgram(lvl, saved)), JSON.stringify(saved)).toEqual(summary(judgeProgram(lvl, program)))
+      }
+    }
+  }, 120_000)
+
+  test("repeats by the counter and changes it, as in Scratch", async () => {
+    const lvl: Level = { ...level("g3-steps"), map: ["#########", "#S......#", "#########"], blocks: ALL_BLOCKS, goals: [{ type: "finish" }] }
+    const program = buildProgram([{ set: 1 }, { repeat: 3, body: [{ repeat: "counter", body: ["turnLeft"] }, { change: 1 }] }])
+    const result = judgeProgram(lvl, program)
+    expect(result.frames.map((f) => f.counter)).toEqual(["1", "2", "2", "3", "3", "3"])
+    expect(summary(result)).toEqual(summary(await runProgram(lvl, program)))
+  })
+
+  test("a custom block that calls itself yields each time, as the VM does", async () => {
+    const lvl: Level = { ...level("g3-steps"), blocks: ALL_BLOCKS }
+    const program = twoScripts(buildProgram(["call"], { body: ["move", "call"] }), buildProgram([{ forever: ["turnLeft"] }]))
+    const result = judgeProgram(lvl, program)
+    expect(result.frames.slice(0, 3).map((f) => f.action)).toEqual(["move", "turnLeft", "move"])
+    expect(summary(result)).toEqual(summary(await runProgram(lvl, program)))
+  })
+
+  test("a custom block that only calls itself stops as too long", () => {
+    const lvl: Level = { ...level("g3-steps"), blocks: ALL_BLOCKS }
+    const started = Date.now()
+    expect(judgeProgram(lvl, buildProgram(["call"], { body: ["call"] })).reason).toBe("tooLong")
+    expect(Date.now() - started).toBeLessThan(2_000)
+  })
 
   test("runs two start scripts in turns, as the VM does", async () => {
     const next = random(7)

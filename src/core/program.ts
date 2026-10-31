@@ -1,4 +1,4 @@
-import { allowedOpcodes, isNumberShadow, START_OPCODE } from "./blocks.ts"
+import { allowedOpcodes, isNumberShadow, PROTOTYPE_OPCODE, START_OPCODE, VARIABLE_OPCODE, VARIABLE_PRIMITIVE } from "./blocks.ts"
 import { allGoalsMet, type Level, starsFor } from "./level.ts"
 import type { Action, Outcome, World } from "./world.ts"
 
@@ -32,6 +32,8 @@ export interface Frame {
   /** The block that made the move, to highlight it in the editor. */
   readonly blockId: string | null
   readonly world: World
+  /** The counter after the move, on a level with «лічильник». */
+  readonly counter?: string
 }
 
 export interface RunResult {
@@ -53,21 +55,49 @@ export interface RunResult {
 interface ProgramBlock {
   readonly opcode: string
   readonly shadow?: boolean
+  readonly inputs?: unknown
+  readonly mutation?: unknown
 }
 
-const isProgramBlock = (value: unknown): value is ProgramBlock =>
-  typeof value === "object" && value !== null && !Array.isArray(value) && typeof (value as ProgramBlock).opcode === "string"
+const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+
+const isProgramBlock = (value: unknown): value is ProgramBlock => isRecord(value) && typeof value.opcode === "string"
+
+/** A variable reporter as the editor keeps it: `[12, name, id]`, inside an input or alone on the canvas. */
+const isVariablePrimitive = (value: unknown): boolean => Array.isArray(value) && value[0] === VARIABLE_PRIMITIVE
+
+/** Variable reporters kept inside the inputs of a block. Each is a block the student put, so it counts. */
+const variablesIn = (block: ProgramBlock): number =>
+  isRecord(block.inputs) ? Object.values(block.inputs).filter((input) => Array.isArray(input) && isVariablePrimitive(input[1])).length : 0
+
+/** A custom block «без оновлення екрана» runs on the clock in Scratch, so a run could differ: it is refused. */
+const isWarp = (block: ProgramBlock): boolean => isRecord(block.mutation) && (block.mutation.warp === true || block.mutation.warp === "true")
+
+const proccodeOf = (block: ProgramBlock): unknown => (isRecord(block.mutation) ? block.mutation.proccode : undefined)
 
 /** Checks the program shape and palette before it runs. Returns the error text or the block count. */
 export const checkProgram = (level: Level, program: Program): { readonly error: string } | { readonly blocks: number; readonly hasStart: boolean } => {
   const entries = Object.entries(program)
   if (entries.length > MAX_PROGRAM_BLOCKS) return { error: `Програма довша за ${MAX_PROGRAM_BLOCKS} блоків` }
   const allowed = allowedOpcodes(level.blocks)
+  const defined = new Set<unknown>()
   let blocks = 0
   let hasStart = false
   for (const [, block] of entries) {
+    if (isVariablePrimitive(block) && allowed.has(VARIABLE_OPCODE)) {
+      blocks++
+      continue
+    }
     if (!isProgramBlock(block)) return { error: "Блок без опкоду або змінна: цей рівень їх не має" }
     if (!allowed.has(block.opcode)) return { error: `Блок ${block.opcode} не з цього рівня` }
+    if (isWarp(block)) return { error: "Власний блок «без оновлення екрана» тут не працює: зніми цю позначку" }
+    if (block.opcode === PROTOTYPE_OPCODE) {
+      const name = proccodeOf(block)
+      if (defined.has(name)) return { error: `Блок «${String(name)}» визначено двічі: залиш одне «визначити»` }
+      defined.add(name)
+    }
+    blocks += variablesIn(block)
     if (block.opcode === START_OPCODE) hasStart = true
     else if (block.shadow !== true && !isNumberShadow(block.opcode)) blocks++
   }

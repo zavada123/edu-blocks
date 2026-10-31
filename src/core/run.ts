@@ -1,6 +1,6 @@
 import VirtualMachine, { type BlockUtility, type Runtime } from "scratch-vm"
 import vmLog from "scratch-vm/src/util/log.js"
-import { HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID } from "./blocks.ts"
+import { COUNTER_ID, COUNTER_NAME, HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID } from "./blocks.ts"
 import { allGoalsMet, type Level, startWorld } from "./level.ts"
 import { checkProgram, type FailReason, fatalReason, MAX_ACTIONS, MAX_FRAMES, PASSES_PER_FRAME, type Program, resultOf, type RunResult, type Session } from "./program.ts"
 import { type Action, applyAction, atFinish, enemyAhead, onCrystal, trapAhead, wallAhead } from "./world.ts"
@@ -17,7 +17,7 @@ vmLog.warn = vmLog.info = vmLog.debug = () => undefined
 // Assets are not loaded (no storage attached), so any costume id works.
 const COSTUME = { name: "hero", dataFormat: "svg", assetId: "00000000000000000000000000000000", md5ext: "00000000000000000000000000000000.svg", rotationCenterX: 0, rotationCenterY: 0 }
 
-/** A project with the stage and one sprite whose blocks are the program. */
+/** A project with the stage and one sprite whose blocks are the program and whose variable is the counter. */
 export const projectFor = (program: Program): object => ({
   targets: [
     {
@@ -37,7 +37,8 @@ export const projectFor = (program: Program): object => ({
     {
       isStage: false,
       name: "Hero",
-      variables: {},
+      // The counter belongs to the hero, as «лише для цього спрайту» in Scratch.
+      variables: { [COUNTER_ID]: [COUNTER_NAME, 0] },
       lists: {},
       broadcasts: {},
       blocks: program,

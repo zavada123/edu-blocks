@@ -22,7 +22,9 @@ export const HERO_BLOCKS: ReadonlyArray<{ readonly name: HeroBlock; readonly tex
 
 const HERO_NAMES: ReadonlySet<string> = new Set(HERO_BLOCKS.map((b) => b.name))
 
-const SCRATCH_OPCODES: Readonly<Record<Exclude<BlockName, HeroBlock>, string>> = {
+type ScratchBlock = Exclude<BlockName, HeroBlock | "counter" | "procedure">
+
+const SCRATCH_OPCODES: Readonly<Record<ScratchBlock, string>> = {
   repeat: "control_repeat",
   forever: "control_forever",
   repeatUntil: "control_repeat_until",
@@ -35,14 +37,42 @@ const SCRATCH_OPCODES: Readonly<Record<Exclude<BlockName, HeroBlock>, string>> =
 
 export const START_OPCODE = "event_whenflagclicked"
 
-/** Shadow blocks that hold the number in «повторити 10». */
-const NUMBER_SHADOWS: ReadonlySet<string> = new Set(["math_whole_number", "math_positive_number", "math_number"])
+/** The one variable of the game. Its id is fixed, so the editor, the project and the judge agree on it. */
+export const COUNTER_ID = "eb-counter"
+export const COUNTER_NAME = "лічильник"
+export const SET_OPCODE = "data_setvariableto"
+export const CHANGE_OPCODE = "data_changevariableby"
+export const VARIABLE_OPCODE = "data_variable"
+/** A variable reporter that the editor keeps not as a block but as `[12, name, id]`. */
+export const VARIABLE_PRIMITIVE = 12
 
-export const opcodeOf = (name: BlockName): string =>
-  HERO_NAMES.has(name) ? `${HERO_EXTENSION_ID}_${name}` : SCRATCH_OPCODES[name as Exclude<BlockName, HeroBlock>]
+export const DEFINITION_OPCODE = "procedures_definition"
+export const PROTOTYPE_OPCODE = "procedures_prototype"
+export const CALL_OPCODE = "procedures_call"
+export const DEFAULT_PROCEDURE = "мій блок"
+
+/** Shadow blocks that hold the number in «повторити 10», and the text in «задати лічильник 0». */
+const NUMBER_SHADOWS: ReadonlySet<string> = new Set(["math_whole_number", "math_positive_number", "math_number", "text"])
+
+/** Blocks a palette name brings. Most names are one block; the counter and the custom block are several. */
+export const opcodesOf = (name: BlockName): ReadonlyArray<string> => {
+  if (name === "counter") return [SET_OPCODE, CHANGE_OPCODE, VARIABLE_OPCODE]
+  if (name === "procedure") return [DEFINITION_OPCODE, PROTOTYPE_OPCODE, CALL_OPCODE]
+  return [HERO_NAMES.has(name) ? `${HERO_EXTENSION_ID}_${name}` : SCRATCH_OPCODES[name as ScratchBlock]]
+}
+
+/** The block of a palette name. For the counter it is «змінити», for the custom block the call. */
+export const opcodeOf = (name: BlockName): string => {
+  if (name === "counter") return CHANGE_OPCODE
+  if (name === "procedure") return CALL_OPCODE
+  return opcodesOf(name)[0] ?? ""
+}
 
 /** Opcodes a program for this palette may contain: the palette, the start hat and number shadows. */
 export const allowedOpcodes = (palette: ReadonlyArray<BlockName>): ReadonlySet<string> =>
-  new Set([START_OPCODE, ...NUMBER_SHADOWS, ...palette.map(opcodeOf)])
+  new Set([START_OPCODE, ...NUMBER_SHADOWS, ...palette.flatMap(opcodesOf)])
 
 export const isNumberShadow = (opcode: string): boolean => NUMBER_SHADOWS.has(opcode)
+
+/** The name of the custom block on this level. */
+export const procedureName = (level: { readonly procedure?: string }): string => level.procedure?.trim() || DEFAULT_PROCEDURE
