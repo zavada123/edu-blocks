@@ -1,0 +1,2901 @@
+{
+ "id": "sunnyside",
+ "title": "Sunnyside World",
+ "author": "Daniel Diggle",
+ "source": "https://danieldiggle.itch.io/sunnyside",
+ "license": {
+  "name": "Sunnyside World licence V1",
+  "url": "https://danieldiggle.itch.io/sunnyside",
+  "redistribute": "educational-with-link",
+  "terms": "Free and commercial projects, changes allowed. Sharing only as part of tutorials or educational courses with a link to https://danieldiggle.itch.io/sunnyside. No repackaging or reselling, no NFT, no AI training."
+ },
+ "cell": 16,
+ "sprites": [
+  {
+   "id": "animal/bird-01",
+   "file": "elements/animals/spr-deco-bird-01-strip4.png",
+   "category": "animal",
+   "name": "Bird 01",
+   "size": [64, 16],
+   "frame": [16, 16],
+   "clips": {
+    "walk": {
+     "frames": [0, 1, 2, 3],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "animal/blinking",
+   "file": "elements/animals/spr-deco-blinking-strip12.png",
+   "category": "animal",
+   "name": "Blinking",
+   "size": [192, 16],
+   "frame": [16, 16],
+   "clips": {
+    "walk": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "animal/chicken-01",
+   "file": "elements/animals/spr-deco-chicken-01-strip4.png",
+   "category": "animal",
+   "name": "Chicken 01",
+   "size": [128, 32],
+   "frame": [32, 32],
+   "clips": {
+    "walk": {
+     "frames": [0, 1, 2, 3],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "animal/cow",
+   "file": "elements/animals/spr-deco-cow-strip4.png",
+   "category": "animal",
+   "name": "Cow",
+   "size": [128, 32],
+   "frame": [32, 32],
+   "clips": {
+    "walk": {
+     "frames": [0, 1, 2, 3],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "animal/duck-01",
+   "file": "elements/animals/spr-deco-duck-01-strip4.png",
+   "category": "animal",
+   "name": "Duck 01",
+   "size": [64, 16],
+   "frame": [16, 16],
+   "clips": {
+    "walk": {
+     "frames": [0, 1, 2, 3],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "animal/pig-01",
+   "file": "elements/animals/spr-deco-pig-01-strip4.png",
+   "category": "animal",
+   "name": "Pig 01",
+   "size": [128, 32],
+   "frame": [32, 32],
+   "clips": {
+    "walk": {
+     "frames": [0, 1, 2, 3],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "animal/sheep-01",
+   "file": "elements/animals/spr-deco-sheep-01-strip4.png",
+   "category": "animal",
+   "name": "Sheep 01",
+   "size": [128, 32],
+   "frame": [32, 32],
+   "clips": {
+    "walk": {
+     "frames": [0, 1, 2, 3],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "character/human-base",
+   "file": "characters/human/idle/base-idle-strip9.png",
+   "category": "character",
+   "name": "Villager layer: base",
+   "size": [864, 64],
+   "frame": [96, 64],
+   "layout": "side",
+   "layer": "body",
+   "clips": {
+    "attack": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/attack/base-attack-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "axe": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/axe/base-axe-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "carry": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/carry/base-carry-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "casting": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/casting/base-casting-strip15.png",
+     "frame": [96, 64],
+     "size": [1440, 64]
+    },
+    "caught": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/caught/base-caught-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "death": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/death/base-death-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "dig": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/dig/base-dig-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "doing": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/doing/base-doing-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "hammering": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/hammering/base-hamering-strip23.png",
+     "frame": [96, 64],
+     "size": [2208, 64]
+    },
+    "hurt": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/hurt/base-hurt-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/idle/base-idle-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "jump": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/jump/base-jump-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "mining": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/mining/base-mining-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "reeling": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/reeling/base-reeling-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "roll": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/roll/base-roll-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "run": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/run/base-run-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "swimming": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/swimming/base-swimming-strip12.png",
+     "frame": [96, 64],
+     "size": [1152, 64]
+    },
+    "waiting": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/waiting/base-waiting-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "walk": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/walking/base-walk-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "watering": {
+     "frames": [0, 1, 2, 3, 4],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/watering/base-watering-strip5.png",
+     "frame": [96, 64],
+     "size": [480, 64]
+    }
+   }
+  },
+  {
+   "id": "character/human-bowlhair",
+   "file": "characters/human/idle/bowlhair-idle-strip9.png",
+   "category": "character",
+   "name": "Villager layer: bowlhair",
+   "size": [864, 64],
+   "frame": [96, 64],
+   "layout": "side",
+   "layer": "hair",
+   "clips": {
+    "attack": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/attack/bowlhair-attack-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "axe": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/axe/bowlhair-axe-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "carry": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/carry/bowlhair-carry-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "casting": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/casting/bowlhair-casting-strip15.png",
+     "frame": [96, 64],
+     "size": [1440, 64]
+    },
+    "caught": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/caught/bowlhair-caught-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "death": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/death/bowlhair-death-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "dig": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/dig/bowlhair-dig-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "doing": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/doing/bowlhair-doing-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "hammering": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/hammering/bowlhair-hamering-strip23.png",
+     "frame": [96, 64],
+     "size": [2208, 64]
+    },
+    "hurt": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/hurt/bowlhair-hurt-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/idle/bowlhair-idle-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "jump": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/jump/bowlhair-jump-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "mining": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/mining/bowlhair-mining-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "reeling": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/reeling/bowlhair-reeling-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "roll": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/roll/bowlhair-roll-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "run": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/run/bowlhair-run-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "swimming": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/swimming/bowlhair-swimming-strip12.png",
+     "frame": [96, 64],
+     "size": [1152, 64]
+    },
+    "waiting": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/waiting/bowlhair-waiting-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "walk": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/walking/bowlhair-walk-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "watering": {
+     "frames": [0, 1, 2, 3, 4],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/watering/bowlhair-watering-strip5.png",
+     "frame": [96, 64],
+     "size": [480, 64]
+    }
+   }
+  },
+  {
+   "id": "character/human-curlyhair",
+   "file": "characters/human/idle/curlyhair-idle-strip9.png",
+   "category": "character",
+   "name": "Villager layer: curlyhair",
+   "size": [864, 64],
+   "frame": [96, 64],
+   "layout": "side",
+   "layer": "hair",
+   "clips": {
+    "attack": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/attack/curlyhair-attack-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "axe": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/axe/curlyhair-axe-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "carry": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/carry/curlyhair-carry-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "casting": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/casting/curlyhair-casting-strip15.png",
+     "frame": [96, 64],
+     "size": [1440, 64]
+    },
+    "caught": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/caught/curlyhair-caught-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "death": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/death/curlyhair-death-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "dig": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/dig/curlyhair-dig-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "doing": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/doing/curlyhair-doing-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "hammering": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/hammering/curlyhair-hamering-strip23.png",
+     "frame": [96, 64],
+     "size": [2208, 64]
+    },
+    "hurt": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/hurt/curlyhair-hurt-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/idle/curlyhair-idle-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "jump": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/jump/curlyhair-jump-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "mining": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/mining/curlyhair-mining-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "reeling": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/reeling/curlyhair-reeling-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "roll": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/roll/curlyhair-roll-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "run": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/run/curlyhair-run-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "swimming": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/swimming/curlyhair-swimming-strip12.png",
+     "frame": [96, 64],
+     "size": [1152, 64]
+    },
+    "waiting": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/waiting/curlyhair-waiting-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "walk": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/walking/curlyhair-walk-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "watering": {
+     "frames": [0, 1, 2, 3, 4],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/watering/curlyhair-watering-strip5.png",
+     "frame": [96, 64],
+     "size": [480, 64]
+    }
+   }
+  },
+  {
+   "id": "character/human-longhair",
+   "file": "characters/human/idle/longhair-idle-strip9.png",
+   "category": "character",
+   "name": "Villager layer: longhair",
+   "size": [864, 64],
+   "frame": [96, 64],
+   "layout": "side",
+   "layer": "hair",
+   "clips": {
+    "attack": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/attack/longhair-attack-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "axe": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/axe/longhair-axe-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "carry": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/carry/longhair-carry-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "casting": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/casting/longhair-casting-strip15.png",
+     "frame": [96, 64],
+     "size": [1440, 64]
+    },
+    "caught": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/caught/longhair-caught-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "death": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/death/longhair-death-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "dig": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/dig/longhair-dig-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "doing": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/doing/longhair-doing-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "hammering": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/hammering/longhair-hamering-strip23.png",
+     "frame": [96, 64],
+     "size": [2208, 64]
+    },
+    "hurt": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/hurt/longhair-hurt-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/idle/longhair-idle-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "jump": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/jump/longhair-jump-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "mining": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/mining/longhair-mining-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "reeling": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/reeling/longhair-reeling-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "roll": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/roll/longhair-roll-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "run": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/run/longhair-run-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "swimming": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/swimming/longhair-swimming-strip12.png",
+     "frame": [96, 64],
+     "size": [1152, 64]
+    },
+    "waiting": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/waiting/longhair-waiting-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "walk": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/walking/longhair-walk-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "watering": {
+     "frames": [0, 1, 2, 3, 4],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/watering/longhair-watering-strip5.png",
+     "frame": [96, 64],
+     "size": [480, 64]
+    }
+   }
+  },
+  {
+   "id": "character/human-mophair",
+   "file": "characters/human/idle/mophair-idle-strip9.png",
+   "category": "character",
+   "name": "Villager layer: mophair",
+   "size": [864, 64],
+   "frame": [96, 64],
+   "layout": "side",
+   "layer": "hair",
+   "clips": {
+    "attack": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/attack/mophair-attack-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "axe": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/axe/mophair-axe-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "carry": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/carry/mophair-carry-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "casting": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/casting/mophair-casting-strip15.png",
+     "frame": [96, 64],
+     "size": [1440, 64]
+    },
+    "caught": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/caught/mophair-caught-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "death": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/death/mophair-death-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "dig": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/dig/mophair-dig-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "doing": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/doing/mophair-doing-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "hammering": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/hammering/mophair-hamering-strip23.png",
+     "frame": [96, 64],
+     "size": [2208, 64]
+    },
+    "hurt": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/hurt/mophair-hurt-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/idle/mophair-idle-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "jump": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/jump/mophair-jump-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "mining": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/mining/mophair-mining-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "reeling": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/reeling/mophair-reeling-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "roll": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/roll/mophair-roll-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "run": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/run/mophair-run-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "swimming": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/swimming/mophair-swimming-strip12.png",
+     "frame": [96, 64],
+     "size": [1152, 64]
+    },
+    "waiting": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/waiting/mophair-waiting-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "walk": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/walking/mophair-walk-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "watering": {
+     "frames": [0, 1, 2, 3, 4],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/watering/mophair-watering-strip5.png",
+     "frame": [96, 64],
+     "size": [480, 64]
+    }
+   }
+  },
+  {
+   "id": "character/human-shorthair",
+   "file": "characters/human/idle/shorthair-idle-strip9.png",
+   "category": "character",
+   "name": "Villager layer: shorthair",
+   "size": [864, 64],
+   "frame": [96, 64],
+   "layout": "side",
+   "layer": "hair",
+   "clips": {
+    "attack": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/attack/shorthair-attack-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "axe": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/axe/shorthair-axe-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "carry": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/carry/shorthair-carry-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "casting": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/casting/shorthair-casting-strip15.png",
+     "frame": [96, 64],
+     "size": [1440, 64]
+    },
+    "caught": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/caught/shorthair-caught-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "death": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/death/shorthair-death-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "dig": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/dig/shorthair-dig-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "doing": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/doing/shorthair-doing-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "hammering": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/hammering/shorthair-hamering-strip23.png",
+     "frame": [96, 64],
+     "size": [2208, 64]
+    },
+    "hurt": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/hurt/shorthair-hurt-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/idle/shorthair-idle-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "jump": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/jump/shorthair-jump-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "mining": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/mining/shorthair-mining-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "reeling": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/reeling/shorthair-reeling-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "roll": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/roll/shorthair-roll-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "run": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/run/shorthair-run-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "swimming": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/swimming/shorthair-swimming-strip12.png",
+     "frame": [96, 64],
+     "size": [1152, 64]
+    },
+    "waiting": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/waiting/shorthair-waiting-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "walk": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/walking/shorthair-walk-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "watering": {
+     "frames": [0, 1, 2, 3, 4],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/watering/shorthair-watering-strip5.png",
+     "frame": [96, 64],
+     "size": [480, 64]
+    }
+   }
+  },
+  {
+   "id": "character/human-spikeyhair",
+   "file": "characters/human/idle/spikeyhair-idle-strip9.png",
+   "category": "character",
+   "name": "Villager layer: spikeyhair",
+   "size": [864, 64],
+   "frame": [96, 64],
+   "layout": "side",
+   "layer": "hair",
+   "clips": {
+    "attack": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/attack/spikeyhair-attack-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "axe": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/axe/spikeyhair-axe-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "carry": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/carry/spikeyhair-carry-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "casting": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/casting/spikeyhair-casting-strip15.png",
+     "frame": [96, 64],
+     "size": [1440, 64]
+    },
+    "caught": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/caught/spikeyhair-caught-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "death": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/death/spikeyhair-death-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "dig": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/dig/spikeyhair-dig-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "doing": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/doing/spikeyhair-doing-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "hammering": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/hammering/spikeyhair-hamering-strip23.png",
+     "frame": [96, 64],
+     "size": [2208, 64]
+    },
+    "hurt": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/hurt/spikeyhair-hurt-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/idle/spikeyhair-idle-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "jump": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/jump/spikeyhair-jump-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "mining": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/mining/spikeyhair-mining-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "reeling": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/reeling/spikeyhair-reeling-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "roll": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/roll/spikeyhair-roll-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "run": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/run/spikeyhair-run-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "swimming": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/swimming/spikeyhair-swimming-strip12.png",
+     "frame": [96, 64],
+     "size": [1152, 64]
+    },
+    "waiting": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/waiting/spikeyhair-waiting-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "walk": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/walking/spikeyhair-walk-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "watering": {
+     "frames": [0, 1, 2, 3, 4],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/watering/spikeyhair-watering-strip5.png",
+     "frame": [96, 64],
+     "size": [480, 64]
+    }
+   }
+  },
+  {
+   "id": "character/human-tools",
+   "file": "characters/human/idle/tools-idle-strip9.png",
+   "category": "character",
+   "name": "Villager layer: tools",
+   "size": [864, 64],
+   "frame": [96, 64],
+   "layout": "side",
+   "layer": "tool",
+   "clips": {
+    "attack": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/attack/tools-attack-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "axe": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/axe/tools-axe-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "carry": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/carry/tools-carry-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "casting": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/casting/tools-casting-strip15.png",
+     "frame": [96, 64],
+     "size": [1440, 64]
+    },
+    "caught": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/caught/tools-caught-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "death": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/death/tools-death-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "dig": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/dig/tools-dig-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "doing": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/doing/tools-doing-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "hammering": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/hammering/tools-hamering-strip23.png",
+     "frame": [96, 64],
+     "size": [2208, 64]
+    },
+    "hurt": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/hurt/tools-hurt-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/idle/tools-idle-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "jump": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/jump/tools-jump-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "mining": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/mining/tools-mining-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "reeling": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/reeling/tools-reeling-strip13.png",
+     "frame": [96, 64],
+     "size": [1248, 64]
+    },
+    "roll": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/roll/tools-roll-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "run": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/run/tools-run-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "swimming": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/swimming/tools-swimming-strip12.png",
+     "frame": [96, 64],
+     "size": [1152, 64]
+    },
+    "waiting": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/waiting/tools-waiting-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "walk": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/human/walking/tools-walk-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "watering": {
+     "frames": [0, 1, 2, 3, 4],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/human/watering/tools-watering-strip5.png",
+     "frame": [96, 64],
+     "size": [480, 64]
+    }
+   }
+  },
+  {
+   "id": "crop/beetroot",
+   "file": "elements/crops/beetroot.png",
+   "category": "crop",
+   "name": "Beetroot",
+   "size": [96, 16],
+   "frame": [16, 16],
+   "clips": {
+    "grow": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/cabbage",
+   "file": "elements/crops/cabbage.png",
+   "category": "crop",
+   "name": "Cabbage",
+   "size": [96, 13],
+   "frame": [16, 13],
+   "clips": {
+    "grow": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/carrot",
+   "file": "elements/crops/carrot.png",
+   "category": "crop",
+   "name": "Carrot",
+   "size": [72, 13],
+   "frame": [12, 13],
+   "clips": {
+    "grow": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/cauliflower",
+   "file": "elements/crops/cauliflower.png",
+   "category": "crop",
+   "name": "Cauliflower",
+   "size": [72, 12],
+   "frame": [12, 12],
+   "clips": {
+    "grow": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/kale",
+   "file": "elements/crops/kale.png",
+   "category": "crop",
+   "name": "Kale",
+   "size": [84, 11],
+   "frame": [14, 11],
+   "clips": {
+    "grow": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/parsnip",
+   "file": "elements/crops/parsnip.png",
+   "category": "crop",
+   "name": "Parsnip",
+   "size": [84, 14],
+   "frame": [14, 14],
+   "clips": {
+    "grow": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/potato",
+   "file": "elements/crops/potato.png",
+   "category": "crop",
+   "name": "Potato",
+   "size": [66, 15],
+   "frame": [11, 15],
+   "clips": {
+    "grow": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/pumpkin",
+   "file": "elements/crops/pumpkin.png",
+   "category": "crop",
+   "name": "Pumpkin",
+   "size": [72, 14],
+   "frame": [12, 14],
+   "clips": {
+    "grow": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/radish",
+   "file": "elements/crops/radish.png",
+   "category": "crop",
+   "name": "Radish",
+   "size": [72, 15],
+   "frame": [12, 15],
+   "clips": {
+    "grow": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/soil",
+   "file": "elements/crops/soil.png",
+   "category": "crop",
+   "name": "Soil",
+   "size": [64, 12],
+   "frame": [16, 12],
+   "clips": {
+    "grow": {
+     "frames": [0, 1, 2, 3],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/sunflower",
+   "file": "elements/crops/sunflower.png",
+   "category": "crop",
+   "name": "Sunflower",
+   "size": [78, 19],
+   "frame": [13, 19],
+   "clips": {
+    "grow": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/wheat",
+   "file": "elements/crops/wheat.png",
+   "category": "crop",
+   "name": "Wheat",
+   "size": [78, 16],
+   "frame": [13, 16],
+   "clips": {
+    "grow": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "decor/mushroom-blue-01",
+   "file": "elements/plants/spr-deco-mushroom-blue-01-strip4.png",
+   "category": "decor",
+   "name": "Mushroom blue 01",
+   "size": [64, 16],
+   "frame": [16, 16],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "decor/mushroom-blue-02",
+   "file": "elements/plants/spr-deco-mushroom-blue-02-strip4.png",
+   "category": "decor",
+   "name": "Mushroom blue 02",
+   "size": [64, 16],
+   "frame": [16, 16],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "decor/mushroom-blue-03",
+   "file": "elements/plants/spr-deco-mushroom-blue-03-strip4.png",
+   "category": "decor",
+   "name": "Mushroom blue 03",
+   "size": [64, 16],
+   "frame": [16, 16],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "decor/mushroom-red-01",
+   "file": "elements/plants/spr-deco-mushroom-red-01-strip4.png",
+   "category": "decor",
+   "name": "Mushroom red 01",
+   "size": [64, 16],
+   "frame": [16, 16],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "decor/tree-01",
+   "file": "elements/plants/spr-deco-tree-01-strip4.png",
+   "category": "decor",
+   "name": "Tree 01",
+   "size": [128, 34],
+   "frame": [32, 34],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "decor/tree-02",
+   "file": "elements/plants/spr-deco-tree-02-strip4.png",
+   "category": "decor",
+   "name": "Tree 02",
+   "size": [112, 43],
+   "frame": [28, 43],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "effect/chimneysmoke-01",
+   "file": "elements/vfx/chimney-smoke/chimneysmoke-01-strip30.png",
+   "category": "effect",
+   "name": "Chimneysmoke 01",
+   "size": [450, 37],
+   "frame": [15, 37],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "effect/chimneysmoke-02",
+   "file": "elements/vfx/chimney-smoke/chimneysmoke-02-strip30.png",
+   "category": "effect",
+   "name": "Chimneysmoke 02",
+   "size": [300, 30],
+   "frame": [10, 30],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "effect/chimneysmoke-03",
+   "file": "elements/vfx/chimney-smoke/chimneysmoke-03-strip30.png",
+   "category": "effect",
+   "name": "Chimneysmoke 03",
+   "size": [540, 21],
+   "frame": [18, 21],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "effect/chimneysmoke-04",
+   "file": "elements/vfx/chimney-smoke/chimneysmoke-04-strip30.png",
+   "category": "effect",
+   "name": "Chimneysmoke 04",
+   "size": [600, 32],
+   "frame": [20, 32],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "effect/chimneysmoke-05",
+   "file": "elements/vfx/chimney-smoke/chimneysmoke-05-strip30.png",
+   "category": "effect",
+   "name": "Chimneysmoke 05",
+   "size": [720, 19],
+   "frame": [24, 19],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "effect/fire-01",
+   "file": "elements/vfx/fire/spr-deco-fire-01-strip4.png",
+   "category": "effect",
+   "name": "Fire 01",
+   "size": [20, 10],
+   "frame": [5, 10],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "effect/fire-02",
+   "file": "elements/vfx/fire/spr-deco-fire-02-strip4.png",
+   "category": "effect",
+   "name": "Fire 02",
+   "size": [32, 12],
+   "frame": [8, 12],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "effect/glint-01",
+   "file": "elements/vfx/glint/spr-deco-glint-01-strip6.png",
+   "category": "effect",
+   "name": "Glint 01",
+   "size": [42, 7],
+   "frame": [7, 7],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "effect/glint-02",
+   "file": "elements/vfx/glint/spr-deco-glint-02-strip4.png",
+   "category": "effect",
+   "name": "Glint 02",
+   "size": [28, 7],
+   "frame": [7, 7],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "enemy/goblin",
+   "file": "characters/goblin/png/spr-idle-strip9.png",
+   "category": "enemy",
+   "name": "Goblin",
+   "size": [768, 64],
+   "frame": [96, 64],
+   "layout": "side",
+   "clips": {
+    "attack": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/goblin/png/spr-attack-strip10.png",
+     "frame": [96, 64],
+     "size": [864, 64],
+     "verify": true
+    },
+    "axe": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/goblin/png/spr-axe-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "carry": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/goblin/png/spr-carry-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "casting": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/goblin/png/spr-casting-strip15.png",
+     "frame": [96, 64],
+     "size": [960, 128]
+    },
+    "caught": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/goblin/png/spr-caught-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "death": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/goblin/png/spr-death-strip13.png",
+     "frame": [96, 64],
+     "size": [864, 64],
+     "verify": true
+    },
+    "dig": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/goblin/png/spr-dig-strip13.png",
+     "frame": [96, 64],
+     "size": [960, 128]
+    },
+    "doing": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/goblin/png/spr-doing-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "hammering": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/goblin/png/spr-hammering-strip23.png",
+     "frame": [96, 64],
+     "size": [960, 192]
+    },
+    "hurt": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/goblin/png/spr-hurt-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/goblin/png/spr-idle-strip9.png",
+     "frame": [96, 64],
+     "size": [768, 64],
+     "verify": true
+    },
+    "jump": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/goblin/png/spr-jump-strip9.png",
+     "frame": [96, 64],
+     "size": [864, 64]
+    },
+    "mining": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/goblin/png/spr-mining-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "reeling": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/goblin/png/spr-reeling-strip13.png",
+     "frame": [96, 64],
+     "size": [960, 128]
+    },
+    "roll": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/goblin/png/spr-roll-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "run": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/goblin/png/spr-run-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "swimming": {
+     "frames": [0, 1, 2, 3],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/goblin/png/spr-swimming-strip12.png",
+     "frame": [96, 64],
+     "size": [384, 64],
+     "verify": true
+    },
+    "waiting": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/goblin/png/spr-waiting-strip9.png",
+     "frame": [96, 64],
+     "size": [768, 64],
+     "verify": true
+    },
+    "walk": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/goblin/png/spr-walk-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    },
+    "watering": {
+     "frames": [0, 1, 2, 3, 4],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/goblin/png/spr-watering-strip5.png",
+     "frame": [96, 64],
+     "size": [480, 64]
+    }
+   }
+  },
+  {
+   "id": "enemy/skeleton",
+   "file": "characters/skeleton/png/skeleton-idle-strip6.png",
+   "category": "enemy",
+   "name": "Skeleton",
+   "size": [576, 64],
+   "frame": [96, 64],
+   "layout": "side",
+   "clips": {
+    "attack": {
+     "frames": [0, 1, 2, 3, 4, 5, 6],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/skeleton/png/skeleton-attack-strip7.png",
+     "frame": [96, 64],
+     "size": [672, 64]
+    },
+    "death": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/skeleton/png/skeleton-death-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "hurt": {
+     "frames": [0, 1, 2, 3, 4, 5, 6],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/skeleton/png/skeleton-hurt-strip7.png",
+     "frame": [96, 64],
+     "size": [672, 64]
+    },
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/skeleton/png/skeleton-idle-strip6.png",
+     "frame": [96, 64],
+     "size": [576, 64]
+    },
+    "jump": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+     "fps": 10,
+     "loop": false,
+     "file": "characters/skeleton/png/skeleton-jump-strip10.png",
+     "frame": [96, 64],
+     "size": [960, 64]
+    },
+    "walk": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 10,
+     "loop": true,
+     "file": "characters/skeleton/png/skeleton-walk-strip8.png",
+     "frame": [96, 64],
+     "size": [768, 64]
+    }
+   }
+  },
+  {
+   "id": "item/crate-base",
+   "file": "elements/crops/crate-base.png",
+   "category": "item",
+   "name": "Crate base",
+   "size": [16, 16],
+   "group": "farm"
+  },
+  {
+   "id": "item/crate-top",
+   "file": "elements/crops/crate-top.png",
+   "category": "item",
+   "name": "Crate top",
+   "size": [16, 14],
+   "group": "farm"
+  },
+  {
+   "id": "item/egg",
+   "file": "elements/crops/egg.png",
+   "category": "item",
+   "name": "Egg",
+   "size": [10, 11],
+   "group": "farm"
+  },
+  {
+   "id": "item/fish",
+   "file": "elements/crops/fish.png",
+   "category": "item",
+   "name": "Fish",
+   "size": [11, 11],
+   "group": "farm"
+  },
+  {
+   "id": "item/milk",
+   "file": "elements/crops/milk.png",
+   "category": "item",
+   "name": "Milk",
+   "size": [10, 12],
+   "group": "farm"
+  },
+  {
+   "id": "item/rock",
+   "file": "elements/crops/rock.png",
+   "category": "item",
+   "name": "Rock",
+   "size": [10, 10],
+   "group": "farm"
+  },
+  {
+   "id": "item/seeds-generic",
+   "file": "elements/crops/seeds-generic.png",
+   "category": "item",
+   "name": "Seeds generic",
+   "size": [11, 10],
+   "group": "farm"
+  },
+  {
+   "id": "item/wood",
+   "file": "elements/crops/wood.png",
+   "category": "item",
+   "name": "Wood",
+   "size": [11, 11],
+   "group": "farm"
+  },
+  {
+   "id": "prop/coracle",
+   "file": "elements/other/spr-deco-coracle-strip4.png",
+   "category": "prop",
+   "name": "Coracle",
+   "size": [192, 37],
+   "frame": [48, 37],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "prop/coracle-land",
+   "file": "elements/other/spr-deco-coracle-land.png",
+   "category": "prop",
+   "name": "Coracle land",
+   "size": [32, 30]
+  },
+  {
+   "id": "prop/windmill",
+   "file": "elements/other/spr-deco-windmill-strip9.png",
+   "category": "prop",
+   "name": "Windmill",
+   "size": [1008, 112],
+   "frame": [112, 112],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "prop/windmill-withshadow",
+   "file": "elements/other/spr-deco-windmill-withshadow-strip9.png",
+   "category": "prop",
+   "name": "Windmill withshadow",
+   "size": [1008, 112],
+   "frame": [112, 112],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "prop/windmillshadow",
+   "file": "elements/other/spr-deco-windmillshadow-strip9.png",
+   "category": "prop",
+   "name": "Windmillshadow",
+   "size": [1008, 112],
+   "frame": [112, 112],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  {
+   "id": "tileset/16px",
+   "file": "tileset/spr-tileset-sunnysideworld-16px.png",
+   "category": "tileset",
+   "name": "16px",
+   "size": [1024, 1024],
+   "frame": [16, 16],
+   "layout": "grid"
+  },
+  {
+   "id": "tileset/forest-32px",
+   "file": "tileset/spr-tileset-sunnysideworld-forest-32px.png",
+   "category": "tileset",
+   "name": "Forest 32px",
+   "size": [320, 576],
+   "frame": [32, 32],
+   "layout": "grid"
+  },
+  {
+   "id": "ui/arrow-left",
+   "file": "ui/arrow-left.png",
+   "category": "ui",
+   "name": "Arrow left",
+   "size": [11, 12]
+  },
+  {
+   "id": "ui/arrow-right",
+   "file": "ui/arrow-right.png",
+   "category": "ui",
+   "name": "Arrow right",
+   "size": [11, 12]
+  },
+  {
+   "id": "ui/arrow-up",
+   "file": "ui/arrow-up.png",
+   "category": "ui",
+   "name": "Arrow up",
+   "size": [10, 13]
+  },
+  {
+   "id": "ui/arrow-up-1",
+   "file": "ui/arrow-up-1.png",
+   "category": "ui",
+   "name": "Arrow up 1",
+   "size": [10, 13]
+  },
+  {
+   "id": "ui/axe",
+   "file": "ui/axe.png",
+   "category": "ui",
+   "name": "Axe",
+   "size": [15, 13]
+  },
+  {
+   "id": "ui/basket",
+   "file": "ui/basket.png",
+   "category": "ui",
+   "name": "Basket",
+   "size": [12, 12]
+  },
+  {
+   "id": "ui/bluebar",
+   "file": "ui/bluebar.png",
+   "category": "ui",
+   "name": "Bluebar",
+   "size": [90, 7],
+   "frame": [15, 7],
+   "clips": {
+    "states": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "ui/cancel",
+   "file": "ui/cancel.png",
+   "category": "ui",
+   "name": "Cancel",
+   "size": [11, 11]
+  },
+  {
+   "id": "ui/confirm",
+   "file": "ui/confirm.png",
+   "category": "ui",
+   "name": "Confirm",
+   "size": [12, 11]
+  },
+  {
+   "id": "ui/cursor",
+   "file": "ui/cursor.png",
+   "category": "ui",
+   "name": "Cursor",
+   "size": [60, 19],
+   "frame": [12, 19],
+   "clips": {
+    "states": {
+     "frames": [0, 1, 2, 3, 4],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "ui/dt-box-9slice-bc",
+   "file": "ui/9slice-box-white/dt-box-9slice-bc.png",
+   "category": "ui",
+   "name": "Dt box 9slice bc",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/dt-box-9slice-bl",
+   "file": "ui/9slice-box-white/dt-box-9slice-bl.png",
+   "category": "ui",
+   "name": "Dt box 9slice bl",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/dt-box-9slice-br",
+   "file": "ui/9slice-box-white/dt-box-9slice-br.png",
+   "category": "ui",
+   "name": "Dt box 9slice br",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/dt-box-9slice-c",
+   "file": "ui/9slice-box-white/dt-box-9slice-c.png",
+   "category": "ui",
+   "name": "Dt box 9slice c",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/dt-box-9slice-lc",
+   "file": "ui/9slice-box-white/dt-box-9slice-lc.png",
+   "category": "ui",
+   "name": "Dt box 9slice lc",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/dt-box-9slice-rc",
+   "file": "ui/9slice-box-white/dt-box-9slice-rc.png",
+   "category": "ui",
+   "name": "Dt box 9slice rc",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/dt-box-9slice-tc",
+   "file": "ui/9slice-box-white/dt-box-9slice-tc.png",
+   "category": "ui",
+   "name": "Dt box 9slice tc",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/dt-box-9slice-tl",
+   "file": "ui/9slice-box-white/dt-box-9slice-tl.png",
+   "category": "ui",
+   "name": "Dt box 9slice tl",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/dt-box-9slice-tr",
+   "file": "ui/9slice-box-white/dt-box-9slice-tr.png",
+   "category": "ui",
+   "name": "Dt box 9slice tr",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/expression-alerted",
+   "file": "ui/expression-alerted.png",
+   "category": "ui",
+   "name": "Expression alerted",
+   "size": [4, 9]
+  },
+  {
+   "id": "ui/expression-attack",
+   "file": "ui/expression-attack.png",
+   "category": "ui",
+   "name": "Expression attack",
+   "size": [7, 8]
+  },
+  {
+   "id": "ui/expression-chat",
+   "file": "ui/expression-chat.png",
+   "category": "ui",
+   "name": "Expression chat",
+   "size": [9, 9]
+  },
+  {
+   "id": "ui/expression-confused",
+   "file": "ui/expression-confused.png",
+   "category": "ui",
+   "name": "Expression confused",
+   "size": [7, 10]
+  },
+  {
+   "id": "ui/expression-confused-1",
+   "file": "ui/expression-confused-1.png",
+   "category": "ui",
+   "name": "Expression confused 1",
+   "size": [8, 9]
+  },
+  {
+   "id": "ui/expression-love",
+   "file": "ui/expression-love.png",
+   "category": "ui",
+   "name": "Expression love",
+   "size": [9, 8]
+  },
+  {
+   "id": "ui/expression-stress",
+   "file": "ui/expression-stress.png",
+   "category": "ui",
+   "name": "Expression stress",
+   "size": [7, 7]
+  },
+  {
+   "id": "ui/expression-working",
+   "file": "ui/expression-working.png",
+   "category": "ui",
+   "name": "Expression working",
+   "size": [7, 9]
+  },
+  {
+   "id": "ui/greenbar",
+   "file": "ui/greenbar.png",
+   "category": "ui",
+   "name": "Greenbar",
+   "size": [105, 7],
+   "frame": [15, 7],
+   "clips": {
+    "states": {
+     "frames": [0, 1, 2, 3, 4, 5, 6],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "ui/greenbar-06-1",
+   "file": "ui/greenbar-06-1.png",
+   "category": "ui",
+   "name": "Greenbar 06 1",
+   "size": [15, 7]
+  },
+  {
+   "id": "ui/hammer",
+   "file": "ui/hammer.png",
+   "category": "ui",
+   "name": "Hammer",
+   "size": [13, 13]
+  },
+  {
+   "id": "ui/hand-closed",
+   "file": "ui/hand-closed.png",
+   "category": "ui",
+   "name": "Hand closed",
+   "size": [26, 12],
+   "frame": [13, 12],
+   "clips": {
+    "states": {
+     "frames": [0, 1],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "ui/hand-open",
+   "file": "ui/hand-open.png",
+   "category": "ui",
+   "name": "Hand open",
+   "size": [28, 14],
+   "frame": [14, 14],
+   "clips": {
+    "states": {
+     "frames": [0, 1],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "ui/happiness",
+   "file": "ui/happiness.png",
+   "category": "ui",
+   "name": "Happiness",
+   "size": [28, 8],
+   "frame": [7, 8],
+   "clips": {
+    "states": {
+     "frames": [0, 1, 2, 3],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "ui/indicator",
+   "file": "ui/indicator.png",
+   "category": "ui",
+   "name": "Indicator",
+   "size": [8, 6]
+  },
+  {
+   "id": "ui/itemdisc",
+   "file": "ui/itemdisc.png",
+   "category": "ui",
+   "name": "Itemdisc",
+   "size": [36, 19],
+   "frame": [18, 19],
+   "clips": {
+    "states": {
+     "frames": [0, 1],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "ui/label-left",
+   "file": "ui/label-left.png",
+   "category": "ui",
+   "name": "Label left",
+   "size": [4, 13]
+  },
+  {
+   "id": "ui/label-middle",
+   "file": "ui/label-middle.png",
+   "category": "ui",
+   "name": "Label middle",
+   "size": [16, 13]
+  },
+  {
+   "id": "ui/label-right",
+   "file": "ui/label-right.png",
+   "category": "ui",
+   "name": "Label right",
+   "size": [4, 13]
+  },
+  {
+   "id": "ui/lt-box-9slice-bc",
+   "file": "ui/9slice-box-white/lt-box-9slice-bc.png",
+   "category": "ui",
+   "name": "Lt box 9slice bc",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/lt-box-9slice-bl",
+   "file": "ui/9slice-box-white/lt-box-9slice-bl.png",
+   "category": "ui",
+   "name": "Lt box 9slice bl",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/lt-box-9slice-br",
+   "file": "ui/9slice-box-white/lt-box-9slice-br.png",
+   "category": "ui",
+   "name": "Lt box 9slice br",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/lt-box-9slice-c",
+   "file": "ui/9slice-box-white/lt-box-9slice-c.png",
+   "category": "ui",
+   "name": "Lt box 9slice c",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/lt-box-9slice-lc",
+   "file": "ui/9slice-box-white/lt-box-9slice-lc.png",
+   "category": "ui",
+   "name": "Lt box 9slice lc",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/lt-box-9slice-rc",
+   "file": "ui/9slice-box-white/lt-box-9slice-rc.png",
+   "category": "ui",
+   "name": "Lt box 9slice rc",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/lt-box-9slice-tc",
+   "file": "ui/9slice-box-white/lt-box-9slice-tc.png",
+   "category": "ui",
+   "name": "Lt box 9slice tc",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/lt-box-9slice-tl",
+   "file": "ui/9slice-box-white/lt-box-9slice-tl.png",
+   "category": "ui",
+   "name": "Lt box 9slice tl",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/lt-box-9slice-tr",
+   "file": "ui/9slice-box-white/lt-box-9slice-tr.png",
+   "category": "ui",
+   "name": "Lt box 9slice tr",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/pickaxe",
+   "file": "ui/pickaxe.png",
+   "category": "ui",
+   "name": "Pickaxe",
+   "size": [13, 13]
+  },
+  {
+   "id": "ui/plan-alt",
+   "file": "ui/plan-alt.png",
+   "category": "ui",
+   "name": "Plan alt",
+   "size": [12, 12]
+  },
+  {
+   "id": "ui/plant",
+   "file": "ui/plant.png",
+   "category": "ui",
+   "name": "Plant",
+   "size": [10, 11]
+  },
+  {
+   "id": "ui/playercount",
+   "file": "ui/playercount.png",
+   "category": "ui",
+   "name": "Playercount",
+   "size": [13, 14]
+  },
+  {
+   "id": "ui/redbar",
+   "file": "ui/redbar.png",
+   "category": "ui",
+   "name": "Redbar",
+   "size": [105, 7],
+   "frame": [15, 7],
+   "clips": {
+    "states": {
+     "frames": [0, 1, 2, 3, 4, 5, 6],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "ui/rod",
+   "file": "ui/rod.png",
+   "category": "ui",
+   "name": "Rod",
+   "size": [15, 14]
+  },
+  {
+   "id": "ui/rod-alt",
+   "file": "ui/rod-alt.png",
+   "category": "ui",
+   "name": "Rod alt",
+   "size": [16, 14]
+  },
+  {
+   "id": "ui/sandtimer",
+   "file": "ui/sandtimer.png",
+   "category": "ui",
+   "name": "Sandtimer",
+   "size": [8, 11]
+  },
+  {
+   "id": "ui/search",
+   "file": "ui/search.png",
+   "category": "ui",
+   "name": "Search",
+   "size": [16, 16]
+  },
+  {
+   "id": "ui/select-dots",
+   "file": "ui/select-dots.png",
+   "category": "ui",
+   "name": "Select dots",
+   "size": [5, 6]
+  },
+  {
+   "id": "ui/select-dots-large",
+   "file": "ui/select-dots-large.png",
+   "category": "ui",
+   "name": "Select dots large",
+   "size": [6, 7]
+  },
+  {
+   "id": "ui/selectbox-bl",
+   "file": "ui/selectbox-bl.png",
+   "category": "ui",
+   "name": "Selectbox bl",
+   "size": [8, 9]
+  },
+  {
+   "id": "ui/selectbox-br",
+   "file": "ui/selectbox-br.png",
+   "category": "ui",
+   "name": "Selectbox br",
+   "size": [8, 9]
+  },
+  {
+   "id": "ui/selectbox-tl",
+   "file": "ui/selectbox-tl.png",
+   "category": "ui",
+   "name": "Selectbox tl",
+   "size": [8, 9]
+  },
+  {
+   "id": "ui/selectbox-tr",
+   "file": "ui/selectbox-tr.png",
+   "category": "ui",
+   "name": "Selectbox tr",
+   "size": [8, 9]
+  },
+  {
+   "id": "ui/shovel",
+   "file": "ui/shovel.png",
+   "category": "ui",
+   "name": "Shovel",
+   "size": [14, 14]
+  },
+  {
+   "id": "ui/stopwatch",
+   "file": "ui/stopwatch.png",
+   "category": "ui",
+   "name": "Stopwatch",
+   "size": [10, 12]
+  },
+  {
+   "id": "ui/sword",
+   "file": "ui/sword.png",
+   "category": "ui",
+   "name": "Sword",
+   "size": [14, 14]
+  },
+  {
+   "id": "ui/w-box-9slice-bc",
+   "file": "ui/9slice-box-white/w-box-9slice-bc.png",
+   "category": "ui",
+   "name": "W box 9slice bc",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/w-box-9slice-bl",
+   "file": "ui/9slice-box-white/w-box-9slice-bl.png",
+   "category": "ui",
+   "name": "W box 9slice bl",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/w-box-9slice-br",
+   "file": "ui/9slice-box-white/w-box-9slice-br.png",
+   "category": "ui",
+   "name": "W box 9slice br",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/w-box-9slice-c",
+   "file": "ui/9slice-box-white/w-box-9slice-c.png",
+   "category": "ui",
+   "name": "W box 9slice c",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/w-box-9slice-lc",
+   "file": "ui/9slice-box-white/w-box-9slice-lc.png",
+   "category": "ui",
+   "name": "W box 9slice lc",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/w-box-9slice-rc",
+   "file": "ui/9slice-box-white/w-box-9slice-rc.png",
+   "category": "ui",
+   "name": "W box 9slice rc",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/w-box-9slice-tc",
+   "file": "ui/9slice-box-white/w-box-9slice-tc.png",
+   "category": "ui",
+   "name": "W box 9slice tc",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/w-box-9slice-tl",
+   "file": "ui/9slice-box-white/w-box-9slice-tl.png",
+   "category": "ui",
+   "name": "W box 9slice tl",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/w-box-9slice-tr",
+   "file": "ui/9slice-box-white/w-box-9slice-tr.png",
+   "category": "ui",
+   "name": "W box 9slice tr",
+   "size": [3, 3],
+   "group": "9slice"
+  },
+  {
+   "id": "ui/water",
+   "file": "ui/water.png",
+   "category": "ui",
+   "name": "Water",
+   "size": [13, 13]
+  }
+ ]
+}
