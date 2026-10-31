@@ -71,162 +71,64 @@
   image-rendering: pixelated;
 }
 
-.eb-hero {
-  transition: transform 0.25s ease-in-out;
+/* The time line under the field: play or pause, step back and forward, the slider and the speed. */
+.eb-timeline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -4px auto 0;
+  width: min(100%, 58vh);
 }
 
-.eb-ice-hole {
-  fill: #1d4f6e;
+.eb-timeline button {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 18px;
+  background: #e3e6ef;
+  color: var(--eb-ink);
+  font-size: 0.95rem;
+  cursor: pointer;
 }
 
-.eb-doormat {
-  fill: #9b5b34;
-  stroke: #5e3216;
-  stroke-width: 1;
+.eb-timeline .eb-timeline-play {
+  background: var(--eb-accent);
+  color: #fff;
 }
 
-.eb-hero-shadow {
-  fill: rgba(0, 0, 0, 0.25);
+.eb-timeline button:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
-.eb-hero-crashed {
-  animation: eb-shake 0.3s ease-in-out 2;
-  filter: drop-shadow(0 0 1.5px #ff3355);
+.eb-timeline-slider {
+  flex: 1;
+  min-width: 60px;
+  accent-color: var(--eb-accent);
 }
 
-.eb-enemy {
-  transition: transform 0.25s ease-in-out;
+.eb-timeline-count {
+  flex: none;
+  min-width: 3.2em;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
-/* An enemy next to the hero raises its weapon: it hits on its next turn. */
-.eb-enemy-swing {
-  animation: eb-swing 0.35s ease-in-out infinite alternate;
-  filter: drop-shadow(0 0 1.2px #ff3355);
+.eb-timeline-rate {
+  flex: none;
+  height: 32px;
+  border: 1px solid var(--eb-line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--eb-ink);
+  font: inherit;
+  font-size: 0.85rem;
 }
 
-.eb-hero-hurt {
-  animation: eb-hurt 0.45s ease-out 1;
-}
-
-.eb-burst {
-  animation-name: eb-burst;
-  animation-duration: 0.45s;
-  animation-fill-mode: forwards;
-}
-
-.eb-hp-back {
-  fill: rgba(30, 20, 30, 0.75);
-}
-
-.eb-hp {
-  fill: #e8434f;
-}
-
-.eb-hearts-back {
-  fill: rgba(30, 20, 30, 0.45);
-}
-
-.eb-energy {
-  fill: #fff;
-  font: 700 6.5px/1 system-ui, sans-serif;
-}
-
-/* Traps: thin ice in winter, a pit in summer. */
-.eb-trap-ice-sheet {
-  fill: #cfe8ff;
-  stroke: #8fc3ef;
-  stroke-width: 0.6;
-}
-
-.eb-trap-crack {
-  fill: none;
-  stroke: #3d74a8;
-  stroke-width: 0.7;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.eb-trap-water {
-  fill: #1d4f7c;
-}
-
-.eb-trap-rim {
-  fill: #7a4a26;
-}
-
-.eb-trap-hole {
-  fill: #2b1a10;
-}
-
-.eb-hero-fell {
-  animation: eb-fall 0.5s ease-in forwards;
-}
-
-@keyframes eb-fall {
-  to {
-    transform: translateY(3px) scale(0.6);
-    opacity: 0.35;
-  }
-}
-
-@keyframes eb-swing {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(-1.5px);
-  }
-}
-
-@keyframes eb-hurt {
-  0%,
-  60% {
-    filter: brightness(2.2) drop-shadow(0 0 1.5px #ff3355);
-  }
-  100% {
-    filter: none;
-  }
-}
-
-@keyframes eb-burst {
-  to {
-    transform: translateX(var(--eb-burst-to));
-  }
-}
-
-.eb-crystal {
-  animation: eb-bob 1.2s ease-in-out infinite alternate;
-}
-
-@keyframes eb-bob {
-  to {
-    transform: translateY(-1.5px);
-  }
-}
-
-@keyframes eb-shake {
-  25% {
-    transform: translateX(-1.5px);
-  }
-  75% {
-    transform: translateX(1.5px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .eb-burst {
-    display: none;
-  }
-  .eb-hero,
-  .eb-hero-crashed,
-  .eb-hero-fell,
-  .eb-enemy,
-  .eb-enemy-swing,
-  .eb-hero-hurt,
-  .eb-crystal {
-    animation: none;
-    transition: none;
-  }
+.eb-full .eb-timeline {
+  width: min(100%, 72vh);
 }
 
 .eb-controls {
