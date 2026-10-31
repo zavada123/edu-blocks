@@ -4,6 +4,7 @@
  */
 export * from "./core/blocks.ts";
 export * from "./core/build.ts";
+export * from "./core/hero.ts";
 export { judgeProgram, MAX_PASSES, MAX_STEPS } from "./core/judge.ts";
 export * from "./core/level.ts";
 export { checkProgram, MAX_ACTIONS, MAX_FRAMES, MAX_PROGRAM_BLOCKS } from "./core/program.ts";

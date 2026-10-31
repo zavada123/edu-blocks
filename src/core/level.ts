@@ -116,6 +116,9 @@ export const goalMet = (world: World, goal: Goal): boolean => {
 
 export const allGoalsMet = (level: Level, world: World): boolean => level.goals.every((g) => goalMet(world, g))
 
+/** Which goals of the level are met now, in the order of `level.goals`: the live goal list of the game. */
+export const goalStatus = (level: Level, world: World): ReadonlyArray<boolean> => level.goals.map((g) => goalMet(world, g))
+
 const ITEM_GOALS: Readonly<Record<ItemKind, (count: number) => string>> = {
   crystal: (n) => `Збери всі кристали (${n})`,
   wood: (n) => (n === 1 ? "Візьми дрова" : `Візьми дрова (${n})`),
