@@ -8,6 +8,6 @@
     "rootDir": "src",
     "outDir": "lib/types"
   },
-  "include": ["src/core.ts", "src/react.ts", "src/**/*.d.ts"],
+  "include": ["src/core.ts", "src/react.ts", "src/python.ts", "src/**/*.d.ts"],
   "exclude": ["src/**/*.test.ts"]
 }

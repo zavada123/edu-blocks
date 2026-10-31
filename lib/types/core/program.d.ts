@@ -31,6 +31,8 @@ export interface Frame {
     readonly world: World;
     /** The counter after the move, on a level with «лічильник». */
     readonly counter?: string;
+    /** The line of the Python program that made the move, to highlight it in the code editor. */
+    readonly line?: number;
 }
 export interface RunResult {
     readonly levelId: string;
@@ -44,6 +46,10 @@ export interface RunResult {
     readonly reason: FailReason | null;
     /** For `badProgram`: what is wrong. */
     readonly detail?: string;
+    /** For `badProgram` in a Python program: the line of the mistake. */
+    readonly line?: number;
+    /** What a Python program printed with `print`. */
+    readonly output?: ReadonlyArray<string>;
     readonly frames: ReadonlyArray<Frame>;
     readonly world: World;
 }

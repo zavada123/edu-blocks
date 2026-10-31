@@ -1,170 +1,533 @@
+/*
+ * The game screen. Wide: the bar of the chapter and the hero on top, the field on the left, the task and the code on
+ * the right. Narrow (a phone): one column, the task, the field and the code under each other.
+ * Colours, fonts and the pixel parts are in theme.css.
+ */
 .eb-root {
-  --eb-ink: #575e75;
-  --eb-bg: #f9f9fb;
-  --eb-line: #d9dce6;
-  --eb-accent: #4c97ff;
-  --eb-ok: #0fbd8c;
-  /* Text and button colours with 4.5:1 contrast on the light background and with white text. */
-  --eb-ok-text: #0a7d5c;
-  --eb-ok-button: #0b7a5c;
-  --eb-bad: #ff6680;
+  position: relative;
+  box-sizing: border-box;
   display: grid;
-  /* The field column takes about half the width: the field is the game, the blocks need less. */
-  grid-template-columns: minmax(340px, 1fr) minmax(420px, 1fr);
+  grid-template-columns: minmax(300px, 1fr) minmax(380px, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-areas:
+    "hud hud"
+    "stage quest"
+    "stage editor";
+  gap: 12px 18px;
   height: 100%;
-  min-height: 0;
-  background: var(--eb-bg);
-  color: var(--eb-ink);
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  /* The game takes the height its box gives; a box without a height gets this much. */
+  min-height: 520px;
+  padding: 12px 14px;
+  overflow: hidden;
+  /* A page often gives the game less height than the window has: the parts below fit the game's own height. */
+  container: eb-screen / size;
 }
 
-.eb-stage {
+/* ---- The bar on top ---- */
+
+.eb-hud {
+  grid-area: hud;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  overflow: auto;
-  border-right: 1px solid var(--eb-line);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  min-width: 0;
 }
 
-.eb-task h2 {
-  margin: 0 0 4px;
-  font-size: 1.2rem;
+.eb-hud-chapter {
+  display: flex;
+  flex: 1 1 260px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  min-width: 0;
 }
 
-.eb-task p {
-  margin: 0 0 4px;
-  line-height: 1.4;
+.eb-hud-title {
+  margin: 0;
+  color: var(--eb-gold);
+  font: 400 20px/1.1 var(--eb-font-pixel);
 }
 
-.eb-goals {
-  margin: 8px 0 0;
+.eb-hud-levels {
+  display: flex;
+  gap: 8px;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.eb-goals li::before {
-  content: "○ ";
+.eb-hud-dot {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  background: var(--eb-slate);
+  color: var(--eb-fg-soft);
+  box-shadow: inset 0 0 0 2px var(--eb-slate-line);
+  font: 400 14px/1 var(--eb-font-pixel);
 }
 
-.eb-goals li.eb-goal-ok {
-  color: var(--eb-ok-text);
-  font-weight: 600;
+.eb-hud-dot-done {
+  background: var(--eb-go);
+  color: #fff;
+  box-shadow: inset 0 -3px 0 var(--eb-go-dark);
 }
 
-.eb-goals li.eb-goal-ok::before {
-  content: "✓ ";
+.eb-hud-dot-now {
+  background: var(--eb-gold);
+  color: var(--eb-edge);
+  box-shadow: inset 0 -3px 0 var(--eb-gold-dark);
 }
 
-.eb-field-wrap {
+.eb-hud-hero {
   display: flex;
-  justify-content: center;
+  align-items: center;
+  gap: 12px;
 }
 
-/* Every level gets a square field of the same size: the view is square, the size comes from the window. */
-.eb-field {
-  width: min(100%, 58vh);
-  aspect-ratio: 1;
+.eb-avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin: 3px;
+  background: var(--eb-parch);
+  box-shadow: 0 -3px 0 0 var(--eb-edge), 0 3px 0 0 var(--eb-edge), -3px 0 0 0 var(--eb-edge), 3px 0 0 0 var(--eb-edge);
+}
+
+/* The first frame of the hero's sheet (facing down), twice its size. */
+.eb-avatar span {
+  width: 32px;
+  height: 32px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: 128px auto;
+  image-rendering: pixelated;
+}
+
+.eb-hud-xp {
+  display: grid;
+  gap: 6px;
+  min-width: 170px;
+}
+
+.eb-hud-xp-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font: 400 15px/1 var(--eb-font-pixel);
+  font-variant-numeric: tabular-nums;
+}
+
+.eb-hud-xp-line b {
+  font-weight: 400;
+  color: var(--eb-ice);
+}
+
+/* ---- The field and its controls ---- */
+
+.eb-stage {
+  grid-area: stage;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: 0;
+  /* The field fits the height and the width the screen leaves it. */
+  container-type: size;
+}
+
+/* Every level gets a square field of the same size; the room under it is for the time line and the buttons. */
+.eb-field-frame {
   flex: none;
-  border-radius: 10px;
+  width: max(160px, min(100cqw - 8px, 100cqh - 132px));
+  aspect-ratio: 1;
+  padding: 10px;
+}
+
+.eb-field {
+  display: block;
+  width: 100%;
+  height: 100%;
+  box-shadow: 0 0 0 var(--eb-px) var(--eb-edge);
   /* Pixel art stays sharp at any size. */
   image-rendering: pixelated;
 }
 
-/* The time line under the field: play or pause, step back and forward, the slider and the speed. */
+.eb-stage-bottom {
+  display: grid;
+  gap: 8px;
+  width: max(160px, min(100cqw - 8px, 100cqh - 132px));
+}
+
+.eb-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+
+.eb-run {
+  flex: 1 1 auto;
+  font-size: 21px;
+}
+
+/* The time line: play or pause, a step back and forward, the slider, the count and the speed. */
 .eb-timeline {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: -4px auto 0;
-  width: min(100%, 58vh);
+  min-width: 0;
 }
 
-.eb-timeline button {
+.eb-timeline .eb-btn {
   flex: none;
-  width: 36px;
-  height: 36px;
-  border: 0;
-  border-radius: 18px;
-  background: #e3e6ef;
-  color: var(--eb-ink);
-  font-size: 0.95rem;
-  cursor: pointer;
-}
-
-.eb-timeline .eb-timeline-play {
-  background: var(--eb-accent);
-  color: #fff;
-}
-
-.eb-timeline button:disabled {
-  opacity: 0.45;
-  cursor: default;
+  min-width: 36px;
+  min-height: 34px;
+  padding: 2px 6px 5px;
+  font-family: var(--eb-font-text);
+  font-size: 15px;
 }
 
 .eb-timeline-slider {
   flex: 1;
   min-width: 60px;
-  accent-color: var(--eb-accent);
+  height: 22px;
+  margin: 0 6px;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.eb-timeline-slider::-webkit-slider-runnable-track {
+  height: 8px;
+  background: var(--eb-slate);
+  box-shadow: 0 0 0 2px var(--eb-edge);
+}
+
+.eb-timeline-slider::-moz-range-track {
+  height: 8px;
+  background: var(--eb-slate);
+  box-shadow: 0 0 0 2px var(--eb-edge);
+}
+
+.eb-timeline-slider::-moz-range-progress {
+  height: 8px;
+  background: var(--eb-gold);
+}
+
+.eb-timeline-slider::-webkit-slider-thumb {
+  width: 12px;
+  height: 20px;
+  margin-top: -6px;
+  border: 0;
+  border-radius: 0;
+  background: var(--eb-gold);
+  box-shadow: 0 0 0 2px var(--eb-edge);
+  -webkit-appearance: none;
+}
+
+.eb-timeline-slider::-moz-range-thumb {
+  width: 12px;
+  height: 20px;
+  border: 0;
+  border-radius: 0;
+  background: var(--eb-gold);
+  box-shadow: 0 0 0 2px var(--eb-edge);
 }
 
 .eb-timeline-count {
   flex: none;
-  min-width: 3.2em;
-  font-size: 0.85rem;
+  min-width: 3.4em;
+  font: 400 15px/1 var(--eb-font-pixel);
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
 
 .eb-timeline-rate {
   flex: none;
-  height: 32px;
-  border: 1px solid var(--eb-line);
-  border-radius: 8px;
-  background: #fff;
-  color: var(--eb-ink);
-  font: inherit;
-  font-size: 0.85rem;
-}
-
-.eb-full .eb-timeline {
-  width: min(100%, 72vh);
-}
-
-.eb-controls {
-  display: flex;
-  gap: 8px;
-}
-
-.eb-controls button {
-  min-height: 44px;
-  padding: 0 16px;
+  height: 34px;
+  margin: 2px;
+  padding: 0 6px;
   border: 0;
-  border-radius: 22px;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
+  border-radius: 0;
+  background: var(--eb-slate);
+  color: var(--eb-fg);
+  box-shadow: 0 0 0 2px var(--eb-edge);
+  font: 400 15px var(--eb-font-pixel);
 }
 
-.eb-run {
-  flex: 1;
-  background: var(--eb-ok-button);
+/* ---- The task ---- */
+
+.eb-quest {
+  grid-area: quest;
+  min-width: 0;
+  padding: 14px 18px 12px;
+}
+
+.eb-quest h2 {
+  margin: 0 0 8px;
+  font: 400 26px/1.05 var(--eb-font-pixel);
+  text-wrap: balance;
+}
+
+.eb-quest p {
+  margin: 0 0 6px;
+  line-height: 1.45;
+}
+
+.eb-goals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.eb-goal {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px;
+  padding: 5px 10px;
+  background: var(--eb-parch-deep);
+  box-shadow: 0 -2px 0 0 var(--eb-parch-line), 0 2px 0 0 var(--eb-parch-line), -2px 0 0 0 var(--eb-parch-line), 2px 0 0 0 var(--eb-parch-line);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.eb-goal-tick {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  background: var(--eb-parch);
+  box-shadow: inset 0 0 0 2px var(--eb-parch-line);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.eb-goal-ok .eb-goal-tick {
+  background: var(--eb-go);
   color: #fff;
-  font-size: 1.05rem;
+  box-shadow: 0 2px 0 var(--eb-go-dark);
 }
 
-.eb-reset,
-.eb-fullscreen {
-  background: #e3e6ef;
-  color: var(--eb-ink);
+.eb-quest-stars {
+  margin: 10px 0 0 !important;
+  color: var(--eb-ink-soft);
+  font-size: 13px;
+  font-weight: 600;
 }
 
-.eb-controls .eb-fullscreen {
-  padding: 0 14px;
-  font-size: 1.2rem;
+/* ---- The code ---- */
+
+.eb-editor-pane {
+  grid-area: editor;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
-/* Full screen: the game covers the page (where the browser has no full screen, too). */
+.eb-editor-head {
+  display: flex;
+  margin: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px 10px;
+  background: var(--eb-code-head);
+  border-bottom: var(--eb-px) solid var(--eb-edge);
+  color: var(--eb-fg);
+  font: 400 18px/1 var(--eb-font-pixel);
+}
+
+.eb-editor {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* ---- The result over the field ---- */
+
+.eb-verdict-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  background: rgb(14 20 17 / 0.62);
+}
+
+.eb-verdict {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: min(420px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  padding: 20px 20px 16px;
+  text-align: center;
+}
+
+.eb-verdict h3 {
+  margin: 0;
+  font: 400 28px/1.05 var(--eb-font-pixel);
+  text-wrap: balance;
+}
+
+.eb-verdict-ok h3 {
+  color: #7a3f0c;
+}
+
+.eb-verdict-fail h3 {
+  color: var(--eb-bad);
+}
+
+.eb-verdict p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.eb-verdict-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 12px;
+  margin-top: 4px;
+}
+
+.eb-hint {
+  padding: 8px 10px;
+  background: var(--eb-parch-deep);
+  font-size: 14px;
+}
+
+.eb-advice {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+  text-align: left;
+}
+
+.eb-stars {
+  display: flex;
+  gap: 12px;
+  font-size: 46px;
+  line-height: 1;
+}
+
+.eb-star {
+  color: var(--eb-star-off);
+  text-shadow: 3px 3px 0 rgb(36 22 13 / 0.35);
+}
+
+.eb-star-on {
+  color: var(--eb-gold);
+  text-shadow: 3px 3px 0 var(--eb-edge);
+}
+
+.eb-xp {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+}
+
+.eb-xp strong {
+  color: var(--eb-go-dark);
+  font: 400 22px/1 var(--eb-font-pixel);
+}
+
+.eb-xp-level {
+  color: var(--eb-ink-soft);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .eb-verdict {
+    animation: eb-pop 0.32s steps(6, end);
+  }
+
+  .eb-star-on {
+    animation: eb-pop 0.4s steps(5, end) both;
+  }
+
+  .eb-star-on:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+
+  .eb-star-on:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+}
+
+@keyframes eb-pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* ---- Bigger for the youngest ---- */
+
+.eb-large {
+  font-size: 17px;
+}
+
+.eb-large .eb-quest h2 {
+  font-size: 30px;
+}
+
+/* ---- A low screen (a game in a box on a page): the task and the code head get smaller, the code keeps its room ---- */
+
+@container eb-screen (max-height: 760px) {
+  .eb-quest {
+    padding: 10px 14px 8px;
+  }
+
+  .eb-quest h2 {
+    margin-bottom: 4px;
+    font-size: 21px;
+  }
+
+  .eb-quest p {
+    margin-bottom: 2px;
+    font-size: 14px;
+    line-height: 1.35;
+  }
+
+  .eb-goals {
+    margin-top: 6px;
+  }
+
+  .eb-quest-stars {
+    display: none;
+  }
+
+  .eb-editor-head {
+    padding: 6px 12px 7px;
+    font-size: 16px;
+  }
+}
+
+/* ---- Full screen: the game covers the page (where the browser has no full screen, too). ---- */
+
 .eb-root.eb-full {
   position: fixed;
   inset: 0;
@@ -172,178 +535,267 @@
   height: 100dvh;
 }
 
-.eb-full .eb-field {
-  width: min(100%, 72vh);
+/* ---- Phone and narrow window ---- */
+
+@media (max-width: 760px) {
+  .eb-root {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto minmax(280px, 1fr);
+    grid-template-areas:
+      "hud"
+      "quest"
+      "stage"
+      "editor";
+    gap: 8px;
+    padding: 8px;
+    overflow-y: auto;
+  }
+
+  .eb-hud {
+    gap: 6px 12px;
+  }
+
+  .eb-hud-title {
+    font-size: 16px;
+  }
+
+  .eb-hud-xp {
+    min-width: 130px;
+  }
+
+  /* Each part keeps its own height; the screen scrolls when they do not fit. */
+  .eb-stage {
+    container-type: inline-size;
+    gap: 8px;
+    min-height: auto;
+  }
+
+  .eb-field-frame,
+  .eb-stage-bottom {
+    width: min(100cqw - 8px, 38dvh);
+  }
+
+  .eb-field-frame {
+    padding: 6px;
+  }
+
+  .eb-quest {
+    padding: 10px 12px 8px;
+  }
+
+  .eb-quest h2 {
+    font-size: 20px;
+  }
+
+  .eb-quest p {
+    font-size: 14px;
+  }
+
+  .eb-quest-stars {
+    display: none;
+  }
+
+  .eb-controls {
+    flex-wrap: nowrap;
+  }
+
+  .eb-controls .eb-btn {
+    padding-inline: 10px;
+    font-size: 15px;
+  }
+
+  .eb-controls .eb-run {
+    font-size: 17px;
+  }
+
+  /* On a phone the result covers the whole screen, the field and the code both. */
+  .eb-verdict-layer {
+    position: fixed;
+    z-index: 1100;
+  }
 }
 
-.eb-controls button:disabled {
-  opacity: 0.5;
+/* ---- The hero: the portrait in the bar opens the choice ---- */
+
+.eb-hud-pick {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--eb-gold);
+  font: 400 12px/1 var(--eb-font-pixel);
+  cursor: pointer;
+}
+
+.eb-hud-pick:hover .eb-avatar {
+  background: var(--eb-gold);
+}
+
+.eb-hud-pick-label {
+  margin-top: -2px;
+}
+
+.eb-hero-sprite {
+  display: block;
+  width: 64px;
+  height: 64px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  /* A sheet is 4 frames wide: 16 px frames at four times their size. */
+  background-size: 256px auto;
+  image-rendering: pixelated;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .eb-hero-walk {
+    animation: eb-walk 0.72s steps(4) infinite;
+  }
+}
+
+/* The first column of a sheet walks towards the student, a frame per row. */
+@keyframes eb-walk {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 0 -256px;
+  }
+}
+
+.eb-picker-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  overflow: auto;
+  background: rgb(14 20 17 / 0.72);
+}
+
+.eb-picker {
+  width: min(760px, 100%);
+  padding: 16px 18px 18px;
+}
+
+.eb-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.eb-picker-head h3 {
+  margin: 0;
+  font: 400 28px/1 var(--eb-font-pixel);
+}
+
+.eb-picker-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.eb-hero-card {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 12px 10px 12px;
+  border: 0;
+  background: var(--eb-parch-deep);
+  color: var(--eb-ink);
+  box-shadow: 0 -3px 0 0 var(--eb-parch-line), 0 3px 0 0 var(--eb-parch-line), -3px 0 0 0 var(--eb-parch-line), 3px 0 0 0 var(--eb-parch-line);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.eb-hero-card:hover:not(:disabled) {
+  background: #efdcae;
+}
+
+.eb-hero-card-on {
+  box-shadow: 0 -4px 0 0 var(--eb-gold-dark), 0 4px 0 0 var(--eb-gold-dark), -4px 0 0 0 var(--eb-gold-dark), 4px 0 0 0 var(--eb-gold-dark), inset 0 0 0 3px var(--eb-gold);
+}
+
+.eb-hero-card-locked {
   cursor: default;
 }
 
-.eb-verdict {
-  padding: 12px;
-  border-radius: 10px;
+/* The field the hero stands on: a patch of grass in a dark frame. */
+.eb-hero-stage {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  background: #8fb14a;
+  box-shadow: 0 0 0 3px var(--eb-edge), inset 0 -10px 0 #7a9a3c;
 }
 
-.eb-verdict p {
-  margin: 0;
-  line-height: 1.4;
+.eb-hero-card-locked .eb-hero-sprite {
+  filter: brightness(0);
+  opacity: 0.45;
 }
 
-.eb-verdict-ok {
-  background: #e3f8f1;
+.eb-hero-card-locked .eb-hero-stage {
+  background: #b3a27a;
+  box-shadow: 0 0 0 3px var(--eb-ink-soft), inset 0 -10px 0 #a08f68;
 }
 
-.eb-verdict-fail {
-  background: #ffe8ec;
+.eb-hero-name {
+  font: 400 22px/1 var(--eb-font-pixel);
 }
 
-.eb-verdict-close {
-  display: none;
-  margin: 8px 0 0 auto;
-  min-height: 36px;
-  padding: 0 14px;
-  border: 0;
-  border-radius: 18px;
-  background: #fff;
-  color: inherit;
-  font: inherit;
-  font-weight: 700;
+.eb-hero-about {
+  color: var(--eb-ink-soft);
+  font-size: 13px;
+  line-height: 1.35;
 }
 
-.eb-hint {
-  margin-top: 6px !important;
+.eb-hero-state {
+  margin-top: auto;
+  text-wrap: balance;
+  padding: 5px 8px 6px;
+  background: var(--eb-stone);
+  color: #fff;
+  font: 400 14px/1 var(--eb-font-pixel);
 }
 
-.eb-advice {
-  margin: 6px 0 0;
-  padding-left: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  text-align: left;
+.eb-hero-card-on .eb-hero-state {
+  background: var(--eb-gold);
+  color: var(--eb-edge);
 }
 
-.eb-stars {
-  display: block;
-  margin-bottom: 4px;
-  font-size: 1.8rem;
-  letter-spacing: 4px;
+.eb-hero-card-locked .eb-hero-state {
+  background: transparent;
+  color: var(--eb-ink-soft);
+  box-shadow: inset 0 0 0 2px var(--eb-parch-line);
 }
 
-/* Large text: 3:1 contrast on the result background. */
-.eb-star {
-  color: #7c8297;
-}
-
-.eb-star-on {
-  color: #b07800;
-}
-
-.eb-editor {
-  position: relative;
-  min-width: 0;
-  min-height: 0;
-}
-
-.eb-large {
-  font-size: 1.1rem;
-}
-
-/* Phone and narrow window: the field on top, the blocks fill the rest of the screen. */
 @media (max-width: 760px) {
-  .eb-root {
-    position: relative;
-    display: flex;
-    flex-direction: column;
+  .eb-picker-layer {
+    position: fixed;
+    z-index: 1100;
+    place-items: start center;
   }
 
-  .eb-editor {
-    flex: 1 1 auto;
-    min-height: 300px;
+  .eb-picker-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
 
-  .eb-stage {
-    flex: 0 1 auto;
-    gap: 6px;
-    max-height: 62%;
-    padding: 8px 12px;
-    border-right: 0;
-    border-bottom: 1px solid var(--eb-line);
-  }
-
-  .eb-task h2 {
-    font-size: 1rem;
-  }
-
-  .eb-task p {
-    font-size: 0.9rem;
-  }
-
-  .eb-goals {
-    margin-top: 2px;
-    font-size: 0.9rem;
-  }
-
-  .eb-field {
-    width: min(100%, 34vh);
-  }
-
-  .eb-full .eb-field {
-    width: min(100%, 40vh);
-  }
-
-  .eb-controls button {
-    min-height: 40px;
-  }
-
-  /* The result floats over the blocks, so the field and the buttons stay in place. */
-  .eb-verdict {
-    position: absolute;
-    z-index: 50;
-    right: 12px;
-    bottom: 12px;
-    left: 12px;
-    box-shadow: 0 4px 16px rgb(0 0 0 / 0.2);
-  }
-
-  .eb-verdict-close {
-    display: block;
-  }
-}
-
-.eb-xp {
-  margin-top: 8px !important;
-}
-
-.eb-xp strong {
-  color: #6b3fa0;
-}
-
-.eb-xp-bar {
-  height: 8px;
-  margin: 6px 0 2px;
-  border-radius: 4px;
-  background: #fff;
-  overflow: hidden;
-}
-
-.eb-xp-bar span {
-  display: block;
-  height: 100%;
-  border-radius: 4px;
-  background: #8a55c8;
-  transition: width 0.6s ease-out;
-}
-
-.eb-xp-level {
-  font-size: 0.85rem;
-  color: #3d4256;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .eb-xp-bar span {
-    transition: none;
+  .eb-hero-about {
+    font-size: 12px;
   }
 }

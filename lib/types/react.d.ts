@@ -2,3 +2,5 @@
 export { EduBlocks } from "./ui/EduBlocks.tsx";
 export type { BlocksReport, EduBlocksProps, HeroXp } from "./ui/EduBlocks.tsx";
 export type { Skin } from "./ui/stage/Stage.tsx";
+export { HEROES, heroOpen } from "./core/heroes.ts";
+export type { Hero, HeroId } from "./core/heroes.ts";

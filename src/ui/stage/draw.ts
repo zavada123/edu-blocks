@@ -16,6 +16,7 @@ import wellTile from "../sprites/well.png"
 import { meadowTile, PATH_SHEET_COLUMNS, pathPiece } from "../terrain.ts"
 import { image } from "./images.ts"
 import type { Effect, EnemyPose, HeroPose, StagePose } from "./playback.ts"
+import type { HeroId } from "../../core/heroes.ts"
 
 /**
  * Drawing the field on a canvas. Pixel art from the Ninja Adventure pack (CC0), see sprites/CREDITS.md.
@@ -27,8 +28,8 @@ import type { Effect, EnemyPose, HeroPose, StagePose } from "./playback.ts"
 
 export const CELL = 16
 
-/** Hero looks. The app sells and picks them; the package only draws them. */
-export type Skin = "ninja" | "robot" | "rover" | "bee"
+/** Hero looks: the heroes of `HEROES`. */
+export type Skin = HeroId
 
 /** A sheet has a column per direction and a row per frame: rows 0–3 walk, 4 attack, 6 special poses. */
 const SHEETS: Readonly<Record<Skin, { readonly href: string; readonly rows: number }>> = {
@@ -37,6 +38,9 @@ const SHEETS: Readonly<Record<Skin, { readonly href: string; readonly rows: numb
   rover: { href: roverSheet, rows: 7 },
   bee: { href: beeSheet, rows: 4 }
 }
+
+/** The sheet of a hero look: its first frame is the hero facing down, for a portrait. */
+export const heroSheetOf = (skin: Skin): string => SHEETS[skin].href
 
 const COLUMN: Readonly<Record<Direction, number>> = { down: 0, up: 1, left: 2, right: 3 }
 const ATTACK_ROW = 4

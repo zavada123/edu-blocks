@@ -1,0 +1,103 @@
+/* The Python editor: the commands of the level above the code, the code fills the rest, the output under it. */
+.eb-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--eb-code-head);
+  border-bottom: var(--eb-px) solid var(--eb-edge);
+}
+
+.eb-chip {
+  --eb-chip-bg: #3c4a58;
+  --eb-chip-fg: var(--eb-code-fg);
+  margin: 2px;
+  padding: 5px 9px 7px;
+  border: 0;
+  border-radius: 0;
+  background: var(--eb-chip-bg);
+  color: var(--eb-chip-fg);
+  box-shadow: inset 0 -3px 0 rgb(0 0 0 / 0.3), 0 0 0 2px var(--eb-edge);
+  font: 400 0.85rem/1.2 var(--eb-font-code);
+  cursor: pointer;
+}
+
+.eb-chip:hover {
+  filter: brightness(1.15);
+}
+
+.eb-chip:active {
+  transform: translateY(1px);
+}
+
+.eb-chip-hero {
+  --eb-chip-bg: #2f5a2a;
+  --eb-chip-fg: #e3f5d8;
+}
+
+.eb-chip-sense {
+  --eb-chip-bg: #24536a;
+  --eb-chip-fg: #d8f1fb;
+}
+
+.eb-chip-code {
+  --eb-chip-bg: #5e4419;
+  --eb-chip-fg: #fbe7c0;
+}
+
+.eb-code {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--eb-code-bg);
+}
+
+.eb-code .cm-editor {
+  height: 100%;
+}
+
+.eb-code .cm-editor.cm-focused {
+  outline: none;
+}
+
+.eb-output {
+  flex: 0 0 auto;
+  max-height: 30%;
+  margin: 0;
+  padding: 8px 12px;
+  overflow: auto;
+  border-top: var(--eb-px) solid var(--eb-edge);
+  background: #161b20;
+  color: var(--eb-code-str);
+  font: 0.9rem/1.45 var(--eb-font-code);
+  white-space: pre-wrap;
+}
+
+@container eb-screen (max-height: 760px) {
+  .eb-palette {
+    gap: 4px;
+    padding: 6px 10px;
+  }
+
+  .eb-chip {
+    padding: 3px 7px 5px;
+    font-size: 0.8rem;
+  }
+}
+
+.eb-large .eb-chip {
+  font-size: 1rem;
+}
+
+@media (max-width: 760px) {
+  .eb-palette {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 6px 8px;
+  }
+
+  .eb-chip {
+    flex: 0 0 auto;
+    min-height: 36px;
+  }
+}

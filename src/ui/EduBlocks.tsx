@@ -4,17 +4,18 @@ import type VirtualMachine from "scratch-vm"
 import { serializeBlocks } from "scratch-vm/src/serialization/sb3.js"
 import { HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID, procedureName } from "../core/blocks.ts"
 import { buildProgram } from "../core/build.ts"
-import { describeGoal, goalMet, type Level, startWorld } from "../core/level.ts"
+import { type Level, startWorld } from "../core/level.ts"
 import { adviseRun } from "../core/advice.ts"
 import { judgeProgram } from "../core/judge.ts"
 import type { FailReason, Program, RunResult } from "../core/program.ts"
 import { createVm, projectFor, settle, withVmLock } from "../core/run.ts"
-import { heroLevelOf, xpFor, xpGain } from "../core/xp.ts"
+import { useFullScreen } from "./fullscreen.ts"
+import { type GameNavigation, GameScreen } from "./GameScreen.tsx"
 import { frameIndexAt } from "./stage/playback.ts"
-import { type Skin, Stage } from "./stage/Stage.tsx"
-import { Timeline, usePlayer } from "./Timeline.tsx"
+import type { Skin } from "./stage/Stage.tsx"
+import { usePlayer } from "./Timeline.tsx"
 import { toolboxXml } from "./toolbox.ts"
-import "./blocks.css"
+import { type HeroXp, type Reward, rewardOf, Verdict } from "./Verdict.tsx"
 
 /** What the trainer gives the app after each run. The server runs `program` again before it trusts `passed`. */
 export interface BlocksReport {
@@ -30,15 +31,9 @@ export interface BlocksReport {
   readonly xp: number
 }
 
-/** The hero's XP before the run, from the app: the result then shows the gain and the hero level. */
-export interface HeroXp {
-  /** All XP of the hero. */
-  readonly total: number
-  /** The best XP of this level so far. */
-  readonly best: number
-}
+export type { HeroXp } from "./Verdict.tsx"
 
-export interface EduBlocksProps {
+export interface EduBlocksProps extends GameNavigation {
   readonly level: Level
   readonly skin?: Skin
   /** Bigger blocks and field for the youngest: the first chapter of the course. */
@@ -73,30 +68,11 @@ for (const b of HERO_BLOCKS) {
   }
 }
 
-const FAIL_TEXT: Readonly<Record<FailReason, string>> = {
-  crashed: "Герой урізався в перешкоду.",
-  trapped: "Герой ступив на пастку.",
-  tired: "Герой утомився: кроки закінчились.",
-  defeated: "Вороги забрали всі сердечка.",
-  goalsNotMet: "Програма закінчилась, а завдання ще не виконане.",
-  tooLong: "Програма працює задовго. Можливо, цикл ніколи не закінчується.",
-  noStart: "Поклади нагору програми блок «коли натиснуто прапорець».",
-  badProgram: "Програму не вдалося запустити."
-}
-
 /** Workspace events that change the program: a block is added, removed, moved or gets a new field value. */
 const PROGRAM_EVENTS: ReadonlySet<string> = new Set(["create", "delete", "change", "move"])
 
 /** Editor width (px) below which the palette turns compact. */
 const COMPACT_WIDTH = 560
-
-/** What a passed run gave the hero, as it stood when the run ended. */
-interface Reward {
-  readonly gain: number
-  readonly firstTry: boolean
-  /** The hero's XP after the run, when the app told it. */
-  readonly total: number | null
-}
 
 type Phase =
   | { readonly kind: "edit" }
@@ -109,16 +85,6 @@ const heroProgram = (vm: VirtualMachine): Program => {
   return target === null ? {} : serializeBlocks(target.blocks._blocks)[0]
 }
 
-const Stars = ({ count }: { readonly count: number }) => (
-  <span className="eb-stars" aria-label={`Зірок: ${count} з 3`}>
-    {[1, 2, 3].map((i) => (
-      <span key={i} className={i <= count ? "eb-star eb-star-on" : "eb-star"}>
-        ★
-      </span>
-    ))}
-  </span>
-)
-
 export const EduBlocks = ({
   level,
   skin = "ninja",
@@ -128,7 +94,11 @@ export const EduBlocks = ({
   speed = 400,
   xp,
   onComplete,
-  onProgramChange
+  onProgramChange,
+  onMap,
+  onNext,
+  progress,
+  onSkinChange
 }: EduBlocksProps) => {
   const start = useMemo(() => startWorld(level), [level])
   const [result, setResult] = useState<RunResult | null>(null)
@@ -235,8 +205,6 @@ export const EduBlocks = ({
   const atEnd = result !== null && player.time >= result.frames.length
   const glowId = result === null || atEnd ? null : (result.frames[frameIndex]?.blockId ?? null)
   useEffect(() => setGlow(glowId), [glowId, setGlow])
-  // The goals tick as the hero meets them.
-  const world = result === null ? start : (result.frames[Math.floor(player.time) - 1]?.world ?? start)
 
   const run = useCallback(() => {
     const vm = vmRef.current
@@ -247,9 +215,7 @@ export const EduBlocks = ({
     const result = judgeProgram(level, prog)
     const firstTry = failedRef.current === 0
     if (!result.passed) failedRef.current += 1
-    const runXp = xpFor(level.tier ?? "intro", { stars: result.stars, firstTry })
-    const gain = xpGain(runXp, xp?.best ?? 0)
-    const reward: Reward = { gain, firstTry, total: xp === undefined ? null : xp.total + gain }
+    const { runXp, reward } = rewardOf(level, result, firstTry, xp)
     const finish = () => {
       setPhase({ kind: "done", result, reward, advice: adviseRun(level, prog, result) })
       setVerdictOpen(true)
@@ -270,165 +236,34 @@ export const EduBlocks = ({
   }, [level, onComplete, reset, restart, xp])
 
   const running = phase.kind === "running"
+  const navigation = { onMap, progress, onSkinChange }
+  const xpTotal = phase.kind === "done" && phase.reward.total !== null ? phase.reward.total : xp?.total
   return (
-    <div ref={rootRef} className={["eb-root", large ? "eb-large" : "", full ? "eb-full" : ""].filter(Boolean).join(" ")}>
-      <section className="eb-stage">
-        <header className="eb-task">
-          {level.title !== "" && <h2>{level.title}</h2>}
-          {level.task.map((line) => (
-            <p key={line}>{line}</p>
-          ))}
-          <ul className="eb-goals">
-            {level.goals.map((g) => (
-              <li key={g.type} className={goalMet(world, g) ? "eb-goal-ok" : ""}>
-                {describeGoal(g, start, level.scene)}
-              </li>
-            ))}
-          </ul>
-        </header>
-        <div className="eb-field-wrap">
-          <Stage start={start} frames={result?.frames} time={player.time} skin={skin} scene={level.scene} />
-        </div>
-        {result !== null && <Timeline player={player} length={result.frames.length} />}
-        <div className="eb-controls">
-          <button type="button" className="eb-run" onClick={run} disabled={running && player.playing}>
-            <span aria-hidden="true">▶</span> Запустити
-          </button>
-          <button type="button" className="eb-reset" onClick={reset} disabled={phase.kind === "edit"}>
-            <span aria-hidden="true">↺</span> Спочатку
-          </button>
-          <button
-            type="button"
-            className="eb-fullscreen"
-            onClick={toggleFull}
-            aria-pressed={full}
-            aria-label={full ? "Вийти з повного екрана" : "На весь екран"}
-            title={full ? "Вийти з повного екрана (Esc)" : "На весь екран"}
-          >
-            <span aria-hidden="true">{full ? "⤡" : "⛶"}</span>
-          </button>
-        </div>
-        {phase.kind === "done" && verdictOpen && <Verdict level={level} result={phase.result} reward={phase.reward} advice={phase.advice} onClose={() => setVerdictOpen(false)} />}
-      </section>
+    <GameScreen
+      rootRef={rootRef}
+      className={["eb-root", large ? "eb-large" : "", full ? "eb-full" : ""].filter(Boolean).join(" ")}
+      level={level}
+      start={start}
+      result={result}
+      player={player}
+      skin={skin}
+      running={running}
+      editing={phase.kind === "edit"}
+      full={full}
+      xpTotal={xpTotal}
+      navigation={navigation}
+      editorTitle="Блоки героя"
+      onRun={run}
+      onReset={reset}
+      onFull={toggleFull}
+      verdict={
+        phase.kind === "done" &&
+        verdictOpen && (
+          <Verdict level={level} result={phase.result} reward={phase.reward} advice={phase.advice} language="blocks" onClose={() => setVerdictOpen(false)} onNext={onNext} />
+        )
+      }
+    >
       <div className="eb-editor" ref={editorRef} />
-    </div>
-  )
-}
-
-/**
- * Full screen for the game. The browser's full screen where it works; elsewhere (an iPhone) the game covers the
- * page. Esc or the button leaves it.
- */
-const useFullScreen = () => {
-  const rootRef = useRef<HTMLDivElement>(null)
-  const [full, setFull] = useState(false)
-
-  useEffect(() => {
-    const onChange = () => {
-      if (document.fullscreenElement === null) setFull(false)
-    }
-    document.addEventListener("fullscreenchange", onChange)
-    return () => document.removeEventListener("fullscreenchange", onChange)
-  }, [])
-
-  useEffect(() => {
-    if (!full) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setFull(false)
-    }
-    document.addEventListener("keydown", onKey)
-    return () => document.removeEventListener("keydown", onKey)
-  }, [full])
-
-  const toggleFull = useCallback(() => {
-    const root = rootRef.current
-    if (full) {
-      setFull(false)
-      if (document.fullscreenElement !== null) void document.exitFullscreen().catch(() => undefined)
-      return
-    }
-    setFull(true)
-    if (root !== null && typeof root.requestFullscreen === "function") void root.requestFullscreen().catch(() => undefined)
-  }, [full])
-
-  return { rootRef, full, toggleFull }
-}
-
-const CloseButton = ({ onClose }: { readonly onClose: () => void }) => (
-  <button type="button" className="eb-verdict-close" onClick={onClose}>
-    Зрозуміло
-  </button>
-)
-
-/** The XP of a passed run and, when the app told the hero's XP, the bar to the next hero level. */
-const XpLine = ({ reward }: { readonly reward: Reward }) => {
-  const note = reward.gain === 0 ? "Це не краще за твій рекорд, XP не додано." : reward.firstTry ? "З першої спроби!" : ""
-  if (reward.total === null)
-    return (
-      <p className="eb-xp">
-        <strong>+{reward.gain} XP</strong> {note}
-      </p>
-    )
-  const hero = heroLevelOf(reward.total)
-  const up = reward.gain > 0 && heroLevelOf(reward.total - reward.gain).level < hero.level
-  const share = hero.next === null ? 1 : (reward.total - hero.from) / (hero.next - hero.from)
-  return (
-    <div className="eb-xp">
-      <p>
-        <strong>+{reward.gain} XP</strong> {up ? `Новий рівень героя: ${hero.level}!` : note}
-      </p>
-      <div className="eb-xp-bar" role="img" aria-label={`Рівень героя ${hero.level}: ${reward.total} XP${hero.next === null ? "" : ` з ${hero.next}`}`}>
-        <span style={{ width: `${Math.round(share * 100)}%` }} />
-      </div>
-      <p className="eb-xp-level">
-        Рівень {hero.level} · {reward.total}
-        {hero.next === null ? "" : ` / ${hero.next}`} XP
-      </p>
-    </div>
-  )
-}
-
-/** What to change in this very program, from `adviseRun`. */
-const Advice = ({ tips }: { readonly tips: ReadonlyArray<string> }) =>
-  tips.length === 0 ? null : (
-    <ul className="eb-advice">
-      {tips.map((tip) => (
-        <li key={tip}>{tip}</li>
-      ))}
-    </ul>
-  )
-
-const Verdict = ({
-  level,
-  result,
-  reward,
-  advice,
-  onClose
-}: {
-  readonly level: Level
-  readonly result: RunResult
-  readonly reward: Reward
-  readonly advice: ReadonlyArray<string>
-  readonly onClose: () => void
-}) => {
-  if (result.passed) {
-    return (
-      <div className="eb-verdict eb-verdict-ok" role="status">
-        <Stars count={result.stars} />
-        <p>Рівень пройдено!{advice.length === 0 ? ` Блоків: ${result.blocks}.` : ""}</p>
-        <Advice tips={advice} />
-        <XpLine reward={reward} />
-        <CloseButton onClose={onClose} />
-      </div>
-    )
-  }
-  const reason = result.reason ?? "goalsNotMet"
-  return (
-    <div className="eb-verdict eb-verdict-fail" role="status">
-      <p>{reason === "badProgram" && result.detail !== undefined ? result.detail : FAIL_TEXT[reason]}</p>
-      <Advice tips={advice} />
-      {level.hint !== undefined && (reason === "crashed" || reason === "trapped" || reason === "tired" || reason === "defeated" || reason === "goalsNotMet") && <p className="eb-hint">Підказка: {level.hint}</p>}
-      <CloseButton onClose={onClose} />
-    </div>
+    </GameScreen>
   )
 }

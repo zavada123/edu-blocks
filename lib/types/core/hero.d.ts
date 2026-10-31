@@ -22,6 +22,8 @@ export declare const newSession: (level: Level) => Session;
 export interface ActionSource {
     /** The block, for block programs. */
     readonly blockId: string | null;
+    /** The line, for Python programs. */
+    readonly line?: number;
     /** The counter at this moment, on a level with «лічильник». */
     readonly counter?: string;
 }

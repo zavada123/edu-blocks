@@ -98,19 +98,19 @@ export const Timeline = ({ player, length }: { readonly player: Player; readonly
   const done = Math.min(length, Math.floor(time + 1e-6))
   return (
     <div className="eb-timeline">
-      <button type="button" onClick={() => player.step(-1)} disabled={time <= 0} aria-label="Крок назад" title="Крок назад">
+      <button type="button" className="eb-btn" onClick={() => player.step(-1)} disabled={time <= 0} aria-label="Крок назад" title="Крок назад">
         <span aria-hidden="true">⏮</span>
       </button>
       <button
         type="button"
-        className="eb-timeline-play"
+        className="eb-btn eb-btn-gold"
         onClick={playing ? player.pause : player.play}
         aria-label={playing ? "Пауза" : "Грати"}
         title={playing ? "Пауза" : "Грати"}
       >
         <span aria-hidden="true">{playing ? "⏸" : "▶"}</span>
       </button>
-      <button type="button" onClick={() => player.step(1)} disabled={time >= length} aria-label="Крок уперед" title="Крок уперед">
+      <button type="button" className="eb-btn" onClick={() => player.step(1)} disabled={time >= length} aria-label="Крок уперед" title="Крок уперед">
         <span aria-hidden="true">⏭</span>
       </button>
       <input

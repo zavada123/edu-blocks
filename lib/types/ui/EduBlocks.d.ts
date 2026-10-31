@@ -1,7 +1,8 @@
 import { type Level } from "../core/level.ts";
 import type { FailReason, Program } from "../core/program.ts";
-import { type Skin } from "./stage/Stage.tsx";
-import "./blocks.css";
+import { type GameNavigation } from "./GameScreen.tsx";
+import type { Skin } from "./stage/Stage.tsx";
+import { type HeroXp } from "./Verdict.tsx";
 /** What the trainer gives the app after each run. The server runs `program` again before it trusts `passed`. */
 export interface BlocksReport {
     readonly levelId: string;
@@ -15,14 +16,8 @@ export interface BlocksReport {
     /** XP of this run (`xpFor`). The hero gets only the part above the best earlier run. */
     readonly xp: number;
 }
-/** The hero's XP before the run, from the app: the result then shows the gain and the hero level. */
-export interface HeroXp {
-    /** All XP of the hero. */
-    readonly total: number;
-    /** The best XP of this level so far. */
-    readonly best: number;
-}
-export interface EduBlocksProps {
+export type { HeroXp } from "./Verdict.tsx";
+export interface EduBlocksProps extends GameNavigation {
     readonly level: Level;
     readonly skin?: Skin;
     /** Bigger blocks and field for the youngest: the first chapter of the course. */
@@ -38,4 +33,4 @@ export interface EduBlocksProps {
     /** After each change of the blocks, with the program as it is now. An app that has its own check button sends it. */
     readonly onProgramChange?: (program: Program) => void;
 }
-export declare const EduBlocks: ({ level, skin, large, program, media, speed, xp, onComplete, onProgramChange }: EduBlocksProps) => import("react").JSX.Element;
+export declare const EduBlocks: ({ level, skin, large, program, media, speed, xp, onComplete, onProgramChange, onMap, onNext, progress, onSkinChange }: EduBlocksProps) => import("react").JSX.Element;
