@@ -1,0 +1,434 @@
+{
+ "id": "farming-crops",
+ "title": "Farming crops 16x16",
+ "author": "josehzz",
+ "source": "https://opengameart.org/content/farming-crops-16x16",
+ "license": {
+  "name": "CC0 1.0",
+  "url": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "redistribute": "yes"
+ },
+ "cell": 16,
+ "sprites": [
+  {
+   "id": "crop/avocado",
+   "file": "crops.png",
+   "category": "crop",
+   "name": "Avocado",
+   "size": [192, 160],
+   "frame": [16, 16],
+   "layout": "grid",
+   "clips": {
+    "grow": {
+     "frames": [107, 106, 105, 104, 103],
+     "fps": 1,
+     "loop": false
+    },
+    "icon": {
+     "frames": [102],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/cassava",
+   "file": "crops.png",
+   "category": "crop",
+   "name": "Cassava",
+   "size": [192, 160],
+   "frame": [16, 16],
+   "layout": "grid",
+   "clips": {
+    "grow": {
+     "frames": [83, 82, 81, 80, 79],
+     "fps": 1,
+     "loop": false
+    },
+    "icon": {
+     "frames": [78],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/coffee",
+   "file": "crops.png",
+   "category": "crop",
+   "name": "Coffee",
+   "size": [192, 160],
+   "frame": [16, 16],
+   "layout": "grid",
+   "clips": {
+    "grow": {
+     "frames": [95, 94, 93, 92, 91],
+     "fps": 1,
+     "loop": false
+    },
+    "icon": {
+     "frames": [90],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/corn",
+   "file": "crops.png",
+   "category": "crop",
+   "name": "Corn",
+   "size": [192, 160],
+   "frame": [16, 16],
+   "layout": "grid",
+   "clips": {
+    "grow": {
+     "frames": [113, 112, 111, 110, 109],
+     "fps": 1,
+     "loop": false
+    },
+    "icon": {
+     "frames": [108],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/cucumber",
+   "file": "crops.png",
+   "category": "crop",
+   "name": "Cucumber",
+   "size": [192, 160],
+   "frame": [16, 16],
+   "layout": "grid",
+   "clips": {
+    "grow": {
+     "frames": [17, 16, 15, 14, 13],
+     "fps": 1,
+     "loop": false
+    },
+    "icon": {
+     "frames": [12],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/eggplant",
+   "file": "crops.png",
+   "category": "crop",
+   "name": "Eggplant",
+   "size": [192, 160],
+   "frame": [16, 16],
+   "layout": "grid",
+   "clips": {
+    "grow": {
+     "frames": [41, 40, 39, 38, 37],
+     "fps": 1,
+     "loop": false
+    },
+    "icon": {
+     "frames": [36],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/grapes",
+   "file": "crops.png",
+   "category": "crop",
+   "name": "Grapes",
+   "size": [192, 160],
+   "frame": [16, 16],
+   "layout": "grid",
+   "clips": {
+    "grow": {
+     "frames": [71, 70, 69, 68, 67],
+     "fps": 1,
+     "loop": false
+    },
+    "icon": {
+     "frames": [66],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/lemon",
+   "file": "crops.png",
+   "category": "crop",
+   "name": "Lemon",
+   "size": [192, 160],
+   "frame": [16, 16],
+   "layout": "grid",
+   "clips": {
+    "grow": {
+     "frames": [47, 46, 45, 44, 43],
+     "fps": 1,
+     "loop": false
+    },
+    "icon": {
+     "frames": [42],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/melon",
+   "file": "crops.png",
+   "category": "crop",
+   "name": "Melon",
+   "size": [192, 160],
+   "frame": [16, 16],
+   "layout": "grid",
+   "clips": {
+    "grow": {
+     "frames": [35, 34, 33, 32, 31],
+     "fps": 1,
+     "loop": false
+    },
+    "icon": {
+     "frames": [30],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/orange",
+   "file": "crops.png",
+   "category": "crop",
+   "name": "Orange",
+   "size": [192, 160],
+   "frame": [16, 16],
+   "layout": "grid",
+   "clips": {
+    "grow": {
+     "frames": [101, 100, 99, 98, 97],
+     "fps": 1,
+     "loop": false
+    },
+    "icon": {
+     "frames": [96],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/pineapple",
+   "file": "crops.png",
+   "category": "crop",
+   "name": "Pineapple",
+   "size": [192, 160],
+   "frame": [16, 16],
+   "layout": "grid",
+   "clips": {
+    "grow": {
+     "frames": [53, 52, 51, 50, 49],
+     "fps": 1,
+     "loop": false
+    },
+    "icon": {
+     "frames": [48],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/potato",
+   "file": "crops.png",
+   "category": "crop",
+   "name": "Potato",
+   "size": [192, 160],
+   "frame": [16, 16],
+   "layout": "grid",
+   "clips": {
+    "grow": {
+     "frames": [89, 88, 87, 86, 85],
+     "fps": 1,
+     "loop": false
+    },
+    "icon": {
+     "frames": [84],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/rice",
+   "file": "crops.png",
+   "category": "crop",
+   "name": "Rice",
+   "size": [192, 160],
+   "frame": [16, 16],
+   "layout": "grid",
+   "clips": {
+    "grow": {
+     "frames": [59, 58, 57, 56, 55],
+     "fps": 1,
+     "loop": false
+    },
+    "icon": {
+     "frames": [54],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/rose",
+   "file": "crops.png",
+   "category": "crop",
+   "name": "Rose",
+   "size": [192, 160],
+   "frame": [16, 16],
+   "layout": "grid",
+   "clips": {
+    "grow": {
+     "frames": [11, 10, 9, 8, 7],
+     "fps": 1,
+     "loop": false
+    },
+    "icon": {
+     "frames": [6],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/strawberry",
+   "file": "crops.png",
+   "category": "crop",
+   "name": "Strawberry",
+   "size": [192, 160],
+   "frame": [16, 16],
+   "layout": "grid",
+   "clips": {
+    "grow": {
+     "frames": [77, 76, 75, 74, 73],
+     "fps": 1,
+     "loop": false
+    },
+    "icon": {
+     "frames": [72],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/sunflower",
+   "file": "crops.png",
+   "category": "crop",
+   "name": "Sunflower",
+   "size": [192, 160],
+   "frame": [16, 16],
+   "layout": "grid",
+   "clips": {
+    "grow": {
+     "frames": [119, 118, 117, 116, 115],
+     "fps": 1,
+     "loop": false
+    },
+    "icon": {
+     "frames": [114],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/tomato",
+   "file": "crops.png",
+   "category": "crop",
+   "name": "Tomato",
+   "size": [192, 160],
+   "frame": [16, 16],
+   "layout": "grid",
+   "clips": {
+    "grow": {
+     "frames": [29, 28, 27, 26, 25],
+     "fps": 1,
+     "loop": false
+    },
+    "icon": {
+     "frames": [24],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/tulip",
+   "file": "crops.png",
+   "category": "crop",
+   "name": "Tulip",
+   "size": [192, 160],
+   "frame": [16, 16],
+   "layout": "grid",
+   "clips": {
+    "grow": {
+     "frames": [23, 22, 21, 20, 19],
+     "fps": 1,
+     "loop": false
+    },
+    "icon": {
+     "frames": [18],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/turnip",
+   "file": "crops.png",
+   "category": "crop",
+   "name": "Turnip",
+   "size": [192, 160],
+   "frame": [16, 16],
+   "layout": "grid",
+   "clips": {
+    "grow": {
+     "frames": [5, 4, 3, 2, 1],
+     "fps": 1,
+     "loop": false
+    },
+    "icon": {
+     "frames": [0],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  },
+  {
+   "id": "crop/wheat",
+   "file": "crops.png",
+   "category": "crop",
+   "name": "Wheat",
+   "size": [192, 160],
+   "frame": [16, 16],
+   "layout": "grid",
+   "clips": {
+    "grow": {
+     "frames": [65, 64, 63, 62, 61],
+     "fps": 1,
+     "loop": false
+    },
+    "icon": {
+     "frames": [60],
+     "fps": 1,
+     "loop": false
+    }
+   }
+  }
+ ]
+}

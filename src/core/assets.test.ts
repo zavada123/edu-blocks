@@ -77,7 +77,7 @@ describe("asset clips", () => {
 
 describe("asset manifests in the repository", () => {
   test("the free packs are there", () => {
-    expect(packs.map((p) => p.pack.id).sort()).toEqual(["ninja-adventure", "sunnyside"])
+    expect(packs.map((p) => p.pack.id).sort()).toEqual(["farming-crops", "ninja-adventure", "sunnyside"])
   })
 
   test.each(packs.map((p) => [p.pack.id, p] as const))("%s: only packs whose files may be shared", (_id, { pack }) => {

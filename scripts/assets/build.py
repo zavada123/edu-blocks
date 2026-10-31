@@ -13,6 +13,7 @@ import argparse
 import json
 from pathlib import Path
 
+import crops
 import ninja
 import private
 import sunnyside
@@ -20,7 +21,7 @@ import sunnyside
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    for name in ("ninja", "sunnyside", "farm", "village"):
+    for name in ("ninja", "sunnyside", "crops", "farm", "village"):
         parser.add_argument(f"--{name}", type=Path)
     parser.add_argument("--out", type=Path, required=True, help="assets/ folder of the repository")
     parser.add_argument("--private-out", type=Path, help="folder outside the repository for packs that may not be shared")
@@ -32,6 +33,8 @@ def main() -> None:
         packs.append(ninja.build(args.ninja, args.out / "ninja-adventure", args.work / "ninja-adventure"))
     if args.sunnyside:
         packs.append(sunnyside.build(args.sunnyside, args.out / "sunnyside", args.work / "sunnyside"))
+    if args.crops:
+        packs.append(crops.build(args.crops, args.out / "farming-crops"))
     if args.private_out:
         if args.farm:
             packs.append(private.farm(args.farm, args.private_out / "farm-rpg"))

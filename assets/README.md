@@ -8,6 +8,7 @@
 | Пак | Автор | Ліцензія | Що всередині |
 | --- | --- | --- | --- |
 | [`ninja-adventure/`](ninja-adventure/) | [Pixel-boy, AAA](https://pixel-boy.itch.io/ninja-adventure-asset-pack) | CC0 1.0, без умов | 93 персонажі з ходьбою в 4 сторони, 66 ворогів, 20 босів, 63 тварини, 230 портретів, предмети, зброя, ефекти, 23 тайлсети, інтерфейс, 147 звуків |
+| [`farming-crops/`](farming-crops/) | [josehzz](https://opengameart.org/content/farming-crops-16x16) | CC0 1.0, без умов | 20 культур 16×16 (томат, пшениця, кукурудза, картопля, соняшник…): кліп `grow` з 5 стадіями від посіву до врожаю і `icon` з урожаєм |
 | [`sunnyside/`](sunnyside/) | [Daniel Diggle](https://danieldiggle.itch.io/sunnyside) | Sunnyside World V1 | Селяни з 20 діями (вид збоку, шари: тіло, зачіска, інструмент), гоблін і скелет, тварини, 12 культур зі стадіями росту, вітряк, тайлсет, інтерфейс |
 
 **Sunnyside World** можна поширювати лише як частину навчального курсу і з посиланням на
@@ -32,7 +33,7 @@ https://danieldiggle.itch.io/sunnyside (воно є тут і в `sunnyside/LICE
 | `enemy` | Вороги | 66 | 2 |
 | `boss` | Боси з окремими діями (з'ява, атака, удар) | 28 | |
 | `animal` | Тварини | 63 | 7 |
-| `crop` | Культури зі стадіями росту | | 12 |
+| `crop` | Культури зі стадіями росту | | 12 (+20 у `farming-crops`) |
 | `item` | Предмети: їжа, ресурси, скарби, зілля, сувої, інструменти | 93 | 8 |
 | `weapon` | Зброя: у руці, на землі, замах | 50 | |
 | `effect` | Удари, магія, стихії, дим, снаряди | 59 | 9 |
@@ -94,7 +95,7 @@ const rect = frameAt(sprite, "walk", "left", msSinceStart) // { file, sx, sy, w,
 ```sh
 python3 scripts/assets/build.py \
   --ninja "<…>/Ninja Adventure - Asset Pack" \
-  --sunnyside "<…>/Sunnyside_World_Assets" \
+  --sunnyside "<…>/Sunnyside_World_Assets" --crops "<…>/FarmingCrops16x16" \
   --farm "<…>/Farm RPG FREE 16x16 - Tiny Asset Pack" --village "<…>/TILESET VILLAGE TOP DOWN" \
   --out assets --private-out "<папка поза репозиторієм>" --work "<тимчасова папка>"
 ```
