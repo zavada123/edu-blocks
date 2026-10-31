@@ -1,7 +1,9 @@
-import type { ReactNode, Ref } from "react"
+import { type ReactNode, type Ref, useState } from "react"
 import type { Level } from "../core/level.ts"
 import type { RunResult } from "../core/program.ts"
 import type { World } from "../core/world.ts"
+import { heroLevelOf } from "../core/xp.ts"
+import { HeroPicker } from "./HeroPicker.tsx"
 import { Hud, type Progress } from "./Hud.tsx"
 import { Quest } from "./Quest.tsx"
 import { type Skin, Stage } from "./stage/Stage.tsx"
@@ -17,6 +19,11 @@ export interface GameNavigation {
   readonly onNext?: () => void
   /** Stars of the levels the student has passed, by level id, for the chapter's levels in the bar. */
   readonly progress?: Progress
+  /**
+   * The student chose another hero. With it the hero's portrait in the bar opens the choice of the heroes that the
+   * hero level has opened; the app keeps the choice and gives it back as `skin`.
+   */
+  readonly onSkinChange?: (skin: Skin) => void
 }
 
 /**
@@ -55,7 +62,11 @@ export const GameScreen = ({
   readonly editing: boolean
   readonly full: boolean
   readonly xpTotal: number | undefined
-  readonly navigation: { readonly onMap: (() => void) | undefined; readonly progress: Progress | undefined }
+  readonly navigation: {
+    readonly onMap: (() => void) | undefined
+    readonly progress: Progress | undefined
+    readonly onSkinChange: ((skin: Skin) => void) | undefined
+  }
   readonly editorTitle: string
   readonly onRun: () => void
   readonly onReset: () => void
@@ -65,11 +76,20 @@ export const GameScreen = ({
   /** The editor. */
   readonly children: ReactNode
 }) => {
+  const [picking, setPicking] = useState(false)
+  const { onSkinChange } = navigation
   // The goals tick as the hero meets them.
   const world = result === null ? start : (result.frames[Math.floor(player.time) - 1]?.world ?? start)
   return (
     <div ref={rootRef} className={className}>
-      <Hud level={level} skin={skin} xpTotal={xpTotal} progress={navigation.progress ?? {}} onMap={navigation.onMap} />
+      <Hud
+        level={level}
+        skin={skin}
+        xpTotal={xpTotal}
+        progress={navigation.progress ?? {}}
+        onMap={navigation.onMap}
+        onPickHero={onSkinChange === undefined ? undefined : () => setPicking(true)}
+      />
       <section className="eb-stage" aria-label="Поле">
         <div className="eb-field-frame eb-frame eb-wood">
           <Stage start={start} frames={result?.frames} time={player.time} skin={skin} scene={level.scene} />
@@ -102,6 +122,9 @@ export const GameScreen = ({
         <h2 className="eb-editor-head">{editorTitle}</h2>
         {children}
       </section>
+      {picking && onSkinChange !== undefined && (
+        <HeroPicker skin={skin} heroLevel={heroLevelOf(xpTotal ?? 0).level} onPick={onSkinChange} onClose={() => setPicking(false)} />
+      )}
     </div>
   )
 }

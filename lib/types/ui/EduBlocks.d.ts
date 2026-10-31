@@ -33,4 +33,4 @@ export interface EduBlocksProps extends GameNavigation {
     /** After each change of the blocks, with the program as it is now. An app that has its own check button sends it. */
     readonly onProgramChange?: (program: Program) => void;
 }
-export declare const EduBlocks: ({ level, skin, large, program, media, speed, xp, onComplete, onProgramChange, onMap, onNext, progress }: EduBlocksProps) => import("react").JSX.Element;
+export declare const EduBlocks: ({ level, skin, large, program, media, speed, xp, onComplete, onProgramChange, onMap, onNext, progress, onSkinChange }: EduBlocksProps) => import("react").JSX.Element;

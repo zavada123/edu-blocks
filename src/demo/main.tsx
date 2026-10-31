@@ -1,6 +1,5 @@
 import { StrictMode, useState } from "react"
 import { createRoot } from "react-dom/client"
-import { heroLevelOf } from "../core/xp.ts"
 import { levels } from "../levels/index.ts"
 import { chapterOf, isFirstChapter } from "../levels/chapters.ts"
 import { solutionProgram } from "../levels/solutions.ts"
@@ -18,14 +17,6 @@ type Language = "blocks" | "python"
 
 const firstLevel = levels.find((l) => l.id === params.get("level")) ?? levels[0]
 if (!firstLevel) throw new Error("Немає жодного рівня")
-
-/** Looks open at a hero level. In EduProstir the server counts the XP; the demo keeps it in the browser. */
-const SKINS: ReadonlyArray<{ readonly id: Skin; readonly name: string; readonly heroLevel: number }> = [
-  { id: "ninja", name: "Ніндзя", heroLevel: 1 },
-  { id: "robot", name: "Робот", heroLevel: 2 },
-  { id: "rover", name: "Ровер", heroLevel: 3 },
-  { id: "bee", name: "Бджілка", heroLevel: 4 }
-]
 
 const load = <T,>(key: string, fallback: T): T => {
   try {
@@ -59,7 +50,6 @@ const Demo = () => {
   const level = levels.find((l) => l.id === id) ?? firstLevel
 
   const total = Object.values(best).reduce((sum, b) => sum + b.xp, 0)
-  const hero = heroLevelOf(total)
 
   const pickLanguage = (next: Language) => {
     setLanguage(next)
@@ -84,14 +74,14 @@ const Demo = () => {
   const next = levels[levels.indexOf(level) + 1]
   const navigation = {
     progress: Object.fromEntries(Object.entries(best).map(([levelId, b]) => [levelId, b.stars])),
-    ...(next === undefined ? {} : { onNext: () => setId(next.id) })
+    ...(next === undefined ? {} : { onNext: () => setId(next.id) }),
+    // The hero's portrait in the bar opens the choice of the heroes the hero level has opened.
+    onSkinChange: (s: Skin) => {
+      setSkin(s)
+      save("eb-skin", s)
+    }
   }
 
-  const pick = (s: (typeof SKINS)[number]) => {
-    if (hero.level < s.heroLevel) return
-    setSkin(s.id)
-    save("eb-skin", s.id)
-  }
 
   return (
     <div className="demo">
@@ -114,20 +104,6 @@ const Demo = () => {
           {(["blocks", "python"] as const).map((l) => (
             <button key={l} type="button" className={l === language ? "demo-skin demo-skin-on" : "demo-skin"} aria-pressed={l === language} onClick={() => pickLanguage(l)}>
               {l === "blocks" ? "Блоки" : "Python"}
-            </button>
-          ))}
-        </span>
-        <span className="demo-shop">
-          {SKINS.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              className={s.id === skin ? "demo-skin demo-skin-on" : "demo-skin"}
-              onClick={() => pick(s)}
-              disabled={hero.level < s.heroLevel}
-            >
-              {s.name}
-              {hero.level < s.heroLevel && ` · рівень ${s.heroLevel}`}
             </button>
           ))}
         </span>

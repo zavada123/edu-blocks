@@ -139,9 +139,9 @@ Programs are limited to 300 blocks, the blocks of the level and 1,000 hero actio
 
 | Entry point | Contents |
 |---|---|
-| `edu-blocks/react` | The `EduBlocks` component and the `EduBlocksProps`, `BlocksReport`, `HeroXp` and `Skin` types |
+| `edu-blocks/react` | The `EduBlocks` component, the hero roster `HEROES` with `heroOpen`, and the `EduBlocksProps`, `BlocksReport`, `HeroXp`, `Hero` and `Skin` types |
 | `edu-blocks/python` | The `EduPython` component (Python code instead of blocks) and its `EduPythonProps` and `PythonReport` types. It loads neither the Scratch VM nor the block editor |
-| `edu-blocks/core` | Built-in `levels` and `solutions`, `judgeProgram`, `judgePython`, `PYTHON_METHODS`, `checkProgram`, `adviseRun`, the level kit, the XP functions, the world model and limits. No React and no VM, safe for Node |
+| `edu-blocks/core` | Built-in `levels` and `solutions`, the hero roster `HEROES`, `judgeProgram`, `judgePython`, `PYTHON_METHODS`, `checkProgram`, `adviseRun`, the level kit, the XP functions, the world model and limits. No React and no VM, safe for Node |
 | `edu-blocks/style.css` | Styles of the game screen, with its fonts inside (about 150 kB) |
 | `edu-blocks/blocks-media/*` | Block icons to serve from your site |
 
@@ -161,6 +161,7 @@ Programs are limited to 300 blocks, the blocks of the level and 1,000 hero actio
 | `onMap()` | Shows «← Мапа» in the bar over the game, to go back to the course |
 | `onNext()` | Shows «Далі →» in the result of a passed run, to open the next level |
 | `progress` | Stars of the passed levels by level id: the bar marks the passed levels of the chapter |
+| `onSkinChange(skin)` | The hero's portrait in the bar opens the choice of heroes: every hero of `HEROES`, the ones the hero level has not opened yet as shadows. The app keeps the choice and passes it back as `skin` |
 
 ### Game screen
 

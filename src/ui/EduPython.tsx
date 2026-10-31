@@ -78,7 +78,7 @@ type Phase =
   | { readonly kind: "running" }
   | { readonly kind: "done"; readonly result: RunResult; readonly reward: Reward }
 
-export const EduPython = ({ level, skin = "ninja", large = false, source, speed = 400, xp, onComplete, onSourceChange, onMap, onNext, progress }: EduPythonProps) => {
+export const EduPython = ({ level, skin = "ninja", large = false, source, speed = 400, xp, onComplete, onSourceChange, onMap, onNext, progress, onSkinChange }: EduPythonProps) => {
   const start = useMemo(() => startWorld(level), [level])
   const methods = useMemo(() => pythonMethodsOf(level.blocks), [level])
   const snippets = useMemo(() => snippetsOf(level, methods), [level, methods])
@@ -130,7 +130,7 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
   }, [])
   const onChange = useCallback((code: string) => onSourceChange?.(code), [onSourceChange])
 
-  const navigation = { onMap, progress }
+  const navigation = { onMap, progress, onSkinChange }
   const xpTotal = phase.kind === "done" && phase.reward.total !== null ? phase.reward.total : xp?.total
   return (
     <GameScreen

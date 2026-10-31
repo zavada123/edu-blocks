@@ -1,4 +1,4 @@
-import type { ReactNode, Ref } from "react";
+import { type ReactNode, type Ref } from "react";
 import type { Level } from "../core/level.ts";
 import type { RunResult } from "../core/program.ts";
 import type { World } from "../core/world.ts";
@@ -15,6 +15,11 @@ export interface GameNavigation {
     readonly onNext?: () => void;
     /** Stars of the levels the student has passed, by level id, for the chapter's levels in the bar. */
     readonly progress?: Progress;
+    /**
+     * The student chose another hero. With it the hero's portrait in the bar opens the choice of the heroes that the
+     * hero level has opened; the app keeps the choice and gives it back as `skin`.
+     */
+    readonly onSkinChange?: (skin: Skin) => void;
 }
 /**
  * The game screen, the same for blocks and for Python: the bar of the chapter and the hero, the field with its time
@@ -36,6 +41,7 @@ export declare const GameScreen: ({ rootRef, className, level, start, result, pl
     readonly navigation: {
         readonly onMap: (() => void) | undefined;
         readonly progress: Progress | undefined;
+        readonly onSkinChange: ((skin: Skin) => void) | undefined;
     };
     readonly editorTitle: string;
     readonly onRun: () => void;

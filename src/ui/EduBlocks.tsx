@@ -97,7 +97,8 @@ export const EduBlocks = ({
   onProgramChange,
   onMap,
   onNext,
-  progress
+  progress,
+  onSkinChange
 }: EduBlocksProps) => {
   const start = useMemo(() => startWorld(level), [level])
   const [result, setResult] = useState<RunResult | null>(null)
@@ -235,7 +236,7 @@ export const EduBlocks = ({
   }, [level, onComplete, reset, restart, xp])
 
   const running = phase.kind === "running"
-  const navigation = { onMap, progress }
+  const navigation = { onMap, progress, onSkinChange }
   const xpTotal = phase.kind === "done" && phase.reward.total !== null ? phase.reward.total : xp?.total
   return (
     <GameScreen

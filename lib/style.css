@@ -924,6 +924,191 @@
     z-index: 1100;
   }
 }
+
+/* ---- The hero: the portrait in the bar opens the choice ---- */
+
+.eb-hud-pick {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--eb-gold);
+  font: 400 12px/1 var(--eb-font-pixel);
+  cursor: pointer;
+}
+
+.eb-hud-pick:hover .eb-avatar {
+  background: var(--eb-gold);
+}
+
+.eb-hud-pick-label {
+  margin-top: -2px;
+}
+
+.eb-hero-sprite {
+  display: block;
+  width: 64px;
+  height: 64px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  /* A sheet is 4 frames wide: 16 px frames at four times their size. */
+  background-size: 256px auto;
+  image-rendering: pixelated;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .eb-hero-walk {
+    animation: eb-walk 0.72s steps(4) infinite;
+  }
+}
+
+/* The first column of a sheet walks towards the student, a frame per row. */
+@keyframes eb-walk {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 0 -256px;
+  }
+}
+
+.eb-picker-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  overflow: auto;
+  background: rgb(14 20 17 / 0.72);
+}
+
+.eb-picker {
+  width: min(760px, 100%);
+  padding: 16px 18px 18px;
+}
+
+.eb-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.eb-picker-head h3 {
+  margin: 0;
+  font: 400 28px/1 var(--eb-font-pixel);
+}
+
+.eb-picker-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.eb-hero-card {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 12px 10px 12px;
+  border: 0;
+  background: var(--eb-parch-deep);
+  color: var(--eb-ink);
+  box-shadow: 0 -3px 0 0 var(--eb-parch-line), 0 3px 0 0 var(--eb-parch-line), -3px 0 0 0 var(--eb-parch-line), 3px 0 0 0 var(--eb-parch-line);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.eb-hero-card:hover:not(:disabled) {
+  background: #efdcae;
+}
+
+.eb-hero-card-on {
+  box-shadow: 0 -4px 0 0 var(--eb-gold-dark), 0 4px 0 0 var(--eb-gold-dark), -4px 0 0 0 var(--eb-gold-dark), 4px 0 0 0 var(--eb-gold-dark), inset 0 0 0 3px var(--eb-gold);
+}
+
+.eb-hero-card-locked {
+  cursor: default;
+}
+
+/* The field the hero stands on: a patch of grass in a dark frame. */
+.eb-hero-stage {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  background: #8fb14a;
+  box-shadow: 0 0 0 3px var(--eb-edge), inset 0 -10px 0 #7a9a3c;
+}
+
+.eb-hero-card-locked .eb-hero-sprite {
+  filter: brightness(0);
+  opacity: 0.45;
+}
+
+.eb-hero-card-locked .eb-hero-stage {
+  background: #b3a27a;
+  box-shadow: 0 0 0 3px var(--eb-ink-soft), inset 0 -10px 0 #a08f68;
+}
+
+.eb-hero-name {
+  font: 400 22px/1 var(--eb-font-pixel);
+}
+
+.eb-hero-about {
+  color: var(--eb-ink-soft);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.eb-hero-state {
+  margin-top: auto;
+  text-wrap: balance;
+  padding: 5px 8px 6px;
+  background: var(--eb-stone);
+  color: #fff;
+  font: 400 14px/1 var(--eb-font-pixel);
+}
+
+.eb-hero-card-on .eb-hero-state {
+  background: var(--eb-gold);
+  color: var(--eb-edge);
+}
+
+.eb-hero-card-locked .eb-hero-state {
+  background: transparent;
+  color: var(--eb-ink-soft);
+  box-shadow: inset 0 0 0 2px var(--eb-parch-line);
+}
+
+@media (max-width: 760px) {
+  .eb-picker-layer {
+    position: fixed;
+    z-index: 1100;
+    place-items: start center;
+  }
+
+  .eb-picker-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .eb-hero-about {
+    font-size: 12px;
+  }
+}
 /* The Python editor: the commands of the level above the code, the code fills the rest, the output under it. */
 .eb-palette {
   display: flex;

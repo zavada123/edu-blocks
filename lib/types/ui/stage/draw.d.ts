@@ -3,6 +3,7 @@ import { type World } from "../../core/world.ts";
 import { type Season } from "../look.ts";
 import { type Scenery } from "../scenery.ts";
 import type { StagePose } from "./playback.ts";
+import type { HeroId } from "../../core/heroes.ts";
 /**
  * Drawing the field on a canvas. Pixel art from the Ninja Adventure pack (CC0), see sprites/CREDITS.md.
  * One cell is one 16×16 tile; the canvas is scaled so that a picture pixel is a whole number of screen pixels.
@@ -11,8 +12,8 @@ import type { StagePose } from "./playback.ts";
  * weather and the counters on top.
  */
 export declare const CELL = 16;
-/** Hero looks. The app sells and picks them; the package only draws them. */
-export type Skin = "ninja" | "robot" | "rover" | "bee";
+/** Hero looks: the heroes of `HEROES`. */
+export type Skin = HeroId;
 /** The sheet of a hero look: its first frame is the hero facing down, for a portrait. */
 export declare const heroSheetOf: (skin: Skin) => string;
 type Ctx = CanvasRenderingContext2D;

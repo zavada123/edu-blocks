@@ -1,6 +1,7 @@
 import type { Level } from "../core/level.ts"
 import { heroLevelOf } from "../core/xp.ts"
 import { chapterOf, chapters } from "../levels/chapters.ts"
+import { HEROES } from "../core/heroes.ts"
 import { heroSheetOf, type Skin } from "./stage/draw.ts"
 
 /** Stars of the levels the student has passed, by level id. The app knows them; the bar shows the chapter's. */
@@ -25,17 +26,32 @@ const ChapterLevels = ({ ids, current, progress }: { readonly ids: ReadonlyArray
 }
 
 /** The hero's portrait, level and XP to the next level. */
-const HeroBadge = ({ skin, total }: { readonly skin: Skin; readonly total: number }) => {
+const HeroBadge = ({ skin, total, onPickHero }: { readonly skin: Skin; readonly total: number; readonly onPickHero: (() => void) | undefined }) => {
   const hero = heroLevelOf(total)
   const share = hero.next === null ? 1 : (total - hero.from) / (hero.next - hero.from)
+  const name = HEROES.find((h) => h.id === skin)?.name ?? ""
+  const portrait = (
+    <span className="eb-avatar" aria-hidden="true">
+      <span style={{ backgroundImage: `url(${heroSheetOf(skin)})` }} />
+    </span>
+  )
   return (
     <div className="eb-hud-hero">
-      <span className="eb-avatar" aria-hidden="true">
-        <span style={{ backgroundImage: `url(${heroSheetOf(skin)})` }} />
-      </span>
+      {onPickHero === undefined ? (
+        portrait
+      ) : (
+        <button type="button" className="eb-hud-pick" onClick={onPickHero} aria-label={`Герой: ${name}. Змінити героя`} title="Змінити героя">
+          {portrait}
+          <span className="eb-hud-pick-label" aria-hidden="true">
+            Змінити
+          </span>
+        </button>
+      )}
       <div className="eb-hud-xp">
         <div className="eb-hud-xp-line">
-          <span>Рівень {hero.level}</span>
+          <span>
+            {name} · рівень {hero.level}
+          </span>
           <b>
             {total}
             {hero.next === null ? "" : ` / ${hero.next}`} XP
@@ -58,7 +74,8 @@ export const Hud = ({
   skin,
   xpTotal,
   progress,
-  onMap
+  onMap,
+  onPickHero
 }: {
   readonly level: Level
   readonly skin: Skin
@@ -66,6 +83,8 @@ export const Hud = ({
   readonly xpTotal: number | undefined
   readonly progress: Progress
   readonly onMap: (() => void) | undefined
+  /** Opens the choice of the hero; without it the portrait is only a picture. */
+  readonly onPickHero: (() => void) | undefined
 }) => {
   const chapter = chapterOf(level.id)
   const number = chapter === undefined ? 0 : chapters.indexOf(chapter) + 1
@@ -80,7 +99,7 @@ export const Hud = ({
         <p className="eb-hud-title">{chapter === undefined ? "Завдання" : `Глава ${number} · ${chapter.title}`}</p>
         {chapter !== undefined && <ChapterLevels ids={chapter.levels} current={level.id} progress={progress} />}
       </div>
-      {xpTotal !== undefined && <HeroBadge skin={skin} total={xpTotal} />}
+      {xpTotal !== undefined && <HeroBadge skin={skin} total={xpTotal} onPickHero={onPickHero} />}
     </header>
   )
 }
