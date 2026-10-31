@@ -8,7 +8,7 @@ import type { Tier } from "../core/xp.ts"
 import { levels } from "../levels/index.ts"
 import { chapterOf } from "../levels/chapters.ts"
 import { type BlocksReport, EduBlocks } from "../ui/EduBlocks.tsx"
-import { Field } from "../ui/Field.tsx"
+import { Stage } from "../ui/stage/Stage.tsx"
 import { ENEMIES, ITEM_TILES, NPCS, PROPS } from "../ui/look.ts"
 import { buildScenery } from "../ui/scenery.ts"
 import bushTile from "../ui/sprites/bush.png"
@@ -219,7 +219,7 @@ const MapCanvas = ({
   const dragPaints = tool !== "house" && tool !== "woodshed" && tool !== "start" && tool !== "finish" && tool !== "npc" && tool !== "enemy"
   return (
     <div className="ed-map" style={{ aspectRatio: `${view.width} / ${view.height}` }}>
-      <Field world={world} skin="ninja" scene={level.scene} />
+      <Stage start={world} skin="ninja" scene={level.scene} />
       <div
         className="ed-grid"
         style={{

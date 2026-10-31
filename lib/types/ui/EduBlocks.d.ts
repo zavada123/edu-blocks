@@ -1,6 +1,6 @@
 import { type Level } from "../core/level.ts";
 import type { FailReason, Program } from "../core/program.ts";
-import { type Skin } from "./Field.tsx";
+import { type Skin } from "./stage/Stage.tsx";
 import "./blocks.css";
 /** What the trainer gives the app after each run. The server runs `program` again before it trusts `passed`. */
 export interface BlocksReport {
@@ -31,7 +31,7 @@ export interface EduBlocksProps {
     readonly program?: Program;
     /** Folder with the scratch-blocks icons (`scratch-blocks/media`), ending with a slash. */
     readonly media?: string;
-    /** Milliseconds per hero action in the animation. */
+    /** Milliseconds per hero action in the animation at the normal speed (×1). */
     readonly speed?: number;
     readonly xp?: HeroXp;
     readonly onComplete?: (report: BlocksReport) => void;

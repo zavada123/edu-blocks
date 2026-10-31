@@ -36,7 +36,8 @@ The student-facing interface is in Ukrainian. It was built for [EduProstir](http
 - **Real Scratch 3 blocks:** the same shapes and the same Ukrainian names ("повторити", "якщо … то", "інакше", "повторити до", "не", "коли прапорець натиснуто"), so students move to real Scratch easily.
 - **Hero blocks:** "step forward", "turn left", "turn right", "take", and the sensing questions "wall ahead?", "anything here?", "reached the goal?".
 - **One concept per level:** every level unlocks only its own blocks.
-- **Animated runs:** the hero walks step by step and the running block is highlighted.
+- **Animated runs on a canvas:** the hero walks, swings, lifts what it takes, bumps into walls and falls into traps; enemies walk up, raise their weapons and strike. The block that makes each action lights up.
+- **A time line under the field:** pause, a step back or forward, a slider to any moment of the run, and the speed from ×0.5 to ×4. The block of the action on the field lights up as the student steps through, so they see what each block did.
 - **Story scenes** (`scene`): summer or winter, a path, pond ice or a bridge, items (crystals, firewood, apples, fish, a key, campfires that light up), a goal (flag, well, grandma, home) and houses around. Pixel art from Ninja Adventure.
 - **A meadow around every level** doubles the cells on the map; it is scenery only.
 - **XP and hero levels:** a run gives XP for the level tier (`tier`: intro, practice or challenge), for each star and for a pass at the first try. The hero gets only the part above the best earlier run, so replays give nothing to farm.
@@ -151,6 +152,7 @@ Programs are limited to 300 blocks, the blocks of the level and 1,000 hero actio
 | `large` | Bigger blocks and field for grade 3 |
 | `program` | A saved program: the student continues where they left off |
 | `media` | Path to the block icons, with a trailing slash |
+| `speed` | Milliseconds per hero action at ×1, 400 by default; the student changes the speed on the time line |
 | `xp` | The hero's XP before the run: `{ total, best }`, where `best` is the best XP of this level. The result then shows the gain and the bar to the next hero level |
 | `onComplete(report)` | After every run: `levelId`, `passed`, `stars`, `blocks`, `reason`, `firstTry`, `xp` and the `program` itself |
 | `onProgramChange(program)` | After every block change, for apps with their own Check button |
