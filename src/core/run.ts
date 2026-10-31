@@ -1,9 +1,10 @@
 import VirtualMachine, { type BlockUtility, type Runtime } from "scratch-vm"
 import vmLog from "scratch-vm/src/util/log.js"
 import { HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID } from "./blocks.ts"
-import { allGoalsMet, type Level, startWorld } from "./level.ts"
-import { checkProgram, type FailReason, fatalReason, MAX_ACTIONS, MAX_FRAMES, PASSES_PER_FRAME, type Program, resultOf, type RunResult, type Session } from "./program.ts"
-import { type Action, applyAction, atFinish, enemyAhead, onCrystal, trapAhead, wallAhead } from "./world.ts"
+import { HERO_ACTIONS, HERO_SENSORS, heroAct, heroSense, newSession, type Sensor } from "./hero.ts"
+import type { Level } from "./level.ts"
+import { checkProgram, MAX_FRAMES, PASSES_PER_FRAME, type Program, resultOf, type RunResult, type Session } from "./program.ts"
+import type { Action } from "./world.ts"
 
 /**
  * The program in the TurboWarp VM. The editor uses the VM to keep the program in project.json form; the run
@@ -61,10 +62,22 @@ export const projectFor = (program: Program): object => ({
   meta: { semver: "3.0.0", vm: "0.2.0", agent: "edu-blocks" }
 })
 
-/** The VM extension class: block info for the palette and the block functions. */
+/** A block function of the extension: the VM calls it with the block's arguments and the running thread. */
+type BlockFunction = (args: unknown, util: BlockUtility) => unknown
+
+/**
+ * The VM extension class: block info for the palette and a block function for each action and question of the
+ * hero API (see `hero.ts`), so the VM and `judgeProgram` drive the hero the same way.
+ */
 const heroExtension = (level: Level | null, session: Session | null) =>
   class HeroExtension {
-    constructor(private readonly runtime: Runtime) {}
+    readonly [opcode: string]: unknown
+
+    constructor(private readonly runtime: Runtime) {
+      const self = this as unknown as Record<string, BlockFunction>
+      for (const action of HERO_ACTIONS) self[action] = (_args, util) => this.act(action, util)
+      for (const sensor of Object.keys(HERO_SENSORS) as ReadonlyArray<Sensor>) self[sensor] = () => session !== null && heroSense(session, sensor)
+    }
 
     getInfo() {
       return {
@@ -79,52 +92,7 @@ const heroExtension = (level: Level | null, session: Session | null) =>
 
     private act(action: Action, util: BlockUtility): void {
       if (session === null || level === null || session.done) return
-      const { world, outcome } = applyAction(session.world, action)
-      session.world = world
-      session.frames.push({ action, outcome, blockId: util.thread.peekStack() ?? null, world })
-      const fatal = fatalReason(outcome)
-      if (fatal !== null) this.finish(fatal)
-      else if (allGoalsMet(level, world)) this.finish(null)
-      else if (world.hearts === 0) this.finish("defeated")
-      else if (session.frames.length >= MAX_ACTIONS) this.finish("tooLong")
-    }
-
-    private finish(reason: FailReason | null): void {
-      if (session === null) return
-      session.done = true
-      session.reason = reason
-      this.runtime.stopAll()
-    }
-
-    move(_args: unknown, util: BlockUtility) {
-      this.act("move", util)
-    }
-    turnLeft(_args: unknown, util: BlockUtility) {
-      this.act("turnLeft", util)
-    }
-    turnRight(_args: unknown, util: BlockUtility) {
-      this.act("turnRight", util)
-    }
-    collect(_args: unknown, util: BlockUtility) {
-      this.act("collect", util)
-    }
-    attack(_args: unknown, util: BlockUtility) {
-      this.act("attack", util)
-    }
-    wallAhead() {
-      return session !== null && wallAhead(session.world)
-    }
-    onCrystal() {
-      return session !== null && onCrystal(session.world)
-    }
-    atFinish() {
-      return session !== null && atFinish(session.world)
-    }
-    enemyAhead() {
-      return session !== null && enemyAhead(session.world)
-    }
-    trapAhead() {
-      return session !== null && trapAhead(session.world)
+      if (heroAct(level, session, action, { blockId: util.thread.peekStack() ?? null })) this.runtime.stopAll()
     }
   }
 
@@ -166,7 +134,7 @@ export const createVm = (level: Level | null, session: Session | null): VirtualM
 /** Runs the program on the level from the start hat «коли натиснуто прапорець» and checks the goals. */
 export const runProgram = (level: Level, program: Program): Promise<RunResult> =>
   withVmLock(async () => {
-    const session: Session = { world: startWorld(level), frames: [], done: false, reason: null }
+    const session = newSession(level)
     const checked = checkProgram(level, program)
     if ("error" in checked) return resultOf(level, { ...session, reason: "badProgram" }, 0, { detail: checked.error })
     if (!checked.hasStart) return resultOf(level, { ...session, reason: "noStart" }, checked.blocks)

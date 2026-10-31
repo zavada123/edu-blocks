@@ -1,6 +1,6 @@
 import { allowedOpcodes, isNumberShadow, START_OPCODE } from "./blocks.ts"
 import { allGoalsMet, type Level, starsFor } from "./level.ts"
-import type { Action, Outcome, World } from "./world.ts"
+import type { Action, GameEvent, Outcome, World } from "./world.ts"
 
 /**
  * A program is the `blocks` object of the hero sprite in a Scratch 3 project (project.json):
@@ -31,6 +31,10 @@ export interface Frame {
   readonly outcome: Outcome
   /** The block that made the move, to highlight it in the editor. */
   readonly blockId: string | null
+  /** What happened during the action, in order: see `GameEvent`. */
+  readonly events: ReadonlyArray<GameEvent>
+  /** Which goals of the level are met after the action, in the order of `level.goals`. */
+  readonly goals: ReadonlyArray<boolean>
   readonly world: World
 }
 

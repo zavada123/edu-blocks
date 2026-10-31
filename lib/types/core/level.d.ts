@@ -74,5 +74,7 @@ export interface Level {
 export declare const startWorld: (level: Level) => World;
 export declare const goalMet: (world: World, goal: Goal) => boolean;
 export declare const allGoalsMet: (level: Level, world: World) => boolean;
+/** Which goals of the level are met now, in the order of `level.goals`: the live goal list of the game. */
+export declare const goalStatus: (level: Level, world: World) => ReadonlyArray<boolean>;
 export declare const describeGoal: (goal: Goal, world: World, scene?: Scene) => string;
 export declare const starsFor: (level: Level, blocks: number) => 1 | 2 | 3;
