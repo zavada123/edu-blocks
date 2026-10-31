@@ -22,3 +22,4 @@ export { HERO_NAME, MAX_MOVE_STEPS, PYTHON_METHODS, pythonMethodsOf, type Python
 export { MAX_PY_DEPTH, MAX_PY_STEPS } from "./core/python/interpreter.ts"
 export { MAX_SOURCE_LENGTH } from "./core/python/lexer.ts"
 export { solutionSource, toPython } from "./core/python/convert.ts"
+export * from "./core/assets.ts"
