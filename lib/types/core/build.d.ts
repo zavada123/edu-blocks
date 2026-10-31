@@ -12,10 +12,20 @@ export type Question = Sensor | {
 } | {
     readonly or: readonly [Question, Question];
 };
-export type Step = Action | {
-    readonly repeat: number;
+export type Step = Action
+/** «повторити (лічильник)» with `repeat: "counter"`. */
+ | {
+    readonly repeat: number | "counter";
     readonly body: ReadonlyArray<Step>;
+}
+/** «задати лічильник N» and «змінити лічильник на N». */
+ | {
+    readonly set: number;
 } | {
+    readonly change: number;
+}
+/** The custom block of the level. */
+ | "call" | {
     readonly forever: ReadonlyArray<Step>;
 } | {
     readonly until: Question;
@@ -25,4 +35,9 @@ export type Step = Action | {
     readonly then: ReadonlyArray<Step>;
     readonly else?: ReadonlyArray<Step>;
 };
-export declare const buildProgram: (steps: ReadonlyArray<Step>) => Program;
+/** The custom block «визначити»: its name and what it does. */
+export interface Definition {
+    readonly name?: string;
+    readonly body: ReadonlyArray<Step>;
+}
+export declare const buildProgram: (steps: ReadonlyArray<Step>, definition?: Definition) => Program;

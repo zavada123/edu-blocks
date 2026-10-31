@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
 import { levels } from "../levels/index.ts"
-import { solutions } from "../levels/solutions.ts"
+import { solutionProgram, solutions } from "../levels/solutions.ts"
 import { buildProgram } from "./build.ts"
 import type { Level } from "./level.ts"
 import { allowedOpcodes } from "./blocks.ts"
@@ -18,7 +18,7 @@ describe("reference solutions", () => {
   test.each(levels.map((l) => [l.id, l]))("%s passes with three stars", async (_id, lvl) => {
     const steps = solutions[lvl.id]
     expect(steps).toBeDefined()
-    const result = await runProgram(lvl, buildProgram(steps ?? []))
+    const result = await runProgram(lvl, solutionProgram(lvl.id))
     expect(result.reason).toBeNull()
     expect(result.passed).toBe(true)
     expect(result.stars).toBe(3)
@@ -89,6 +89,31 @@ describe("runProgram", () => {
     expect(checkProgram(level("g3-steps"), huge)).toHaveProperty("error")
   })
 
+  test("a loose counter is a block on a level with the counter, and a stranger elsewhere", () => {
+    const program = { ...buildProgram(["move"]), v: [12, "лічильник", "eb-counter", 200, 40] }
+    expect(checkProgram({ ...level("g3-steps"), blocks: ["move", "counter"] }, program)).toEqual({ blocks: 2, hasStart: true })
+    expect(checkProgram(level("g3-steps"), program)).toHaveProperty("error")
+  })
+
+  test("a custom block counts its «визначити» and calls, not its name", () => {
+    const lvl: Level = { ...level("g3-steps"), blocks: ["move", "collect", "procedure"] }
+    expect(checkProgram(lvl, buildProgram(["call", "call"], { body: ["move", "move"] }))).toEqual({ blocks: 5, hasStart: true })
+  })
+
+  test("a custom block «без оновлення екрана» and a second «визначити» with the same name are refused", () => {
+    const lvl: Level = { ...level("g3-steps"), blocks: ["move", "collect", "procedure"] }
+    const program = buildProgram(["call"], { body: ["move"] })
+    const warp = Object.fromEntries(
+      Object.entries(program).map(([id, b]) => {
+        const block = b as { opcode: string; mutation?: object }
+        return [id, block.opcode === "procedures_prototype" ? { ...block, mutation: { ...block.mutation, warp: "true" } } : block]
+      })
+    )
+    expect(checkProgram(lvl, warp)).toHaveProperty("error")
+    const twice = { ...program, ...JSON.parse(JSON.stringify(buildProgram([], { body: ["move"] })).replace(/"(b\d+)"/g, '"z$1"')) }
+    expect(checkProgram(lvl, twice)).toMatchObject({ error: expect.stringContaining("двічі") })
+  })
+
   test("a block the VM cannot read is a bad program", async () => {
     const program = { ...buildProgram(["move"]), b9: { opcode: "hero_move", next: "missing", parent: 5 } }
     const result = await runProgram(level("g3-steps"), program)
@@ -97,8 +122,8 @@ describe("runProgram", () => {
 
   test("runs at the same time do not mix their heroes", async () => {
     const [a, b] = await Promise.all([
-      runProgram(level("g3-steps"), buildProgram(solutions["g3-steps"] ?? [])),
-      runProgram(level("g3-turn"), buildProgram(solutions["g3-turn"] ?? []))
+      runProgram(level("g3-steps"), solutionProgram("g3-steps")),
+      runProgram(level("g3-turn"), solutionProgram("g3-turn"))
     ])
     expect(a.passed && b.passed).toBe(true)
   })

@@ -1,7 +1,7 @@
 import VirtualMachine from "scratch-vm";
 import type { Level } from "./level.ts";
 import { type Program, type RunResult, type Session } from "./program.ts";
-/** A project with the stage and one sprite whose blocks are the program. */
+/** A project with the stage and one sprite whose blocks are the program and whose variable is the counter. */
 export declare const projectFor: (program: Program) => object;
 export declare const withVmLock: <T>(work: () => Promise<T>) => Promise<T>;
 /** Lets the VM finish registering extension blocks (it does this in a promise). */

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import ScratchBlocks, { type WorkspaceSvg } from "scratch-blocks/dist/vertical.js"
 import type VirtualMachine from "scratch-vm"
 import { serializeBlocks } from "scratch-vm/src/serialization/sb3.js"
-import { HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID } from "../core/blocks.ts"
+import { HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID, procedureName } from "../core/blocks.ts"
 import { buildProgram } from "../core/build.ts"
 import { describeGoal, goalMet, type Level, startWorld } from "../core/level.ts"
 import { adviseRun } from "../core/advice.ts"
@@ -171,7 +171,7 @@ export const EduBlocks = ({
     ScratchBlocks.VerticalFlyout.prototype.DEFAULT_WIDTH = compact ? 150 : 250
     ScratchBlocks.ScratchMsgs.setLocale("uk")
     const ws = ScratchBlocks.inject(el, {
-      toolbox: toolboxXml(level.blocks, compact),
+      toolbox: toolboxXml(level.blocks, compact, procedureName(level)),
       media,
       sounds: false,
       comments: false,

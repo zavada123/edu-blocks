@@ -1,4 +1,7 @@
-import type { Step } from "../core/build.ts"
+import { buildProgram, type Definition, type Step } from "../core/build.ts"
+import type { Program } from "../core/program.ts"
+
+const BYPASS: ReadonlyArray<Step> = ["turnLeft", "move", "turnRight", "move", "move", "turnRight", "move", "turnLeft"]
 
 /** The shortest known solution of each level, for tests and for checking new levels. Keys are level ids. */
 export const solutions: Readonly<Record<string, ReadonlyArray<Step>>> = {
@@ -58,5 +61,18 @@ export const solutions: Readonly<Record<string, ReadonlyArray<Step>>> = {
       body: [{ if: "trapAhead", then: ["turnLeft", "move", "turnRight", "move", "move", "turnRight", "move", "turnLeft"], else: ["move"] }]
     }
   ],
-  "p-fork": [{ until: "atFinish", body: [{ if: "wallAhead", then: ["turnRight"], else: ["move"] }] }]
+  "p-fork": [{ until: "atFinish", body: [{ if: "wallAhead", then: ["turnRight"], else: ["move"] }] }],
+  "c-apples": [{ set: 1 }, { repeat: 4, body: [{ repeat: "counter", body: ["move"] }, "collect", { change: 1 }] }],
+  "c-spiral": [{ set: 1 }, { repeat: 5, body: [{ repeat: "counter", body: ["move"] }, "turnRight", { change: 1 }] }],
+  "c-stones": ["move", "call", "move", "move", "call", "move", "call", "move"],
+  "c-rocks": [{ set: 1 }, { repeat: 3, body: [{ repeat: "counter", body: ["move"] }, "call", "collect", { change: 1 }] }]
 }
+
+/** The custom block of the solutions that call one, by level id. */
+export const definitions: Readonly<Record<string, Definition>> = {
+  "c-stones": { name: "обійти", body: BYPASS },
+  "c-rocks": { name: "обійти", body: BYPASS }
+}
+
+/** The solution of a level as a program, with its custom block when it has one. Empty for an unknown level. */
+export const solutionProgram = (levelId: string): Program => buildProgram(solutions[levelId] ?? [], definitions[levelId])

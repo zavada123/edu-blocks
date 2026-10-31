@@ -80,7 +80,9 @@ const OTHER_BLOCKS: ReadonlyArray<{ readonly name: BlockName; readonly text: str
   { name: "ifElse", text: "якщо … інакше" },
   { name: "not", text: "не" },
   { name: "and", text: "і" },
-  { name: "or", text: "або" }
+  { name: "or", text: "або" },
+  { name: "counter", text: "лічильник" },
+  { name: "procedure", text: "свій блок «мій блок»" }
 ]
 
 const ALL_BLOCKS: ReadonlyArray<{ readonly name: BlockName; readonly text: string }> = [
