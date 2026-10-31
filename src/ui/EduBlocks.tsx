@@ -73,6 +73,8 @@ const PROGRAM_EVENTS: ReadonlySet<string> = new Set(["create", "delete", "change
 
 /** Editor width (px) below which the palette turns compact. */
 const COMPACT_WIDTH = 560
+/** The flyout grows with the zoom, up to this part of the editor's width. */
+const MAX_FLYOUT_SHARE = 0.45
 
 type Phase =
   | { readonly kind: "edit" }
@@ -83,6 +85,29 @@ type Phase =
 const heroProgram = (vm: VirtualMachine): Program => {
   const target = vm.editingTarget
   return target === null ? {} : serializeBlocks(target.blocks._blocks)[0]
+}
+
+/**
+ * The zoom buttons and the mouse wheel zoom the blocks of the flyout too, not only the program: the student sees
+ * the blocks to choose at the same size. The flyout grows with them.
+ */
+const followZoomInFlyout = (ws: WorkspaceSvg, el: HTMLElement) => {
+  const startScale = ws.scale
+  const baseWidth = ScratchBlocks.VerticalFlyout.prototype.DEFAULT_WIDTH
+  const setScale = ws.setScale.bind(ws)
+  ws.setScale = (scale: number) => {
+    setScale(scale)
+    const flyout = ws.getFlyout()
+    if (flyout === null || flyout.getWorkspace().scale === ws.scale) return
+    flyout.getWorkspace().scale = ws.scale
+    const width = Math.round(Math.min((baseWidth * ws.scale) / startScale, el.clientWidth * MAX_FLYOUT_SHARE))
+    const toolbox = ws.getToolbox()
+    // The toolbox is the categories and the flyout: it grows by what the flyout grows.
+    if (toolbox !== null) toolbox.width += width - flyout.DEFAULT_WIDTH
+    flyout.DEFAULT_WIDTH = width
+    toolbox?.refreshSelection()
+    ScratchBlocks.svgResize(ws)
+  }
 }
 
 export const EduBlocks = ({
@@ -156,6 +181,7 @@ export const EduBlocks = ({
       zoom: { controls: true, wheel: true, startScale: (large ? 0.9 : 0.75) * (compact ? 0.75 : 1) }
     })
     workspaceRef.current = ws
+    followZoomInFlyout(ws, el)
 
     void withVmLock(async () => {
       const vm = createVm(null, null)
