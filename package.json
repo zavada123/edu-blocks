@@ -17,7 +17,9 @@
     "url": "git+https://github.com/zavada123/edu-blocks.git"
   },
   "files": [
-    "lib"
+    "lib",
+    "assets",
+    "!assets/*/audio"
   ],
   "sideEffects": [
     "**/*.css"
@@ -36,7 +38,8 @@
       "import": "./lib/python.js"
     },
     "./style.css": "./lib/style.css",
-    "./blocks-media/*": "./lib/blocks-media/*"
+    "./blocks-media/*": "./lib/blocks-media/*",
+    "./assets/*": "./assets/*"
   },
   "peerDependencies": {
     "react": ">=19",
