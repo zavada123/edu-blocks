@@ -52,6 +52,10 @@ export interface RunResult {
     readonly output?: ReadonlyArray<string>;
     readonly frames: ReadonlyArray<Frame>;
     readonly world: World;
+    /** On a level with more than one field: the field these frames are from, counted from 0 (see `combineFields`). */
+    readonly field?: number;
+    /** On a level with more than one field: whether the program passed each field, in field order. */
+    readonly fields?: ReadonlyArray<boolean>;
 }
 /** Checks the program shape and palette before it runs. Returns the error text or the block count. */
 export declare const checkProgram: (level: Level, program: Program) => {

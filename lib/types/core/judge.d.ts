@@ -18,4 +18,12 @@ export declare const MAX_STEPS = 200000;
  * each level that acts takes one of MAX_ACTIONS, so a run ends there before this limit.
  */
 export declare const MAX_CALL_DEPTH = 1000;
+/**
+ * Runs a program on one field: the map of `level` only, without its other `fields`. The rules of the game live
+ * here; `judgeProgram` runs it on every field of a level.
+ */
+export declare const judgeField: (level: Level, program: Program) => RunResult;
+/** Runs a program on every field of the level (`levelFields`): one result for each field, in order. */
+export declare const judgeFields: (level: Level, program: Program) => ReadonlyArray<RunResult>;
+/** Grades a program: it passes only when it passes every field of the level (see `combineFields`). */
 export declare const judgeProgram: (level: Level, program: Program) => RunResult;

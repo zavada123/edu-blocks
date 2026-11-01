@@ -2,6 +2,7 @@ import { type ReactNode, type Ref } from "react";
 import type { Level } from "../core/level.ts";
 import type { RunResult } from "../core/program.ts";
 import type { World } from "../core/world.ts";
+import { type FieldChoice } from "./FieldTabs.tsx";
 import { type Progress } from "./Hud.tsx";
 import { type Skin } from "./stage/Stage.tsx";
 import { type usePlayer } from "./Timeline.tsx";
@@ -25,7 +26,7 @@ export interface GameNavigation {
  * The game screen, the same for blocks and for Python: the bar of the chapter and the hero, the field with its time
  * line and buttons, the task, and the editor that the caller gives. The result of a run shows over the field.
  */
-export declare const GameScreen: ({ rootRef, className, level, start, result, player, skin, running, editing, full, xpTotal, navigation, editorTitle, onRun, onReset, onFull, verdict, children }: {
+export declare const GameScreen: ({ rootRef, className, level, start, result, player, skin, running, editing, full, xpTotal, navigation, editorTitle, fields, onRun, onReset, onFull, verdict, children }: {
     readonly rootRef: Ref<HTMLDivElement>;
     readonly className: string;
     readonly level: Level;
@@ -44,6 +45,8 @@ export declare const GameScreen: ({ rootRef, className, level, start, result, pl
         readonly onSkinChange: ((skin: Skin) => void) | undefined;
     };
     readonly editorTitle: string;
+    /** The tabs of a level with several fields; null for one field. */
+    readonly fields: FieldChoice | null;
     readonly onRun: () => void;
     readonly onReset: () => void;
     readonly onFull: () => void;

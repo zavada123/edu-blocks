@@ -1,4 +1,5 @@
 import type { Step } from "./build.ts"
+import { levelFields } from "./fields.ts"
 import type { Issue } from "./kit.ts"
 import { allGoalsMet, type BlockName, type Level, startWorld } from "./level.ts"
 import { type Action, applyAction, isAlive, isFatal, type World } from "./world.ts"
@@ -107,10 +108,12 @@ export const paletteIssues = (level: Level): ReadonlyArray<Issue> => {
   if (has("procedure") && !level.blocks.some((b) => ACTIONS.includes(b as Action)))
     issues.push({ level: "error", text: "Свій блок нема з чого скласти: у палітрі немає дій героя" })
 
-  const solved = solveLevel(level)
-  if (solved.kind === "impossible") {
-    const steps = level.maxSteps === undefined ? "" : ` (кроків дозволено: ${level.maxSteps})`
-    issues.push({ level: "error", text: `Рівень не пройти блоками палітри${steps}: перевір блоки, мапу й ворогів` })
-  }
+  const fields = levelFields(level)
+  fields.forEach((field, i) => {
+    if (solveLevel(field).kind !== "impossible") return
+    const steps = field.maxSteps === undefined ? "" : ` (кроків дозволено: ${field.maxSteps})`
+    const where = fields.length === 1 ? "Рівень" : `Поле ${i + 1}`
+    issues.push({ level: "error", text: `${where} не пройти блоками палітри${steps}: перевір блоки, мапу й ворогів` })
+  })
   return issues
 }

@@ -46,6 +46,7 @@ The student-facing interface is in Ukrainian. It was built for [EduProstir](http
 - **Large mode** for grade 3.
 - **Four hero skins** (`skin`): ninja (default), robot, rover and bee. Your app decides how they are sold or unlocked.
 - **Python code, as in Tynker or CodeCombat** (`edu-blocks/python`): the same levels with a code editor instead of blocks. `hero.move()`, `while not hero.at_finish():`, functions, variables and lists; the line the hero acts on lights up, and every mistake is explained in Ukrainian with its line.
+- **Several fields per level** (`fields`): one program must pass two or three maps, so memorized steps do not work and the student writes a real algorithm.
 - **Deterministic grading:** an interpreter that follows Scratch 3's execution order, tested against the TurboWarp VM on hundreds of random programs.
 
 ## Installation
@@ -87,6 +88,25 @@ const level: Level = {
 - **Goals** (`goals`): `crystals` (take every item on a `c` cell), `finish` (stand on the `F` cell).
 - **Scene** (`scene`, optional): `theme` (`summer`, `winter`), `ground` (`path`, `ice`, `bridge`), `item` (`crystal`, `wood`, `apple`, `fish`, `key`, `campfire`), `finish` (`flag`, `well`, `grandma`, `home`) `props` (`house`, `woodshed` with `x`, `y` in cells), and pictures from the asset packs (`sprites`, `itemLook`, `finishLook`; see [Pictures from asset packs](#pictures-from-asset-packs)). It changes only the looks and the goal text, never the rules.
 - **Blocks** (`blocks`): `move`, `turnLeft`, `turnRight`, `collect`, `wallAhead`, `onCrystal`, `atFinish`, `repeat`, `forever`, `repeatUntil`, `if`, `ifElse`, `not`, `and`, `or`.
+
+#### Several fields
+
+A level can have more than one field (`fields`, up to four in all). One program must pass every field, so a student cannot memorize the steps of one map: they write an algorithm with loops and conditions.
+
+```ts
+const level: Level = {
+  // ...the first field: map, dir, enemies, maxSteps and scene of the level
+  map: ["#######", "#S...F#", "#######"],
+  fields: [
+    // Another map. dir, enemies, maxSteps and scene come from the level when the field does not give them.
+    { map: ["#########", "#S.....F#", "#########"] }
+  ]
+}
+```
+
+The game screen shows a tab for each field. After a run, every tab shows ✓ or ✗, and the verdict names the first field that failed. `judgeProgram` and `judgePython` run the program on every field: the run passes only when all fields pass, and it gives the stars and the frames of the first field that failed (or of the first field when all pass). `result.field` is the field the result belongs to, and `result.fields` holds `true` or `false` for each field. A level with one field returns its result without these two properties.
+
+`judgeField` and `judgePythonField` run one field, `judgeFields` and `judgePythonFields` return a result for each field, `levelFields(level)` gives each field as a `Level` of its own, and `combineFields` merges the results.
 
 Every built-in level has a reference solution in `src/levels/solutions.ts`, and a test checks that it earns three stars, so a level without a working solution never ships. Another test (`solveLevel`) searches every order of the hero actions of each level's palette, so a level its blocks cannot pass (a campfire level without «розпалити», too few steps, a turn the palette lacks) fails the build.
 
@@ -143,7 +163,7 @@ Programs are limited to 300 blocks, the blocks of the level and 1,000 hero actio
 |---|---|
 | `edu-blocks/react` | The `EduBlocks` component, the hero roster `HEROES` with `heroOpen`, and the `EduBlocksProps`, `BlocksReport`, `HeroXp`, `Hero` and `Skin` types |
 | `edu-blocks/python` | The `EduPython` component (Python code instead of blocks) and its `EduPythonProps` and `PythonReport` types. It loads neither the Scratch VM nor the block editor |
-| `edu-blocks/core` | Built-in `levels` and `solutions`, the hero roster `HEROES`, `judgeProgram`, `judgePython`, `PYTHON_METHODS`, `checkProgram`, `adviseRun`, the level kit, the XP functions, the world model and limits. No React and no VM, safe for Node |
+| `edu-blocks/core` | Built-in `levels` and `solutions`, the hero roster `HEROES`, `judgeProgram`, `judgePython`, the field functions (`levelFields`, `judgeFields`, `judgePythonFields`, `combineFields`), `PYTHON_METHODS`, `checkProgram`, `adviseRun`, the level kit, the XP functions, the world model and limits. No React and no VM, safe for Node |
 | `edu-blocks/style.css` | Styles of the game screen, with its fonts inside (about 150 kB) |
 | `edu-blocks/blocks-media/*` | Block icons to serve from your site |
 

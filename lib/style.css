@@ -454,7 +454,7 @@
 /* Every level gets a square field of the same size; the room under it is for the time line and the buttons. */
 .eb-field-frame {
   flex: none;
-  width: max(160px, min(100cqw - 8px, 100cqh - 132px));
+  width: max(160px, min(100cqw - 8px, 100cqh - var(--eb-under, 132px)));
   aspect-ratio: 1;
   padding: 10px;
 }
@@ -471,7 +471,40 @@
 .eb-stage-bottom {
   display: grid;
   gap: 8px;
-  width: max(160px, min(100cqw - 8px, 100cqh - 132px));
+  width: max(160px, min(100cqw - 8px, 100cqh - var(--eb-under, 132px)));
+}
+
+/* A level with several fields: their tabs take a row under the field. */
+.eb-stage-fields {
+  --eb-under: 176px;
+}
+
+.eb-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+/* The note takes its own line, so the tabs stay in one row on a phone. */
+.eb-fields-note {
+  flex-basis: 100%;
+  color: var(--eb-fg-soft);
+  font: 400 15px/1 var(--eb-font-text);
+}
+
+/* Green for a passed field, red for a failed one; the field on the screen is gold. */
+.eb-field-tab-ok {
+  --eb-btn-bg: var(--eb-go);
+}
+
+.eb-field-tab-fail {
+  --eb-btn-bg: var(--eb-bad);
+}
+
+.eb-field-tab[aria-pressed="true"] {
+  --eb-btn-bg: var(--eb-gold);
+  --eb-btn-fg: var(--eb-edge);
 }
 
 .eb-controls {

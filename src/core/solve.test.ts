@@ -6,6 +6,7 @@ import { paletteIssues, paletteActions, solveLevel } from "./solve.ts"
 import { storyIssues } from "./story.ts"
 import { applyAction } from "./world.ts"
 import { allGoalsMet, startWorld } from "./level.ts"
+import { levelFields } from "./fields.ts"
 
 const base: Level = {
   id: "t",
@@ -22,7 +23,7 @@ const replay = (level: Level, actions: ReadonlyArray<Parameters<typeof applyActi
 
 describe("solveLevel", () => {
   test("every level of the course can be passed with the blocks of its palette", () => {
-    for (const level of levels) {
+    for (const level of levels.flatMap(levelFields)) {
       const solved = solveLevel(level)
       expect(solved.kind, level.id).toBe("solved")
       if (solved.kind === "solved") {
@@ -83,6 +84,11 @@ describe("paletteIssues", () => {
     expect(paletteIssues({ ...base, blocks: ["move", "if"] }).map((i) => i.level)).toEqual(["error"])
     expect(paletteIssues({ ...base, blocks: ["move", "wallAhead"] }).map((i) => i.level)).toEqual(["warning"])
     expect(paletteIssues({ ...base, blocks: ["move", "not"] }).map((i) => i.level)).toEqual(["warning"])
+  })
+
+  test("a field the palette cannot pass is an error that names the field", () => {
+    const fields: Level = { ...base, fields: [{ map: ["#####", "#S.F#", "#####"] }, { map: ["####", "#.F#", "#S.#", "####"] }] }
+    expect(paletteIssues(fields).map((i) => i.text)).toEqual(["Поле 3 не пройти блоками палітри: перевір блоки, мапу й ворогів"])
   })
 
   test("a level the palette cannot pass is an error that names the steps", () => {

@@ -4,7 +4,7 @@ import { describe, expect, test } from "vitest"
 import { levels } from "../levels/index.ts"
 import { definitions, solutions } from "../levels/solutions.ts"
 import { buildProgram, type Question, type Step } from "./build.ts"
-import { judgeProgram } from "./judge.ts"
+import { judgeField as judgeProgram } from "./judge.ts"
 import type { BlockName, Level } from "./level.ts"
 import type { RunResult } from "./program.ts"
 

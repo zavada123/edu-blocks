@@ -131,6 +131,25 @@ export interface Level {
   readonly scene?: Scene
   /** Sets the XP of the level. An intro level when left out. */
   readonly tier?: Tier
+  /**
+   * More fields the same program must pass: the fish in other holes, a bridge of another length. The level's own
+   * map is the first field. A program passes the level only when it passes every field (`judgeProgram`), so a list
+   * of steps learned by heart for one map is not enough. See `levelFields`.
+   */
+  readonly fields?: ReadonlyArray<LevelField>
+}
+
+/**
+ * One more field of a level: another map with the same blocks, goals and stars. A field takes the direction, the
+ * step limit and the scene of the level unless it gives its own; enemies only stand where the field puts them.
+ */
+export interface LevelField {
+  readonly map: MapRows
+  readonly dir?: Direction
+  readonly enemies?: ReadonlyArray<EnemySpec>
+  readonly maxSteps?: number
+  /** The look of this field when the houses and pictures of the level do not fit its map. */
+  readonly scene?: Scene
 }
 
 /** The world at the start of a level: the map, the enemies and the hearts. */

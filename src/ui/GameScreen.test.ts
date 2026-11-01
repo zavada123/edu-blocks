@@ -38,6 +38,7 @@ const screen = (): string => {
       xpTotal: 0,
       navigation: { onMap: idle, progress: undefined, onSkinChange: idle },
       editorTitle: "Блоки героя",
+      fields: null,
       onRun: idle,
       onReset: idle,
       onFull: idle,
