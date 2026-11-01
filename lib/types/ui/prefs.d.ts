@@ -19,3 +19,7 @@ export declare const saveRate: (rate: number, store?: PrefsStore | null) => void
 /** The saved zoom (a share of the start scale), 1 when nothing valid is saved. */
 export declare const loadZoom: (store?: PrefsStore | null) => number;
 export declare const saveZoom: (zoom: number, store?: PrefsStore | null) => void;
+export declare const PEEK_KEY = "edu-blocks:python-peek";
+/** Is the «Як це в Python» view under the blocks open? Closed when nothing is saved. */
+export declare const loadPeek: (store?: PrefsStore | null) => boolean;
+export declare const savePeek: (open: boolean, store?: PrefsStore | null) => void;

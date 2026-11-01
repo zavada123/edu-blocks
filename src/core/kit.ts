@@ -1,5 +1,7 @@
-import type { Step } from "./build.ts"
+import { buildProgram, type Step } from "./build.ts"
+import { judgeProgram } from "./judge.ts"
 import { allGoalsMet, type BlockName, type Level, startWorld } from "./level.ts"
+import { checkProgram } from "./program.ts"
 import {
   type Action,
   applyAction,
@@ -161,6 +163,12 @@ export const checkLevel = (level: Level): ReadonlyArray<Issue> => {
   if (level.stars === undefined) warning("Без меж для зірок будь-який розв'язок отримає три зірки")
   if (level.task.every((line) => line.trim() === "")) warning("Немає тексту завдання для учня")
   if (level.hint === undefined || level.hint.trim() === "") warning("Немає підказки після невдалої спроби")
+  if (level.broken !== undefined) {
+    const broken = buildProgram(level.broken.steps, level.broken.definition)
+    const checked = checkProgram(level, broken)
+    if ("error" in checked) error(`Зламана програма не підходить до рівня: ${checked.error}`)
+    else if (judgeProgram(level, broken).passed) error("Зламана програма проходить рівень: у ній немає помилки")
+  }
   return issues
 }
 

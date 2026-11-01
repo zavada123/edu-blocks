@@ -23,3 +23,18 @@ describe("chapters", () => {
     expect(isFirstChapter("g4-road")).toBe(false)
   })
 })
+
+describe("the «Правда чи ні» chapter", () => {
+  const logic = chapters.find((c) => c.id === "logic")
+
+  test("comes after the until loop and has three levels", () => {
+    expect(chapters.map((c) => c.id).indexOf("logic")).toBe(chapters.map((c) => c.id).indexOf("while") + 1)
+    expect(logic?.levels).toHaveLength(3)
+  })
+
+  test("every level puts «і», «або» or «не» into its palette", () => {
+    for (const level of logic === undefined ? [] : chapterLevels(logic)) {
+      expect(level.blocks.some((b) => b === "and" || b === "or" || b === "not")).toBe(true)
+    }
+  })
+})

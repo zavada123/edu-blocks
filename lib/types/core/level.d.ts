@@ -1,3 +1,4 @@
+import type { Definition, Step } from "./build.ts";
 import { type Direction, type EnemySpec, type MapRows, type World } from "./world.ts";
 import type { Tier } from "./xp.ts";
 /** Blocks a level can put into the palette. Hero blocks and the Scratch blocks with the same meaning. */
@@ -117,6 +118,17 @@ export interface Level {
      * of steps learned by heart for one map is not enough. See `levelFields`.
      */
     readonly fields?: ReadonlyArray<LevelField>;
+    /**
+     * «Зламаний робот»: a program with a mistake that the level opens with, when the app gives no saved program. The
+     * task tells what the robot had to do; the student runs it, finds the mistake and fixes it. Stars count as usual.
+     * See `brokenProgram` and `brokenSource`.
+     */
+    readonly broken?: BrokenProgram;
+}
+/** A program with a mistake, written as steps (`buildProgram`), with the custom block when the level has one. */
+export interface BrokenProgram {
+    readonly steps: ReadonlyArray<Step>;
+    readonly definition?: Definition;
 }
 /**
  * One more field of a level: another map with the same blocks, goals and stars. A field takes the direction, the

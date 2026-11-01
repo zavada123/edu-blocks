@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react"
 import { COUNTER_NAME, procedureName } from "../core/blocks.ts"
+import { brokenSource } from "../core/broken.ts"
 import { combineFields } from "../core/fields.ts"
 import type { BlockName, Level } from "../core/level.ts"
 import type { FailReason, RunResult } from "../core/program.ts"
@@ -38,7 +39,7 @@ export interface EduPythonProps extends GameNavigation {
   readonly skin?: Skin
   /** Bigger text for the youngest. */
   readonly large?: boolean
-  /** A saved program to open the level with. */
+  /** A saved program to open the level with. Without it a «Зламаний робот» level opens with its broken code. */
   readonly source?: string
   /** Milliseconds per hero action in the animation at the normal speed (×1). */
   readonly speed?: number
@@ -91,7 +92,7 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
   const { rootRef, full, toggleFull } = useFullScreen()
   const failedRef = useRef(0)
   const editorRef = useRef<{ readonly api: CodeEditorApi; readonly read: () => string } | null>(null)
-  const initial = useRef(source ?? starterSource())
+  const initial = useRef(source ?? brokenSource(level) ?? starterSource())
 
   const { seek, restart } = player
   const reset = useCallback(() => {
