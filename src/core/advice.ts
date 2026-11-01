@@ -1,4 +1,4 @@
-import { opcodeOf } from "./blocks.ts"
+import { collectText, opcodeOf } from "./blocks.ts"
 import type { BlockName, ItemKind, Level } from "./level.ts"
 import type { Frame, Program, RunResult } from "./program.ts"
 import { startWorld } from "./level.ts"
@@ -126,8 +126,9 @@ const itemAdvice = (level: Level, result: RunResult, has: (b: BlockName) => bool
   const unreached = left.size - missed
   const tips: Array<string> = []
   const passed = `Герой дійшов до ${noun.to[missed === 1 ? 0 : 1]}, але не ${verb} ${noun.it[missed === 1 ? 0 : 1]}.`
-  if (missed > 0 && !has("collect")) tips.push(`У програмі немає блока «взяти». ${passed}`)
-  else if (missed > 0) tips.push(`${passed} Постав «взяти» одразу після кроку, яким він туди стає.`)
+  const block = collectText(level.scene)
+  if (missed > 0 && !has("collect")) tips.push(`У програмі немає блока «${block}». ${passed}`)
+  else if (missed > 0) tips.push(`${passed} Постав «${block}» одразу після кроку, яким він туди стає.`)
   if (unreached > 0) tips.push(`Ще ${unreached} — там, куди герой не дійшов: потрібно більше кроків або повторень.`)
   return tips
 }
@@ -181,9 +182,11 @@ const extraAdvice = (level: Level, frames: ReadonlyArray<Frame>): ReadonlyArray<
   const tips: Array<string> = []
   const empty = frames.filter((f) => f.outcome === "nothingToCollect").length
   const canAsk = level.blocks.includes("if") && level.blocks.includes("onCrystal")
+  const block = collectText(level.scene)
+  const Block = block.charAt(0).toUpperCase() + block.slice(1)
   if (empty > 0)
     tips.push(
-      `«Взяти» ${empty} ${times(empty)} спрацював на порожній клітинці. ${canAsk ? "Прибери зайвий «взяти» або сховай його в «якщо тут щось є?»." : "Прибери зайвий «взяти»."}`
+      `«${Block}» ${empty} ${times(empty)} спрацював на порожній клітинці. ${canAsk ? `Прибери зайвий «${block}» або сховай його в «якщо тут щось є?».` : `Прибери зайвий «${block}».`}`
     )
   const missed = frames.filter((f) => f.outcome === "swingMissed").length
   if (missed > 0) tips.push(`«Вдарити» ${missed} ${times(missed)} влучив у порожнечу: попереду не було ворога.`)

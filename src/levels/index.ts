@@ -2,7 +2,7 @@ import type { Level } from "../core/level.ts"
 
 /**
  * The course in the order a student plays it, chapter by chapter (see `chapters.ts`): steps and turns, loops,
- * branches, the loop with a condition, traps and few steps, and enemies. In each chapter a new idea comes first,
+ * branches, the loop with a condition, traps and few steps, enemies, the counter and custom blocks (functions). In each chapter a new idea comes first,
  * then practice, then a challenge. The ids keep their old grade prefix: saved progress refers to them.
  * Together they tell one story, «Рік у селі», from autumn through winter and spring to summer: each level gives the
  * hero a reason to go somewhere.
@@ -89,7 +89,7 @@ export const levels: ReadonlyArray<Level> = [
     id: "g4-road",
     tier: "intro",
     title: "Дорога до лісу",
-    task: ["Дідусь чекає в лісі з возом дров і позначив місце прапорцем.", "Дорога пряма, але довга. Скільки кроків? Поклади «крок уперед» у «повторити»."],
+    task: ["Дідусь рубає дрова в лісі й позначив місце прапорцем.", "Дорога пряма, але довга. Скільки кроків? Поклади «крок уперед» у «повторити»."],
     map: ["##############", "#S..........F#", "##############"],
     blocks: ["move", "repeat"],
     goals: [{ type: "finish" }],
@@ -149,24 +149,24 @@ export const levels: ReadonlyArray<Level> = [
     id: "g6-nested",
     tier: "practice",
     title: "Вогнища на ніч",
-    task: ["Сутеніє, у лісі виють вовки.", "Розпали вогнища в кутах двору. Використай цикл у циклі."],
+    task: ["Сутеніє, у лісі виють вовки.", "Обійди двір і розпали вогнища в його кутах блоком «розпалити». Використай цикл у циклі."],
     map: ["######", "#S..c#", "#.##.#", "#.##.#", "#c..c#", "######"],
     blocks: ["move", "turnLeft", "turnRight", "collect", "repeat"],
     goals: [{ type: "crystals" }],
     stars: { three: 5, two: 9 },
-    hint: "Одна сторона двору — це три кроки, «взяти» і поворот. Повтори сторону кілька разів.",
+    hint: "Одна сторона двору — це три кроки, «розпалити» і поворот. Повтори сторону кілька разів.",
     scene: { theme: "winter", item: "campfire", props: [HOME] }
   },
   {
     id: "g4-if",
     tier: "intro",
-    title: "Риба в ополонках",
-    task: ["Бабуся просить рибу на юшку. На ставку є ополонки, та риба клює не в кожній.", "Пройди ставком і лови лише там, де є риба."],
+    title: "Риба на ставку",
+    task: ["Бабуся просить рибу на юшку. На замерзлому ставку риба клює не всюди.", "Пройди ставком і лови блоком «зловити» лише там, де є риба."],
     map: ["###########", "#S.cc.c..c#", "###########"],
     blocks: ["move", "collect", "repeat", "if", "onCrystal"],
     goals: [{ type: "crystals" }],
     stars: { three: 5, two: 9 },
-    hint: "У «повторити» зроби крок, а потім перевір: «якщо тут щось є? то взяти».",
+    hint: "У «повторити» зроби крок, а потім перевір: «якщо тут щось є? то зловити».",
     scene: { theme: "winter", ground: "ice", item: "fish" }
   },
   {
@@ -296,7 +296,7 @@ export const levels: ReadonlyArray<Level> = [
     id: "p-fires",
     tier: "challenge",
     title: "Три вогнища",
-    task: ["Вечоріє: у кутах галявини треба розпалити три вогнища.", "Сил вистачить на 15 кроків, а на галявині є замерзлі калюжі з тонким льодом. Вибери, з якого вогнища почати."],
+    task: ["Вечоріє: у кутах галявини треба розпалити три вогнища. Дійди до кожного й постав блок «розпалити».", "Сил вистачить на 15 кроків, а на галявині є замерзлі калюжі з тонким льодом. Вибери, з якого вогнища почати."],
     map: ["#########", "#c.....c#", "#.x.x.x.#", "#...S...#", "#.x.x.x.#", "#......c#", "#########"],
     dir: "up",
     blocks: ["move", "turnLeft", "turnRight", "collect", "repeat"],
@@ -348,7 +348,7 @@ export const levels: ReadonlyArray<Level> = [
     tier: "intro",
     title: "Сніговий дух",
     task: [
-      "Сніг тане, та сніговий дух ще стереже дорогу до криниці. Він стоїть, а коли ніндзя підходить на дві клітинки, біжить назустріч.",
+      "Прийшла весна, та сніговий дух ще стереже дорогу до криниці. Він стоїть, а коли ніндзя підходить на дві клітинки, біжить назустріч.",
       "Вдар духа і дійди до криниці."
     ],
     map: ["#########", "#S.....F#", "#########"],
@@ -378,8 +378,8 @@ export const levels: ReadonlyArray<Level> = [
   {
     id: "g5-guards",
     tier: "challenge",
-    title: "Варта біля комори",
-    task: ["Біля комори вештаються гобліни. Прожени всіх.", "Питай «попереду ворог?»: якщо так — бий, а ні — іди далі."],
+    title: "Варта біля дровітні",
+    task: ["Біля дровітні вештаються гобліни. Прожени всіх.", "Питай «попереду ворог?»: якщо так — бий, а ні — іди далі."],
     map: ["##########", "#S.......#", "##########"],
     blocks: ["move", "attack", "repeat", "repeatUntil", "if", "ifElse", "enemyAhead", "wallAhead"],
     goals: [{ type: "enemies" }],
@@ -440,6 +440,38 @@ export const levels: ReadonlyArray<Level> = [
     scene: { theme: "summer" }
   },
   {
+    id: "f-stairs",
+    tier: "intro",
+    title: "Сходинки до пасіки",
+    task: [
+      "Дідусь кличе на пасіку, а вона на пагорбі: стежка йде п'ятьма однаковими сходинками.",
+      "Одна сходинка — це чотири команди. Склади їх один раз у свій блок «сходинка», а потім просто клич його."
+    ],
+    map: ["########", "######F#", "#####..#", "####..##", "###..###", "##..####", "#S.#####", "########"],
+    blocks: ["move", "turnLeft", "turnRight", "procedure"],
+    procedure: "сходинка",
+    goals: [{ type: "finish" }],
+    stars: { three: 10, two: 14 },
+    hint: "Під «визначити сходинка»: крок, ліворуч, крок, праворуч. А головна програма — п'ять блоків «сходинка».",
+    scene: { theme: "summer", npcs: [{ who: "grandpa", x: 7, y: 2 }] }
+  },
+  {
+    id: "f-apples",
+    tier: "practice",
+    title: "Яблука під яблунями",
+    task: [
+      "Під яблунями біля стежки впали яблука, і бабуся просить їх принести.",
+      "Сходити по яблуко й повернутися на стежку — сім команд. Склади їх у блок «по яблуко» і клич щоразу, як дійдеш до яблуні."
+    ],
+    map: ["############", "##c##c###c##", "#S........F#", "############"],
+    blocks: ["move", "turnLeft", "turnRight", "collect", "procedure"],
+    procedure: "по яблуко",
+    goals: [{ type: "crystals" }, { type: "finish" }],
+    stars: { three: 20, two: 26 },
+    hint: "Під «визначити по яблуко»: ліворуч, крок, взяти, праворуч, праворуч, крок, ліворуч. Головна програма: крок, по яблуко, три кроки, по яблуко, чотири кроки, по яблуко, крок.",
+    scene: { theme: "summer", item: "apple", finish: "grandma" }
+  },
+  {
     id: "c-stones",
     tier: "practice",
     title: "Завали на стежці",
@@ -456,11 +488,27 @@ export const levels: ReadonlyArray<Level> = [
     scene: { theme: "summer" }
   },
   {
+    id: "f-bushes",
+    tier: "practice",
+    title: "Кущі на стежці",
+    task: [
+      "Після грози на стежці до криниці виросли кущі, і стоять вони де заманеться.",
+      "Склади блок «обійти», а головна програма нехай сама вирішує: якщо попереду кущ — обійти, інакше крок."
+    ],
+    map: ["################", "##......#.....##", "#S.#..#...#.#.F#", "################"],
+    blocks: ["move", "turnLeft", "turnRight", "repeatUntil", "ifElse", "wallAhead", "atFinish", "procedure"],
+    procedure: "обійти",
+    goals: [{ type: "finish" }],
+    stars: { three: 15, two: 19 },
+    hint: "Повторюй, доки не дійдеш до мети: якщо попереду стіна, то «обійти», інакше крок. Блок «обійти» — той самий, що на завалах.",
+    scene: { theme: "summer", finish: "well" }
+  },
+  {
     id: "c-rocks",
     tier: "challenge",
-    title: "Гірська стежка",
+    title: "Яблука за завалами",
     task: [
-      "Остання прогулянка літа: між завалами все більше кроків, а за кожним завалом лежить кристал.",
+      "Остання прогулянка літа: між завалами все більше кроків, а за кожним завалом лежить яблуко.",
       "Поєднай лічильник і свій блок «обійти», щоб програма вийшла короткою."
     ],
     map: ["###############", "##...#...##...#", "#S.#c..#c...#c#", "###############"],
@@ -469,6 +517,6 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }],
     stars: { three: 17, two: 20 },
     hint: "Три рази: повтори (лічильник) кроків, обійти, взяти, зміни лічильник на 1. А на початку задай лічильник 1.",
-    scene: { theme: "summer" }
+    scene: { theme: "summer", item: "apple" }
   }
 ]

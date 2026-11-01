@@ -1,4 +1,4 @@
-import type { BlockName } from "./level.ts"
+import type { BlockName, ItemKind } from "./level.ts"
 
 /** ID of the VM extension with the hero blocks. Opcodes in a program read `hero_move`. */
 export const HERO_EXTENSION_ID = "hero"
@@ -19,6 +19,26 @@ export const HERO_BLOCKS: ReadonlyArray<{ readonly name: HeroBlock; readonly tex
   { name: "enemyAhead", text: "попереду ворог?", boolean: true },
   { name: "trapAhead", text: "попереду пастка?", boolean: true }
 ]
+
+/**
+ * What «взяти» says on a level: the hero lights a campfire and catches a fish, not «takes» them. Only the words on
+ * the block change; the opcode and the rule stay the same.
+ */
+const COLLECT_TEXT: Readonly<Record<ItemKind, string>> = {
+  crystal: "взяти",
+  wood: "взяти",
+  apple: "взяти",
+  key: "взяти",
+  fish: "зловити",
+  campfire: "розпалити"
+}
+
+/** The words of the «взяти» block on a level with these items. */
+export const collectText = (scene: { readonly item?: ItemKind } | undefined): string => COLLECT_TEXT[scene?.item ?? "crystal"]
+
+/** The words of a hero block on a level: «взяти» follows the level's items. */
+export const heroBlockText = (name: HeroBlock, scene?: { readonly item?: ItemKind }): string =>
+  name === "collect" ? collectText(scene) : (HERO_BLOCKS.find((b) => b.name === name)?.text ?? name)
 
 const HERO_NAMES: ReadonlySet<string> = new Set(HERO_BLOCKS.map((b) => b.name))
 
