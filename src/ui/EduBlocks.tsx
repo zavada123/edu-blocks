@@ -1,14 +1,16 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import ScratchBlocks, { type WorkspaceSvg } from "scratch-blocks/dist/vertical.js"
 import type VirtualMachine from "scratch-vm"
 import { serializeBlocks } from "scratch-vm/src/serialization/sb3.js"
 import { HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID, heroBlockText, procedureName } from "../core/blocks.ts"
 import { buildProgram } from "../core/build.ts"
-import { type Level, type Scene, startWorld } from "../core/level.ts"
+import { combineFields } from "../core/fields.ts"
+import type { Level, Scene } from "../core/level.ts"
 import { adviseRun } from "../core/advice.ts"
-import { judgeProgram } from "../core/judge.ts"
+import { judgeFields } from "../core/judge.ts"
 import type { FailReason, Program, RunResult } from "../core/program.ts"
 import { createVm, projectFor, settle, withVmLock } from "../core/run.ts"
+import { useFields } from "./fields.ts"
 import { useFullScreen } from "./fullscreen.ts"
 import { loadZoom, saveZoom } from "./prefs.ts"
 import { type GameNavigation, GameScreen } from "./GameScreen.tsx"
@@ -142,7 +144,8 @@ export const EduBlocks = ({
   progress,
   onSkinChange
 }: EduBlocksProps) => {
-  const start = useMemo(() => startWorld(level), [level])
+  // The field on the screen and the runs of the last check on each field.
+  const { fields, index: fieldIndex, setIndex: setFieldIndex, runs, setRuns, field, start } = useFields(level)
   const [result, setResult] = useState<RunResult | null>(null)
   // What to do when the playback first reaches the end of the run: the verdict and the report.
   const onEndRef = useRef<(() => void) | null>(null)
@@ -237,7 +240,7 @@ export const EduBlocks = ({
       workspaceRef.current = null
       ws.dispose()
     }
-  }, [level, start, media, large])
+  }, [level, media, large])
 
   const { seek, restart } = player
   const reset = useCallback(() => {
@@ -245,8 +248,9 @@ export const EduBlocks = ({
     seek(0)
     setGlow(null)
     setResult(null)
+    setRuns(null)
     setPhase({ kind: "edit" })
-  }, [seek, setGlow])
+  }, [seek, setGlow, setRuns])
 
   // The block of the action on the field lights up, also when the student steps or drags the timeline.
   const frameIndex = result === null ? -1 : frameIndexAt(result.frames, player.time)
@@ -260,12 +264,15 @@ export const EduBlocks = ({
     reset()
     setPhase({ kind: "running" })
     const prog = heroProgram(vm)
-    const result = judgeProgram(level, prog)
+    // The program runs on every field; the screen plays the first field it failed on, or the first field.
+    const fieldRuns = judgeFields(level, prog)
+    const result = combineFields(fieldRuns)
+    const shown = result.field ?? 0
     const firstTry = failedRef.current === 0
     if (!result.passed) failedRef.current += 1
     const { runXp, reward } = rewardOf(level, result, firstTry, xp)
     const finish = () => {
-      setPhase({ kind: "done", result, reward, advice: adviseRun(level, prog, result) })
+      setPhase({ kind: "done", result, reward, advice: adviseRun(fields[shown] ?? level, prog, result) })
       setVerdictOpen(true)
       onComplete?.({
         levelId: level.id,
@@ -279,9 +286,25 @@ export const EduBlocks = ({
       })
     }
     onEndRef.current = finish
+    setRuns(fieldRuns)
+    setFieldIndex(shown)
     setResult(result)
     restart(result.frames.length)
-  }, [level, onComplete, reset, restart, xp])
+  }, [level, fields, onComplete, reset, restart, setFieldIndex, setRuns, xp])
+
+  // A field tab: before a run it shows the field, after a run it plays the run on that field.
+  const pickField = useCallback(
+    (i: number) => {
+      setFieldIndex(i)
+      const run = runs?.[i]
+      if (run === undefined) return
+      onEndRef.current = null
+      setVerdictOpen(false)
+      setResult(run)
+      restart(run.frames.length)
+    },
+    [restart, runs, setFieldIndex]
+  )
 
   const running = phase.kind === "running"
   const navigation = { onMap, progress, onSkinChange }
@@ -290,7 +313,7 @@ export const EduBlocks = ({
     <GameScreen
       rootRef={rootRef}
       className={["eb-root", large ? "eb-large" : "", full ? "eb-full" : ""].filter(Boolean).join(" ")}
-      level={level}
+      level={field}
       start={start}
       result={result}
       player={player}
@@ -301,6 +324,11 @@ export const EduBlocks = ({
       xpTotal={xpTotal}
       navigation={navigation}
       editorTitle="Блоки героя"
+      fields={
+        fields.length > 1
+          ? { count: fields.length, index: fieldIndex, passed: runs?.map((r) => r.passed) ?? null, disabled: running, onPick: pickField }
+          : null
+      }
       onRun={run}
       onReset={reset}
       onFull={toggleFull}

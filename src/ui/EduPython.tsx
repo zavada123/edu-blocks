@@ -1,11 +1,12 @@
 import { useCallback, useMemo, useRef, useState } from "react"
 import { COUNTER_NAME, procedureName } from "../core/blocks.ts"
+import { combineFields } from "../core/fields.ts"
 import type { BlockName, Level } from "../core/level.ts"
-import { startWorld } from "../core/level.ts"
 import type { FailReason, RunResult } from "../core/program.ts"
 import { HERO_NAME, type PythonMethod, pythonMethodsOf } from "../core/python/api.ts"
-import { judgePython } from "../core/python/judge.ts"
+import { judgePythonFields } from "../core/python/judge.ts"
 import { CodeEditor, type CodeEditorApi } from "./code/CodeEditor.tsx"
+import { useFields } from "./fields.ts"
 import { useFullScreen } from "./fullscreen.ts"
 import { type GameNavigation, GameScreen } from "./GameScreen.tsx"
 import { frameIndexAt } from "./stage/playback.ts"
@@ -79,7 +80,7 @@ type Phase =
   | { readonly kind: "done"; readonly result: RunResult; readonly reward: Reward }
 
 export const EduPython = ({ level, skin = "ninja", large = false, source, speed = 400, xp, onComplete, onSourceChange, onMap, onNext, progress, onSkinChange }: EduPythonProps) => {
-  const start = useMemo(() => startWorld(level), [level])
+  const { fields, index: fieldIndex, setIndex: setFieldIndex, runs, setRuns, field, start } = useFields(level)
   const methods = useMemo(() => pythonMethodsOf(level.blocks), [level])
   const snippets = useMemo(() => snippetsOf(level, methods), [level, methods])
   const [result, setResult] = useState<RunResult | null>(null)
@@ -97,8 +98,9 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
     onEndRef.current = null
     seek(0)
     setResult(null)
+    setRuns(null)
     setPhase({ kind: "edit" })
-  }, [seek])
+  }, [seek, setRuns])
 
   const run = useCallback(() => {
     const editor = editorRef.current
@@ -106,7 +108,9 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
     reset()
     setPhase({ kind: "running" })
     const code = editor.read()
-    const result = judgePython(level, code)
+    // The code runs on every field; the screen plays the first field it failed on, or the first field.
+    const fieldRuns = judgePythonFields(level, code)
+    const result = combineFields(fieldRuns)
     const firstTry = failedRef.current === 0
     if (!result.passed) failedRef.current += 1
     const { runXp, reward } = rewardOf(level, result, firstTry, xp)
@@ -115,9 +119,25 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
       setVerdictOpen(true)
       onComplete?.({ levelId: level.id, passed: result.passed, stars: result.stars, size: result.blocks, reason: result.reason, source: code, firstTry, xp: runXp })
     }
+    setRuns(fieldRuns)
+    setFieldIndex(result.field ?? 0)
     setResult(result)
     restart(result.frames.length)
-  }, [level, onComplete, reset, restart, xp])
+  }, [level, onComplete, reset, restart, setFieldIndex, setRuns, xp])
+
+  // A field tab: before a run it shows the field, after a run it plays the run on that field.
+  const pickField = useCallback(
+    (i: number) => {
+      setFieldIndex(i)
+      const run = runs?.[i]
+      if (run === undefined) return
+      onEndRef.current = null
+      setVerdictOpen(false)
+      setResult(run)
+      restart(run.frames.length)
+    },
+    [restart, runs, setFieldIndex]
+  )
 
   // The line the hero acts on lights up while the run plays; a mistake's line once the run reaches it.
   const atEnd = result !== null && player.time >= result.frames.length
@@ -136,7 +156,7 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
     <GameScreen
       rootRef={rootRef}
       className={["eb-root", "eb-python", large ? "eb-large" : "", full ? "eb-full" : ""].filter(Boolean).join(" ")}
-      level={level}
+      level={field}
       start={start}
       result={result}
       player={player}
@@ -147,6 +167,11 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
       xpTotal={xpTotal}
       navigation={navigation}
       editorTitle="Код героя"
+      fields={
+        fields.length > 1
+          ? { count: fields.length, index: fieldIndex, passed: runs?.map((r) => r.passed) ?? null, disabled: phase.kind === "running", onPick: pickField }
+          : null
+      }
       onRun={run}
       onReset={reset}
       onFull={toggleFull}

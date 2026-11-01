@@ -10,6 +10,7 @@ import {
   VARIABLE_PRIMITIVE
 } from "./blocks.ts"
 import { actionOfOpcode, heroAct, heroSense, newSession, sensorOfOpcode } from "./hero.ts"
+import { combineFields, levelFields } from "./fields.ts"
 import type { Level } from "./level.ts"
 import {
   checkProgram,
@@ -97,7 +98,11 @@ const toNumber = (value: unknown): number => {
   return Number.isNaN(n) ? 0 : n
 }
 
-export const judgeProgram = (level: Level, program: Program): RunResult => {
+/**
+ * Runs a program on one field: the map of `level` only, without its other `fields`. The rules of the game live
+ * here; `judgeProgram` runs it on every field of a level.
+ */
+export const judgeField = (level: Level, program: Program): RunResult => {
   const session = newSession(level)
   const checked = checkProgram(level, program)
   if ("error" in checked) return resultOf(level, { ...session, reason: "badProgram" }, 0, { detail: checked.error })
@@ -300,3 +305,10 @@ export const judgeProgram = (level: Level, program: Program): RunResult => {
   }
   return resultOf(level, session, checked.blocks)
 }
+
+/** Runs a program on every field of the level (`levelFields`): one result for each field, in order. */
+export const judgeFields = (level: Level, program: Program): ReadonlyArray<RunResult> =>
+  levelFields(level).map((field) => judgeField(field, program))
+
+/** Grades a program: it passes only when it passes every field of the level (see `combineFields`). */
+export const judgeProgram = (level: Level, program: Program): RunResult => combineFields(judgeFields(level, program))

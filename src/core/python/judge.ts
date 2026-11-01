@@ -1,5 +1,6 @@
 import { COUNTER_NAME } from "../blocks.ts"
 import { heroAct, heroSense, newSession } from "../hero.ts"
+import { combineFields, levelFields } from "../fields.ts"
 import type { Level } from "../level.ts"
 import { resultOf, type RunResult } from "../program.ts"
 import type { Body } from "./ast.ts"
@@ -17,7 +18,8 @@ import { str } from "./values.ts"
 /** Lines of `print` kept for the student. */
 export const MAX_OUTPUT_LINES = 200
 
-export const judgePython = (level: Level, source: string): RunResult => {
+/** Runs a Python program on one field: the map of `level` only, without its other `fields`. */
+export const judgePythonField = (level: Level, source: string): RunResult => {
   const session = newSession(level)
   let program: Body
   try {
@@ -55,3 +57,10 @@ export const judgePython = (level: Level, source: string): RunResult => {
   }
   return resultOf(level, session, size, printed())
 }
+
+/** Runs a Python program on every field of the level: one result for each field, in order. */
+export const judgePythonFields = (level: Level, source: string): ReadonlyArray<RunResult> =>
+  levelFields(level).map((field) => judgePythonField(field, source))
+
+/** Grades a Python program: it passes only when it passes every field of the level (see `combineFields`). */
+export const judgePython = (level: Level, source: string): RunResult => combineFields(judgePythonFields(level, source))

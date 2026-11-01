@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest"
 import { levels } from "../levels/index.ts"
 import { solutionProgram } from "../levels/solutions.ts"
 import { buildProgram, type Question, type Step } from "./build.ts"
-import { judgeProgram } from "./judge.ts"
+import { judgeField, judgeProgram } from "./judge.ts"
 import type { BlockName, Level } from "./level.ts"
 import type { Program, RunResult } from "./program.ts"
 import { createVm, projectFor, runProgram, settle, withVmLock } from "./run.ts"
@@ -92,7 +92,7 @@ describe("judgeProgram", () => {
       const lvl: Level = { ...base, blocks: ALL_BLOCKS }
       for (let i = 0; i < 30; i++) {
         const program = buildProgram(randomProgram(next))
-        expect(summary(judgeProgram(lvl, program)), JSON.stringify(program)).toEqual(summary(await runProgram(lvl, program)))
+        expect(summary(judgeField(lvl, program)), JSON.stringify(program)).toEqual(summary(await runProgram(lvl, program)))
       }
     }
   }, 120_000)
@@ -103,7 +103,7 @@ describe("judgeProgram", () => {
       const lvl: Level = { ...base, blocks: ALL_BLOCKS }
       for (let i = 0; i < 30; i++) {
         const program = richProgram(next)
-        expect(summary(judgeProgram(lvl, program)), JSON.stringify(program)).toEqual(summary(await runProgram(lvl, program)))
+        expect(summary(judgeField(lvl, program)), JSON.stringify(program)).toEqual(summary(await runProgram(lvl, program)))
       }
     }
   }, 120_000)
@@ -149,7 +149,7 @@ describe("judgeProgram", () => {
       const lvl: Level = { ...base, blocks: ALL_BLOCKS }
       for (let i = 0; i < 10; i++) {
         const program = twoScripts(buildProgram(randomProgram(next)), buildProgram(randomProgram(next)))
-        expect(summary(judgeProgram(lvl, program)), JSON.stringify(program)).toEqual(summary(await runProgram(lvl, program)))
+        expect(summary(judgeField(lvl, program)), JSON.stringify(program)).toEqual(summary(await runProgram(lvl, program)))
       }
     }
   }, 120_000)

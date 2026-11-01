@@ -1,4 +1,4 @@
-import { type Level } from "../core/level.ts";
+import type { Level } from "../core/level.ts";
 import type { FailReason, Program } from "../core/program.ts";
 import { type GameNavigation } from "./GameScreen.tsx";
 import type { Skin } from "./stage/Stage.tsx";

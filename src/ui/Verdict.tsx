@@ -100,6 +100,13 @@ const Advice = ({ tips }: { readonly tips: ReadonlyArray<string> }) =>
     </ul>
   )
 
+/** On a level with several fields: which field the run failed on, before the reason. */
+const fieldOf = (result: RunResult): string =>
+  result.fields === undefined || result.field === undefined ? "" : `Поле ${result.field + 1} з ${result.fields.length}. `
+
+/** On a level with several fields: the program passed them all. */
+const allFields = (result: RunResult): string => (result.fields === undefined ? "" : `Програма пройшла всі ${result.fields.length} поля. `)
+
 const HINTED: ReadonlySet<FailReason> = new Set(["crashed", "trapped", "tired", "defeated", "goalsNotMet"])
 
 /** The result over the field: stars and XP for a pass, what went wrong and a hint for a fail. */
@@ -128,7 +135,14 @@ export const Verdict = ({
         <div className="eb-verdict eb-verdict-ok eb-frame eb-parchment" role="dialog" aria-modal="false" aria-labelledby="eb-verdict-title">
           <Stars count={result.stars} />
           <h3 id="eb-verdict-title">Рівень пройдено!</h3>
-          {advice.length === 0 ? <p>{size}</p> : <Advice tips={advice} />}
+          {advice.length === 0 ? (
+            <p>
+              {allFields(result)}
+              {size}
+            </p>
+          ) : (
+            <Advice tips={advice} />
+          )}
           <XpLine reward={reward} />
           <div className="eb-verdict-actions">
             <button type="button" className="eb-btn" onClick={onClose} autoFocus={onNext === undefined}>
@@ -149,7 +163,10 @@ export const Verdict = ({
     <div className="eb-verdict-layer">
       <div className="eb-verdict eb-verdict-fail eb-frame eb-parchment" role="dialog" aria-modal="false" aria-labelledby="eb-verdict-title">
         <h3 id="eb-verdict-title">Ще не вийшло</h3>
-        <p>{failText(result, language)}</p>
+        <p>
+          {fieldOf(result)}
+          {failText(result, language)}
+        </p>
         <Advice tips={advice} />
         {level.hint !== undefined && HINTED.has(reason) && <p className="eb-hint">Підказка: {level.hint}</p>}
         <div className="eb-verdict-actions">

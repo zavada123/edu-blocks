@@ -167,7 +167,8 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }],
     stars: { three: 5, two: 9 },
     hint: "У «повторити» зроби крок, а потім перевір: «якщо тут щось є? то зловити».",
-    scene: { theme: "winter", ground: "ice", item: "fish" }
+    scene: { theme: "winter", ground: "ice", item: "fish" },
+    fields: [{ map: ["###########", "#Sc...c.c.#", "###########"] }, { map: ["###########", "#S..cc.cc.#", "###########"] }]
   },
   {
     id: "g4-fence",
@@ -179,7 +180,11 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }],
     stars: { three: 11, two: 15 },
     hint: "У кожному «повторити»: крок, а потім «якщо тут щось є? то взяти».",
-    scene: { theme: "winter", item: "wood", props: [{ kind: "woodshed", x: 3, y: -1 }] }
+    scene: { theme: "winter", item: "wood", props: [{ kind: "woodshed", x: 3, y: -1 }] },
+    fields: [
+      { map: ["#########", "#S.c.c...#", "#######c#", "#######.#", "#######c#", "#######.#", "#########"] },
+      { map: ["#########", "#Sc....c#", "#######.#", "#######c#", "#######c#", "#######c#", "#########"] }
+    ]
   },
   {
     id: "g5-snake",
@@ -192,7 +197,11 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "finish" }],
     stars: { three: 5, two: 8 },
     hint: "Блок «якщо… то… інакше» сам вирішує, що робити: повернути чи йти. Залишилось порахувати, скільки разів повторити.",
-    scene: { theme: "winter", finish: "home", props: [{ kind: "house", x: 4.5, y: -2 }] }
+    scene: { theme: "winter", finish: "home", props: [{ kind: "house", x: 4.5, y: -2 }] },
+    fields: [
+      { map: ["#######", "#....F#", "#.#####", "#.#####", "#.#####", "#....S#", "#######"], scene: { theme: "winter", finish: "home", props: [{ kind: "house", x: 3.5, y: -2 }] } },
+      { map: ["#########", "#....F###", "#.#######", "#......S#", "#########"], scene: { theme: "winter", finish: "home", props: [{ kind: "house", x: 3.5, y: -2 }] } }
+    ]
   },
   {
     id: "g4-until",
@@ -204,7 +213,8 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }],
     stars: { three: 4, two: 6 },
     hint: "Блок «повторити до попереду стіна?» сам зупиниться в кінці мосту.",
-    scene: { theme: "winter", ground: "bridge", item: "key" }
+    scene: { theme: "winter", ground: "bridge", item: "key" },
+    fields: [{ map: ["########", "#S....c#", "########"] }, { map: ["##############", "#S..........c#", "##############"] }]
   },
   {
     id: "g5-bridge",
@@ -216,7 +226,11 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }],
     stars: { three: 8, two: 11 },
     hint: "Два блоки «повторити до попереду стіна?», а між ними поворот праворуч.",
-    scene: { theme: "winter", ground: "bridge", item: "key" }
+    scene: { theme: "winter", ground: "bridge", item: "key" },
+    fields: [
+      { map: ["########", "#S.....#", "######.#", "######c#", "########"] },
+      { map: ["#######", "#S...##", "####.##", "####.##", "####.##", "####c##", "#######"] }
+    ]
   },
   {
     id: "g5-way-home",
@@ -228,7 +242,11 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }, { type: "finish" }],
     stars: { three: 6, two: 9 },
     hint: "«Повторити до на меті?», а всередині: крок і «якщо тут щось є? то взяти».",
-    scene: { theme: "winter", item: "wood", finish: "home", props: [{ kind: "house", x: 9.5, y: -2 }] }
+    scene: { theme: "winter", item: "wood", finish: "home", props: [{ kind: "house", x: 9.5, y: -2 }] },
+    fields: [
+      { map: ["##########", "#Sc..c..F#", "##########"], scene: { theme: "winter", item: "wood", finish: "home", props: [{ kind: "house", x: 6.5, y: -2 }] } },
+      { map: ["###############", "#S.cc...c.c.cF#", "###############"], scene: { theme: "winter", item: "wood", finish: "home", props: [{ kind: "house", x: 11.5, y: -2 }] } }
+    ]
   },
   {
     id: "g6-spiral",
@@ -240,7 +258,11 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "finish" }],
     stars: { three: 6, two: 9 },
     hint: "Повторюй, доки не на меті: якщо попереду стіна — праворуч, інакше крок.",
-    scene: { theme: "winter" }
+    scene: { theme: "winter" },
+    fields: [
+      { map: ["#######", "#S....#", "#####.#", "#F..#.#", "#.###.#", "#.....#", "#######"] },
+      { map: ["##########", "#S.......#", "########.#", "#....F#..#", "#.######.#", "#........#", "##########"] }
+    ]
   },
   {
     id: "g6-maze",
@@ -252,7 +274,11 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "finish" }],
     stars: { three: 6, two: 9 },
     hint: "Повторюй, доки не дійдеш до мети: якщо попереду стіна, то поверни, інакше зроби крок.",
-    scene: { theme: "winter", finish: "home", props: [HOME] }
+    scene: { theme: "winter", finish: "home", props: [HOME] },
+    fields: [
+      { map: ["#########", "#F.....##", "######.##", "######.##", "#S.....##", "#########"] },
+      { map: ["########", "#F.....#", "######.#", "##.S##.#", "##.###.#", "##.....#", "########"], dir: "left" }
+    ]
   },
   {
     id: "p-thin-ice",
@@ -316,7 +342,11 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "finish" }],
     stars: { three: 8, two: 11 },
     hint: "Повторюй, доки не дійдеш до мети: якщо попереду пастка, то поверни ліворуч, крок і праворуч, інакше крок.",
-    scene: { theme: "winter", ground: "ice", finish: "grandma" }
+    scene: { theme: "winter", ground: "ice", finish: "grandma" },
+    fields: [
+      { map: ["###########", "#####....F#", "##....x####", "#S.x#######", "###########"] },
+      { map: ["###########", "######...F#", "####...x###", "##...x#####", "#S.x#######", "###########"] }
+    ]
   },
   {
     id: "p-river",
@@ -328,7 +358,11 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "finish" }],
     stars: { three: 13, two: 17 },
     hint: "Якщо попереду пастка: ліворуч, крок, праворуч, два кроки, праворуч, крок, ліворуч. Інакше просто крок.",
-    scene: { theme: "winter", ground: "ice", finish: "home", props: [{ kind: "house", x: 11.5, y: -1 }] }
+    scene: { theme: "winter", ground: "ice", finish: "home", props: [{ kind: "house", x: 11.5, y: -1 }] },
+    fields: [
+      { map: ["###############", "##...###...####", "#S.x.....x...F#", "###############"] },
+      { map: ["################", "#...#...#...####", "#Sx...x...x...F#", "################"], scene: { theme: "winter", ground: "ice", finish: "home", props: [{ kind: "house", x: 12.5, y: -1 }] } }
+    ]
   },
   {
     id: "p-fork",
@@ -501,7 +535,11 @@ export const levels: ReadonlyArray<Level> = [
     goals: [{ type: "finish" }],
     stars: { three: 15, two: 19 },
     hint: "Повторюй, доки не дійдеш до мети: якщо попереду стіна, то «обійти», інакше крок. Блок «обійти» — той самий, що на завалах.",
-    scene: { theme: "summer", finish: "well" }
+    scene: { theme: "summer", finish: "well" },
+    fields: [
+      { map: ["################", "#...######...###", "#S#...........F#", "################"] },
+      { map: ["################", "##...#...#...###", "#S.#...#...#..F#", "################"] }
+    ]
   },
   {
     id: "c-rocks",

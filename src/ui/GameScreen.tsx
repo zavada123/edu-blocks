@@ -3,6 +3,7 @@ import type { Level } from "../core/level.ts"
 import type { RunResult } from "../core/program.ts"
 import type { World } from "../core/world.ts"
 import { heroLevelOf } from "../core/xp.ts"
+import { type FieldChoice, FieldTabs } from "./FieldTabs.tsx"
 import { HeroPicker } from "./HeroPicker.tsx"
 import { Hud, type Progress } from "./Hud.tsx"
 import { Quest } from "./Quest.tsx"
@@ -44,6 +45,7 @@ export const GameScreen = ({
   xpTotal,
   navigation,
   editorTitle,
+  fields,
   onRun,
   onReset,
   onFull,
@@ -68,6 +70,8 @@ export const GameScreen = ({
     readonly onSkinChange: ((skin: Skin) => void) | undefined
   }
   readonly editorTitle: string
+  /** The tabs of a level with several fields; null for one field. */
+  readonly fields: FieldChoice | null
   readonly onRun: () => void
   readonly onReset: () => void
   readonly onFull: () => void
@@ -98,11 +102,12 @@ export const GameScreen = ({
         onMap={toMap}
         onPickHero={onSkinChange === undefined ? undefined : () => setPicking(true)}
       />
-      <div className="eb-stage" role="group" aria-label="Поле">
+      <div className={fields === null ? "eb-stage" : "eb-stage eb-stage-fields"} role="group" aria-label="Поле">
         <div className="eb-field-frame eb-frame eb-wood">
           <Stage start={start} frames={result?.frames} time={player.time} skin={skin} scene={level.scene} />
         </div>
         <div className="eb-stage-bottom">
+          {fields !== null && <FieldTabs {...fields} />}
           {result !== null && <Timeline player={player} length={result.frames.length} />}
           <div className="eb-controls">
             <button type="button" className="eb-btn eb-btn-go eb-run" onClick={onRun} disabled={running && player.playing}>

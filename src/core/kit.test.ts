@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest"
 import { levels } from "../levels/index.ts"
 import { buildProgram } from "./build.ts"
+import { levelFields } from "./fields.ts"
 import { judgeProgram } from "./judge.ts"
 import { checkLevel, emptyMap, levelSource, plainRoute, resizeMap, setTile, tileAt } from "./kit.ts"
 import type { Level } from "./level.ts"
@@ -60,12 +61,12 @@ describe("level kit", () => {
     expect(checkLevel({ ...base, scene: { npcs: [{ who: "boy", x: 2, y: 2 }] } })).toEqual([])
   })
 
-  test("every library level passes the check", () => {
-    for (const level of levels) expect(checkLevel(level).filter((i) => i.level === "error")).toEqual([])
+  test("every field of every library level passes the check", () => {
+    for (const level of levels.flatMap(levelFields)) expect(checkLevel(level).filter((i) => i.level === "error")).toEqual([])
   })
 
-  test("the plain route of every library level passes it", () => {
-    for (const level of levels) {
+  test("the plain route of every field of every library level passes it", () => {
+    for (const level of levels.flatMap(levelFields)) {
       const route = plainRoute(level)
       expect(route).not.toBeNull()
       expect(judgeProgram(level, buildProgram(route ?? [])).passed).toBe(true)
