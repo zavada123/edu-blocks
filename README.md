@@ -292,7 +292,7 @@ enemies: [{ kind: "slime", x: 4, y: 1, look: "ninja-adventure:enemy/beast" }]
 
 A sprite has optional `clip`, `dir`, `layer` (`ground` lies under everything, `object` stands and hides what is behind it; tiles and animated terrain are ground by default) and `flip`. The field loads a pack when a level needs it, from `./packs/<pack>/manifest.json`; a site that keeps the packs elsewhere calls `setAssetBase(url)` from `edu-blocks/react` or `edu-blocks/python` once. `checkLevel` and the server check ignore pictures, so grading never depends on them.
 
-The demo build copies `assets/<pack>/` to `dist/packs/` with a `packs/index.json` list for the editor (sounds are left out). Packs that may not be published (see `assets/README.md`) are added only at build time: set `EDU_BLOCKS_PRIVATE_ASSETS` to a folder of pack folders, and `npm run dev` or `npm run build` serves them too. The public GitHub Pages build never sets it.
+The package ships the public packs in `edu-blocks/assets/<pack>/` (without sounds), so a site can serve them as its own `packs/` folder. The demo build copies `assets/<pack>/` to `dist/packs/` with a `packs/index.json` list for the editor (sounds are left out). Packs that may not be published (see `assets/README.md`) are added only at build time: set `EDU_BLOCKS_PRIVATE_ASSETS` to a folder of pack folders, and `npm run dev` or `npm run build` serves them too. The public GitHub Pages build never sets it.
 
 The same tools are in `edu-blocks/core` for scripts and servers:
 
