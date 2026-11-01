@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
+import { loadRate, saveRate } from "./prefs.ts"
 
 /** Speeds of the playback, as a share of the normal pace. */
 export const RATES: ReadonlyArray<number> = [0.5, 1, 2, 4]
@@ -26,7 +27,8 @@ export interface Player {
 export const usePlayer = (msPerAction: number, onEnd: () => void): Player => {
   const [time, setTime] = useState(0)
   const [playing, setPlaying] = useState(false)
-  const [rate, setRate] = useState(1)
+  // The speed the student chose last time, also on another level or after a reload.
+  const [rate, setRateState] = useState(() => loadRate(RATES, 1))
   const length = useRef(0)
   const ended = useRef(true)
   const timeRef = useRef(0)
@@ -89,6 +91,10 @@ export const usePlayer = (msPerAction: number, onEnd: () => void): Player => {
     },
     [moveTo]
   )
+  const setRate = useCallback((r: number) => {
+    setRateState(r)
+    saveRate(r)
+  }, [])
   return { time, playing, rate, play, pause, seek, step, setRate, restart }
 }
 
