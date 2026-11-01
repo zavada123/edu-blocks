@@ -616,6 +616,15 @@ html.eb-page-full {
     padding: 6px;
   }
 
+  /* The Python view takes its own room below the blocks, so the blocks keep theirs. */
+  .eb-editor-pane:has(.eb-peek-code) {
+    min-height: 500px;
+  }
+
+  .eb-peek-code {
+    max-height: 200px;
+  }
+
   .eb-quest {
     padding: 10px 12px 8px;
   }
@@ -835,4 +844,39 @@ html.eb-page-full {
   .eb-hero-about {
     font-size: 12px;
   }
+}
+
+/* ---- «Як це в Python» under the blocks ---- */
+
+.eb-peek {
+  flex: 0 0 auto;
+  border-top: var(--eb-px) solid var(--eb-edge);
+  background: var(--eb-code-head);
+}
+
+.eb-peek-toggle {
+  display: block;
+  width: 100%;
+  padding: 7px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--eb-fg);
+  font: 400 16px/1.2 var(--eb-font-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.eb-peek-toggle:focus-visible {
+  outline: 2px solid var(--eb-gold);
+  outline-offset: -2px;
+}
+
+.eb-peek-code {
+  max-height: 30vh;
+  margin: 0;
+  padding: 8px 12px 10px;
+  overflow: auto;
+  color: var(--eb-fg);
+  font: 400 14px/1.45 ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+  white-space: pre;
 }

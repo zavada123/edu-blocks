@@ -64,3 +64,10 @@ export const saveZoom = (zoom: number, store: PrefsStore | null = browserStore()
   if (!Number.isFinite(zoom)) return
   writeNumber(store, ZOOM_KEY, Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.round(zoom * 1000) / 1000)))
 }
+
+export const PEEK_KEY = "edu-blocks:python-peek"
+
+/** Is the «Як це в Python» view under the blocks open? Closed when nothing is saved. */
+export const loadPeek = (store: PrefsStore | null = browserStore()): boolean => readNumber(store, PEEK_KEY) === 1
+
+export const savePeek = (open: boolean, store: PrefsStore | null = browserStore()) => writeNumber(store, PEEK_KEY, open ? 1 : 0)

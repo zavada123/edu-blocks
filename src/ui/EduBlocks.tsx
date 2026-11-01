@@ -3,17 +3,20 @@ import ScratchBlocks, { type WorkspaceSvg } from "scratch-blocks/dist/vertical.j
 import type VirtualMachine from "scratch-vm"
 import { serializeBlocks } from "scratch-vm/src/serialization/sb3.js"
 import { HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID, heroBlockText, procedureName } from "../core/blocks.ts"
+import { brokenProgram } from "../core/broken.ts"
 import { buildProgram } from "../core/build.ts"
 import { combineFields } from "../core/fields.ts"
 import type { Level, Scene } from "../core/level.ts"
 import { adviseRun } from "../core/advice.ts"
 import { judgeFields } from "../core/judge.ts"
 import type { FailReason, Program, RunResult } from "../core/program.ts"
+import { programSource } from "../core/python/convert.ts"
 import { createVm, projectFor, settle, withVmLock } from "../core/run.ts"
 import { useFields } from "./fields.ts"
 import { useFullScreen } from "./fullscreen.ts"
-import { loadZoom, saveZoom } from "./prefs.ts"
+import { loadPeek, loadZoom, savePeek, saveZoom } from "./prefs.ts"
 import { type GameNavigation, GameScreen } from "./GameScreen.tsx"
+import { PythonPeek } from "./PythonPeek.tsx"
 import { frameIndexAt } from "./stage/playback.ts"
 import type { Skin } from "./stage/Stage.tsx"
 import { usePlayer } from "./Timeline.tsx"
@@ -41,7 +44,7 @@ export interface EduBlocksProps extends GameNavigation {
   readonly skin?: Skin
   /** Bigger blocks and field for the youngest: the first chapter of the course. */
   readonly large?: boolean
-  /** A saved program to open the level with. */
+  /** A saved program to open the level with. Without it a «Зламаний робот» level opens with its broken program. */
   readonly program?: Program
   /** Folder with the scratch-blocks icons (`scratch-blocks/media`), ending with a slash. */
   readonly media?: string
@@ -168,6 +171,10 @@ export const EduBlocks = ({
   // The latest callback, so a new function from the app does not rebuild the editor.
   const onProgramChangeRef = useRef(onProgramChange)
   onProgramChangeRef.current = onProgramChange
+  // «Як це в Python» under the blocks: open or closed stays across levels, the code follows each change of the blocks.
+  const [peek, setPeek] = useState(loadPeek)
+  const peekRef = useRef(peek)
+  const [peekSource, setPeekSource] = useState("")
 
   const setGlow = useCallback((id: string | null) => {
     const ws = workspaceRef.current
@@ -216,17 +223,22 @@ export const EduBlocks = ({
         ws.addChangeListener(vm.blockListener)
       }
       vm.on("workspaceUpdate", onUpdate)
-      await vm.loadProject(projectFor(initialProgram.current ?? buildProgram([])))
+      await vm.loadProject(projectFor(initialProgram.current ?? brokenProgram(level) ?? buildProgram([])))
       await settle()
       if (disposed) return
       ws.getFlyout()?.getWorkspace().addChangeListener(vm.flyoutBlockListener)
+      const updatePeek = () => {
+        if (peekRef.current) setPeekSource(programSource(level, heroProgram(vm)))
+      }
       // The VM updates its blocks in its own listener, which runs first.
       ws.addChangeListener((event: unknown) => {
         if (typeof event === "object" && event !== null && "type" in event && PROGRAM_EVENTS.has(String(event.type))) {
           onProgramChangeRef.current?.(heroProgram(vm))
+          updatePeek()
         }
       })
       vmRef.current = vm
+      updatePeek()
     })
 
     const resize = () => ScratchBlocks.svgResize(ws)
@@ -306,6 +318,15 @@ export const EduBlocks = ({
     [restart, runs, setFieldIndex]
   )
 
+  const togglePeek = useCallback(() => {
+    const open = !peekRef.current
+    peekRef.current = open
+    setPeek(open)
+    savePeek(open)
+    const vm = vmRef.current
+    if (open && vm !== null) setPeekSource(programSource(level, heroProgram(vm)))
+  }, [level])
+
   const running = phase.kind === "running"
   const navigation = { onMap, progress, onSkinChange }
   const xpTotal = phase.kind === "done" && phase.reward.total !== null ? phase.reward.total : xp?.total
@@ -340,6 +361,7 @@ export const EduBlocks = ({
       }
     >
       <div className="eb-editor" ref={editorRef} />
+      <PythonPeek open={peek} source={peekSource} onToggle={togglePeek} />
     </GameScreen>
   )
 }

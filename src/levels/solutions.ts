@@ -68,7 +68,22 @@ export const solutions: Readonly<Record<string, ReadonlyArray<Step>>> = {
   "f-apples": ["move", "call", "move", "move", "move", "call", "move", "move", "move", "move", "call", "move"],
   "f-bushes": [{ until: "atFinish", body: [{ if: "wallAhead", then: ["call"], else: ["move"] }] }],
   "c-stones": ["move", "call", "move", "move", "call", "move", "call", "move"],
-  "c-rocks": [{ set: 1 }, { repeat: 3, body: [{ repeat: "counter", body: ["move"] }, "call", "collect", { change: 1 }] }]
+  "c-rocks": [{ set: 1 }, { repeat: 3, body: [{ repeat: "counter", body: ["move"] }, "call", "collect", { change: 1 }] }],
+  "b-loop": [{ repeat: 6, body: ["move", "move", "collect"] }],
+  "b-branch": [{ repeat: 13, body: [{ if: "wallAhead", then: ["turnRight"], else: ["move"] }] }],
+  "b-until": [{ until: "wallAhead", body: ["move"] }, "collect"],
+  "b-define": ["call", "call", "call", "call"],
+  "l-mill": [{ until: "atFinish", body: [{ if: { or: ["wallAhead", "trapAhead"] }, then: ["turnRight"], else: ["move"] }] }],
+  "l-fish": ["move", { until: { not: "onCrystal" }, body: ["collect", "move"] }, "turnRight", { until: "atFinish", body: ["move"] }],
+  "l-drift": [
+    {
+      until: "atFinish",
+      body: [
+        { if: { and: [{ not: "wallAhead" }, { not: "trapAhead" }] }, then: ["move"] },
+        { if: { or: ["wallAhead", "trapAhead"] }, then: ["turnRight"] }
+      ]
+    }
+  ]
 }
 
 /** The custom block of the solutions that call one, by level id. */
@@ -77,7 +92,8 @@ export const definitions: Readonly<Record<string, Definition>> = {
   "f-apples": { name: "по яблуко", body: ["turnLeft", "move", "collect", "turnRight", "turnRight", "move", "turnLeft"] },
   "c-stones": { name: "обійти", body: BYPASS },
   "f-bushes": { name: "обійти", body: BYPASS },
-  "c-rocks": { name: "обійти", body: BYPASS }
+  "c-rocks": { name: "обійти", body: BYPASS },
+  "b-define": { name: "сходинка", body: ["move", "turnRight", "move", "turnLeft"] }
 }
 
 /** The solution of a level as a program, with its custom block when it has one. Empty for an unknown level. */

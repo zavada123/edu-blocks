@@ -5,7 +5,7 @@ import { levels } from "./index.ts"
  * The course in chapters by what a student learns, not by school grade: each chapter brings one new idea and
  * ends with a level that makes the student think. A student of any age starts with the first chapter.
  */
-export type ChapterId = "sequence" | "loops" | "conditions" | "while" | "puzzles" | "enemies" | "counter" | "functions"
+export type ChapterId = "sequence" | "loops" | "conditions" | "while" | "logic" | "puzzles" | "enemies" | "counter" | "functions"
 
 export interface Chapter {
   readonly id: ChapterId
@@ -27,19 +27,25 @@ export const chapters: ReadonlyArray<Chapter> = [
     id: "loops",
     title: "Цикли",
     skill: "Побачити, що повторюється, і загорнути це в «повторити».",
-    levels: ["g4-road", "g4-repeat", "g4-corner", "g4-stairs", "g4-sled", "g6-nested"]
+    levels: ["g4-road", "g4-repeat", "g4-corner", "g4-stairs", "g4-sled", "b-loop", "g6-nested"]
   },
   {
     id: "conditions",
     title: "Умови",
     skill: "Спитати «якщо…» і зробити різне в різних випадках.",
-    levels: ["g4-if", "g4-fence", "g5-snake"]
+    levels: ["g4-if", "g4-fence", "g5-snake", "b-branch"]
   },
   {
     id: "while",
     title: "Цикл «поки»",
     skill: "Повторювати, доки не справдиться умова, навіть не знаючи, скільки разів.",
-    levels: ["g4-until", "g5-bridge", "g5-way-home", "g6-spiral", "g6-maze"]
+    levels: ["g4-until", "b-until", "g5-bridge", "g5-way-home", "g6-spiral", "g6-maze"]
+  },
+  {
+    id: "logic",
+    title: "Правда чи ні",
+    skill: "Скласти умову з частин: «і», «або», «не». Умова буває правдою або неправдою.",
+    levels: ["l-mill", "l-fish", "l-drift"]
   },
   {
     id: "puzzles",
@@ -63,7 +69,7 @@ export const chapters: ReadonlyArray<Chapter> = [
     id: "functions",
     title: "Власні блоки (функції)",
     skill: "Скласти свій блок із команд, що повторюються, і кликати його, де треба: у програмі, у циклі, в «якщо».",
-    levels: ["f-stairs", "f-apples", "c-stones", "f-bushes", "c-rocks"]
+    levels: ["f-stairs", "b-define", "f-apples", "c-stones", "f-bushes", "c-rocks"]
   }
 ]
 

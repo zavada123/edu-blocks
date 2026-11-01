@@ -46,6 +46,9 @@ The student-facing interface is in Ukrainian. It was built for [EduProstir](http
 - **Large mode** for grade 3.
 - **Four hero skins** (`skin`): ninja (default), robot, rover and bee. Your app decides how they are sold or unlocked.
 - **Python code, as in Tynker or CodeCombat** (`edu-blocks/python`): the same levels with a code editor instead of blocks. `hero.move()`, `while not hero.at_finish():`, functions, variables and lists; the line the hero acts on lights up, and every mistake is explained in Ukrainian with its line.
+- **Broken robot levels** (`broken`): the level opens with a program that has a mistake, and the student finds and fixes it.
+- **«Правда чи ні»:** a chapter where a condition is built from parts with «і», «або» and «не».
+- **«Як це в Python»** under the blocks: the student's blocks as Python code, updated with each block.
 - **Several fields per level** (`fields`): one program must pass two or three maps, so memorized steps do not work and the student writes a real algorithm.
 - **Deterministic grading:** an interpreter that follows Scratch 3's execution order, tested against the TurboWarp VM on hundreds of random programs.
 
@@ -108,6 +111,19 @@ The game screen shows a tab for each field. After a run, every tab shows ✓ or 
 
 `judgeField` and `judgePythonField` run one field, `judgeFields` and `judgePythonFields` return a result for each field, `levelFields(level)` gives each field as a `Level` of its own, and `combineFields` merges the results.
 
+#### Broken robot
+
+A level can open with a program that has a mistake (`broken`): the student runs it, sees what goes wrong and fixes it. Reading someone else's code and finding the bug is a skill of its own. The task tells what the robot had to do; the stars count as usual.
+
+```ts
+const level: Level = {
+  // ...
+  broken: { steps: [{ repeat: 5, body: ["move", "move", "collect"] }] }  // one campfire too few
+}
+```
+
+`<EduBlocks>` puts the broken blocks into the editor and `<EduPython>` puts its Python code (`brokenSource`) into the code editor, unless the app gives a saved program. `brokenProgram(level)` gives the blocks. The level kit reports a broken program that passes the level or uses blocks outside the palette. The course has one such level in each of the chapters of loops, conditions, the until loop and custom blocks.
+
 Every built-in level has a reference solution in `src/levels/solutions.ts`, and a test checks that it earns three stars, so a level without a working solution never ships. Another test (`solveLevel`) searches every order of the hero actions of each level's palette, so a level its blocks cannot pass (a campfire level without «розпалити», too few steps, a turn the palette lacks) fails the build.
 
 The «взяти» block reads by the level's items: «розпалити» for campfires, «зловити» for fish. Only the words change; the opcode and Python `hero.collect()` stay the same.
@@ -163,7 +179,7 @@ Programs are limited to 300 blocks, the blocks of the level and 1,000 hero actio
 |---|---|
 | `edu-blocks/react` | The `EduBlocks` component, the hero roster `HEROES` with `heroOpen`, and the `EduBlocksProps`, `BlocksReport`, `HeroXp`, `Hero` and `Skin` types |
 | `edu-blocks/python` | The `EduPython` component (Python code instead of blocks) and its `EduPythonProps` and `PythonReport` types. It loads neither the Scratch VM nor the block editor |
-| `edu-blocks/core` | Built-in `levels` and `solutions`, the hero roster `HEROES`, `judgeProgram`, `judgePython`, the field functions (`levelFields`, `judgeFields`, `judgePythonFields`, `combineFields`), `PYTHON_METHODS`, `checkProgram`, `adviseRun`, the level kit, the XP functions, the world model and limits. No React and no VM, safe for Node |
+| `edu-blocks/core` | Built-in `levels` and `solutions`, the hero roster `HEROES`, `judgeProgram`, `judgePython`, the field functions (`levelFields`, `judgeFields`, `judgePythonFields`, `combineFields`), `brokenProgram`, `brokenSource`, `programSource`, `readProgram`, `PYTHON_METHODS`, `checkProgram`, `adviseRun`, the level kit, the XP functions, the world model and limits. No React and no VM, safe for Node |
 | `edu-blocks/style.css` | Styles of the game screen, with its fonts inside (about 150 kB) |
 | `edu-blocks/blocks-media/*` | Block icons to serve from your site |
 
@@ -248,6 +264,12 @@ import "edu-blocks/style.css"
 
 On the server, grade the text with `judgePython(level, report.source)`: it returns the same `RunResult` as
 `judgeProgram`, with `line` for a mistake and `output` for what the program printed.
+
+Under the blocks of `<EduBlocks>`, «Як це в Python» shows the student's program as Python code and follows each
+change of the blocks: a bridge from blocks to text. Its open or closed state stays in the browser. The code comes from
+`programSource(level, program)`, which reads the blocks back (`readProgram`) and writes them as `toPython` does. An
+empty condition is `False`, as Scratch reads it, and only the first «коли прапорець натиснуто» script is shown,
+because a Python program has one.
 
 | The hero in Python | Block |
 |---|---|

@@ -25,7 +25,7 @@ export interface EduPythonProps extends GameNavigation {
     readonly skin?: Skin;
     /** Bigger text for the youngest. */
     readonly large?: boolean;
-    /** A saved program to open the level with. */
+    /** A saved program to open the level with. Without it a «Зламаний робот» level opens with its broken code. */
     readonly source?: string;
     /** Milliseconds per hero action in the animation at the normal speed (×1). */
     readonly speed?: number;

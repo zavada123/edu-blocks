@@ -1,4 +1,4 @@
-import type { Step } from "./build.ts";
+import { type Step } from "./build.ts";
 import { type Level } from "./level.ts";
 import { type MapRows } from "./world.ts";
 /**

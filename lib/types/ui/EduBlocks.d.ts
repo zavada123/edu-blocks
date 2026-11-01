@@ -22,7 +22,7 @@ export interface EduBlocksProps extends GameNavigation {
     readonly skin?: Skin;
     /** Bigger blocks and field for the youngest: the first chapter of the course. */
     readonly large?: boolean;
-    /** A saved program to open the level with. */
+    /** A saved program to open the level with. Without it a «Зламаний робот» level opens with its broken program. */
     readonly program?: Program;
     /** Folder with the scratch-blocks icons (`scratch-blocks/media`), ending with a slash. */
     readonly media?: string;
