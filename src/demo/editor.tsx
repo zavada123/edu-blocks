@@ -1,7 +1,8 @@
-import { StrictMode, useEffect, useState } from "react"
+import { StrictMode, useEffect, useMemo, useState } from "react"
 import { createRoot } from "react-dom/client"
 import { HERO_BLOCKS } from "../core/blocks.ts"
-import { checkLevel, emptyMap, MAP_LIMITS, type MapTile, plainRoute, resizeMap, setTile } from "../core/kit.ts"
+import { checkLevel, emptyMap, type Issue, MAP_LIMITS, type MapTile, plainRoute, resizeMap, setTile } from "../core/kit.ts"
+import { paletteIssues } from "../core/solve.ts"
 import { storyIssues } from "../core/story.ts"
 import { type BlockName, type FinishKind, type Goal, type ItemKind, type Level, type NpcKind, type PropKind, type Scene, type Season } from "../core/level.ts"
 import { AssetBrowser, Thumb } from "./editor/AssetBrowser.tsx"
@@ -171,8 +172,14 @@ const Icon = ({ tool, item, who, monster }: { readonly tool: Tool; readonly item
   return href === null ? null : <img className="ed-icon" src={href} alt="" />
 }
 
+/** The checks of the level; whether the palette can pass it only once the map itself has no errors. */
+const levelIssues = (level: Level): ReadonlyArray<Issue> => {
+  const issues = checkLevel(level)
+  return issues.some((i) => i.level === "error") ? issues : [...issues, ...paletteIssues(level)]
+}
+
 const Issues = ({ level }: { readonly level: Level }) => {
-  const issues = [...checkLevel(level), ...storyIssues(level)]
+  const issues = [...levelIssues(level), ...storyIssues(level)]
   const route = plainRoute(level)
   return (
     <section className="ed-card" aria-live="polite">
@@ -260,7 +267,7 @@ const Editor = () => {
   const scene: Scene = level.scene ?? {}
   const width = level.map[0]?.length ?? 0
   const height = level.map.length
-  const errors = checkLevel(level).some((i) => i.level === "error")
+  const errors = useMemo(() => levelIssues(level).some((i) => i.level === "error"), [level])
 
   useEffect(() => {
     try {

@@ -1,4 +1,4 @@
-import type { BlockName } from "./level.ts";
+import type { BlockName, ItemKind } from "./level.ts";
 /** ID of the VM extension with the hero blocks. Opcodes in a program read `hero_move`. */
 export declare const HERO_EXTENSION_ID = "hero";
 export declare const HERO_COLOR = "#0FBD8C";
@@ -9,6 +9,14 @@ export declare const HERO_BLOCKS: ReadonlyArray<{
     readonly text: string;
     readonly boolean: boolean;
 }>;
+/** The words of the «взяти» block on a level with these items. */
+export declare const collectText: (scene: {
+    readonly item?: ItemKind;
+} | undefined) => string;
+/** The words of a hero block on a level: «взяти» follows the level's items. */
+export declare const heroBlockText: (name: HeroBlock, scene?: {
+    readonly item?: ItemKind;
+}) => string;
 export declare const START_OPCODE = "event_whenflagclicked";
 /** The one variable of the game. Its id is fixed, so the editor, the project and the judge agree on it. */
 export declare const COUNTER_ID = "eb-counter";

@@ -88,7 +88,9 @@ const level: Level = {
 - **Scene** (`scene`, optional): `theme` (`summer`, `winter`), `ground` (`path`, `ice`, `bridge`), `item` (`crystal`, `wood`, `apple`, `fish`, `key`, `campfire`), `finish` (`flag`, `well`, `grandma`, `home`) `props` (`house`, `woodshed` with `x`, `y` in cells), and pictures from the asset packs (`sprites`, `itemLook`, `finishLook`; see [Pictures from asset packs](#pictures-from-asset-packs)). It changes only the looks and the goal text, never the rules.
 - **Blocks** (`blocks`): `move`, `turnLeft`, `turnRight`, `collect`, `wallAhead`, `onCrystal`, `atFinish`, `repeat`, `forever`, `repeatUntil`, `if`, `ifElse`, `not`, `and`, `or`.
 
-Every built-in level has a reference solution in `src/levels/solutions.ts`, and a test checks that it earns three stars, so a level without a working solution never ships.
+Every built-in level has a reference solution in `src/levels/solutions.ts`, and a test checks that it earns three stars, so a level without a working solution never ships. Another test (`solveLevel`) searches every order of the hero actions of each level's palette, so a level its blocks cannot pass (a campfire level without «розпалити», too few steps, a turn the palette lacks) fails the build.
+
+The «взяти» block reads by the level's items: «розпалити» for campfires, «зловити» for fish. Only the words change; the opcode and Python `hero.collect()` stay the same.
 
 ### Render the editor
 
@@ -270,6 +272,7 @@ use both.
 - **Asset library:** every pack the build serves (`assets/*/manifest.json`), by kind (tiles, big props, decor, people, animals, enemies, bosses, items, crops, weapons, effects), with a search. A picture becomes the brush: a picture on the field, a villager or an enemy with that look, or the look of the level's items or goal. A tileset opens as a sheet: drag over it to cut one tile or a whole house, bridge or fence and stamp it on the map.
 - **Pictures on the map:** each with its animation, direction, layer (flat ground or a standing object), mirror, order and a nudge by half a cell.
 - **Checks as you go:** what keeps the level from being played, and where its text and its field disagree (`storyIssues`: a task that sends the hero home without a house, «apples» while the items are crystals, enemies or a bridge the field lacks, the wrong season).
+- **Can the palette pass it:** `paletteIssues` searches for a way with the hero actions of the palette and the step limit, and flags «якщо» without a question or a question with nowhere to go.
 - Try the level in the trainer (a passed run can set the three-star limit), and copy it as code for `src/levels/index.ts` or as JSON. Work is kept in the browser.
 
 #### Pictures from asset packs
@@ -302,6 +305,7 @@ The same tools are in `edu-blocks/core` for scripts and servers:
 | `checkLevel(level)` | Errors that keep a level from being played (no start, items cut off by walls, a goal without its block…) and warnings |
 | `storyIssues(level)` | Advice where the text of a level and its field disagree: a house, the items, the goal, enemies, a bridge, the season |
 | `assetRefsOf(level)`, `packsOf(level)`, `parseAssetRef(ref)` | The pack pictures a level uses and the packs it needs |
+| `solveLevel(level)`, `paletteIssues(level)` | The shortest list of the palette's hero actions that passes the level (or `impossible`), and the palette checks of the editor |
 | `plainRoute(level)` | A route without loops that passes the level, or `null` |
 | `levelSource(level)` | The level as code for `src/levels/index.ts` |
 | `adviseRun(level, program, result)` | Advice after a run: what is missing and what is extra in this program |

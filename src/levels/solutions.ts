@@ -64,13 +64,19 @@ export const solutions: Readonly<Record<string, ReadonlyArray<Step>>> = {
   "p-fork": [{ until: "atFinish", body: [{ if: "wallAhead", then: ["turnRight"], else: ["move"] }] }],
   "c-apples": [{ set: 1 }, { repeat: 4, body: [{ repeat: "counter", body: ["move"] }, "collect", { change: 1 }] }],
   "c-spiral": [{ set: 1 }, { repeat: 5, body: [{ repeat: "counter", body: ["move"] }, "turnRight", { change: 1 }] }],
+  "f-stairs": ["call", "call", "call", "call", "call"],
+  "f-apples": ["move", "call", "move", "move", "move", "call", "move", "move", "move", "move", "call", "move"],
+  "f-bushes": [{ until: "atFinish", body: [{ if: "wallAhead", then: ["call"], else: ["move"] }] }],
   "c-stones": ["move", "call", "move", "move", "call", "move", "call", "move"],
   "c-rocks": [{ set: 1 }, { repeat: 3, body: [{ repeat: "counter", body: ["move"] }, "call", "collect", { change: 1 }] }]
 }
 
 /** The custom block of the solutions that call one, by level id. */
 export const definitions: Readonly<Record<string, Definition>> = {
+  "f-stairs": { name: "сходинка", body: ["move", "turnLeft", "move", "turnRight"] },
+  "f-apples": { name: "по яблуко", body: ["turnLeft", "move", "collect", "turnRight", "turnRight", "move", "turnLeft"] },
   "c-stones": { name: "обійти", body: BYPASS },
+  "f-bushes": { name: "обійти", body: BYPASS },
   "c-rocks": { name: "обійти", body: BYPASS }
 }
 

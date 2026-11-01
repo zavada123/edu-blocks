@@ -5,7 +5,7 @@ import { levels } from "./index.ts"
  * The course in chapters by what a student learns, not by school grade: each chapter brings one new idea and
  * ends with a level that makes the student think. A student of any age starts with the first chapter.
  */
-export type ChapterId = "sequence" | "loops" | "conditions" | "while" | "puzzles" | "enemies" | "counter"
+export type ChapterId = "sequence" | "loops" | "conditions" | "while" | "puzzles" | "enemies" | "counter" | "functions"
 
 export interface Chapter {
   readonly id: ChapterId
@@ -55,9 +55,15 @@ export const chapters: ReadonlyArray<Chapter> = [
   },
   {
     id: "counter",
-    title: "Лічильник і власні блоки",
-    skill: "Рахувати змінною, що змінюється в циклі, і скласти свій блок, щоб не писати те саме знову.",
-    levels: ["c-apples", "c-spiral", "c-stones", "c-rocks"]
+    title: "Лічильник",
+    skill: "Рахувати змінною, що змінюється в циклі: щоразу на крок більше.",
+    levels: ["c-apples", "c-spiral"]
+  },
+  {
+    id: "functions",
+    title: "Власні блоки (функції)",
+    skill: "Скласти свій блок із команд, що повторюються, і кликати його, де треба: у програмі, у циклі, в «якщо».",
+    levels: ["f-stairs", "f-apples", "c-stones", "f-bushes", "c-rocks"]
   }
 ]
 

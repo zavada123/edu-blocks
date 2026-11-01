@@ -25,7 +25,7 @@ export const PYTHON_METHODS: ReadonlyArray<PythonMethod> = [
   { name: "move", signature: "move()", doc: "Крок уперед. hero.move(3) робить три кроки.", block: "move", action: "move" },
   { name: "turn_left", signature: "turn_left()", doc: "Поворот ліворуч.", block: "turnLeft", action: "turnLeft" },
   { name: "turn_right", signature: "turn_right()", doc: "Поворот праворуч.", block: "turnRight", action: "turnRight" },
-  { name: "collect", signature: "collect()", doc: "Взяти те, що лежить тут.", block: "collect", action: "collect" },
+  { name: "collect", signature: "collect()", doc: "Взяти те, що лежить тут: на інших рівнях — розпалити вогнище чи зловити рибу.", block: "collect", action: "collect" },
   { name: "attack", signature: "attack()", doc: "Вдарити ворога попереду.", block: "attack", action: "attack" },
   { name: "wall_ahead", signature: "wall_ahead()", doc: "True, якщо попереду стіна.", block: "wallAhead", sensor: "wallAhead" },
   { name: "item_here", signature: "item_here()", doc: "True, якщо тут щось лежить.", block: "onCrystal", sensor: "onCrystal" },

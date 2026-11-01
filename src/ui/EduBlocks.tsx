@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import ScratchBlocks, { type WorkspaceSvg } from "scratch-blocks/dist/vertical.js"
 import type VirtualMachine from "scratch-vm"
 import { serializeBlocks } from "scratch-vm/src/serialization/sb3.js"
-import { HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID, procedureName } from "../core/blocks.ts"
+import { HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID, heroBlockText, procedureName } from "../core/blocks.ts"
 import { buildProgram } from "../core/build.ts"
-import { type Level, startWorld } from "../core/level.ts"
+import { type Level, type Scene, startWorld } from "../core/level.ts"
 import { adviseRun } from "../core/advice.ts"
 import { judgeProgram } from "../core/judge.ts"
 import type { FailReason, Program, RunResult } from "../core/program.ts"
@@ -50,11 +50,16 @@ export interface EduBlocksProps extends GameNavigation {
   readonly onProgramChange?: (program: Program) => void
 }
 
+/**
+ * The scene of the level the editor shows: «взяти» reads «розпалити» where the items are campfires. scratch-blocks
+ * keeps one definition per block type, so the words are taken when a block is made, after the editor set this.
+ */
+let editorScene: Scene | undefined
+
 // Hero blocks drawn as Scratch extension blocks. The VM runs them by the same opcodes.
 for (const b of HERO_BLOCKS) {
   const json = {
     type: `${HERO_EXTENSION_ID}_${b.name}`,
-    message0: b.text,
     category: "pen",
     colour: HERO_COLOR,
     colourSecondary: "#0DA57A",
@@ -63,7 +68,7 @@ for (const b of HERO_BLOCKS) {
   }
   ScratchBlocks.Blocks[json.type] = {
     init() {
-      this.jsonInit(json)
+      this.jsonInit({ ...json, message0: heroBlockText(b.name, editorScene) })
     }
   }
 }
@@ -178,6 +183,7 @@ export const EduBlocks = ({
     const compact = el.clientWidth < COMPACT_WIDTH
     ScratchBlocks.VerticalFlyout.prototype.DEFAULT_WIDTH = compact ? 150 : 250
     ScratchBlocks.ScratchMsgs.setLocale("uk")
+    editorScene = level.scene
     const toolbox = toolboxXml(level.blocks, compact, procedureName(level))
     const ws = ScratchBlocks.inject(el, {
       toolbox,
