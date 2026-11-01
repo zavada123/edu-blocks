@@ -10,6 +10,7 @@ import { judgeProgram } from "../core/judge.ts"
 import type { FailReason, Program, RunResult } from "../core/program.ts"
 import { createVm, projectFor, settle, withVmLock } from "../core/run.ts"
 import { useFullScreen } from "./fullscreen.ts"
+import { loadZoom, saveZoom } from "./prefs.ts"
 import { type GameNavigation, GameScreen } from "./GameScreen.tsx"
 import { frameIndexAt } from "./stage/playback.ts"
 import type { Skin } from "./stage/Stage.tsx"
@@ -89,14 +90,16 @@ const heroProgram = (vm: VirtualMachine): Program => {
 
 /**
  * The zoom buttons and the mouse wheel zoom the blocks of the flyout too, not only the program: the student sees
- * the blocks to choose at the same size. The flyout grows with them.
+ * the blocks to choose at the same size. The flyout grows with them. `onZoom` gets each new zoom as a share of the
+ * start scale.
  */
-const followZoomInFlyout = (ws: WorkspaceSvg, el: HTMLElement, toolboxXml: string) => {
+const followZoomInFlyout = (ws: WorkspaceSvg, el: HTMLElement, toolboxXml: string, onZoom: (zoom: number) => void) => {
   const startScale = ws.scale
   const baseWidth = ScratchBlocks.VerticalFlyout.prototype.DEFAULT_WIDTH
   const setScale = ws.setScale.bind(ws)
   ws.setScale = (scale: number) => {
     setScale(scale)
+    onZoom(ws.scale / startScale)
     const flyout = ws.getFlyout()
     if (flyout === null || flyout.getWorkspace().scale === ws.scale) return
     flyout.getWorkspace().scale = ws.scale
@@ -191,7 +194,10 @@ export const EduBlocks = ({
       zoom: { controls: true, wheel: true, startScale: (large ? 0.9 : 0.75) * (compact ? 0.75 : 1) }
     })
     workspaceRef.current = ws
-    followZoomInFlyout(ws, el, toolbox)
+    // The zoom the student chose last time, also on another level or after a reload.
+    const savedZoom = loadZoom()
+    followZoomInFlyout(ws, el, toolbox, saveZoom)
+    if (savedZoom !== 1) ws.setScale(ws.scale * savedZoom)
 
     void withVmLock(async () => {
       const vm = createVm(null, null)
