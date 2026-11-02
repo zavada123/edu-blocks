@@ -17,7 +17,10 @@ export interface PythonReport {
     /** The size of the program, counted as blocks (`programSize`). */
     readonly size: number;
     readonly reason: FailReason | null;
+    /** The whole program: with «Продовжити звідси», all the pieces joined in one (`joinSources`). */
     readonly source: string;
+    /** How many pieces the student wrote the program in: 1 without «Продовжити звідси». */
+    readonly pieces: number;
     readonly firstTry: boolean;
     readonly xp: number;
     /** Coins of this run (`coinsFor`, or the harvest on a day of the estate). Like XP, the student gets only the part above the best earlier run. */

@@ -149,6 +149,19 @@ describe("harvest", () => {
     })
   })
 
+  test("a day done in more than one piece is work by hand: no bonus of a full day", () => {
+    // Arrange
+    const day = estateDay({ upgrades: { carrots: 1, coop: 1 }, day: 4 }, ALL)
+    const result = judgeProgram(day.level, buildProgram(ROUTINE))
+
+    // Act
+    const one = estateHarvest(day, result, 1)
+    const two = estateHarvest(day, result, 2)
+
+    // Assert
+    expect(two).toEqual({ ...one, full: false, coins: one.coins - FULL_DAY_COINS })
+  })
+
   test("a failed day still pays for what the hero gathered", () => {
     // Arrange: walk the top path, taking the apples, into the far wall.
     const day = estateDay(NEW_ESTATE, ALL)

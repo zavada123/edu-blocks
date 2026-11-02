@@ -692,6 +692,35 @@
   font: 400 18px/1 var(--eb-font-pixel);
 }
 
+/* «Вже зроблено»: the pieces behind the hero, over the editor of the next piece. */
+.eb-pieces {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  padding: 8px 12px;
+  background: var(--eb-slate);
+  border-bottom: var(--eb-px) solid var(--eb-edge);
+  color: var(--eb-fg);
+  font-size: 14px;
+}
+
+.eb-pieces p {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.eb-pieces strong {
+  color: var(--eb-gold);
+}
+
+.eb-pieces-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .eb-editor {
   position: relative;
   flex: 1 1 auto;

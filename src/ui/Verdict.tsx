@@ -221,6 +221,13 @@ const fieldOf = (result: RunResult): string =>
 /** On a level with several fields: the program passed them all. */
 const allFields = (result: RunResult): string => (result.fields === undefined ? "" : `Програма пройшла всі ${result.fields.length} поля. `)
 
+/** «Продовжити звідси» next to «Спробувати ще». */
+const ContinueButton = ({ onContinue }: { readonly onContinue: () => void }) => (
+  <button type="button" className="eb-btn eb-btn-go" onClick={onContinue} title="Герой лишиться тут, а ти допишеш наступний шматок програми">
+    Продовжити звідси →
+  </button>
+)
+
 const HINTED: ReadonlySet<FailReason> = new Set(["crashed", "trapped", "tired", "defeated", "goalsNotMet"])
 
 /** The result over the field: stars and XP for a pass, what went wrong and a hint for a fail. */
@@ -231,7 +238,8 @@ export const Verdict = ({
   advice,
   language,
   onClose,
-  onNext
+  onNext,
+  onContinue
 }: {
   readonly level: Level
   readonly result: RunResult
@@ -241,8 +249,11 @@ export const Verdict = ({
   readonly onClose: () => void
   /** «Далі»: the app opens the next level. */
   readonly onNext: (() => void) | undefined
+  /** «Продовжити звідси»: the hero stays, and the student writes the next piece (`canContinue`). */
+  readonly onContinue?: (() => void) | undefined
 }) => {
-  if (reward.harvest !== null) return <HarvestVerdict result={result} reward={reward} language={language} onClose={onClose} onNext={onNext} />
+  if (reward.harvest !== null)
+    return <HarvestVerdict result={result} reward={reward} language={language} onClose={onClose} onNext={onNext} onContinue={onContinue} />
   if (result.passed) {
     const size = language === "python" ? `Розмір програми: ${result.blocks}.` : `Блоків: ${result.blocks}.`
     return (
@@ -286,6 +297,7 @@ export const Verdict = ({
         <Advice tips={advice} />
         {level.hint !== undefined && HINTED.has(reason) && <p className="eb-hint">Підказка: {level.hint}</p>}
         <div className="eb-verdict-actions">
+          {onContinue !== undefined && <ContinueButton onContinue={onContinue} />}
           <button type="button" className="eb-btn eb-btn-gold" onClick={onClose} autoFocus>
             Спробувати ще
           </button>
@@ -301,13 +313,15 @@ const HarvestVerdict = ({
   reward,
   language,
   onClose,
-  onNext
+  onNext,
+  onContinue
 }: {
   readonly result: RunResult
   readonly reward: Reward
   readonly language: Language
   readonly onClose: () => void
   readonly onNext: (() => void) | undefined
+  readonly onContinue: (() => void) | undefined
 }) => (
   <div className="eb-verdict-layer">
     <div
@@ -321,6 +335,7 @@ const HarvestVerdict = ({
       <HarvestLine reward={reward} />
       {!result.passed && <p className="eb-hint">Зміни програму і запусти ще раз: заплатять лише за те, що понад найкращий запуск.</p>}
       <div className="eb-verdict-actions">
+        {!result.passed && onContinue !== undefined && <ContinueButton onContinue={onContinue} />}
         <button type="button" className={result.passed ? "eb-btn" : "eb-btn eb-btn-gold"} onClick={onClose} autoFocus={onNext === undefined}>
           {result.passed ? "Ще раз" : "Спробувати ще"}
         </button>
