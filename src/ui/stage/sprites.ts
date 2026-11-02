@@ -1,4 +1,4 @@
-import { type AssetPack, frameAt, type FrameRect, iconFrame, restClip, type SpriteAsset } from "../../core/assets.ts"
+import { type AssetPack, frameAt, type FrameRect, frameRect, iconFrame, restClip, type SpriteAsset } from "../../core/assets.ts"
 import type { PlacedSprite } from "../../core/level.ts"
 import { cellKey, type Direction } from "../../core/world.ts"
 import { image } from "./images.ts"
@@ -84,7 +84,7 @@ export const layerOf = (placed: PlacedSprite, found: Resolved | null): "ground" 
 
 /** Whether the placed sprite plays an animation of more than one frame: then it is drawn every animation frame. */
 export const isAnimated = (placed: PlacedSprite, found: Resolved): boolean => {
-  if (placed.tiles !== undefined) return false
+  if (placed.tiles !== undefined || placed.frame !== undefined) return false
   const clip = placed.clip ?? restClip(found.sprite)
   const frames = clip === null ? undefined : found.sprite.clips?.[clip]?.frames
   if (frames === undefined) return false
@@ -105,6 +105,13 @@ export const drawPlaced = (ctx: Ctx, placed: PlacedSprite, now: number) => {
     drawRect(ctx, found.pack, rect, placed.x * CELL, placed.y * CELL, w * CELL, h * CELL)
     return
   }
+  if (placed.frame !== undefined) {
+    // One still frame, as a stage of a crop: it stands on the cell like any figure.
+    const rect = frameRect(found.sprite, placed.frame, undefined, placed.flip === true)
+    const k = scaleOf(found.pack)
+    drawRect(ctx, found.pack, rect, (placed.x + 0.5) * CELL - (rect.w * k) / 2, (placed.y + 1) * CELL - rect.h * k, rect.w * k, rect.h * k)
+    return
+  }
   drawFigure(ctx, found, {
     cx: (placed.x + 0.5) * CELL,
     bottom: (placed.y + 1) * CELL,
@@ -113,6 +120,18 @@ export const drawPlaced = (ctx: Ctx, placed: PlacedSprite, now: number) => {
     now,
     flip: placed.flip === true
   })
+}
+
+/**
+ * Tile `tile` of a tileset sprite (numbered from 1, as in `TileLayer`) with its top-left corner at cell `x`, `y`.
+ * False until the pack and its picture have loaded.
+ */
+export const drawTile = (ctx: Ctx, tileset: Resolved, tile: number, x: number, y: number): boolean => {
+  const [tw, th] = tileSize(tileset)
+  const columns = Math.max(1, Math.floor(tileset.sprite.size[0] / tw))
+  const index = tile - 1
+  const rect: FrameRect = { file: tileset.sprite.file, sx: (index % columns) * tw, sy: Math.floor(index / columns) * th, w: tw, h: th, flip: false }
+  return drawRect(ctx, tileset.pack, rect, x * CELL, y * CELL, CELL, CELL)
 }
 
 /** The cells a placed sprite covers on the field, so no bush or tree grows under it. */

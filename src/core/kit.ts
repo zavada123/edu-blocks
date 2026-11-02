@@ -2,6 +2,7 @@ import { buildProgram, type Step } from "./build.ts"
 import { judgeProgram } from "./judge.ts"
 import { allGoalsMet, type BlockName, type Level, startWorld } from "./level.ts"
 import { checkProgram } from "./program.ts"
+import { tilemapIssues } from "./tilemap.ts"
 import {
   type Action,
   applyAction,
@@ -163,6 +164,7 @@ export const checkLevel = (level: Level): ReadonlyArray<Issue> => {
   if (level.stars === undefined) warning("Без меж для зірок будь-який розв'язок отримає три зірки")
   if (level.task.every((line) => line.trim() === "")) warning("Немає тексту завдання для учня")
   if (level.hint === undefined || level.hint.trim() === "") warning("Немає підказки після невдалої спроби")
+  for (const issue of tilemapIssues(level)) issues.push(issue)
   if (level.broken !== undefined) {
     const broken = buildProgram(level.broken.steps, level.broken.definition)
     const checked = checkProgram(level, broken)

@@ -28,6 +28,7 @@ export { MAX_SOURCE_LENGTH } from "./core/python/lexer.ts";
 export { programSource, solutionSource, toPython } from "./core/python/convert.ts";
 export * from "./core/broken.ts";
 export * from "./core/pieces.ts";
+export * from "./core/tilemap.ts";
 export * from "./core/read.ts";
 export * from "./core/assets.ts";
 export { storyIssues } from "./core/story.ts";

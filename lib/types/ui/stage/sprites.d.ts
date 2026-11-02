@@ -26,6 +26,11 @@ export declare const layerOf: (placed: PlacedSprite, found: Resolved | null) => 
 export declare const isAnimated: (placed: PlacedSprite, found: Resolved) => boolean;
 /** A placed sprite. Tiles lie from the cell's top-left corner; anything else stands on the cell. */
 export declare const drawPlaced: (ctx: Ctx, placed: PlacedSprite, now: number) => void;
+/**
+ * Tile `tile` of a tileset sprite (numbered from 1, as in `TileLayer`) with its top-left corner at cell `x`, `y`.
+ * False until the pack and its picture have loaded.
+ */
+export declare const drawTile: (ctx: Ctx, tileset: Resolved, tile: number, x: number, y: number) => boolean;
 /** The cells a placed sprite covers on the field, so no bush or tree grows under it. */
 export declare const placedCells: (placed: PlacedSprite) => ReadonlyArray<string>;
 /** Where the bottom edge of a placed sprite is, to draw what stands lower later. */
