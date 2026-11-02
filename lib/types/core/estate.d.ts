@@ -88,5 +88,9 @@ export interface Harvest {
     readonly full: boolean;
     readonly coins: number;
 }
-/** The harvest of a run: what the hero took before the run ended, even when it failed, and the bonus of a full day. */
-export declare const estateHarvest: (day: EstateDay, result: RunResult) => Harvest;
+/**
+ * The harvest of a run: what the hero took before the run ended, even when it failed, and the bonus of a full day.
+ * The bonus asks for one program from the morning: a day done in more `pieces` («Продовжити звідси») is work by hand,
+ * and pays only for what the hero gathered.
+ */
+export declare const estateHarvest: (day: EstateDay, result: RunResult, pieces?: number) => Harvest;

@@ -11,7 +11,10 @@ export interface BlocksReport {
     readonly stars: 0 | 1 | 2 | 3;
     readonly blocks: number;
     readonly reason: FailReason | null;
+    /** The whole program: with «Продовжити звідси», all the pieces joined in one (`joinPrograms`). */
     readonly program: Program;
+    /** How many pieces the student wrote the program in: 1 without «Продовжити звідси». */
+    readonly pieces: number;
     /** No run of the level failed before this one since the editor opened. */
     readonly firstTry: boolean;
     /** XP of this run (`xpFor`). The hero gets only the part above the best earlier run. */

@@ -10,6 +10,7 @@ import type { Level, Scene } from "../core/level.ts"
 import { adviseRun } from "../core/advice.ts"
 import { estateHarvest, type Harvest } from "../core/estate.ts"
 import { judgeFields } from "../core/judge.ts"
+import { isPiece, joinPrograms, pieceBlockId, scriptCount } from "../core/pieces.ts"
 import type { FailReason, Program, RunResult } from "../core/program.ts"
 import { programSource } from "../core/python/convert.ts"
 import { createVm, projectFor, settle, withVmLock } from "../core/run.ts"
@@ -20,6 +21,7 @@ import { type GameNavigation, GameScreen } from "./GameScreen.tsx"
 import { PythonPeek } from "./PythonPeek.tsx"
 import { frameIndexAt } from "./stage/playback.ts"
 import type { Skin } from "./stage/Stage.tsx"
+import { gradePieces, JOIN_TIP, PiecesBar, usePieces } from "./pieces.tsx"
 import { usePlayer } from "./Timeline.tsx"
 import { toolboxXml } from "./toolbox.ts"
 import { type EstateRun, harvestRewardOf, type HeroXp, type Reward, rewardOf, Verdict } from "./Verdict.tsx"
@@ -31,7 +33,10 @@ export interface BlocksReport {
   readonly stars: 0 | 1 | 2 | 3
   readonly blocks: number
   readonly reason: FailReason | null
+  /** The whole program: with «Продовжити звідси», all the pieces joined in one (`joinPrograms`). */
   readonly program: Program
+  /** How many pieces the student wrote the program in: 1 without «Продовжити звідси». */
+  readonly pieces: number
   /** No run of the level failed before this one since the editor opened. */
   readonly firstTry: boolean
   /** XP of this run (`xpFor`). The hero gets only the part above the best earlier run. */
@@ -97,7 +102,20 @@ const MAX_FLYOUT_SHARE = 0.45
 type Phase =
   | { readonly kind: "edit" }
   | { readonly kind: "running" }
-  | { readonly kind: "done"; readonly result: RunResult; readonly reward: Reward; readonly advice: ReadonlyArray<string> }
+  | {
+      readonly kind: "done"
+      /** The run as the screen shows it: after earlier pieces, only the new frames. */
+      readonly result: RunResult
+      readonly reward: Reward
+      readonly advice: ReadonlyArray<string>
+      /** The run of the whole program and the piece the student just ran, for «Продовжити звідси». */
+      readonly full: RunResult
+      readonly piece: Program
+      readonly canGoOn: boolean
+    }
+
+/** «Продовжити звідси» with a second script: it would run side by side with the pieces before. */
+const TWO_SCRIPTS = "Продовжуй однією програмою: залиш один блок «коли натиснуто прапорець»."
 
 /** The program as in project.json, with the block ids of the editor (vm.toJSON() would shorten them). */
 const heroProgram = (vm: VirtualMachine): Program => {
@@ -186,6 +204,8 @@ export const EduBlocks = ({
   const [peek, setPeek] = useState(loadPeek)
   const peekRef = useRef(peek)
   const [peekSource, setPeekSource] = useState("")
+  // «Продовжити звідси»: the pieces run so far. While there are any, the editor holds only the new piece.
+  const { done, ref: doneRef, setDone } = usePieces<Program>(level)
 
   const setGlow = useCallback((id: string | null) => {
     const ws = workspaceRef.current
@@ -244,7 +264,8 @@ export const EduBlocks = ({
       // The VM updates its blocks in its own listener, which runs first.
       ws.addChangeListener((event: unknown) => {
         if (typeof event === "object" && event !== null && "type" in event && PROGRAM_EVENTS.has(String(event.type))) {
-          onProgramChangeRef.current?.(heroProgram(vm))
+          // A piece is not the program: the app keeps the program the student had before the pieces.
+          if (doneRef.current === null) onProgramChangeRef.current?.(heroProgram(vm))
           updatePeek()
         }
       })
@@ -263,7 +284,7 @@ export const EduBlocks = ({
       workspaceRef.current = null
       ws.dispose()
     }
-  }, [level, media, large])
+  }, [level, media, large, doneRef])
 
   const { seek, restart } = player
   const reset = useCallback(() => {
@@ -278,7 +299,9 @@ export const EduBlocks = ({
   // The block of the action on the field lights up, also when the student steps or drags the timeline.
   const frameIndex = result === null ? -1 : frameIndexAt(result.frames, player.time)
   const atEnd = result !== null && player.time >= result.frames.length
-  const glowId = result === null || atEnd ? null : (result.frames[frameIndex]?.blockId ?? null)
+  // After «Продовжити звідси» the frames name the blocks of the joined program: only the new piece is in the editor.
+  const frameBlock = result === null || atEnd ? null : (result.frames[frameIndex]?.blockId ?? null)
+  const glowId = done === null ? frameBlock : pieceBlockId(frameBlock, done.pieces.length)
   useEffect(() => setGlow(glowId), [glowId, setGlow])
 
   const run = useCallback(() => {
@@ -286,18 +309,35 @@ export const EduBlocks = ({
     if (vm === null) return
     reset()
     setPhase({ kind: "running" })
-    const prog = heroProgram(vm)
+    const piece = heroProgram(vm)
+    const before = doneRef.current
+    // After «Продовжити звідси» the pieces run as one program from the start; the screen plays only the new frames.
+    const joined = before === null ? piece : isPiece(piece) ? joinPrograms([...before.pieces, piece]) : null
+    const prog = joined ?? piece
     // The program runs on every field; the screen plays the first field it failed on, or the first field.
-    const fieldRuns = judgeFields(level, prog)
-    const result = combineFields(fieldRuns)
+    const fieldRuns =
+      before !== null && scriptCount(piece) > 1
+        ? [{ ...combineFields(judgeFields(level, {})), reason: "badProgram" as const, detail: TWO_SCRIPTS }]
+        : judgeFields(level, prog)
+    const graded = gradePieces(level, combineFields(fieldRuns), before, large, "blocks")
+    const result = graded.full
     const shown = result.field ?? 0
-    const firstTry = failedRef.current === 0
+    const firstTry = failedRef.current === 0 && graded.pieces === 1
     if (!result.passed) failedRef.current += 1
-    const harvest = estate === undefined ? null : estateHarvest(estate.day, result)
+    const harvest = estate === undefined ? null : estateHarvest(estate.day, result, graded.pieces)
     const { runXp, runCoins, reward } =
       harvest === null || estate === undefined ? rewardOf(level, result, firstTry, xp, coins) : harvestRewardOf(harvest, estate, firstTry, xp, coins)
+    const advice = adviseRun(fields[shown] ?? level, prog, result)
     const finish = () => {
-      setPhase({ kind: "done", result, reward, advice: adviseRun(fields[shown] ?? level, prog, result) })
+      setPhase({
+        kind: "done",
+        result: graded.shown,
+        reward,
+        advice: graded.capped ? [...advice, JOIN_TIP] : advice,
+        full: result,
+        piece,
+        canGoOn: graded.canGoOn
+      })
       setVerdictOpen(true)
       onComplete?.({
         levelId: level.id,
@@ -306,6 +346,7 @@ export const EduBlocks = ({
         blocks: result.blocks,
         reason: result.reason,
         program: prog,
+        pieces: graded.pieces,
         firstTry,
         xp: runXp,
         coins: runCoins,
@@ -315,9 +356,46 @@ export const EduBlocks = ({
     onEndRef.current = finish
     setRuns(fieldRuns)
     setFieldIndex(shown)
-    setResult(result)
-    restart(result.frames.length)
-  }, [level, fields, onComplete, reset, restart, setFieldIndex, setRuns, xp, coins, estate])
+    setResult(graded.shown)
+    restart(graded.shown.frames.length)
+  }, [level, fields, large, onComplete, reset, restart, setFieldIndex, setRuns, xp, coins, estate, doneRef])
+
+  /** Puts a program into the editor, as the student would have built it. */
+  const loadProgram = useCallback(
+    (next: Program) =>
+      withVmLock(async () => {
+        const vm = vmRef.current
+        if (vm === null) return
+        await vm.loadProject(projectFor(next))
+        await settle()
+      }),
+    []
+  )
+
+  // «Продовжити звідси»: the hero stays where the run ended, the editor gets an empty piece.
+  const goOn = useCallback(() => {
+    if (phase.kind !== "done" || !phase.canGoOn) return
+    const before = done?.pieces ?? []
+    setDone({ pieces: [...before, phase.piece], frames: phase.full.frames.length, world: phase.full.world, blocks: phase.full.blocks })
+    reset()
+    void loadProgram(buildProgram([]))
+  }, [phase, done, setDone, reset, loadProgram])
+
+  // The pieces become one program in the editor, and the hero goes back to the start to run it.
+  const joinPieces = useCallback(() => {
+    const vm = vmRef.current
+    if (done === null || vm === null) return
+    const joined = joinPrograms([...done.pieces, heroProgram(vm)]) ?? joinPrograms(done.pieces) ?? {}
+    setDone(null)
+    reset()
+    void loadProgram(joined)
+  }, [done, setDone, reset, loadProgram])
+
+  // Leave the pieces: the hero goes back to the start, the editor keeps the piece it has.
+  const dropPieces = useCallback(() => {
+    setDone(null)
+    reset()
+  }, [setDone, reset])
 
   // A field tab: before a run it shows the field, after a run it plays the run on that field.
   const pickField = useCallback(
@@ -352,7 +430,7 @@ export const EduBlocks = ({
       rootRef={rootRef}
       className={["eb-root", large ? "eb-large" : "", full ? "eb-full" : ""].filter(Boolean).join(" ")}
       level={field}
-      start={start}
+      start={done?.world ?? start}
       result={result}
       player={player}
       skin={skin}
@@ -374,10 +452,20 @@ export const EduBlocks = ({
       verdict={
         phase.kind === "done" &&
         verdictOpen && (
-          <Verdict level={level} result={phase.result} reward={phase.reward} advice={phase.advice} language="blocks" onClose={() => setVerdictOpen(false)} onNext={onNext} />
+          <Verdict
+            level={level}
+            result={phase.result}
+            reward={phase.reward}
+            advice={phase.advice}
+            language="blocks"
+            onClose={() => setVerdictOpen(false)}
+            onNext={onNext}
+            onContinue={phase.canGoOn ? goOn : undefined}
+          />
         )
       }
     >
+      <PiecesBar done={done} unit={["блок", "блоки", "блоків"]} onJoin={joinPieces} onRestart={dropPieces} />
       <div className="eb-editor" ref={editorRef} />
       <PythonPeek open={peek} source={peekSource} onToggle={togglePeek} />
     </GameScreen>

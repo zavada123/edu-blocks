@@ -17,6 +17,8 @@ import { HERO_NAME, type PythonMethod } from "../../core/python/api.ts"
 export interface CodeEditorApi {
   /** Puts a line of code at the cursor, on a line of its own with the indent of the line it lands on. */
   readonly insert: (code: string) => void
+  /** Puts `code` in place of all the text, as one change the student can undo. */
+  readonly replace: (code: string) => void
 }
 
 interface Marks {
@@ -170,7 +172,9 @@ export const CodeEditor = ({
       })
     })
     viewRef.current = view
-    onReadyRef.current({ insert: (code) => insertLine(view, code) }, () => view.state.doc.toString())
+    const replace = (code: string) =>
+      view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: code }, selection: { anchor: code.length }, scrollIntoView: true })
+    onReadyRef.current({ insert: (code) => insertLine(view, code), replace }, () => view.state.doc.toString())
     return () => {
       viewRef.current = null
       view.destroy()

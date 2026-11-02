@@ -294,14 +294,18 @@ export interface Harvest {
   readonly coins: number
 }
 
-/** The harvest of a run: what the hero took before the run ended, even when it failed, and the bonus of a full day. */
-export const estateHarvest = (day: EstateDay, result: RunResult): Harvest => {
+/**
+ * The harvest of a run: what the hero took before the run ended, even when it failed, and the bonus of a full day.
+ * The bonus asks for one program from the morning: a day done in more `pieces` («Продовжити звідси») is work by hand,
+ * and pays only for what the hero gathered.
+ */
+export const estateHarvest = (day: EstateDay, result: RunResult, pieces = 1): Harvest => {
   const left = result.world.crystals
   const taken = (kind: Produce) => day.produce.filter((p) => p.kind === kind && !left.has(cellKey(p.x, p.y))).length
   const apple = taken("apple")
   const carrot = taken("carrot")
   const egg = taken("egg")
-  const full = result.passed
+  const full = result.passed && pieces <= 1
   return {
     apple,
     carrot,

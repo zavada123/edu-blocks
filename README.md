@@ -47,6 +47,7 @@ The student-facing interface is in Ukrainian. It was built for [EduProstir](http
 - **Coins and a hero shop:** a run gives coins for the level tier and each star (only above the best earlier run). Four heroes open with the hero level (ninja, robot, rover, bee), and six more are sold for 60–250 coins (knight, eskimo, forest girl, traveller, samurai, gold knight). Your app keeps the coins and the purchases.
 - **Хутір, the hero's estate** (`estateDay`): the student writes a morning routine once, and every new day checks it on a new map: other apples are ripe, the end of the yard is snowed in, the hens lay or not. Days come from passed levels, the harvest pays coins, and upgrades for coins (more trees, a carrot bed, a hen house) make a routine learned by heart stop working.
 - **Python code, as in Tynker or CodeCombat** (`edu-blocks/python`): the same levels with a code editor instead of blocks. `hero.move()`, `while not hero.at_finish():`, functions, variables and lists; the line the hero acts on lights up, and every mistake is explained in Ukrainian with its line.
+- **«Продовжити звідси»:** when a program simply ends before the goals, the student can go on from where the hero stopped with a new piece instead of starting over. The pieces are joined into one program and judged from the start, so the server checks the same program. More than one piece gives at most 2 stars (not in the first chapter), and on the estate it is work by hand: no bonus of a full day.
 - **Broken robot levels** (`broken`): the level opens with a program that has a mistake, and the student finds and fixes it.
 - **«Правда чи ні»:** a chapter where a condition is built from parts with «і», «або» and «не».
 - **«Як це в Python»** under the blocks: the student's blocks as Python code, updated with each block.
@@ -184,6 +185,14 @@ const coins = walletOf({ earned: levelCoins(levels, bestStars), income: sumOfDay
 
 A day is a ring of paths: from the door along the orchard, down the far end of the yard, back along the carrot bed and up past the hen house. The harvest pays 2 coins for an apple, 3 for a carrot, 4 for an egg and 5 for a full day; a failed run pays for what the hero took (`estateHarvest`). `ESTATE_UPGRADES` lists the upgrades with their prices; `canBuyUpgrade`, `buyUpgrade` and `upgradesCost` do the shop. The same day number gives the same map on any computer.
 
+### «Продовжити звідси»
+
+The pieces are never run apart. Each run joins the pieces done so far and the new one (`joinPrograms` for blocks, `joinSources` for Python), judges the joined program from the start and plays only the frames after the earlier pieces (`continuedResult`). The judge is deterministic, so a piece that ran to its end gives the same frames as the start of any program that goes on after it; a test cuts the solution of every level into pieces and checks this.
+
+The button shows only when `canContinue` allows it: the run ended with `goalsNotMet`, the level has one field, it is not a «Зламаний робот» level, and in blocks it has no custom block or counter. After a crash, a trap, no steps or hearts left, or a run too long, the student starts over. `piecesStars` caps the stars at 2 for more than one piece outside the first chapter, `estateHarvest(day, result, pieces)` pays no full day bonus for more than one piece, and the first try bonus needs one piece. «Зібрати в одну програму» over the editor puts all the pieces in it as one program.
+
+The report's `program` (or `source`) is the joined program and `pieces` says how many pieces it was written in, so the server needs no change: it judges `program` as before. While there are pieces, `onProgramChange` and `onSourceChange` are not called: the app keeps the program the student had before.
+
 XP uses the same pure functions on both sides. Count `firstTry` from your own record of earlier failed runs:
 
 ```ts
@@ -220,7 +229,7 @@ Programs are limited to 300 blocks, the blocks of the level and 1,000 hero actio
 | `speed` | Milliseconds per hero action at ×1, 400 by default; the student changes the speed on the time line |
 | `xp` | The hero's XP before the run: `{ total, best }`, where `best` is the best XP of this level. The result then shows the gain and the bar to the next hero level |
 | `estate` | A day of the estate: `{ day, best }`, where `day` is from `estateDay` (pass `day.level` as `level`, the same object while the day lasts) and `best` is the coins of the best run of this day. The result shows the harvest instead of stars and XP |
-| `onComplete(report)` | After every run: `levelId`, `passed`, `stars`, `blocks`, `reason`, `firstTry`, `xp`, `coins`, `harvest` (on a day of the estate) and the `program` itself |
+| `onComplete(report)` | After every run: `levelId`, `passed`, `stars`, `blocks`, `reason`, `firstTry`, `xp`, `coins`, `harvest` (on a day of the estate), `pieces` (1, or more after «Продовжити звідси») and the `program` itself, all pieces joined |
 | `onProgramChange(program)` | After every block change, for apps with their own Check button |
 | `onMap()` | Shows «← Мапа» in the bar over the game, to go back to the course |
 | `onNext()` | Shows «Далі →» in the result of a passed run, to open the next level |

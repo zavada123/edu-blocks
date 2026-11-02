@@ -7,6 +7,8 @@ import { type PythonMethod } from "../../core/python/api.ts";
 export interface CodeEditorApi {
     /** Puts a line of code at the cursor, on a line of its own with the indent of the line it lands on. */
     readonly insert: (code: string) => void;
+    /** Puts `code` in place of all the text, as one change the student can undo. */
+    readonly replace: (code: string) => void;
 }
 export declare const CodeEditor: ({ initial, methods, large, runLine, errorLine, onChange, onReady }: {
     /** The program the editor opens with. Later changes of it are not applied: the student's text stays. */
