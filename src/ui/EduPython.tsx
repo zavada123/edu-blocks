@@ -32,6 +32,8 @@ export interface PythonReport {
   readonly source: string
   readonly firstTry: boolean
   readonly xp: number
+  /** Coins of this run (`coinsFor`). Like XP, the student gets only the part above the best earlier run. */
+  readonly coins: number
 }
 
 export interface EduPythonProps extends GameNavigation {
@@ -80,7 +82,7 @@ type Phase =
   | { readonly kind: "running" }
   | { readonly kind: "done"; readonly result: RunResult; readonly reward: Reward }
 
-export const EduPython = ({ level, skin = "ninja", large = false, source, speed = 400, xp, onComplete, onSourceChange, onMap, onNext, progress, onSkinChange }: EduPythonProps) => {
+export const EduPython = ({ level, skin = "ninja", large = false, source, speed = 400, xp, onComplete, onSourceChange, onMap, onNext, progress, onSkinChange, coins, ownedHeroes, onBuyHero }: EduPythonProps) => {
   const { fields, index: fieldIndex, setIndex: setFieldIndex, runs, setRuns, field, start } = useFields(level)
   const methods = useMemo(() => pythonMethodsOf(level.blocks), [level])
   const snippets = useMemo(() => snippetsOf(level, methods), [level, methods])
@@ -114,17 +116,17 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
     const result = combineFields(fieldRuns)
     const firstTry = failedRef.current === 0
     if (!result.passed) failedRef.current += 1
-    const { runXp, reward } = rewardOf(level, result, firstTry, xp)
+    const { runXp, runCoins, reward } = rewardOf(level, result, firstTry, xp, coins)
     onEndRef.current = () => {
       setPhase({ kind: "done", result, reward })
       setVerdictOpen(true)
-      onComplete?.({ levelId: level.id, passed: result.passed, stars: result.stars, size: result.blocks, reason: result.reason, source: code, firstTry, xp: runXp })
+      onComplete?.({ levelId: level.id, passed: result.passed, stars: result.stars, size: result.blocks, reason: result.reason, source: code, firstTry, xp: runXp, coins: runCoins })
     }
     setRuns(fieldRuns)
     setFieldIndex(result.field ?? 0)
     setResult(result)
     restart(result.frames.length)
-  }, [level, onComplete, reset, restart, setFieldIndex, setRuns, xp])
+  }, [level, onComplete, reset, restart, setFieldIndex, setRuns, xp, coins])
 
   // A field tab: before a run it shows the field, after a run it plays the run on that field.
   const pickField = useCallback(
@@ -151,8 +153,10 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
   }, [])
   const onChange = useCallback((code: string) => onSourceChange?.(code), [onSourceChange])
 
-  const navigation = { onMap, progress, onSkinChange }
+  const navigation = { onMap, progress, onSkinChange, ownedHeroes, onBuyHero }
   const xpTotal = phase.kind === "done" && phase.reward.total !== null ? phase.reward.total : xp?.total
+  // The app counts the coins: after a run it adds the gain, after a purchase it takes the price.
+  const coinsTotal = coins?.total
   return (
     <GameScreen
       rootRef={rootRef}
@@ -166,6 +170,7 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
       editing={phase.kind === "edit"}
       full={full}
       xpTotal={xpTotal}
+      coinsTotal={coinsTotal}
       navigation={navigation}
       editorTitle="Код героя"
       fields={

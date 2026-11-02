@@ -11,6 +11,11 @@ export interface Reward {
     readonly firstTry: boolean;
     /** The hero's XP after the run, when the app told it. */
     readonly total: number | null;
+    /** The coins the run added and the coins after it, when the app keeps coins. */
+    readonly coins: {
+        readonly gain: number;
+        readonly total: number;
+    } | null;
 }
 /** The hero's XP before the run, from the app: the result then shows the gain and the hero level. */
 export interface HeroXp {
@@ -19,11 +24,21 @@ export interface HeroXp {
     /** The best XP of this level so far. */
     readonly best: number;
 }
-/** The XP of a run and what the hero gets of it. */
-export declare const rewardOf: (level: Level, result: RunResult, firstTry: boolean, xp: HeroXp | undefined) => {
+/** The student's coins before the run, from the app: the result then shows the coins the run added. */
+export interface HeroCoins {
+    /** The coins the student has now. */
+    readonly total: number;
+    /** The coins of the best run of this level so far (`coinsFor` of its stars). */
+    readonly best: number;
+}
+/** The XP and coins of a run and what the hero gets of them. */
+export declare const rewardOf: (level: Level, result: RunResult, firstTry: boolean, xp: HeroXp | undefined, coins?: HeroCoins) => {
     readonly runXp: number;
+    readonly runCoins: number;
     readonly reward: Reward;
 };
+/** «монета», «монети» or «монет» for a number, as Ukrainian says it. */
+export declare const coinWord: (n: number) => string;
 /** The result over the field: stars and XP for a pass, what went wrong and a hint for a fail. */
 export declare const Verdict: ({ level, result, reward, advice, language, onClose, onNext }: {
     readonly level: Level;

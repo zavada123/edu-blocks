@@ -2,6 +2,7 @@ import type { Level } from "../core/level.ts"
 import { heroLevelOf } from "../core/xp.ts"
 import { chapterOf, chapters } from "../levels/chapters.ts"
 import { HEROES } from "../core/heroes.ts"
+import { Coin } from "./Coin.tsx"
 import { heroSheetOf, type Skin } from "./stage/draw.ts"
 
 /** Stars of the levels the student has passed, by level id. The app knows them; the bar shows the chapter's. */
@@ -25,8 +26,18 @@ const ChapterLevels = ({ ids, current, progress }: { readonly ids: ReadonlyArray
   )
 }
 
-/** The hero's portrait, level and XP to the next level. */
-const HeroBadge = ({ skin, total, onPickHero }: { readonly skin: Skin; readonly total: number; readonly onPickHero: (() => void) | undefined }) => {
+/** The hero's portrait, level and XP to the next level, and the coins when the app keeps them. */
+const HeroBadge = ({
+  skin,
+  total,
+  coins,
+  onPickHero
+}: {
+  readonly skin: Skin
+  readonly total: number
+  readonly coins: number | undefined
+  readonly onPickHero: (() => void) | undefined
+}) => {
   const hero = heroLevelOf(total)
   const share = hero.next === null ? 1 : (total - hero.from) / (hero.next - hero.from)
   const name = HEROES.find((h) => h.id === skin)?.name ?? ""
@@ -61,6 +72,11 @@ const HeroBadge = ({ skin, total, onPickHero }: { readonly skin: Skin; readonly 
           <span style={{ width: `${Math.round(share * 100)}%` }} />
         </div>
       </div>
+      {coins !== undefined && (
+        <p className="eb-hud-coins" aria-label={`Монет: ${coins}`}>
+          <Coin /> {coins}
+        </p>
+      )}
     </div>
   )
 }
@@ -73,6 +89,7 @@ export const Hud = ({
   level,
   skin,
   xpTotal,
+  coinsTotal,
   progress,
   onMap,
   onPickHero
@@ -81,6 +98,8 @@ export const Hud = ({
   readonly skin: Skin
   /** The hero's XP; without it the hero part is not shown. */
   readonly xpTotal: number | undefined
+  /** The student's coins; without them no coins are shown. */
+  readonly coinsTotal: number | undefined
   readonly progress: Progress
   readonly onMap: (() => void) | undefined
   /** Opens the choice of the hero; without it the portrait is only a picture. */
@@ -99,7 +118,7 @@ export const Hud = ({
         <p className="eb-hud-title">{chapter === undefined ? "Завдання" : `Глава ${number} · ${chapter.title}`}</p>
         {chapter !== undefined && <ChapterLevels ids={chapter.levels} current={level.id} progress={progress} />}
       </div>
-      {xpTotal !== undefined && <HeroBadge skin={skin} total={xpTotal} onPickHero={onPickHero} />}
+      {xpTotal !== undefined && <HeroBadge skin={skin} total={xpTotal} coins={coinsTotal} onPickHero={onPickHero} />}
     </header>
   )
 }

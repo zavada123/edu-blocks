@@ -1,6 +1,8 @@
+import { coinGain, coinsFor } from "../core/coins.ts"
 import type { Level } from "../core/level.ts"
 import type { FailReason, RunResult } from "../core/program.ts"
 import { heroLevelOf, xpFor, xpGain } from "../core/xp.ts"
+import { Coin } from "./Coin.tsx"
 
 /** The result of a run for the student: stars, XP, what went wrong and what to try. Shared by blocks and Python. */
 
@@ -35,6 +37,8 @@ export interface Reward {
   readonly firstTry: boolean
   /** The hero's XP after the run, when the app told it. */
   readonly total: number | null
+  /** The coins the run added and the coins after it, when the app keeps coins. */
+  readonly coins: { readonly gain: number; readonly total: number } | null
 }
 
 /** The hero's XP before the run, from the app: the result then shows the gain and the hero level. */
@@ -45,11 +49,54 @@ export interface HeroXp {
   readonly best: number
 }
 
-/** The XP of a run and what the hero gets of it. */
-export const rewardOf = (level: Level, result: RunResult, firstTry: boolean, xp: HeroXp | undefined): { readonly runXp: number; readonly reward: Reward } => {
-  const runXp = xpFor(level.tier ?? "intro", { stars: result.stars, firstTry })
+/** The student's coins before the run, from the app: the result then shows the coins the run added. */
+export interface HeroCoins {
+  /** The coins the student has now. */
+  readonly total: number
+  /** The coins of the best run of this level so far (`coinsFor` of its stars). */
+  readonly best: number
+}
+
+/** The XP and coins of a run and what the hero gets of them. */
+export const rewardOf = (
+  level: Level,
+  result: RunResult,
+  firstTry: boolean,
+  xp: HeroXp | undefined,
+  coins?: HeroCoins
+): { readonly runXp: number; readonly runCoins: number; readonly reward: Reward } => {
+  const tier = level.tier ?? "intro"
+  const runXp = xpFor(tier, { stars: result.stars, firstTry })
   const gain = xpGain(runXp, xp?.best ?? 0)
-  return { runXp, reward: { gain, firstTry, total: xp === undefined ? null : xp.total + gain } }
+  const runCoins = result.passed ? coinsFor(tier, result.stars) : 0
+  const coinsGained = coinGain(runCoins, coins?.best ?? 0)
+  return {
+    runXp,
+    runCoins,
+    reward: {
+      gain,
+      firstTry,
+      total: xp === undefined ? null : xp.total + gain,
+      coins: coins === undefined ? null : { gain: coinsGained, total: coins.total + coinsGained }
+    }
+  }
+}
+
+/** The coins a passed run added, when the app keeps coins and the run beat the best one. */
+const CoinLine = ({ reward }: { readonly reward: Reward }) =>
+  reward.coins === null || reward.coins.gain === 0 ? null : (
+    <p className="eb-coins-won">
+      <Coin /> <strong>+{reward.coins.gain} {coinWord(reward.coins.gain)}</strong> · у тебе {reward.coins.total}
+    </p>
+  )
+
+/** «монета», «монети» or «монет» for a number, as Ukrainian says it. */
+export const coinWord = (n: number): string => {
+  const last = n % 10
+  const tens = n % 100
+  if (last === 1 && tens !== 11) return "монета"
+  if (last >= 2 && last <= 4 && (tens < 12 || tens > 14)) return "монети"
+  return "монет"
 }
 
 const Stars = ({ count }: { readonly count: number }) => (
@@ -144,6 +191,7 @@ export const Verdict = ({
             <Advice tips={advice} />
           )}
           <XpLine reward={reward} />
+          <CoinLine reward={reward} />
           <div className="eb-verdict-actions">
             <button type="button" className="eb-btn" onClick={onClose} autoFocus={onNext === undefined}>
               Ще раз

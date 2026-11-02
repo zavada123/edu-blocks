@@ -1,4 +1,5 @@
 import { type ReactNode, type Ref, useState } from "react"
+import type { HeroId } from "../core/heroes.ts"
 import type { Level } from "../core/level.ts"
 import type { RunResult } from "../core/program.ts"
 import type { World } from "../core/world.ts"
@@ -9,10 +10,11 @@ import { Hud, type Progress } from "./Hud.tsx"
 import { Quest } from "./Quest.tsx"
 import { type Skin, Stage } from "./stage/Stage.tsx"
 import { Timeline, type usePlayer } from "./Timeline.tsx"
+import type { HeroCoins } from "./Verdict.tsx"
 import "./theme.css"
 import "./blocks.css"
 
-/** What the app can add around a level: the way to the map, the next level and the stars of passed levels. */
+/** What the app can add around a level: the way to the map, the next level, the stars of passed levels, the coins and the shop. */
 export interface GameNavigation {
   /** «← Мапа» over the game: back to the course. */
   readonly onMap?: () => void
@@ -25,6 +27,15 @@ export interface GameNavigation {
    * hero level has opened; the app keeps the choice and gives it back as `skin`.
    */
   readonly onSkinChange?: (skin: Skin) => void
+  /** The student's coins: the bar shows them and a passed run shows what it added. The app counts them (`walletOf`). */
+  readonly coins?: HeroCoins
+  /** The heroes the student bought. Heroes with a price open only when bought. */
+  readonly ownedHeroes?: ReadonlyArray<HeroId>
+  /**
+   * The student buys a hero for its price. With it the choice of the hero is also a shop; the app keeps the purchase
+   * and gives back fewer `coins` and more `ownedHeroes`. Without it heroes with a price are not offered.
+   */
+  readonly onBuyHero?: (hero: HeroId) => void
 }
 
 /**
@@ -43,6 +54,7 @@ export const GameScreen = ({
   editing,
   full,
   xpTotal,
+  coinsTotal,
   navigation,
   editorTitle,
   fields,
@@ -64,10 +76,14 @@ export const GameScreen = ({
   readonly editing: boolean
   readonly full: boolean
   readonly xpTotal: number | undefined
+  /** The student's coins; without them the bar shows none. */
+  readonly coinsTotal: number | undefined
   readonly navigation: {
     readonly onMap: (() => void) | undefined
     readonly progress: Progress | undefined
     readonly onSkinChange: ((skin: Skin) => void) | undefined
+    readonly ownedHeroes: ReadonlyArray<HeroId> | undefined
+    readonly onBuyHero: ((hero: HeroId) => void) | undefined
   }
   readonly editorTitle: string
   /** The tabs of a level with several fields; null for one field. */
@@ -81,7 +97,7 @@ export const GameScreen = ({
   readonly children: ReactNode
 }) => {
   const [picking, setPicking] = useState(false)
-  const { onSkinChange, onMap } = navigation
+  const { onSkinChange, onMap, ownedHeroes, onBuyHero } = navigation
   // The map is on the page: the game leaves full screen first.
   const toMap =
     onMap === undefined
@@ -98,6 +114,7 @@ export const GameScreen = ({
         level={level}
         skin={skin}
         xpTotal={xpTotal}
+        coinsTotal={coinsTotal}
         progress={navigation.progress ?? {}}
         onMap={toMap}
         onPickHero={onSkinChange === undefined ? undefined : () => setPicking(true)}
@@ -136,7 +153,14 @@ export const GameScreen = ({
         {children}
       </div>
       {picking && onSkinChange !== undefined && (
-        <HeroPicker skin={skin} heroLevel={heroLevelOf(xpTotal ?? 0).level} onPick={onSkinChange} onClose={() => setPicking(false)} />
+        <HeroPicker
+          skin={skin}
+          heroLevel={heroLevelOf(xpTotal ?? 0).level}
+          owned={ownedHeroes ?? []}
+          shop={onBuyHero === undefined ? null : { coins: coinsTotal ?? 0, onBuy: onBuyHero }}
+          onPick={onSkinChange}
+          onClose={() => setPicking(false)}
+        />
       )}
     </div>
   )

@@ -7,9 +7,15 @@ import fireStrip from "../sprites/fire.png"
 import flagStrip from "../sprites/flag.png"
 import grandmaSheet from "../sprites/grandma.png"
 import heartSheet from "../sprites/heart.png"
+import cavegirlSheet from "../sprites/cavegirl.png"
+import eskimoSheet from "../sprites/eskimo.png"
+import knightGoldSheet from "../sprites/knight-gold.png"
+import knightSheet from "../sprites/knight.png"
 import ninjaSheet from "../sprites/ninja.png"
 import robotSheet from "../sprites/robot.png"
 import roverSheet from "../sprites/rover.png"
+import samuraiSheet from "../sprites/samurai.png"
+import womanSheet from "../sprites/woman.png"
 import slashStrip from "../sprites/slash.png"
 import smokeStrip from "../sprites/smoke.png"
 import wellTile from "../sprites/well.png"
@@ -39,7 +45,13 @@ const SHEETS: Readonly<Record<Skin, { readonly href: string; readonly rows: numb
   ninja: { href: ninjaSheet, rows: 7 },
   robot: { href: robotSheet, rows: 7 },
   rover: { href: roverSheet, rows: 7 },
-  bee: { href: beeSheet, rows: 4 }
+  bee: { href: beeSheet, rows: 4 },
+  knight: { href: knightSheet, rows: 7 },
+  eskimo: { href: eskimoSheet, rows: 7 },
+  cavegirl: { href: cavegirlSheet, rows: 7 },
+  woman: { href: womanSheet, rows: 7 },
+  samurai: { href: samuraiSheet, rows: 7 },
+  "knight-gold": { href: knightGoldSheet, rows: 7 }
 }
 
 /** The sheet of a hero look: its first frame is the hero facing down, for a portrait. */
