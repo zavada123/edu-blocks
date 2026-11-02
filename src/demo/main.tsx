@@ -24,6 +24,7 @@ import { EduPython, type PythonReport } from "../ui/EduPython.tsx"
 import type { Skin } from "../ui/stage/Stage.tsx"
 import "./demo.css"
 import { farmMockup } from "./farm-mockup.ts"
+import { tilemapFor } from "../core/tilemap.ts"
 
 // `?level=g4-if&solve` opens a level with its reference solution: for screenshots and for teachers.
 const params = new URLSearchParams(location.search)
@@ -35,8 +36,11 @@ type Language = "blocks" | "python"
 /** The value of the level choice that opens the estate instead of a level. `?level=estate` opens it. */
 const ESTATE = "estate"
 
-/** Levels of the demo that are not in the course: the farm mockup. */
-const extraLevels = [farmMockup]
+/** Levels of the demo that are not in the course: the farm mockup, with the coop bought so that it shows. */
+const farmTiles = farmMockup.scene?.tilemap
+const extraLevels = [
+  farmTiles === undefined ? farmMockup : { ...farmMockup, scene: { ...farmMockup.scene, tilemap: tilemapFor(farmTiles, new Set(["coop"])) } }
+]
 
 const firstLevel = [...levels, ...extraLevels].find((l) => l.id === params.get("level")) ?? levels[0]
 if (!firstLevel) throw new Error("Немає жодного рівня")

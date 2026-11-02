@@ -25,9 +25,21 @@ export const layerTiles = (map: TileMap, layer: TileLayer): ReadonlyArray<Placed
   return tiles
 }
 
-/** The tiles of every layer of a kind, in layer order. */
-export const tilesOfKind = (map: TileMap, kind: TileLayerKind): ReadonlyArray<PlacedTile> =>
-  map.layers.filter((l) => l.kind === kind).flatMap((l) => layerTiles(map, l))
+/**
+ * The tiles of every layer of a kind, in layer order. A layer that waits for an upgrade (`when`) is left out unless
+ * `waiting` is set: the field shows it only after `tilemapFor`.
+ */
+export const tilesOfKind = (map: TileMap, kind: TileLayerKind, waiting = false): ReadonlyArray<PlacedTile> =>
+  map.layers.filter((l) => l.kind === kind && (waiting || l.when === undefined)).flatMap((l) => layerTiles(map, l))
+
+/**
+ * The map as the student sees it with these upgrades: a layer that waits for an upgrade stays (as an ordinary layer)
+ * when the upgrade is bought and goes away when it is not.
+ */
+export const tilemapFor = (map: TileMap, upgrades: ReadonlySet<string>): TileMap => ({
+  ...map,
+  layers: map.layers.flatMap(({ when, ...layer }) => (when === undefined || upgrades.has(when) ? [layer] : []))
+})
 
 /** The cells the map covers, in level coordinates: the field shows exactly these. */
 export const tilemapView = (map: TileMap): { readonly x: number; readonly y: number; readonly width: number; readonly height: number } => ({
@@ -56,7 +68,8 @@ export const tilemapIssues = (level: Level): ReadonlyArray<{ readonly level: "er
   const view = tilemapView(map)
   if (view.x > 0 || view.y > 0 || view.x + view.width < world.width || view.y + view.height < world.height)
     issues.push({ level: "warning", text: "Карта плиток не вкриває всю мапу рівня: частину поля не буде намальовано" })
-  const blocked = tilesOfKind(map, "objects").filter((t) => {
+  // A layer bought later stands there too, so it is checked as well.
+  const blocked = tilesOfKind(map, "objects", true).filter((t) => {
     const inside = t.x >= 0 && t.y >= 0 && t.x < world.width && t.y < world.height
     return inside && !world.walls.has(cellKey(t.x, t.y))
   })

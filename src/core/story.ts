@@ -61,7 +61,9 @@ const hasHouse = (level: Level): boolean => {
   return (
     (scene.props ?? []).some((p) => p.kind === "house") ||
     (scene.sprites ?? []).some((s) => HOUSE_ASSET.test(s.asset)) ||
-    (scene.finish === "home" && scene.finishLook !== undefined && HOUSE_ASSET.test(scene.finishLook))
+    (scene.finish === "home" && scene.finishLook !== undefined && HOUSE_ASSET.test(scene.finishLook)) ||
+    // A hand-drawn map can hold anything, a house too: the text is not checked against its tiles.
+    scene.tilemap !== undefined
   )
 }
 

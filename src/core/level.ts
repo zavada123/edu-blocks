@@ -111,6 +111,11 @@ export interface TileLayer {
    * counted left to right and top to bottom, as Tiled numbers them with the first gid 1.
    */
   readonly data: ReadonlyArray<number>
+  /**
+   * An upgrade of the estate the layer waits for, as `"coop"`: the layer shows only once it is bought. The field draws
+   * a waiting layer only after `tilemapFor` keeps it for the upgrades the student has.
+   */
+  readonly when?: string
 }
 
 /**
