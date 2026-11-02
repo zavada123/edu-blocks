@@ -2,6 +2,9 @@ import type { ItemKind, NpcKind, Prop, PropKind, Scene } from "../core/level.ts"
 import { cellKey, type EnemyKind } from "../core/world.ts"
 import type { Decor, Obstacle } from "./scenery.ts"
 import appleTile from "./sprites/apple.png"
+import appleTreeImage from "./sprites/apple-tree.png"
+import carrotTile from "./sprites/carrot.png"
+import eggTile from "./sprites/egg.png"
 import bloomOrangeStrip from "./sprites/bloom-orange.png"
 import bloomWhiteStrip from "./sprites/bloom-white.png"
 import bridgeTile from "./sprites/bridge.png"
@@ -166,12 +169,15 @@ export const ITEM_TILES: Readonly<Record<ItemKind, string>> = {
   apple: appleTile,
   fish: fishTile,
   key: keyImage,
-  campfire: woodTile
+  campfire: woodTile,
+  carrot: carrotTile,
+  egg: eggTile
 }
 
 export const PROPS: Readonly<Record<PropKind, { readonly href: string; readonly width: number; readonly height: number }>> = {
   house: { href: houseImage, width: 4, height: 3 },
-  woodshed: { href: woodshedImage, width: 3, height: 2 }
+  woodshed: { href: woodshedImage, width: 3, height: 2 },
+  appleTree: { href: appleTreeImage, width: 1.5, height: 1.5 }
 }
 
 /** Character sheets of the villagers: 64×112, a column per direction, as the hero sheets. */

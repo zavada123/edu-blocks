@@ -16,7 +16,9 @@ const ITEM_WORDS: Readonly<Record<ItemKind, RegExp>> = {
   apple: stems("яблук", "яблуч"),
   fish: stems("риб"),
   key: stems("ключ"),
-  campfire: stems("вогнищ", "багатт")
+  campfire: stems("вогнищ", "багатт"),
+  carrot: stems("морк"),
+  egg: stems("яйц", "яєц", "яйце")
 }
 
 const ITEM_NAMES: Readonly<Record<ItemKind, string>> = {
@@ -25,7 +27,9 @@ const ITEM_NAMES: Readonly<Record<ItemKind, string>> = {
   apple: "яблука",
   fish: "риба",
   key: "ключ",
-  campfire: "вогнища"
+  campfire: "вогнища",
+  carrot: "морква",
+  egg: "яйця"
 }
 
 const FINISH_WORDS: Readonly<Record<Exclude<FinishKind, "home">, RegExp>> = {

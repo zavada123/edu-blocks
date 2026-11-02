@@ -1,4 +1,5 @@
 import { coinGain, coinsFor } from "../core/coins.ts"
+import { type EstateDay, FULL_DAY_COINS, type Harvest } from "../core/estate.ts"
 import type { Level } from "../core/level.ts"
 import type { FailReason, RunResult } from "../core/program.ts"
 import { heroLevelOf, xpFor, xpGain } from "../core/xp.ts"
@@ -39,6 +40,15 @@ export interface Reward {
   readonly total: number | null
   /** The coins the run added and the coins after it, when the app keeps coins. */
   readonly coins: { readonly gain: number; readonly total: number } | null
+  /** On a day of the estate: what the run gathered. The result then shows it instead of stars and XP. */
+  readonly harvest: Harvest | null
+}
+
+/** A day of the estate, from the app: the day (`estateDay`) and the coins of its best run so far. */
+export interface EstateRun {
+  readonly day: EstateDay
+  /** The coins of the best run of this day: a run pays only the part above them, like a replayed level. */
+  readonly best: number
 }
 
 /** The hero's XP before the run, from the app: the result then shows the gain and the hero level. */
@@ -77,9 +87,66 @@ export const rewardOf = (
       gain,
       firstTry,
       total: xp === undefined ? null : xp.total + gain,
-      coins: coins === undefined ? null : { gain: coinsGained, total: coins.total + coinsGained }
+      coins: coins === undefined ? null : { gain: coinsGained, total: coins.total + coinsGained },
+      harvest: null
     }
   }
+}
+
+/** The reward of a run on a day of the estate: no XP, the coins of the harvest above the best run of the day. */
+export const harvestRewardOf = (
+  harvest: Harvest,
+  estate: EstateRun,
+  firstTry: boolean,
+  xp: HeroXp | undefined,
+  coins: HeroCoins | undefined
+): { readonly runXp: number; readonly runCoins: number; readonly reward: Reward } => {
+  const gain = coinGain(harvest.coins, estate.best)
+  return {
+    runXp: 0,
+    runCoins: harvest.coins,
+    reward: { gain: 0, firstTry, total: xp?.total ?? null, coins: { gain, total: (coins?.total ?? 0) + gain }, harvest }
+  }
+}
+
+/** «3 яблука», «1 морквина», «5 яєць». */
+const countOf = (n: number, forms: readonly [string, string, string]): string => {
+  const last = n % 10
+  const tens = n % 100
+  const form = last === 1 && tens !== 11 ? forms[0] : last >= 2 && last <= 4 && (tens < 12 || tens > 14) ? forms[1] : forms[2]
+  return `${n} ${form}`
+}
+
+/** What the hero gathered, as a sentence part: «3 яблука, 2 морквини і 1 яйце». */
+export const harvestText = (harvest: Harvest): string => {
+  const parts = [
+    harvest.apple > 0 ? countOf(harvest.apple, ["яблуко", "яблука", "яблук"]) : "",
+    harvest.carrot > 0 ? countOf(harvest.carrot, ["морквину", "морквини", "морквин"]) : "",
+    harvest.egg > 0 ? countOf(harvest.egg, ["яйце", "яйця", "яєць"]) : ""
+  ].filter((p) => p !== "")
+  if (parts.length === 0) return "нічого"
+  return parts.length === 1 ? (parts[0] ?? "") : `${parts.slice(0, -1).join(", ")} і ${parts.at(-1) ?? ""}`
+}
+
+/** The harvest of a day and its coins, in a passed or a failed run. */
+const HarvestLine = ({ reward }: { readonly reward: Reward }) => {
+  if (reward.harvest === null) return null
+  const coins = reward.coins
+  return (
+    <>
+      <p className="eb-harvest">
+        Зібрано: <strong>{harvestText(reward.harvest)}</strong>.{reward.harvest.full ? ` Повний день: +${FULL_DAY_COINS}.` : ""}
+      </p>
+      {coins !== null &&
+        (coins.gain > 0 ? (
+          <p className="eb-coins-won">
+            <Coin /> <strong>+{coins.gain} {coinWord(coins.gain)}</strong> · у тебе {coins.total}
+          </p>
+        ) : (
+          <p className="eb-harvest-note">Це не більше, ніж найкращий запуск цього дня: монет не додано.</p>
+        ))}
+    </>
+  )
 }
 
 /** The coins a passed run added, when the app keeps coins and the run beat the best one. */
@@ -175,6 +242,7 @@ export const Verdict = ({
   /** «Далі»: the app opens the next level. */
   readonly onNext: (() => void) | undefined
 }) => {
+  if (reward.harvest !== null) return <HarvestVerdict result={result} reward={reward} language={language} onClose={onClose} onNext={onNext} />
   if (result.passed) {
     const size = language === "python" ? `Розмір програми: ${result.blocks}.` : `Блоків: ${result.blocks}.`
     return (
@@ -226,3 +294,42 @@ export const Verdict = ({
     </div>
   )
 }
+
+/** The result of a day of the estate: the harvest and its coins instead of stars and XP; «Далі» starts a new day. */
+const HarvestVerdict = ({
+  result,
+  reward,
+  language,
+  onClose,
+  onNext
+}: {
+  readonly result: RunResult
+  readonly reward: Reward
+  readonly language: Language
+  readonly onClose: () => void
+  readonly onNext: (() => void) | undefined
+}) => (
+  <div className="eb-verdict-layer">
+    <div
+      className={`eb-verdict ${result.passed ? "eb-verdict-ok" : "eb-verdict-fail"} eb-frame eb-parchment`}
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="eb-verdict-title"
+    >
+      <h3 id="eb-verdict-title">{result.passed ? "День завершено!" : "Зібрано не все"}</h3>
+      {!result.passed && <p>{failText(result, language)}</p>}
+      <HarvestLine reward={reward} />
+      {!result.passed && <p className="eb-hint">Зміни програму і запусти ще раз: заплатять лише за те, що понад найкращий запуск.</p>}
+      <div className="eb-verdict-actions">
+        <button type="button" className={result.passed ? "eb-btn" : "eb-btn eb-btn-gold"} onClick={onClose} autoFocus={onNext === undefined}>
+          {result.passed ? "Ще раз" : "Спробувати ще"}
+        </button>
+        {onNext !== undefined && (
+          <button type="button" className="eb-btn eb-btn-go" onClick={onNext} autoFocus>
+            Новий день →
+          </button>
+        )}
+      </div>
+    </div>
+  </div>
+)

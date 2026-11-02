@@ -1,8 +1,9 @@
 import type { Level } from "../core/level.ts";
+import { type Harvest } from "../core/estate.ts";
 import type { FailReason, Program } from "../core/program.ts";
 import { type GameNavigation } from "./GameScreen.tsx";
 import type { Skin } from "./stage/Stage.tsx";
-import { type HeroXp } from "./Verdict.tsx";
+import { type EstateRun, type HeroXp } from "./Verdict.tsx";
 /** What the trainer gives the app after each run. The server runs `program` again before it trusts `passed`. */
 export interface BlocksReport {
     readonly levelId: string;
@@ -15,8 +16,10 @@ export interface BlocksReport {
     readonly firstTry: boolean;
     /** XP of this run (`xpFor`). The hero gets only the part above the best earlier run. */
     readonly xp: number;
-    /** Coins of this run (`coinsFor`). Like XP, the student gets only the part above the best earlier run. */
+    /** Coins of this run (`coinsFor`, or the harvest on a day of the estate). Like XP, the student gets only the part above the best earlier run. */
     readonly coins: number;
+    /** On a day of the estate: what the run gathered (`estateHarvest`). */
+    readonly harvest: Harvest | null;
 }
 export type { HeroXp } from "./Verdict.tsx";
 export interface EduBlocksProps extends GameNavigation {
@@ -31,8 +34,10 @@ export interface EduBlocksProps extends GameNavigation {
     /** Milliseconds per hero action in the animation at the normal speed (×1). */
     readonly speed?: number;
     readonly xp?: HeroXp;
+    /** A day of the estate: `level` is its level, and the result shows the harvest instead of stars and XP. */
+    readonly estate?: EstateRun;
     readonly onComplete?: (report: BlocksReport) => void;
     /** After each change of the blocks, with the program as it is now. An app that has its own check button sends it. */
     readonly onProgramChange?: (program: Program) => void;
 }
-export declare const EduBlocks: ({ level, skin, large, program, media, speed, xp, onComplete, onProgramChange, onMap, onNext, progress, onSkinChange, coins, ownedHeroes, onBuyHero }: EduBlocksProps) => import("react").JSX.Element;
+export declare const EduBlocks: ({ level, skin, large, program, media, speed, xp, estate, onComplete, onProgramChange, onMap, onNext, progress, onSkinChange, coins, ownedHeroes, onBuyHero }: EduBlocksProps) => import("react").JSX.Element;

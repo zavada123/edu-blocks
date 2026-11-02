@@ -48,8 +48,11 @@ const TILE_TOOLS: ReadonlyArray<{ readonly tool: MapTile; readonly name: string 
 
 const PROP_TOOLS: ReadonlyArray<{ readonly tool: PropKind; readonly name: string }> = [
   { tool: "house", name: "Хата" },
-  { tool: "woodshed", name: "Дровітня" }
+  { tool: "woodshed", name: "Дровітня" },
+  { tool: "appleTree", name: "Яблуня" }
 ]
+
+const isPropTool = (tool: Tool): tool is PropKind => PROP_TOOLS.some((p) => p.tool === tool)
 
 const PEOPLE: ReadonlyArray<{ readonly id: NpcKind; readonly name: string }> = [
   { id: "grandpa", name: "Дід" },
@@ -91,7 +94,9 @@ const ITEMS: ReadonlyArray<{ readonly id: ItemKind; readonly name: string }> = [
   { id: "apple", name: "Яблука" },
   { id: "fish", name: "Риба" },
   { id: "key", name: "Ключ" },
-  { id: "campfire", name: "Вогнища" }
+  { id: "campfire", name: "Вогнища" },
+  { id: "carrot", name: "Морква" },
+  { id: "egg", name: "Яйця" }
 ]
 
 const FINISHES: ReadonlyArray<{ readonly id: FinishKind; readonly name: string }> = [
@@ -166,7 +171,7 @@ const Icon = ({ tool, item, who, monster }: { readonly tool: Tool; readonly item
       ? bushTile
       : tool === "item"
         ? ITEM_TILES[item]
-        : tool === "house" || tool === "woodshed"
+        : isPropTool(tool)
           ? PROPS[tool].href
           : null
   return href === null ? null : <img className="ed-icon" src={href} alt="" />
@@ -228,7 +233,7 @@ const brushOf = (tool: Tool, who: NpcKind, monster: EnemyKind): Brush => {
   if (tool === "erase") return { kind: "erase" }
   if (tool === "npc") return { kind: "npc", who }
   if (tool === "enemy") return { kind: "enemy", monster }
-  if (tool === "house" || tool === "woodshed") return { kind: "prop", prop: tool }
+  if (isPropTool(tool)) return { kind: "prop", prop: tool }
   return { kind: "tile", tile: tool }
 }
 

@@ -1,8 +1,9 @@
+import { type Harvest } from "../core/estate.ts";
 import type { Level } from "../core/level.ts";
 import type { FailReason } from "../core/program.ts";
 import { type GameNavigation } from "./GameScreen.tsx";
 import type { Skin } from "./stage/Stage.tsx";
-import { type HeroXp } from "./Verdict.tsx";
+import { type EstateRun, type HeroXp } from "./Verdict.tsx";
 import "./python.css";
 /**
  * The game with Python code instead of blocks, as in Tynker or CodeCombat: the field on one side, the code on the
@@ -19,8 +20,10 @@ export interface PythonReport {
     readonly source: string;
     readonly firstTry: boolean;
     readonly xp: number;
-    /** Coins of this run (`coinsFor`). Like XP, the student gets only the part above the best earlier run. */
+    /** Coins of this run (`coinsFor`, or the harvest on a day of the estate). Like XP, the student gets only the part above the best earlier run. */
     readonly coins: number;
+    /** On a day of the estate: what the run gathered (`estateHarvest`). */
+    readonly harvest: Harvest | null;
 }
 export interface EduPythonProps extends GameNavigation {
     readonly level: Level;
@@ -32,10 +35,12 @@ export interface EduPythonProps extends GameNavigation {
     /** Milliseconds per hero action in the animation at the normal speed (×1). */
     readonly speed?: number;
     readonly xp?: HeroXp;
+    /** A day of the estate: `level` is its level, and the result shows the harvest instead of stars and XP. */
+    readonly estate?: EstateRun;
     readonly onComplete?: (report: PythonReport) => void;
     /** After each change of the code. */
     readonly onSourceChange?: (source: string) => void;
 }
 /** The code a level opens with when there is no saved program. */
 export declare const starterSource: () => string;
-export declare const EduPython: ({ level, skin, large, source, speed, xp, onComplete, onSourceChange, onMap, onNext, progress, onSkinChange, coins, ownedHeroes, onBuyHero }: EduPythonProps) => import("react").JSX.Element;
+export declare const EduPython: ({ level, skin, large, source, speed, xp, estate, onComplete, onSourceChange, onMap, onNext, progress, onSkinChange, coins, ownedHeroes, onBuyHero }: EduPythonProps) => import("react").JSX.Element;

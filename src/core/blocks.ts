@@ -30,7 +30,9 @@ const COLLECT_TEXT: Readonly<Record<ItemKind, string>> = {
   apple: "взяти",
   key: "взяти",
   fish: "зловити",
-  campfire: "розпалити"
+  campfire: "розпалити",
+  carrot: "взяти",
+  egg: "взяти"
 }
 
 /** The words of the «взяти» block on a level with these items. */

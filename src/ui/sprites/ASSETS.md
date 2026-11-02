@@ -56,6 +56,9 @@
 | `samurai.png` | Герой з крамниці «Самурай» | 64×112 | 16×16 | 28 | actor/character/samurai |
 | `knight-gold.png` | Герой з крамниці «Золотий лицар» | 64×112 | 16×16 | 28 | actor/character/knight-gold |
 | `coin.png` | Монета: рахунок і ціни в крамниці | 10×10 | — | 1 | items/treasure/coin2.png, перший кадр |
+| `apple-tree.png` | Яблуня над стежкою Хутора (проп `appleTree`) | 32×32 | — | 1 | `tree.png` з домальованими яблуками |
+| `carrot.png` | Морква: предмет на грядці Хутора | 16×16 | — | 1 | Sunnyside `elements/crops/carrot.png`, кадр 4 (стигла) |
+| `egg.png` | Яйце: предмет біля курника | 16×16 | — | 1 | Sunnyside `elements/crops/egg.png` |
 | `snow-ball.png` | Сніжна куля: перешкода взимку | 16×16 | — | 1 | tileset 112,384 |
 | `snow-pine-small.png` | Маленька ялинка: перешкода взимку | 16×16 | — | 1 | tileset 96,400 |
 | `snow-rock.png` | Засніжений камінь: перешкода взимку | 16×16 | — | 1 | tileset 96,384 |

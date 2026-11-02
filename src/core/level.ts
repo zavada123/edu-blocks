@@ -31,11 +31,18 @@ export type BlockName =
 export type Goal = { readonly type: "crystals" } | { readonly type: "finish" } | { readonly type: "enemies" }
 
 /** What lies on the `c` cells and what `collect` takes. A campfire is not taken but lit. */
-export type ItemKind = "crystal" | "wood" | "apple" | "fish" | "key" | "campfire"
+export type ItemKind = "crystal" | "wood" | "apple" | "fish" | "key" | "campfire" | "carrot" | "egg"
+
+/** Another item on one `c` cell than the level's `item`: the carrots and eggs of the estate. */
+export interface ItemAt {
+  readonly x: number
+  readonly y: number
+  readonly item: ItemKind
+}
 /** What stands on the `F` cell. With «home» a house with its door above the cell stands nearby (a prop). */
 export type FinishKind = "flag" | "well" | "grandma" | "home"
 /** Pictures that stand on wall or meadow cells. Only looks: they never change where the hero can go. */
-export type PropKind = "house" | "woodshed"
+export type PropKind = "house" | "woodshed" | "appleTree"
 
 export interface Prop {
   readonly kind: PropKind
@@ -95,6 +102,11 @@ export interface Scene {
   /** The cells the hero walks on: a path, the ice of a pond or the planks of a bridge over water. */
   readonly ground?: "path" | "ice" | "bridge"
   readonly item?: ItemKind
+  /**
+   * What lies on some `c` cells instead of `item`. A level with more than one kind here lists every `c` cell, and
+   * its goal says «Збери врожай».
+   */
+  readonly itemsAt?: ReadonlyArray<ItemAt>
   readonly finish?: FinishKind
   readonly props?: ReadonlyArray<Prop>
   readonly npcs?: ReadonlyArray<Npc>
@@ -195,7 +207,16 @@ const ITEM_GOALS: Readonly<Record<ItemKind, (count: number) => string>> = {
   apple: (n) => `Збери яблука (${n})`,
   fish: (n) => `Злови всю рибу (${n})`,
   key: (n) => (n === 1 ? "Візьми ключ" : `Візьми ключі (${n})`),
-  campfire: (n) => `Розпали вогнища (${n})`
+  campfire: (n) => `Розпали вогнища (${n})`,
+  carrot: (n) => `Збери моркву (${n})`,
+  egg: (n) => (n === 1 ? "Візьми яйце" : `Збери яйця (${n})`)
+}
+
+/** The kind the goal names: the one kind of `itemsAt` when there is one, the level's `item` otherwise. */
+const goalItem = (scene: Scene): ItemKind | "harvest" => {
+  const kinds = new Set((scene.itemsAt ?? []).map((i) => i.item))
+  if (kinds.size > 1) return "harvest"
+  return [...kinds][0] ?? scene.item ?? "crystal"
 }
 
 const FINISH_GOALS: Readonly<Record<FinishKind, string>> = {
@@ -214,8 +235,10 @@ const enemiesGoal = (world: World): string => {
 
 export const describeGoal = (goal: Goal, world: World, scene: Scene = {}): string => {
   switch (goal.type) {
-    case "crystals":
-      return ITEM_GOALS[scene.item ?? "crystal"](world.totalCrystals)
+    case "crystals": {
+      const item = goalItem(scene)
+      return item === "harvest" ? `Збери врожай (${world.totalCrystals})` : ITEM_GOALS[item](world.totalCrystals)
+    }
     case "finish":
       return FINISH_GOALS[scene.finish ?? "flag"]
     case "enemies":
