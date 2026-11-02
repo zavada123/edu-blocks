@@ -375,6 +375,32 @@ enemies: [{ kind: "slime", x: 4, y: 1, look: "ninja-adventure:enemy/beast" }]
 
 A sprite has optional `clip`, `dir`, `layer` (`ground` lies under everything, `object` stands and hides what is behind it; tiles and animated terrain are ground by default) and `flip`. The field loads a pack when a level needs it, from `./packs/<pack>/manifest.json`; a site that keeps the packs elsewhere calls `setAssetBase(url)` from `edu-blocks/react` or `edu-blocks/python` once. `checkLevel` and the server check ignore pictures, so grading never depends on them.
 
+A sprite with `frame` shows one still frame (a stage of a growing crop, a hen standing still) instead of a clip.
+
+#### Hand-drawn tile maps
+
+A scene can carry a map drawn from a tileset, as in [Tiled](https://www.mapeditor.org/), in place of the meadow, trees and bushes the field adds on its own (`scene.tilemap`). Each layer is a list of tile numbers row by row: 0 is empty, tile n is cell n − 1 of the tileset (Tiled's numbering with the first gid 1). The `kind` of a layer says how it is drawn:
+
+- `ground`: flat, under everything, drawn once (grass, soil, water, paths).
+- `objects`: each tile is drawn with the hero, the props and the sprites, sorted by row, so the hero walks behind a fence or a house on a higher row and in front of one on a lower row.
+- `above`: over the hero (roofs, tree crowns).
+
+```ts
+scene: {
+  tilemap: {
+    tileset: "sunnyside:tileset/16px",
+    width: 24, height: 16,          // x, y: the level cell of its top-left cell, 0, 0 by default
+    layers: [
+      { name: "ground", kind: "ground", data: [/* 24 × 16 numbers */] },
+      { name: "objects", kind: "objects", data: [/* … */] },
+      { name: "above", kind: "above", data: [/* … */] }
+    ]
+  }
+}
+```
+
+The field then shows exactly the cells of the map, in its own shape. The map is only looks: where the hero can go is still the `map` of the level. `tilemapIssues(level)` (part of `checkLevel`) reports layers of the wrong length as errors, and warns when the map does not cover the level or when `objects` tiles stand on cells the hero can walk. The demo has the farm mockup as a level: `?level=farm-mockup`.
+
 The package ships the public packs in `edu-blocks/assets/<pack>/` (without sounds), so a site can serve them as its own `packs/` folder. The demo build copies `assets/<pack>/` to `dist/packs/` with a `packs/index.json` list for the editor (sounds are left out). Packs that may not be published (see `assets/README.md`) are added only at build time: set `EDU_BLOCKS_PRIVATE_ASSETS` to a folder of pack folders, and `npm run dev` or `npm run build` serves them too. The public GitHub Pages build never sets it.
 
 The same tools are in `edu-blocks/core` for scripts and servers:
@@ -383,6 +409,7 @@ The same tools are in `edu-blocks/core` for scripts and servers:
 |---|---|
 | `emptyMap(w, h)`, `setTile(map, x, y, tile)`, `resizeMap(map, w, h)`, `tileAt(map, x, y)` | Make and change a map; one start and one goal are kept |
 | `checkLevel(level)` | Errors that keep a level from being played (no start, items cut off by walls, a goal without its block…) and warnings |
+| `tilemapIssues(level)`, `layerTiles(map, layer)`, `tilesOfKind(map, kind)` | What is wrong with a hand-drawn tile map, and its tiles in level cells |
 | `storyIssues(level)` | Advice where the text of a level and its field disagree: a house, the items, the goal, enemies, a bridge, the season |
 | `assetRefsOf(level)`, `packsOf(level)`, `parseAssetRef(ref)` | The pack pictures a level uses and the packs it needs |
 | `solveLevel(level)`, `paletteIssues(level)` | The shortest list of the palette's hero actions that passes the level (or `impossible`), and the palette checks of the editor |

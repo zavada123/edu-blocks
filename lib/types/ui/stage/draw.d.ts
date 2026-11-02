@@ -23,7 +23,7 @@ export interface GroundInput {
     readonly season: Season;
     readonly scenery: Scenery;
 }
-/** Grass, meadow, the path or the ice, flowers, bushes that do not sway, trees and props. */
+/** Grass, meadow, the path or the ice, flowers, bushes that do not sway and trees; or the flat layers of a tile map. */
 export declare const drawGround: (ctx: Ctx, { world, scene, season, scenery }: GroundInput) => void;
 export interface ActorsInput {
     readonly pose: StagePose;

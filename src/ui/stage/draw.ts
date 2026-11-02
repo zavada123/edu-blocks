@@ -1,4 +1,5 @@
-import type { ItemKind, Npc, Scene } from "../../core/level.ts"
+import type { ItemKind, Npc, Scene, TileMap } from "../../core/level.ts"
+import { tilesOfKind } from "../../core/tilemap.ts"
 import { cellKey, type Direction, type World } from "../../core/world.ts"
 import { ENEMIES, FLOORS, ITEM_TILES, NPCS, PROPS, type Season, waterTile } from "../look.ts"
 import { cellHash, type Scenery } from "../scenery.ts"
@@ -22,7 +23,7 @@ import wellTile from "../sprites/well.png"
 import { meadowTile, PATH_SHEET_COLUMNS, pathPiece } from "../terrain.ts"
 import { image } from "./images.ts"
 import { spriteOf } from "./packs.ts"
-import { drawFigure, drawPlaced, isAnimated, layerOf, placedDepth } from "./sprites.ts"
+import { drawFigure, drawPlaced, drawTile, isAnimated, layerOf, placedDepth } from "./sprites.ts"
 import { walkClip } from "../../core/assets.ts"
 import type { Effect, EnemyPose, HeroPose, StagePose } from "./playback.ts"
 import type { HeroId } from "../../core/heroes.ts"
@@ -122,8 +123,36 @@ export interface GroundInput {
   readonly scenery: Scenery
 }
 
-/** Grass, meadow, the path or the ice, flowers, bushes that do not sway, trees and props. */
+/** The flat layers of a hand-drawn tile map, in place of the grass, the meadow and the path. */
+const tilemapGround = (ctx: Ctx, map: TileMap) => {
+  const tileset = spriteOf(map.tileset)
+  if (tileset === null) return
+  for (const t of tilesOfKind(map, "ground")) drawTile(ctx, tileset, t.tile, t.x, t.y)
+}
+
+/** Grass, meadow, the path or the ice, flowers, bushes that do not sway and trees; or the flat layers of a tile map. */
 export const drawGround = (ctx: Ctx, { world, scene, season, scenery }: GroundInput) => {
+  if (scene.tilemap !== undefined) tilemapGround(ctx, scene.tilemap)
+  else naturalGround(ctx, { world, scene, season, scenery })
+  // Pictures of the packs that lie flat and still: tiles, water, a rug.
+  for (const placed of scene.sprites ?? []) {
+    const found = spriteOf(placed.asset)
+    if (found !== null && layerOf(placed, found) === "ground" && !isAnimated(placed, found)) drawPlaced(ctx, placed, 0)
+  }
+  const { width, height } = world
+  for (const { x, y, kind } of scenery.decor) {
+    // The path has its own texture: flowers and grass grow only in the meadow.
+    const href = x < 0 || y < 0 || x >= width || y >= height ? season.decor[kind] : null
+    if (href !== null) picture(ctx, href, x * CELL, y * CELL, CELL, CELL)
+  }
+  for (const { x, y, kind } of scenery.obstacles) {
+    if (season.swaying[kind] === undefined) picture(ctx, season.obstacles[kind], x * CELL, y * CELL, CELL, CELL)
+  }
+  for (const { x, y } of scenery.trees) picture(ctx, season.tree, x * CELL, y * CELL, CELL * 2, CELL * 2)
+}
+
+/** The field's own ground: grass, the meadow around, and the path, the ice or the bridge where the hero walks. */
+const naturalGround = (ctx: Ctx, { world, scene, season, scenery }: GroundInput) => {
   const { view } = scenery
   const ground = scene.ground ?? "path"
   const grass = image(season.grass)
@@ -149,24 +178,6 @@ export const drawGround = (ctx: Ctx, { world, scene, season, scenery }: GroundIn
         if (col < PATH_SHEET_COLUMNS && row < PATH_SHEET_ROWS) piece(ctx, season.path, col, row, x * CELL, y * CELL)
       } else picture(ctx, wall ? waterTile : FLOORS[ground], x * CELL, y * CELL, CELL, CELL)
     }
-  }
-  // Pictures of the packs that lie flat and still: tiles, water, a rug.
-  for (const placed of scene.sprites ?? []) {
-    const found = spriteOf(placed.asset)
-    if (found !== null && layerOf(placed, found) === "ground" && !isAnimated(placed, found)) drawPlaced(ctx, placed, 0)
-  }
-  for (const { x, y, kind } of scenery.decor) {
-    // The path has its own texture: flowers and grass grow only in the meadow.
-    const href = x < 0 || y < 0 || x >= width || y >= height ? season.decor[kind] : null
-    if (href !== null) picture(ctx, href, x * CELL, y * CELL, CELL, CELL)
-  }
-  for (const { x, y, kind } of scenery.obstacles) {
-    if (season.swaying[kind] === undefined) picture(ctx, season.obstacles[kind], x * CELL, y * CELL, CELL, CELL)
-  }
-  for (const { x, y } of scenery.trees) picture(ctx, season.tree, x * CELL, y * CELL, CELL * 2, CELL * 2)
-  for (const p of scene.props ?? []) {
-    const look = PROPS[p.kind]
-    picture(ctx, look.href, p.x * CELL, p.y * CELL, look.width * CELL, look.height * CELL)
   }
 }
 
@@ -487,8 +498,18 @@ export const drawActors = (ctx: Ctx, input: ActorsInput) => {
     if (taken && itemAt(scene, x, y).kind !== "campfire") continue
     itemLook(ctx, scene, x, y, taken, now, still)
   }
-  // Who stands lower on the field is drawn later, so a figure in front covers the one behind.
+  const map = scene.tilemap
+  const tileset = map === undefined ? null : spriteOf(map.tileset)
+  // Who stands lower on the field is drawn later, so a figure in front covers the one behind. A house or a fence
+  // stands by its bottom row: the hero above it walks behind it, the hero below it in front.
   const figures = [
+    ...(scene.props ?? []).map((p) => {
+      const look = PROPS[p.kind]
+      return { y: p.y + look.height - 1 - 0.02, draw: () => picture(ctx, look.href, p.x * CELL, p.y * CELL, look.width * CELL, look.height * CELL) }
+    }),
+    ...(map === undefined || tileset === null
+      ? []
+      : tilesOfKind(map, "objects").map((t) => ({ y: t.y - 0.02, draw: () => drawTile(ctx, tileset, t.tile, t.x, t.y) }))),
     ...sprites
       .filter(({ placed, found }) => found !== null && layerOf(placed, found) === "object")
       .map(({ placed }) => ({ y: placedDepth(placed) - 0.01, draw: () => drawPlaced(ctx, placed, still ? 0 : now) })),
@@ -496,6 +517,8 @@ export const drawActors = (ctx: Ctx, input: ActorsInput) => {
     { y: pose.hero.y + 0.01, draw: () => heroFigure(ctx, pose.hero, skin, now) }
   ]
   for (const f of figures.sort((a, b) => a.y - b.y)) f.draw()
+  // Roofs and crowns of the tile map cover the hero who walks under them.
+  if (map !== undefined && tileset !== null) for (const t of tilesOfKind(map, "above")) drawTile(ctx, tileset, t.tile, t.x, t.y)
   for (const fx of pose.effects) effect(ctx, fx, scene, now)
   // With less motion the weather stays as a still picture.
   weather(ctx, still ? { ...input, now: 0 } : input)

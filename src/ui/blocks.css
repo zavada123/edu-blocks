@@ -147,6 +147,10 @@
   width: max(160px, min(100cqw - 8px, 100cqh - var(--eb-under, 132px)));
   aspect-ratio: 1;
   padding: 10px;
+  /* A field that is not square stands in the middle. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .eb-field {

@@ -23,6 +23,7 @@ import { type BlocksReport, EduBlocks } from "../ui/EduBlocks.tsx"
 import { EduPython, type PythonReport } from "../ui/EduPython.tsx"
 import type { Skin } from "../ui/stage/Stage.tsx"
 import "./demo.css"
+import { farmMockup } from "./farm-mockup.ts"
 
 // `?level=g4-if&solve` opens a level with its reference solution: for screenshots and for teachers.
 const params = new URLSearchParams(location.search)
@@ -34,7 +35,10 @@ type Language = "blocks" | "python"
 /** The value of the level choice that opens the estate instead of a level. `?level=estate` opens it. */
 const ESTATE = "estate"
 
-const firstLevel = levels.find((l) => l.id === params.get("level")) ?? levels[0]
+/** Levels of the demo that are not in the course: the farm mockup. */
+const extraLevels = [farmMockup]
+
+const firstLevel = [...levels, ...extraLevels].find((l) => l.id === params.get("level")) ?? levels[0]
 if (!firstLevel) throw new Error("Немає жодного рівня")
 
 const load = <T,>(key: string, fallback: T): T => {
@@ -76,7 +80,7 @@ const Demo = () => {
   const palette = estatePalette(passed)
   const paletteKey = palette.join(" ")
   const day = useMemo(() => (id === ESTATE ? estateDay(estate, palette) : null), [id, estate, paletteKey])
-  const level = day?.level ?? levels.find((l) => l.id === id) ?? firstLevel
+  const level = day?.level ?? [...levels, ...extraLevels].find((l) => l.id === id) ?? firstLevel
 
   const total = Object.values(best).reduce((sum, b) => sum + b.xp, 0)
   // Coins come from the best stars of each level, less the heroes bought: nothing to store but the purchases.
@@ -161,6 +165,11 @@ const Demo = () => {
               </option>
             ))}
             <option value={ESTATE}>Хутір</option>
+            {extraLevels.map((l) => (
+              <option key={l.id} value={l.id}>
+                Макети · {l.title}
+              </option>
+            ))}
           </select>
         </label>
         <span className="demo-shop" role="group" aria-label="Як програмувати">

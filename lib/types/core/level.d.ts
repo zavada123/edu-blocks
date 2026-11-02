@@ -70,6 +70,40 @@ export interface PlacedSprite {
     readonly layer?: "ground" | "object";
     /** Mirrored left to right. */
     readonly flip?: boolean;
+    /** One still frame of the sprite, counted from 0: a stage of a growing crop. Then no clip plays. */
+    readonly frame?: number;
+}
+/**
+ * How a layer of a tile map is drawn. `ground` lies flat under everything and is drawn once (grass, soil, water,
+ * paths). `objects` stand up: each tile is drawn with the figures by its row, so the hero walks behind a fence or a
+ * house on a higher row and in front of one on a lower row. `above` is drawn over the hero: roofs and tree crowns.
+ */
+export type TileLayerKind = "ground" | "objects" | "above";
+export interface TileLayer {
+    /** A name for people and for the Tiled importer, as `ground`, `detail`, `objects`, `above`. */
+    readonly name: string;
+    readonly kind: TileLayerKind;
+    /**
+     * Tile numbers row by row, `width × height` of the map. 0 is an empty cell; tile n is cell n − 1 of the tileset,
+     * counted left to right and top to bottom, as Tiled numbers them with the first gid 1.
+     */
+    readonly data: ReadonlyArray<number>;
+}
+/**
+ * A map drawn by hand from a tileset of an asset pack, in place of the meadow, trees and bushes the field adds on
+ * its own. It is only looks: where the hero can go is still the `map` of the level, so a fence or water the hero must
+ * not cross stands on wall cells (`#`). See `tilemapIssues`.
+ */
+export interface TileMap {
+    /** The tileset sprite of a pack (`category: "tileset"`), as `"sunnyside:tileset/16px"`. */
+    readonly tileset: AssetRef;
+    readonly width: number;
+    readonly height: number;
+    /** The level cell of the map's top-left cell: 0, 0 when the map starts where the level starts. */
+    readonly x?: number;
+    readonly y?: number;
+    /** Drawn in this order within their kind. */
+    readonly layers: ReadonlyArray<TileLayer>;
 }
 export type Season = "spring" | "summer" | "autumn" | "winter";
 /** How the level looks: the season, the floor, the things on the map. The rules of the game stay the same. */
@@ -93,6 +127,8 @@ export interface Scene {
     readonly itemLook?: AssetRef;
     /** How the goal on the `F` cell looks, from an asset pack; `finish` still names it in the goal. */
     readonly finishLook?: AssetRef;
+    /** A hand-drawn map of tiles: the field then shows it and adds no meadow, trees or bushes of its own. */
+    readonly tilemap?: TileMap;
 }
 export interface Level {
     readonly id: string;

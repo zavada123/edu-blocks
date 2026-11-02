@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import type { Scene } from "../../core/level.ts"
 import type { Frame } from "../../core/program.ts"
+import { tilemapView } from "../../core/tilemap.ts"
 import { cellKey, type World } from "../../core/world.ts"
 import { propCells, seasonOf } from "../look.ts"
 import { buildScenery } from "../scenery.ts"
@@ -73,12 +74,15 @@ export const Stage = ({ start, frames = NO_FRAMES, time = 0, skin, scene = NO_SC
   const npcs = scene.npcs
   const sprites = scene.sprites
   const ground = scene.ground ?? "path"
+  const tilemap = scene.tilemap
   const scenery = useMemo(() => {
+    // A hand-drawn map shows itself and nothing the field would add on its own.
+    if (tilemap !== undefined) return { view: tilemapView(tilemap), trees: [], obstacles: [], decor: [] }
     const reserved = new Set(propCells(props ?? []))
     for (const n of npcs ?? []) reserved.add(cellKey(n.x, n.y))
     for (const s of sprites ?? []) for (const key of placedCells(s)) reserved.add(key)
     return buildScenery({ width, height, walls, finish }, { reserved, bareWalls: ground === "bridge" })
-  }, [width, height, walls, finish, props, npcs, sprites, ground])
+  }, [width, height, walls, finish, props, npcs, sprites, ground, tilemap])
   const items = useMemo(() => [...start.crystals].map((key) => {
     const [x = 0, y = 0] = key.split(",").map(Number)
     return { x, y }
@@ -186,5 +190,11 @@ export const Stage = ({ start, frames = NO_FRAMES, time = 0, skin, scene = NO_SC
     }
   }, [scenery])
 
-  return <canvas ref={canvasRef} className="eb-field" role="img" aria-label={label} />
+  // The field keeps the shape of its view: a wide hand-drawn map fills the width of the square frame, not its height.
+  const { view } = scenery
+  const shape =
+    view.width === view.height
+      ? undefined
+      : { aspectRatio: `${view.width} / ${view.height}`, ...(view.width > view.height ? { height: "auto" } : { width: "auto" }) }
+  return <canvas ref={canvasRef} className="eb-field" role="img" aria-label={label} style={shape} />
 }
