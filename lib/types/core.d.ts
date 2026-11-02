@@ -16,6 +16,7 @@ export * from "./levels/chapters.ts";
 export { definitions, solutionProgram, solutions } from "./levels/solutions.ts";
 export * from "./core/xp.ts";
 export * from "./core/heroes.ts";
+export * from "./core/coins.ts";
 export { adviseRun, MAX_ADVICE } from "./core/advice.ts";
 export * from "./core/kit.ts";
 export * from "./core/solve.ts";

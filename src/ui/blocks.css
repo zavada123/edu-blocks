@@ -880,3 +880,64 @@ html.eb-page-full {
   font: 400 14px/1.45 ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
   white-space: pre;
 }
+
+/* ---- Coins and the hero shop ---- */
+
+.eb-coin {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  background: no-repeat center / contain;
+  image-rendering: pixelated;
+  vertical-align: -0.1em;
+}
+
+.eb-hud-hero .eb-hud-coins {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  color: var(--eb-gold);
+  font: 400 18px/1 var(--eb-font-pixel);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.eb-coins-won {
+  margin: 0;
+}
+
+.eb-coins-won strong {
+  color: var(--eb-gold-dark);
+  font: 400 20px/1 var(--eb-font-pixel);
+}
+
+.eb-picker-coins {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 0 auto;
+  font: 400 24px/1 var(--eb-font-pixel);
+}
+
+.eb-hero-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: 400 18px/1 var(--eb-font-pixel);
+}
+
+.eb-hero-card-sale .eb-hero-state {
+  background: var(--eb-go);
+}
+
+/* Not enough coins yet: the hero is seen, so the student knows what to save up for. */
+.eb-hero-card-short {
+  cursor: default;
+}
+
+.eb-hero-card-short .eb-hero-state {
+  background: transparent;
+  color: var(--eb-ink-soft);
+  box-shadow: inset 0 0 0 2px var(--eb-parch-line);
+}

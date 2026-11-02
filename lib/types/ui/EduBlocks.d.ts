@@ -15,6 +15,8 @@ export interface BlocksReport {
     readonly firstTry: boolean;
     /** XP of this run (`xpFor`). The hero gets only the part above the best earlier run. */
     readonly xp: number;
+    /** Coins of this run (`coinsFor`). Like XP, the student gets only the part above the best earlier run. */
+    readonly coins: number;
 }
 export type { HeroXp } from "./Verdict.tsx";
 export interface EduBlocksProps extends GameNavigation {
@@ -33,4 +35,4 @@ export interface EduBlocksProps extends GameNavigation {
     /** After each change of the blocks, with the program as it is now. An app that has its own check button sends it. */
     readonly onProgramChange?: (program: Program) => void;
 }
-export declare const EduBlocks: ({ level, skin, large, program, media, speed, xp, onComplete, onProgramChange, onMap, onNext, progress, onSkinChange }: EduBlocksProps) => import("react").JSX.Element;
+export declare const EduBlocks: ({ level, skin, large, program, media, speed, xp, onComplete, onProgramChange, onMap, onNext, progress, onSkinChange, coins, ownedHeroes, onBuyHero }: EduBlocksProps) => import("react").JSX.Element;

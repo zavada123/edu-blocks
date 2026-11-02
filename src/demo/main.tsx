@@ -1,5 +1,7 @@
 import { StrictMode, useState } from "react"
 import { createRoot } from "react-dom/client"
+import { coinsFor, levelCoins, walletOf } from "../core/coins.ts"
+import { heroesCost, type HeroId } from "../core/heroes.ts"
 import { levels } from "../levels/index.ts"
 import { chapterOf, isFirstChapter } from "../levels/chapters.ts"
 import { solutionProgram } from "../levels/solutions.ts"
@@ -47,9 +49,13 @@ const Demo = () => {
   const [skin, setSkin] = useState<Skin>(() => load("eb-skin", "ninja"))
   const [language, setLanguage] = useState<Language>(() => (params.get("lang") === "python" ? "python" : load<Language>("eb-language", "blocks")))
   const [sources, setSources] = useState<Record<string, string>>(() => load("eb-python-sources", {}))
+  const [owned, setOwned] = useState<ReadonlyArray<HeroId>>(() => load("eb-owned-heroes", []))
   const level = levels.find((l) => l.id === id) ?? firstLevel
 
   const total = Object.values(best).reduce((sum, b) => sum + b.xp, 0)
+  // Coins come from the best stars of each level, less the heroes bought: nothing to store but the purchases.
+  const stars = Object.fromEntries(Object.entries(best).map(([levelId, b]) => [levelId, b.stars]))
+  const coins = walletOf({ earned: levelCoins(levels, stars), spent: heroesCost(owned) })
 
   const pickLanguage = (next: Language) => {
     setLanguage(next)
@@ -73,12 +79,20 @@ const Demo = () => {
   // «Далі» opens the next level of the course; the last level has none.
   const next = levels[levels.indexOf(level) + 1]
   const navigation = {
-    progress: Object.fromEntries(Object.entries(best).map(([levelId, b]) => [levelId, b.stars])),
+    progress: stars,
     ...(next === undefined ? {} : { onNext: () => setId(next.id) }),
     // The hero's portrait in the bar opens the choice of the heroes the hero level has opened.
     onSkinChange: (s: Skin) => {
       setSkin(s)
       save("eb-skin", s)
+    },
+    coins: { total: coins, best: coinsFor(level.tier ?? "intro", best[level.id]?.stars ?? 0) },
+    ownedHeroes: owned,
+    // The shop: the demo keeps the bought heroes in the browser.
+    onBuyHero: (hero: HeroId) => {
+      const next = [...owned, hero]
+      setOwned(next)
+      save("eb-owned-heroes", next)
     }
   }
 

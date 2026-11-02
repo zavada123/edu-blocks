@@ -44,7 +44,7 @@ The student-facing interface is in Ukrainian. It was built for [EduProstir](http
 - **Clear feedback:** the hero hit an obstacle, the program ended too early, the loop never ends. Each level has a hint.
 - **Mobile-first layout:** field on top, blocks below, a palette without the category column, drag blocks with a finger.
 - **Large mode** for grade 3.
-- **Four hero skins** (`skin`): ninja (default), robot, rover and bee. Your app decides how they are sold or unlocked.
+- **Coins and a hero shop:** a run gives coins for the level tier and each star (only above the best earlier run). Four heroes open with the hero level (ninja, robot, rover, bee), and six more are sold for 60–250 coins (knight, eskimo, forest girl, traveller, samurai, gold knight). Your app keeps the coins and the purchases.
 - **Python code, as in Tynker or CodeCombat** (`edu-blocks/python`): the same levels with a code editor instead of blocks. `hero.move()`, `while not hero.at_finish():`, functions, variables and lists; the line the hero acts on lights up, and every mistake is explained in Ukrainian with its line.
 - **Broken robot levels** (`broken`): the level opens with a program that has a mistake, and the student finds and fixes it.
 - **«Правда чи ні»:** a chapter where a condition is built from parts with «і», «або» and «не».
@@ -159,6 +159,17 @@ result.stars   // 0–3
 result.reason  // null, "crashed", "goalsNotMet", "tooLong", "noStart" or "badProgram"
 ```
 
+Coins work like XP: they come from the best run of each level, so the app needs to store only the best stars and the bought heroes.
+
+```ts
+import { coinsFor, heroesCost, levelCoins, levels, walletOf } from "edu-blocks/core"
+
+coinsFor(level.tier ?? "intro", result.stars)                       // 10 / 15 / 25 for the tier + 5 per star
+const coins = walletOf({ earned: levelCoins(levels, bestStars), spent: heroesCost(ownedHeroes) })
+```
+
+`canBuyHero(hero, heroLevel, owned, coins)` tells whether the shop sells a hero now, and `heroOpen(hero, heroLevel, owned)` whether the student may play it.
+
 XP uses the same pure functions on both sides. Count `firstTry` from your own record of earlier failed runs:
 
 ```ts
@@ -188,18 +199,21 @@ Programs are limited to 300 blocks, the blocks of the level and 1,000 hero actio
 | Prop | Description |
 |---|---|
 | `level` | The level. To show another one, change the component `key` |
-| `skin` | Hero look: `ninja` (default), `robot`, `rover` or `bee` |
+| `skin` | Hero look: an id from `HEROES`, `ninja` by default |
 | `large` | Bigger blocks and field for grade 3 |
 | `program` | A saved program: the student continues where they left off |
 | `media` | Path to the block icons, with a trailing slash |
 | `speed` | Milliseconds per hero action at ×1, 400 by default; the student changes the speed on the time line |
 | `xp` | The hero's XP before the run: `{ total, best }`, where `best` is the best XP of this level. The result then shows the gain and the bar to the next hero level |
-| `onComplete(report)` | After every run: `levelId`, `passed`, `stars`, `blocks`, `reason`, `firstTry`, `xp` and the `program` itself |
+| `onComplete(report)` | After every run: `levelId`, `passed`, `stars`, `blocks`, `reason`, `firstTry`, `xp`, `coins` and the `program` itself |
 | `onProgramChange(program)` | After every block change, for apps with their own Check button |
 | `onMap()` | Shows «← Мапа» in the bar over the game, to go back to the course |
 | `onNext()` | Shows «Далі →» in the result of a passed run, to open the next level |
 | `progress` | Stars of the passed levels by level id: the bar marks the passed levels of the chapter |
 | `onSkinChange(skin)` | The hero's portrait in the bar opens the choice of heroes: every hero of `HEROES`, the ones the hero level has not opened yet as shadows. The app keeps the choice and passes it back as `skin` |
+| `coins` | The student's coins before the run: `{ total, best }`, where `best` is `coinsFor` of the best stars of this level. The bar shows the coins and a passed run shows what it added |
+| `ownedHeroes` | The heroes the student bought |
+| `onBuyHero(hero)` | Makes the choice of heroes a shop: a hero with a price shows «Купити за N» when the hero level is reached and the coins are enough. The app keeps the purchase and passes back fewer `coins` and more `ownedHeroes`. Without it heroes with a price are not offered |
 
 ### Game screen
 
