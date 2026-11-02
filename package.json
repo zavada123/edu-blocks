@@ -10,7 +10,8 @@
     "build:lib": "vite build -c vite.lib.config.ts && vite build -c vite.lib.config.ts --mode core && tsc -p tsconfig.lib.json",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "tiled": "node --experimental-transform-types --no-warnings scripts/tiled-to-level.ts"
   },
   "repository": {
     "type": "git",

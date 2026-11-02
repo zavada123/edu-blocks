@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react"
 import { type Level, startWorld } from "../../core/level.ts"
+import { tilemapView } from "../../core/tilemap.ts"
 import { buildScenery } from "../../ui/scenery.ts"
 import { Stage } from "../../ui/stage/Stage.tsx"
 import { type Brush, describeCell, dragPaints } from "./edit.ts"
@@ -22,7 +23,9 @@ export interface MapCanvasProps {
  */
 export const MapCanvas = ({ level, brush, onStroke, onCell }: MapCanvasProps) => {
   const world = useMemo(() => startWorld(level), [level])
-  const { view } = useMemo(() => buildScenery(world), [world])
+  const tilemap = level.scene?.tilemap
+  // The field shows a hand-drawn map as it is, so the grid follows the map's cells.
+  const view = useMemo(() => (tilemap === undefined ? buildScenery(world).view : tilemapView(tilemap)), [world, tilemap])
   const stroke = useRef<{ readonly erase: boolean; readonly drag: boolean; last: string } | null>(null)
   const [hover, setHover] = useState<Cell | null>(null)
 

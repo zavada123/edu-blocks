@@ -29,6 +29,7 @@ export { programSource, solutionSource, toPython } from "./core/python/convert.t
 export * from "./core/broken.ts"
 export * from "./core/pieces.ts"
 export * from "./core/tilemap.ts"
+export * from "./core/tiled.ts"
 export * from "./core/read.ts"
 export * from "./core/assets.ts"
 export { storyIssues } from "./core/story.ts"

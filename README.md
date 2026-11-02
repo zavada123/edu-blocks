@@ -401,6 +401,32 @@ scene: {
 
 The field then shows exactly the cells of the map, in its own shape. The map is only looks: where the hero can go is still the `map` of the level. `tilemapIssues(level)` (part of `checkLevel`) reports layers of the wrong length as errors, and warns when the map does not cover the level or when `objects` tiles stand on cells the hero can walk. The demo has the farm mockup as a level: `?level=farm-mockup`.
 
+A layer with `when: "coop"` waits for that upgrade of the estate: the field skips it until `tilemapFor(map, upgrades)` keeps it for the upgrades the student has bought.
+
+#### Map from Tiled
+
+Tile maps are drawn in [Tiled](https://www.mapeditor.org/) and turned into a level with one command. [`tiled/`](tiled) holds the Sunnyside tileset for Tiled (`sunnyside-16px.tsx`) and the farm mockup (`farm.tmj`).
+
+The tileset has three terrain brushes (Wang sets, *Terrain Sets* in Tiled): **Стежка**, **Рілля** and **Вода**. They come from the autotiles of the Sunnyside GameMaker project. Paint with them and Tiled puts the edges and the diagonal corners itself, so the game computes nothing. Cut a corner off a pond or a field and the brush bevels it.
+
+What the map needs:
+
+| In Tiled | Becomes |
+|---|---|
+| A tile layer named `walk` (or `прохідність`, or with the property `role` = `walk`) | The `map`: a painted cell is a cell the hero can walk, everything else is `#` |
+| Other tile layers | `scene.tilemap` layers. The kind comes from the property `kind` or the name (`objects`, `above`), else `ground`. The property `upgrade` (string) becomes `when` |
+| Point objects of type `start` (property `dir`), `finish`, `item` | `S`, `F` and `c` on the map; they must stand on `walk` cells |
+| Point objects with the property `sprite` (`"sunnyside:animal/cow"`), plus optional `frame`, `clip`, `flip`, `layer` | `scene.sprites` |
+| Map properties `id`, `title`, `task` (lines), `blocks` and `goals` (comma lists) | The level's fields. The goal defaults to the finish, plus the items when there are any |
+
+The map uses one tileset from the packs and 16×16 tiles. Tiled's flips are dropped with a warning. Then:
+
+```sh
+npm run tiled -- tiled/farm.tmj --name farmMockup > src/demo/farm-mockup.ts
+```
+
+The command prints the errors and the advice of `checkLevel` to stderr. On an error it writes nothing and exits with 1. In code, `levelFromTiled(json, { tileset })` from `edu-blocks/core` does the same for the parsed `.tmj`. The level editor shows a level with a tile map but does not edit the tiles: those are changed in Tiled.
+
 The package ships the public packs in `edu-blocks/assets/<pack>/` (without sounds), so a site can serve them as its own `packs/` folder. The demo build copies `assets/<pack>/` to `dist/packs/` with a `packs/index.json` list for the editor (sounds are left out). Packs that may not be published (see `assets/README.md`) are added only at build time: set `EDU_BLOCKS_PRIVATE_ASSETS` to a folder of pack folders, and `npm run dev` or `npm run build` serves them too. The public GitHub Pages build never sets it.
 
 The same tools are in `edu-blocks/core` for scripts and servers:
@@ -409,7 +435,8 @@ The same tools are in `edu-blocks/core` for scripts and servers:
 |---|---|
 | `emptyMap(w, h)`, `setTile(map, x, y, tile)`, `resizeMap(map, w, h)`, `tileAt(map, x, y)` | Make and change a map; one start and one goal are kept |
 | `checkLevel(level)` | Errors that keep a level from being played (no start, items cut off by walls, a goal without its block…) and warnings |
-| `tilemapIssues(level)`, `layerTiles(map, layer)`, `tilesOfKind(map, kind)` | What is wrong with a hand-drawn tile map, and its tiles in level cells |
+| `tilemapIssues(level)`, `layerTiles(map, layer)`, `tilesOfKind(map, kind)`, `tilemapFor(map, upgrades)` | What is wrong with a hand-drawn tile map, its tiles in level cells, and the map with the bought upgrades |
+| `levelFromTiled(json, { tileset })` | A level from a Tiled map (`.tmj`): see [Map from Tiled](#map-from-tiled) |
 | `storyIssues(level)` | Advice where the text of a level and its field disagree: a house, the items, the goal, enemies, a bridge, the season |
 | `assetRefsOf(level)`, `packsOf(level)`, `parseAssetRef(ref)` | The pack pictures a level uses and the packs it needs |
 | `solveLevel(level)`, `paletteIssues(level)` | The shortest list of the palette's hero actions that passes the level (or `impossible`), and the palette checks of the editor |

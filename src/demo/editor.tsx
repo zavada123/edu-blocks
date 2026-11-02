@@ -14,6 +14,7 @@ import { findSprite, SpritesCard, useLevelPacks } from "./editor/SpritesCard.tsx
 import type { Direction, EnemyKind } from "../core/world.ts"
 import type { Tier } from "../core/xp.ts"
 import { levels } from "../levels/index.ts"
+import { farmMockup } from "./farm-mockup.ts"
 import { chapterOf } from "../levels/chapters.ts"
 import { type BlocksReport, EduBlocks } from "../ui/EduBlocks.tsx"
 import { ENEMIES, ITEM_TILES, NPCS, PROPS } from "../ui/look.ts"
@@ -306,7 +307,7 @@ const Editor = () => {
           <select
             value=""
             onChange={(e) => {
-              const found = levels.find((l) => l.id === e.target.value)
+              const found = [...levels, farmMockup].find((l) => l.id === e.target.value)
               if (found !== undefined) setLevel({ ...found, id: `${found.id}-copy` })
             }}
           >
@@ -316,6 +317,7 @@ const Editor = () => {
                 {chapterOf(l.id)?.title ?? ""} · {l.title}
               </option>
             ))}
+            <option value={farmMockup.id}>Макети · {farmMockup.title}</option>
           </select>
         </label>
         <button type="button" className="demo-skin" onClick={() => setLevel(blank())}>
@@ -522,6 +524,15 @@ const Editor = () => {
             </section>
             <section className="ed-card">
               <h2>Сцена</h2>
+              {scene.tilemap !== undefined && (
+                <p className="ed-note">
+                  Карта плиток з Tiled ({scene.tilemap.width}×{scene.tilemap.height}): тут її видно, а змінюють її в Tiled і
+                  переносять командою <code>npm run tiled</code>. Мапа рівня каже, де герой може ходити.{" "}
+                  <button type="button" onClick={() => setLevel(({ scene: { tilemap: _, ...rest } = {}, ...l }) => ({ ...l, scene: rest }))}>
+                    Прибрати карту плиток
+                  </button>
+                </p>
+              )}
               <div className="ed-row">
                 <label>
                   Пора року
