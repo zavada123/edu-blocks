@@ -59,3 +59,6 @@
 Осінні й весняні варіанти трави, луки, дерев і кущів перефарбовано з плиток цього пака (CC0 дозволяє зміни).
 `tree-blossom.png` — `background-elements/tileset.png`, 32×32 з 64,256. `leaves.png`, `leaffall.png` і `rain.png`
 намальовано для цієї гри; їх можна використовувати на тих самих умовах CC0.
+
+`carrot.png` і `egg.png` вирізано з **Sunnyside World** від [Daniel Diggle](https://danieldiggle.itch.io/sunnyside):
+їх можна поширювати лише як частину навчального курсу, з цим посиланням (див. `assets/sunnyside/LICENSE.md`).

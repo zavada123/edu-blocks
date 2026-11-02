@@ -270,9 +270,17 @@ const finishLook = (ctx: Ctx, scene: Scene, cx: number, cy: number, now: number,
   }
 }
 
-const itemLook = (ctx: Ctx, scene: Scene, cx: number, cy: number, lit: boolean, now: number, still: boolean) => {
-  const kind = scene.item ?? "crystal"
-  const own = scene.itemLook === undefined ? null : spriteOf(scene.itemLook)
+/** What lies on a cell: its own item from `itemsAt`, or the level's item. */
+const itemAt = (scene: Scene, x: number, y: number): { readonly kind: ItemKind; readonly own: boolean } => {
+  const at = scene.itemsAt?.find((i) => i.x === Math.round(x) && i.y === Math.round(y))
+  return at === undefined ? { kind: scene.item ?? "crystal", own: scene.itemLook !== undefined } : { kind: at.item, own: false }
+}
+
+const itemLook = (ctx: Ctx, scene: Scene, x: number, y: number, lit: boolean, now: number, still: boolean) => {
+  const cx = x * CELL + CELL / 2
+  const cy = y * CELL + CELL / 2
+  const { kind, own: hasOwn } = itemAt(scene, x, y)
+  const own = !hasOwn || scene.itemLook === undefined ? null : spriteOf(scene.itemLook)
   if (own !== null) {
     drawFigure(ctx, own, { cx, bottom: cy + CELL / 2, clip: null, now })
     if (lit) flame(ctx, cx, cy, now, still)
@@ -391,7 +399,7 @@ const bubble = (ctx: Ctx, text: string, cx: number, cy: number, progress: number
 }
 
 const effect = (ctx: Ctx, fx: Effect, scene: Scene, now: number) => {
-  const item: ItemKind = scene.item ?? "crystal"
+  const { kind: item, own: hasOwn } = itemAt(scene, fx.x, fx.y)
   const cx = fx.x * CELL + CELL / 2
   const cy = fx.y * CELL + CELL / 2
   if (fx.kind === "slash" || fx.kind === "smoke") {
@@ -406,7 +414,7 @@ const effect = (ctx: Ctx, fx: Effect, scene: Scene, now: number) => {
     ctx.save()
     ctx.globalAlpha = 1 - Math.max(0, fx.progress - 0.6) / 0.4
     const rise = 9 * Math.min(1, fx.progress * 2)
-    const own = scene.itemLook === undefined ? null : spriteOf(scene.itemLook)
+    const own = !hasOwn || scene.itemLook === undefined ? null : spriteOf(scene.itemLook)
     if (own !== null) drawFigure(ctx, own, { cx, bottom: cy + 4 - rise, clip: null, now, scale: 0.75 })
     else picture(ctx, ITEM_TILES[item], cx - 6, cy - CELL / 2 - rise, 12, item === "key" ? 8 : 12)
     ctx.restore()
@@ -462,7 +470,6 @@ const hud = (ctx: Ctx, { pose, scenery, counter }: ActorsInput) => {
 export const drawActors = (ctx: Ctx, input: ActorsInput) => {
   const { pose, scene, season, now, still, skin } = input
   const { world } = pose
-  const item = scene.item ?? "crystal"
   const sprites = (scene.sprites ?? []).map((placed) => ({ placed, found: spriteOf(placed.asset) }))
   // Pictures of the packs that lie flat and move: water, flowers in the wind.
   for (const { placed, found } of sprites) {
@@ -477,8 +484,8 @@ export const drawActors = (ctx: Ctx, input: ActorsInput) => {
   if (world.finish !== null) finishLook(ctx, scene, world.finish.x * CELL + CELL / 2, world.finish.y * CELL + CELL / 2, now, still)
   for (const { x, y } of input.items) {
     const taken = !world.crystals.has(cellKey(x, y))
-    if (taken && item !== "campfire") continue
-    itemLook(ctx, scene, x * CELL + CELL / 2, y * CELL + CELL / 2, taken, now, still)
+    if (taken && itemAt(scene, x, y).kind !== "campfire") continue
+    itemLook(ctx, scene, x, y, taken, now, still)
   }
   // Who stands lower on the field is drawn later, so a figure in front covers the one behind.
   const figures = [

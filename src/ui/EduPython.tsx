@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react"
 import { COUNTER_NAME, procedureName } from "../core/blocks.ts"
 import { brokenSource } from "../core/broken.ts"
+import { estateHarvest, type Harvest } from "../core/estate.ts"
 import { combineFields } from "../core/fields.ts"
 import type { BlockName, Level } from "../core/level.ts"
 import type { FailReason, RunResult } from "../core/program.ts"
@@ -13,7 +14,7 @@ import { type GameNavigation, GameScreen } from "./GameScreen.tsx"
 import { frameIndexAt } from "./stage/playback.ts"
 import type { Skin } from "./stage/Stage.tsx"
 import { usePlayer } from "./Timeline.tsx"
-import { type HeroXp, type Reward, rewardOf, Verdict } from "./Verdict.tsx"
+import { type EstateRun, harvestRewardOf, type HeroXp, type Reward, rewardOf, Verdict } from "./Verdict.tsx"
 import "./python.css"
 
 /**
@@ -32,8 +33,10 @@ export interface PythonReport {
   readonly source: string
   readonly firstTry: boolean
   readonly xp: number
-  /** Coins of this run (`coinsFor`). Like XP, the student gets only the part above the best earlier run. */
+  /** Coins of this run (`coinsFor`, or the harvest on a day of the estate). Like XP, the student gets only the part above the best earlier run. */
   readonly coins: number
+  /** On a day of the estate: what the run gathered (`estateHarvest`). */
+  readonly harvest: Harvest | null
 }
 
 export interface EduPythonProps extends GameNavigation {
@@ -46,6 +49,8 @@ export interface EduPythonProps extends GameNavigation {
   /** Milliseconds per hero action in the animation at the normal speed (×1). */
   readonly speed?: number
   readonly xp?: HeroXp
+  /** A day of the estate: `level` is its level, and the result shows the harvest instead of stars and XP. */
+  readonly estate?: EstateRun
   readonly onComplete?: (report: PythonReport) => void
   /** After each change of the code. */
   readonly onSourceChange?: (source: string) => void
@@ -82,7 +87,7 @@ type Phase =
   | { readonly kind: "running" }
   | { readonly kind: "done"; readonly result: RunResult; readonly reward: Reward }
 
-export const EduPython = ({ level, skin = "ninja", large = false, source, speed = 400, xp, onComplete, onSourceChange, onMap, onNext, progress, onSkinChange, coins, ownedHeroes, onBuyHero }: EduPythonProps) => {
+export const EduPython = ({ level, skin = "ninja", large = false, source, speed = 400, xp, estate, onComplete, onSourceChange, onMap, onNext, progress, onSkinChange, coins, ownedHeroes, onBuyHero }: EduPythonProps) => {
   const { fields, index: fieldIndex, setIndex: setFieldIndex, runs, setRuns, field, start } = useFields(level)
   const methods = useMemo(() => pythonMethodsOf(level.blocks), [level])
   const snippets = useMemo(() => snippetsOf(level, methods), [level, methods])
@@ -116,17 +121,19 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
     const result = combineFields(fieldRuns)
     const firstTry = failedRef.current === 0
     if (!result.passed) failedRef.current += 1
-    const { runXp, runCoins, reward } = rewardOf(level, result, firstTry, xp, coins)
+    const harvest = estate === undefined ? null : estateHarvest(estate.day, result)
+    const { runXp, runCoins, reward } =
+      harvest === null || estate === undefined ? rewardOf(level, result, firstTry, xp, coins) : harvestRewardOf(harvest, estate, firstTry, xp, coins)
     onEndRef.current = () => {
       setPhase({ kind: "done", result, reward })
       setVerdictOpen(true)
-      onComplete?.({ levelId: level.id, passed: result.passed, stars: result.stars, size: result.blocks, reason: result.reason, source: code, firstTry, xp: runXp, coins: runCoins })
+      onComplete?.({ levelId: level.id, passed: result.passed, stars: result.stars, size: result.blocks, reason: result.reason, source: code, firstTry, xp: runXp, coins: runCoins, harvest })
     }
     setRuns(fieldRuns)
     setFieldIndex(result.field ?? 0)
     setResult(result)
     restart(result.frames.length)
-  }, [level, onComplete, reset, restart, setFieldIndex, setRuns, xp, coins])
+  }, [level, onComplete, reset, restart, setFieldIndex, setRuns, xp, coins, estate])
 
   // A field tab: before a run it shows the field, after a run it plays the run on that field.
   const pickField = useCallback(

@@ -96,3 +96,13 @@ body {
 .demo-editor-link {
   color: #93c5fd;
 }
+
+.demo-estate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 0 16px 8px;
+  background: #111a16;
+  color: #fff;
+}

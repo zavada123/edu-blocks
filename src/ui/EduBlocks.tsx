@@ -8,6 +8,7 @@ import { buildProgram } from "../core/build.ts"
 import { combineFields } from "../core/fields.ts"
 import type { Level, Scene } from "../core/level.ts"
 import { adviseRun } from "../core/advice.ts"
+import { estateHarvest, type Harvest } from "../core/estate.ts"
 import { judgeFields } from "../core/judge.ts"
 import type { FailReason, Program, RunResult } from "../core/program.ts"
 import { programSource } from "../core/python/convert.ts"
@@ -21,7 +22,7 @@ import { frameIndexAt } from "./stage/playback.ts"
 import type { Skin } from "./stage/Stage.tsx"
 import { usePlayer } from "./Timeline.tsx"
 import { toolboxXml } from "./toolbox.ts"
-import { type HeroXp, type Reward, rewardOf, Verdict } from "./Verdict.tsx"
+import { type EstateRun, harvestRewardOf, type HeroXp, type Reward, rewardOf, Verdict } from "./Verdict.tsx"
 
 /** What the trainer gives the app after each run. The server runs `program` again before it trusts `passed`. */
 export interface BlocksReport {
@@ -35,8 +36,10 @@ export interface BlocksReport {
   readonly firstTry: boolean
   /** XP of this run (`xpFor`). The hero gets only the part above the best earlier run. */
   readonly xp: number
-  /** Coins of this run (`coinsFor`). Like XP, the student gets only the part above the best earlier run. */
+  /** Coins of this run (`coinsFor`, or the harvest on a day of the estate). Like XP, the student gets only the part above the best earlier run. */
   readonly coins: number
+  /** On a day of the estate: what the run gathered (`estateHarvest`). */
+  readonly harvest: Harvest | null
 }
 
 export type { HeroXp } from "./Verdict.tsx"
@@ -53,6 +56,8 @@ export interface EduBlocksProps extends GameNavigation {
   /** Milliseconds per hero action in the animation at the normal speed (×1). */
   readonly speed?: number
   readonly xp?: HeroXp
+  /** A day of the estate: `level` is its level, and the result shows the harvest instead of stars and XP. */
+  readonly estate?: EstateRun
   readonly onComplete?: (report: BlocksReport) => void
   /** After each change of the blocks, with the program as it is now. An app that has its own check button sends it. */
   readonly onProgramChange?: (program: Program) => void
@@ -142,6 +147,7 @@ export const EduBlocks = ({
   media = "./blocks-media/",
   speed = 400,
   xp,
+  estate,
   onComplete,
   onProgramChange,
   onMap,
@@ -287,7 +293,9 @@ export const EduBlocks = ({
     const shown = result.field ?? 0
     const firstTry = failedRef.current === 0
     if (!result.passed) failedRef.current += 1
-    const { runXp, runCoins, reward } = rewardOf(level, result, firstTry, xp, coins)
+    const harvest = estate === undefined ? null : estateHarvest(estate.day, result)
+    const { runXp, runCoins, reward } =
+      harvest === null || estate === undefined ? rewardOf(level, result, firstTry, xp, coins) : harvestRewardOf(harvest, estate, firstTry, xp, coins)
     const finish = () => {
       setPhase({ kind: "done", result, reward, advice: adviseRun(fields[shown] ?? level, prog, result) })
       setVerdictOpen(true)
@@ -300,7 +308,8 @@ export const EduBlocks = ({
         program: prog,
         firstTry,
         xp: runXp,
-        coins: runCoins
+        coins: runCoins,
+        harvest
       })
     }
     onEndRef.current = finish
@@ -308,7 +317,7 @@ export const EduBlocks = ({
     setFieldIndex(shown)
     setResult(result)
     restart(result.frames.length)
-  }, [level, fields, onComplete, reset, restart, setFieldIndex, setRuns, xp, coins])
+  }, [level, fields, onComplete, reset, restart, setFieldIndex, setRuns, xp, coins, estate])
 
   // A field tab: before a run it shows the field, after a run it plays the run on that field.
   const pickField = useCallback(

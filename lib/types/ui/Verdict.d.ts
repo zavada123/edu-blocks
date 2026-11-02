@@ -1,3 +1,4 @@
+import { type EstateDay, type Harvest } from "../core/estate.ts";
 import type { Level } from "../core/level.ts";
 import type { RunResult } from "../core/program.ts";
 /** The result of a run for the student: stars, XP, what went wrong and what to try. Shared by blocks and Python. */
@@ -16,6 +17,14 @@ export interface Reward {
         readonly gain: number;
         readonly total: number;
     } | null;
+    /** On a day of the estate: what the run gathered. The result then shows it instead of stars and XP. */
+    readonly harvest: Harvest | null;
+}
+/** A day of the estate, from the app: the day (`estateDay`) and the coins of its best run so far. */
+export interface EstateRun {
+    readonly day: EstateDay;
+    /** The coins of the best run of this day: a run pays only the part above them, like a replayed level. */
+    readonly best: number;
 }
 /** The hero's XP before the run, from the app: the result then shows the gain and the hero level. */
 export interface HeroXp {
@@ -37,6 +46,14 @@ export declare const rewardOf: (level: Level, result: RunResult, firstTry: boole
     readonly runCoins: number;
     readonly reward: Reward;
 };
+/** The reward of a run on a day of the estate: no XP, the coins of the harvest above the best run of the day. */
+export declare const harvestRewardOf: (harvest: Harvest, estate: EstateRun, firstTry: boolean, xp: HeroXp | undefined, coins: HeroCoins | undefined) => {
+    readonly runXp: number;
+    readonly runCoins: number;
+    readonly reward: Reward;
+};
+/** What the hero gathered, as a sentence part: «3 яблука, 2 морквини і 1 яйце». */
+export declare const harvestText: (harvest: Harvest) => string;
 /** «монета», «монети» or «монет» for a number, as Ukrainian says it. */
 export declare const coinWord: (n: number) => string;
 /** The result over the field: stars and XP for a pass, what went wrong and a hint for a fail. */

@@ -22,7 +22,9 @@ const NOUNS: Readonly<Record<ItemKind, { readonly to: readonly [string, string];
   apple: { to: ["яблука", "яблук"], it: ["його", "їх"] },
   fish: { to: ["риби", "риби"], it: ["її", "її"] },
   key: { to: ["ключа", "ключів"], it: ["його", "їх"] },
-  campfire: { to: ["вогнища", "вогнищ"], it: ["його", "їх"] }
+  campfire: { to: ["вогнища", "вогнищ"], it: ["його", "їх"] },
+  carrot: { to: ["моркви", "моркви"], it: ["її", "її"] },
+  egg: { to: ["яйця", "яєць"], it: ["його", "їх"] }
 }
 
 const usedBlocks = (program: Program): ReadonlySet<string> => {

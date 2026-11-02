@@ -4,7 +4,8 @@
  */
 export { EduPython, starterSource } from "./ui/EduPython.tsx"
 export type { EduPythonProps, PythonReport } from "./ui/EduPython.tsx"
-export type { HeroCoins, HeroXp } from "./ui/Verdict.tsx"
+export type { EstateRun, HeroCoins, HeroXp } from "./ui/Verdict.tsx"
+export type { EstateDay, Harvest } from "./core/estate.ts"
 export type { Skin } from "./ui/stage/Stage.tsx"
 export { canBuyHero, HEROES, heroesCost, heroOpen } from "./core/heroes.ts"
 export type { Hero, HeroId } from "./core/heroes.ts"

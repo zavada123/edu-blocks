@@ -16,11 +16,17 @@ export type Goal = {
     readonly type: "enemies";
 };
 /** What lies on the `c` cells and what `collect` takes. A campfire is not taken but lit. */
-export type ItemKind = "crystal" | "wood" | "apple" | "fish" | "key" | "campfire";
+export type ItemKind = "crystal" | "wood" | "apple" | "fish" | "key" | "campfire" | "carrot" | "egg";
+/** Another item on one `c` cell than the level's `item`: the carrots and eggs of the estate. */
+export interface ItemAt {
+    readonly x: number;
+    readonly y: number;
+    readonly item: ItemKind;
+}
 /** What stands on the `F` cell. With «home» a house with its door above the cell stands nearby (a prop). */
 export type FinishKind = "flag" | "well" | "grandma" | "home";
 /** Pictures that stand on wall or meadow cells. Only looks: they never change where the hero can go. */
-export type PropKind = "house" | "woodshed";
+export type PropKind = "house" | "woodshed" | "appleTree";
 export interface Prop {
     readonly kind: PropKind;
     /** Top-left corner in cells. Halves are fine, and so are cells outside the map: the meadow lies there. */
@@ -73,6 +79,11 @@ export interface Scene {
     /** The cells the hero walks on: a path, the ice of a pond or the planks of a bridge over water. */
     readonly ground?: "path" | "ice" | "bridge";
     readonly item?: ItemKind;
+    /**
+     * What lies on some `c` cells instead of `item`. A level with more than one kind here lists every `c` cell, and
+     * its goal says «Збери врожай».
+     */
+    readonly itemsAt?: ReadonlyArray<ItemAt>;
     readonly finish?: FinishKind;
     readonly props?: ReadonlyArray<Prop>;
     readonly npcs?: ReadonlyArray<Npc>;
