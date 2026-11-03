@@ -10,13 +10,13 @@ import { findSprite, useLevelPacks } from "./SpritesCard.tsx"
 /** The cards of the editor about enemies and about getting the level out of it. */
 
 export const MONSTERS: ReadonlyArray<{ readonly id: EnemyKind; readonly name: string }> = [
-  { id: "slime", name: "Слиз" },
-  { id: "spirit", name: "Сніговий дух" },
+  { id: "slime", name: "Гоблін у бочці" },
+  { id: "spirit", name: "Гоблін-підривник" },
   { id: "goblin", name: "Гоблін" },
-  { id: "skull", name: "Череп" },
-  { id: "flame", name: "Вогник" },
-  { id: "bear", name: "Ведмідь" },
-  { id: "toad", name: "Жаба" }
+  { id: "skull", name: "Фіолетовий гоблін" },
+  { id: "flame", name: "Червоний підривник" },
+  { id: "bear", name: "Ватажок гоблінів" },
+  { id: "toad", name: "Фіолетова бочка" }
 ]
 
 export const WALKS: ReadonlyArray<{ readonly id: EnemyWalk; readonly name: string }> = [

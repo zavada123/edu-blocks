@@ -29,7 +29,7 @@ const COLLECT_TEXT: Readonly<Record<ItemKind, string>> = {
   wood: "взяти",
   apple: "взяти",
   key: "взяти",
-  fish: "зловити",
+  fish: "взяти",
   campfire: "розпалити",
   carrot: "взяти",
   egg: "взяти"

@@ -34,17 +34,17 @@ export const MAX_TREES = 8
 export const ESTATE_UPGRADES: ReadonlyArray<EstateUpgrade> = [
   {
     id: "tree",
-    name: "Яблуня",
+    name: "Ялинка",
     about: "Ще одне дерево в саду. Ряд довшає, тож рахувати кроки вже не вийде.",
     price: 30,
     max: MAX_TREES - START_TREES
   },
-  { id: "carrots", name: "Грядка моркви", about: "Морква вздовж нижньої стежки, за другим поворотом.", price: 60, max: 1 },
-  { id: "coop", name: "Курник", about: "Кури несуться біля хати, але не щодня: перевір, чи є яйце.", price: 90, max: 1, needs: "carrots" },
+  { id: "carrots", name: "Грядка гарбузів", about: "Гарбузи вздовж нижньої стежки, за другим поворотом.", price: 60, max: 1 },
+  { id: "coop", name: "Кошара", about: "Вівці пасуться біля хати, а ягнята розбігаються не щодня: перевір, чи є ягня.", price: 90, max: 1, needs: "carrots" },
   { id: "patches", name: "Розчищене подвір'я", about: "Кінець двору замітає менше, тож день коротшає.", price: 40, max: 1 },
-  { id: "flowers", name: "Квітник", about: "Квіти посеред двору. Лише для краси.", price: 15, max: 1 },
-  { id: "dog", name: "Песик", about: "Стереже двір. Лише для краси.", price: 35, max: 1 },
-  { id: "cat", name: "Кіт", about: "Гріється біля хати. Лише для краси.", price: 50, max: 1 }
+  { id: "flowers", name: "Живопліт", about: "Кущі посеред двору. Лише для краси.", price: 15, max: 1 },
+  { id: "dog", name: "Баранчик", about: "Стереже двір. Лише для краси.", price: 35, max: 1 },
+  { id: "cat", name: "Овечка", about: "Гріється біля хати. Лише для краси.", price: 50, max: 1 }
 ]
 
 /** How many times the student bought each upgrade. */
@@ -175,10 +175,10 @@ export const estatePalette = (passed: ReadonlyArray<Level>): ReadonlyArray<Block
 /** What the student bought for looks: flowers in the middle of the yard (x from 2 to trees + 2 is a wall every day), a cat and a dog. */
 const petsOf = (upgrades: EstateUpgrades, trees: number, coop: boolean): ReadonlyArray<PlacedSprite> => {
   const sprites: Array<PlacedSprite> = []
-  // Tiny Swords has no flowers, cats or dogs: mushrooms bloom in the yard, and two sheep keep the student company.
+  // Tiny Swords has no flowers, cats or dogs: a hedge grows in the yard, and a sheep and a ram keep the student company.
   if (upgradeCount(upgrades, "flowers") > 0) {
-    sprites.push({ asset: "tiny-swords:decor/mushroom-large", x: trees + 1, y: 2 })
-    sprites.push({ asset: "tiny-swords:decor/mushroom-medium", x: trees + 2, y: 2 })
+    sprites.push({ asset: "tiny-swords:decor/bush-large", x: trees + 1, y: 2 })
+    sprites.push({ asset: "tiny-swords:decor/bush-medium", x: trees + 2, y: 2 })
   }
   if (upgradeCount(upgrades, "cat") > 0) sprites.push({ asset: "tiny-swords:animal/sheep", x: coop ? trees + 2 : 2, y: coop ? 3 : 2, clip: "idle" })
   if (upgradeCount(upgrades, "dog") > 0) sprites.push({ asset: "tiny-swords:animal/sheep", x: coop ? trees + 2 : 3, y: coop ? 4 : 2, clip: "idle", flip: true })
@@ -188,9 +188,9 @@ const petsOf = (upgrades: EstateUpgrades, trees: number, coop: boolean): Readonl
 const taskOf = (upgrades: EstateUpgrades, day: number): ReadonlyArray<string> => [
   `День ${day} на хуторі. Збери все, що достигло, і повернись до хати.`,
   [
-    "Не всі яблука достигають одразу, а кінець двору щодня інший.",
-    upgradeCount(upgrades, "carrots") > 0 ? "Морква на нижній стежці теж дозріває не вся." : "",
-    upgradeCount(upgrades, "coop") > 0 ? "Кури несуться не щодня." : ""
+    "Не всі гриби під ялинками виростають одразу, а кінець двору щодня інший.",
+    upgradeCount(upgrades, "carrots") > 0 ? "Гарбузи на нижній стежці теж дозрівають не всі." : "",
+    upgradeCount(upgrades, "coop") > 0 ? "Ягнята з кошари розбігаються не щодня." : ""
   ]
     .filter((s) => s !== "")
     .join(" "),

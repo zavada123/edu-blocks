@@ -38,7 +38,7 @@ The student-facing interface is in Ukrainian. It was built for [EduProstir](http
 - **One concept per level:** every level unlocks only its own blocks.
 - **Animated runs on a canvas:** the hero walks, swings, lifts what it takes, bumps into walls and falls into traps; enemies walk up, raise their weapons and strike. The block that makes each action lights up.
 - **A time line under the field:** pause, a step back or forward, a slider to any moment of the run, and the speed from ×0.5 to ×4. The block of the action on the field lights up as the student steps through, so they see what each block did.
-- **Story scenes** (`scene`): summer or winter, a path, pond ice or a bridge, items (crystals, firewood, apples, fish, a key, campfires that light up), a goal (flag, well, grandma, home) and houses around. Pixel art from Tiny Swords (see below).
+- **Story scenes** (`scene`): any season, a path, pond ice or a bridge, items and a goal, and houses around. Pixel art from Tiny Swords (see below). The item and goal ids are the old ones; the game names and draws them as Tiny Swords has them: `crystal` gold, `wood` firewood, `apple` mushrooms, `fish` meat, `key` an arrow, `campfire` campfires that light up, `carrot` pumpkins, `egg` lambs; the goals `flag` a signpost, `well` a spring, `grandma` and `home`.
 - **A meadow around every level** doubles the cells on the map; it is scenery only.
 - **XP and hero levels:** a run gives XP for the level tier (`tier`: intro, practice or challenge), for each star and for a pass at the first try. The hero gets only the part above the best earlier run, so replays give nothing to farm.
 - **Clear feedback:** the hero hit an obstacle, the program ended too early, the loop never ends. Each level has a hint.

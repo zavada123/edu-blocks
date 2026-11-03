@@ -33,8 +33,8 @@ describe("storyIssues", () => {
   })
 
   test("the items of the text and of the field differ", () => {
-    const level: Level = { ...base, task: ["Візьми всі яблука."] }
-    expect(texts(level)).toEqual(["У тексті «яблука», а на полі предмети — кристали"])
+    const level: Level = { ...base, task: ["Збери всі гриби."] }
+    expect(texts(level)).toEqual(["У тексті «гриби», а на полі предмети — золото"])
     expect(texts({ ...level, scene: { item: "apple" } })).toEqual([])
     // A picture from a pack makes the items look as the author wants.
     expect(texts({ ...level, scene: { itemLook: "ninja-adventure:item/apple" } })).toEqual([])

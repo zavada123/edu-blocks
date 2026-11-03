@@ -352,7 +352,7 @@ export const AssetBrowser = ({ level, brush, onBrush, onLevel }: AssetBrowserPro
                 </button>
                 <button
                   type="button"
-                  title="Мета на клітинці F виглядатиме так: скриня, будинок, криниця…"
+                  title="Мета на клітинці F виглядатиме так: скриня, будинок, джерело…"
                   onClick={() => onLevel((l) => ({ ...l, scene: { ...l.scene, finishLook: assetRef(packId, picked.id) } }))}
                 >
                   Вигляд мети

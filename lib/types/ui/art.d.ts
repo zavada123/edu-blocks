@@ -44,9 +44,9 @@ export interface Look {
     readonly clip?: string;
 }
 export declare const NPC_ART: Readonly<Record<NpcKind, Look>>;
-/** What lies on a cell to take. The pack has no apples, fish, keys or eggs: the nearest things stand in for them. */
+/** What lies on a cell to take. The ids are the old ones; the texts call them gold, mushrooms, meat, arrows, pumpkins and lambs. */
 export declare const ITEM_ART: Readonly<Record<ItemKind, Look>>;
-/** The goal of a level. At home the house is the goal, and the cell only gets the corners of a pointer. */
+/** The goal of a level: a signpost, a spring (water with stones), grandma, or home, where the cell gets the corners of a pointer. */
 export declare const FINISH_ART: Readonly<Record<FinishKind, Look | null>>;
 export declare const POINTER_ART = "ui/pointer-select";
 export declare const WATER_ART = "tileset/water";
