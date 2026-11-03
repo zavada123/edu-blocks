@@ -1,5 +1,6 @@
 /**
- * The heroes a student can play: the look of the hero on the field. The first heroes open at a hero level, so new
+ * The heroes a student can play: the look of the hero on the field (Tiny Swords units, see `HERO_ART` in ui/art.ts). The
+ * ids are those the app keeps, from the first looks; the names are the new ones. The first heroes open at a hero level, so new
  * looks come as the student earns XP. The others are sold for coins (`price`), some only from a hero level. The app
  * keeps which hero the student chose and which heroes they bought; the package draws them and offers the choice.
  */
@@ -18,15 +19,15 @@ export interface Hero {
 }
 
 export const HEROES: ReadonlyArray<Hero> = [
-  { id: "ninja", name: "Ніндзя", about: "Тихий мандрівник у синьому. З ним починається пригода.", heroLevel: 1 },
-  { id: "robot", name: "Робот", about: "Залізний помічник із ріжками. Не знає втоми.", heroLevel: 2 },
-  { id: "rover", name: "Ровер", about: "Розвідник у фіолетовому шоломі. Перший на нових стежках.", heroLevel: 3 },
-  { id: "bee", name: "Бджілка", about: "Маленька і спритна. Гуде на всю долину.", heroLevel: 4 },
-  { id: "knight", name: "Лицар", about: "У залізному шоломі. Стежку не звертає.", heroLevel: 1, price: 60 },
-  { id: "eskimo", name: "Ескімос", about: "У теплій шубі з хутром. Зима йому не страшна.", heroLevel: 1, price: 80 },
-  { id: "cavegirl", name: "Лісовичка", about: "Знає кожну стежку в лісі й кожен кущ на ній.", heroLevel: 2, price: 100 },
-  { id: "woman", name: "Мандрівниця", about: "У синьому каптурі. Уже обійшла пів світу.", heroLevel: 2, price: 120 },
-  { id: "samurai", name: "Самурай", about: "Спокійний і точний. Кожен крок у нього продуманий.", heroLevel: 3, price: 150 },
+  { id: "ninja", name: "Воїн", about: "Меч, щит і синій плащ. З ним починається пригода.", heroLevel: 1 },
+  { id: "robot", name: "Трудяга", about: "Селянин у синьому. Рубає, носить і нікуди не поспішає.", heroLevel: 2 },
+  { id: "rover", name: "Лучник", about: "Стріляє здалеку. Перший на нових стежках.", heroLevel: 3 },
+  { id: "bee", name: "Фіолетовий воїн", about: "Спритний і швидкий. Шолом із пером видно здалеку.", heroLevel: 4 },
+  { id: "knight", name: "Червоний лицар", about: "У червоних обладунках. Стежку не звертає.", heroLevel: 1, price: 60 },
+  { id: "eskimo", name: "Фіолетовий лучник", about: "Тятива напнута, око пильне. Зима йому не страшна.", heroLevel: 1, price: 80 },
+  { id: "cavegirl", name: "Лісоруб", about: "З сокирою в руках. Знає кожен кущ на стежці.", heroLevel: 2, price: 100 },
+  { id: "woman", name: "Червоний лучник", about: "Уже обійшов пів світу і не схибив жодного разу.", heroLevel: 2, price: 120 },
+  { id: "samurai", name: "Золотий лучник", about: "Спокійний і точний. Кожен постріл у нього продуманий.", heroLevel: 3, price: 150 },
   { id: "knight-gold", name: "Золотий лицар", about: "Обладунки сяють, як сонце. Для справжніх майстрів.", heroLevel: 5, price: 250 }
 ]
 

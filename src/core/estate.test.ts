@@ -29,7 +29,9 @@ import { checkLevel } from "./kit.ts"
 import { type BlockName, describeGoal, startWorld } from "./level.ts"
 import { judgePython } from "./python/judge.ts"
 import { solveLevel } from "./solve.ts"
+import { BED_PLOT_ART, CARROT_STAGES, HEN_HOUSE_ART, HEN_HOUSE_PLOT_ART } from "./estate-map.ts"
 import { tilemapIssues } from "./tilemap.ts"
+import { TINY_SWORDS_GROUND, TINY_SWORDS_WATER } from "./tiny-swords.ts"
 
 const ALL: ReadonlyArray<BlockName> = ["move", "turnLeft", "turnRight", "collect", "wallAhead", "onCrystal", "atFinish", "repeat", "repeatUntil", "if", "ifElse", "not"]
 
@@ -83,11 +85,11 @@ describe("estate days", () => {
     }
   })
 
-  test("every day is drawn as a Sunnyside map that covers the yard and keeps the paths clear", () => {
+  test("every day is drawn as a Tiny Swords map that covers the yard and keeps the paths clear", () => {
     for (const upgrades of SETS) {
       for (let day = 1; day <= 30; day++) {
         const { level } = estateDay({ upgrades, day }, ALL)
-        expect(level.scene?.tilemap?.tileset, `day ${day}`).toBe("sunnyside:tileset/16px")
+        expect(level.scene?.tilemap?.tileset, `day ${day}`).toBe(TINY_SWORDS_GROUND)
         expect(level.scene?.props, `day ${day}`).toBeUndefined()
         expect(tilemapIssues(level), `day ${day} ${JSON.stringify(upgrades)}`).toEqual([])
       }
@@ -96,41 +98,39 @@ describe("estate days", () => {
 
   test("the carrot bed grows from day to day", () => {
     const frames = (day: number) =>
-      (estateDay({ upgrades: { carrots: 1 }, day }, ALL).level.scene?.sprites ?? []).filter((s) => s.asset === "sunnyside:crop/carrot").map((s) => s.frame)
+      (estateDay({ upgrades: { carrots: 1 }, day }, ALL).level.scene?.sprites ?? []).filter((s) => s.y === 4 && CARROT_STAGES.includes(s.asset)).map((s) => CARROT_STAGES.indexOf(s.asset))
     expect(frames(1)).toHaveLength(START_TREES)
     expect(frames(1)).not.toEqual(frames(2))
   })
 
   test("the farm stays in place: the same map, house and pond for every day and every upgrade", () => {
     const placeOf = (upgrades: EstateUpgrades, day: number) => {
-      const map = estateDay({ upgrades, day }, ALL).level.scene?.tilemap
-      const ground = map?.layers.find((l) => l.name === "ground")?.data ?? []
-      const water = ground.flatMap((t, i) => (t !== ground[0] && t > 300 ? [i] : []))
-      return { x: map?.x, y: map?.y, width: map?.width, height: map?.height, above: map?.layers.find((l) => l.kind === "above")?.data, water }
+      const scene = estateDay({ upgrades, day }, ALL).level.scene
+      const map = scene?.tilemap
+      const water = (scene?.sprites ?? []).filter((s) => s.asset === TINY_SWORDS_WATER).map((s) => `${s.x},${s.y}`)
+      const houses = (scene?.sprites ?? []).filter((s) => s.asset.startsWith("tiny-swords:prop/")).map((s) => `${s.x},${s.y}`)
+      return { x: map?.x, y: map?.y, width: map?.width, height: map?.height, water, houses }
     }
     const first = placeOf({}, 1)
     for (const upgrades of SETS) {
-      for (const day of [1, 2, 9, 17]) {
-        const place = placeOf(upgrades, day)
-        expect({ ...place, above: undefined }, `${JSON.stringify(upgrades)} day ${day}`).toEqual({ ...first, above: undefined })
-      }
+      for (const day of [1, 2, 9, 17]) expect(placeOf(upgrades, day), `${JSON.stringify(upgrades)} day ${day}`).toEqual(first)
     }
-    // The farmhouse roof is the same; the hen house roof joins it once it is bought.
-    const roofs = (upgrades: EstateUpgrades) => (placeOf(upgrades, 3).above ?? []).flatMap((t, i) => (t > 0 ? [i] : []))
-    expect(roofs({ carrots: 1, coop: 1 })).toEqual(expect.arrayContaining(roofs({})))
-    expect(roofs({ carrots: 1, coop: 1 }).length).toBeGreaterThan(roofs({}).length)
+    // The hen house is built where its timber lay.
+    const sprites = (upgrades: EstateUpgrades) => estateDay({ upgrades, day: 3 }, ALL).level.scene?.sprites ?? []
+    expect(sprites({}).some((s) => s.asset === HEN_HOUSE_PLOT_ART)).toBe(true)
+    expect(sprites({ carrots: 1, coop: 1 }).some((s) => s.asset === HEN_HOUSE_ART)).toBe(true)
   })
 
   test("the shop's plots show on the farm until they are bought", () => {
     const sprites = (upgrades: EstateUpgrades) => estateDay({ upgrades, day: 4 }, ALL).level.scene?.sprites ?? []
-    const dug = (upgrades: EstateUpgrades) => sprites(upgrades).filter((s) => s.asset === "sunnyside:crop/soil" && s.y === 0).length
+    const dug = (upgrades: EstateUpgrades) => sprites(upgrades).filter((s) => s.asset === TINY_SWORDS_GROUND && s.y === 0).length
     expect(dug({})).toBe(MAX_TREES - START_TREES)
     expect(dug({ tree: 2 })).toBe(MAX_TREES - START_TREES - 2)
     expect(dug(FULL)).toBe(0)
-    expect(sprites({}).some((s) => s.asset === "sunnyside:item/seeds-generic")).toBe(true)
-    expect(sprites({ carrots: 1 }).some((s) => s.asset === "sunnyside:item/seeds-generic")).toBe(false)
-    expect(sprites({ carrots: 1 }).some((s) => s.asset === "sunnyside:item/crate-base")).toBe(true)
-    expect(sprites({ carrots: 1, coop: 1 }).some((s) => s.asset === "sunnyside:item/crate-base")).toBe(false)
+    expect(sprites({}).some((s) => s.asset === BED_PLOT_ART)).toBe(true)
+    expect(sprites({ carrots: 1 }).some((s) => s.asset === BED_PLOT_ART)).toBe(false)
+    expect(sprites({ carrots: 1 }).some((s) => s.asset === HEN_HOUSE_PLOT_ART)).toBe(true)
+    expect(sprites({ carrots: 1, coop: 1 }).some((s) => s.asset === HEN_HOUSE_PLOT_ART)).toBe(false)
   })
 
   test("a carrot picked on one day is sown again the next and grows", () => {

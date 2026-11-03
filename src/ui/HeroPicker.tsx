@@ -1,13 +1,19 @@
 import { useEffect, useRef } from "react"
 import { canBuyHero, type Hero, HEROES, heroOpen, type HeroId } from "../core/heroes.ts"
 import { Coin } from "./Coin.tsx"
-import { heroSheetOf, type Skin } from "./stage/draw.ts"
+import { ArtIcon } from "./ArtIcon.tsx"
+import { HERO_ART } from "./art.ts"
+import type { Skin } from "./stage/draw.ts"
 import { coinWord } from "./Verdict.tsx"
 
-/** A hero walking towards the student: the first column of its sheet, four frames. */
+/** A hero that can be played breathes in place; a locked one stands as a still shadow. */
 export const HeroSprite = ({ skin, walking }: { readonly skin: Skin; readonly walking: boolean }) => (
-  <span className={walking ? "eb-hero-sprite eb-hero-walk" : "eb-hero-sprite"} style={{ backgroundImage: `url(${heroSheetOf(skin)})` }} aria-hidden="true" />
+  <ArtIcon id={HERO_ART[skin]} animate={walking && !reducedMotion()} className="eb-hero-sprite" size={64} />
 )
+
+/** Whether the viewer asked for less motion. */
+const reducedMotion = (): boolean =>
+  typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
 /** The shop part of the choice: the coins the student has and how to buy. */
 export interface HeroShop {

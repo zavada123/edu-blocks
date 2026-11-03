@@ -2,7 +2,8 @@ import { useState } from "react"
 import { levelSource } from "../../core/kit.ts"
 import { type Level, startWorld } from "../../core/level.ts"
 import { BOSS_HP, DEFAULT_HEARTS, DEFAULT_SIGHT, type EnemyKind, type EnemySpec, type EnemyWalk, parseMap } from "../../core/world.ts"
-import { ENEMIES } from "../../ui/look.ts"
+import { ArtIcon } from "../../ui/ArtIcon.tsx"
+import { ENEMY_ART } from "../../ui/art.ts"
 import { Thumb } from "./AssetBrowser.tsx"
 import { findSprite, useLevelPacks } from "./SpritesCard.tsx"
 
@@ -44,7 +45,7 @@ const tidy = (level: Level): Level => {
 const EnemyIcon = ({ spec, packs }: { readonly spec: EnemySpec; readonly packs: ReturnType<typeof useLevelPacks> }) => {
   const found = spec.look === undefined ? null : findSprite(packs, spec.look)
   if (found !== null) return <Thumb pack={found.pack} sprite={found.sprite} box={24} />
-  return <span className="ed-icon ed-icon-sheet" style={{ backgroundImage: `url(${ENEMIES[spec.kind]})`, backgroundSize: "96px 96px" }} />
+  return <ArtIcon id={ENEMY_ART[spec.kind]} className="ed-icon" size={24} />
 }
 
 export const Enemies = ({ level, onChange }: { readonly level: Level; readonly onChange: (patch: Partial<Level>) => void }) => {

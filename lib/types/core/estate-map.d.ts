@@ -1,10 +1,17 @@
 import type { PlacedSprite, TileMap } from "./level.ts";
-/**
- * How a day of the estate looks: a Sunnyside farm drawn as a tile map around the ring of paths of `estateDay`. The
- * paths get grass edges, the farmhouse stands over the door, the orchard over the top path, the carrot bed under
- * the bottom path and the hen house beside the nests; a meadow with trees and a pond lies around. Only looks: the
- * map of the day stays the rules.
- */
+export declare const FARMHOUSE_ART: string;
+export declare const HEN_HOUSE_ART: string;
+/** Timber for the hen house not built yet. */
+export declare const HEN_HOUSE_PLOT_ART: string;
+export declare const ORCHARD_TREE_ART: string;
+/** A scarecrow stands where the bed will be, until the seeds are bought. */
+export declare const BED_PLOT_ART: string;
+/** The hens of the hen house: the pack has sheep. */
+export declare const HEN_ART: string;
+/** The stages of a carrot in the bed, from just sown (1) to ripe (4): the pack grows pumpkins. */
+export declare const CARROT_STAGES: ReadonlyArray<string>;
+/** Dug ground: a bed or a plot for a tree, a piece of the ground tileset with pebbles. */
+export declare const soilAt: (x: number, y: number) => PlacedSprite;
 export interface EstateLayout {
     /** The map of the day: `#` walls, the ring of paths and its `S`, `F` and `c` cells. */
     readonly rows: ReadonlyArray<string>;

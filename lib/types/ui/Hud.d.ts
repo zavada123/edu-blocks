@@ -1,5 +1,5 @@
 import type { Level } from "../core/level.ts";
-import { type Skin } from "./stage/draw.ts";
+import type { Skin } from "./stage/draw.ts";
 /** Stars of the levels the student has passed, by level id. The app knows them; the bar shows the chapter's. */
 export type Progress = Readonly<Record<string, number>>;
 /**

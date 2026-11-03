@@ -29,6 +29,7 @@ export const setAssetBase = (url: string) => {
   base = next
   packs.clear()
   pending.clear()
+  missing.clear()
 }
 
 export const assetBase = (): string => base
@@ -61,6 +62,23 @@ export const loadPackList = (): Promise<ReadonlyArray<PackInfo>> =>
     .catch(() => [])
 
 export const loadedPack = (id: string): AssetPack | null => packs.get(id) ?? null
+
+const missing = new Set<string>()
+
+/** Whether a pack is there: loading starts on the first call. A missing pack (no such folder) stays missing. */
+export const packStatus = (id: string): "loading" | "ready" | "missing" => {
+  if (packs.has(id)) return "ready"
+  if (missing.has(id)) return "missing"
+  if (!pending.has(id)) {
+    void loadPack(id).then((pack) => {
+      if (pack === null) {
+        missing.add(id)
+        notifyLoaded()
+      }
+    })
+  }
+  return "loading"
+}
 
 /** A sprite and its pack, by reference: null while the pack loads or when there is no such sprite. */
 export const spriteOf = (ref: string): { readonly pack: AssetPack; readonly sprite: SpriteAsset } | null => {

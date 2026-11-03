@@ -38,7 +38,7 @@ The student-facing interface is in Ukrainian. It was built for [EduProstir](http
 - **One concept per level:** every level unlocks only its own blocks.
 - **Animated runs on a canvas:** the hero walks, swings, lifts what it takes, bumps into walls and falls into traps; enemies walk up, raise their weapons and strike. The block that makes each action lights up.
 - **A time line under the field:** pause, a step back or forward, a slider to any moment of the run, and the speed from ×0.5 to ×4. The block of the action on the field lights up as the student steps through, so they see what each block did.
-- **Story scenes** (`scene`): summer or winter, a path, pond ice or a bridge, items (crystals, firewood, apples, fish, a key, campfires that light up), a goal (flag, well, grandma, home) and houses around. Pixel art from Ninja Adventure.
+- **Story scenes** (`scene`): summer or winter, a path, pond ice or a bridge, items (crystals, firewood, apples, fish, a key, campfires that light up), a goal (flag, well, grandma, home) and houses around. Pixel art from Tiny Swords (see below).
 - **A meadow around every level** doubles the cells on the map; it is scenery only.
 - **XP and hero levels:** a run gives XP for the level tier (`tier`: intro, practice or challenge), for each star and for a pass at the first try. The hero gets only the part above the best earlier run, so replays give nothing to farm.
 - **Clear feedback:** the hero hit an obstacle, the program ended too early, the loop never ends. Each level has a hint.
@@ -266,7 +266,7 @@ goals: [{ type: "enemies" }, { type: "finish" }]
 - An enemy next to the hero swings, and on its next turn hits for one heart. A blow stops a plain enemy's swing, not a boss's.
 - Blocks `attack` («вдарити») and `enemyAhead` («попереду ворог?»). Walking into an enemy is a crash; no hearts left is the
   fail reason `defeated`.
-- Kinds: `slime`, `spirit`, `goblin`, `skull`, `flame`, `bear`, `toad` (Ninja Adventure monsters).
+- Kinds: `slime`, `spirit`, `goblin`, `skull`, `flame`, `bear`, `toad` (goblins of Tiny Swords in colours, see `ENEMY_ART` in `src/ui/art.ts`).
 
 ### Hero API and run frames
 
@@ -465,7 +465,7 @@ The package code is [MIT](LICENSE). It uses:
 
 The fonts are [Tiny5](https://github.com/Gissio/font_tiny5), [Golos Text](https://github.com/googlefonts/golos-text) and [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono), under the SIL Open Font License 1.1 ([`src/ui/fonts`](src/ui/fonts)); the package has only their Latin and Cyrillic letters.
 
-The pixel art of the field (heroes, trees, houses, items) comes from [Ninja Adventure](https://pixel-boy.itch.io/ninja-adventure-asset-pack) by Pixel-boy, released under CC0; [`src/ui/sprites/CREDITS.md`](src/ui/sprites/CREDITS.md) lists where each file comes from, and [`src/ui/sprites/ASSETS.md`](src/ui/sprites/ASSETS.md) gives the size, frames and role of each sprite. [`docs/assets/ninja-adventure.json`](docs/assets/ninja-adventure.json) describes every file of the pack.
+The whole game is drawn with [Tiny Swords](https://pixelfrog-assets.itch.io/tiny-swords) by Pixel Frog: the old version (Update 010) is public domain (CC0) and lives in [`assets/tiny-swords/`](assets/tiny-swords/CATALOG.md). [`src/ui/art.ts`](src/ui/art.ts) says which sprite draws which thing of the game (heroes, goblins, villagers, items, the goal, houses, bushes, trees and the ground). When the build serves the private Free Pack 2025 as `tiny-swords-free` (`EDU_BLOCKS_PRIVATE_ASSETS`), any sprite it has under the same id is drawn from it instead; the ground stays from the public pack. Weather, hearts and traps are drawn in code.
 
 The [`assets/`](assets/README.md) folder is the game's asset library with a manifest per pack (category, frame grid and animation clips of every picture, read with `frameAt` from `edu-blocks/core`): the full Ninja Adventure pack (CC0), [Farming crops 16x16](https://opengameart.org/content/farming-crops-16x16) by josehzz (CC0) and [Sunnyside World](https://danieldiggle.itch.io/sunnyside) by Daniel Diggle. Sunnyside World is not under the MIT licence: it may be shared only as part of educational material with a link to its page, and may not be repackaged, resold or used to train AI (see [`assets/sunnyside/LICENSE.md`](assets/sunnyside/LICENSE.md)).
 

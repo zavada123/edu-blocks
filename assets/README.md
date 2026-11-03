@@ -9,6 +9,7 @@
 | --- | --- | --- | --- |
 | [`ninja-adventure/`](ninja-adventure/) | [Pixel-boy, AAA](https://pixel-boy.itch.io/ninja-adventure-asset-pack) | CC0 1.0, без умов | 93 персонажі з ходьбою в 4 сторони, 66 ворогів, 20 босів, 63 тварини, 230 портретів, предмети, зброя, ефекти, 23 тайлсети, інтерфейс, 147 звуків |
 | [`farming-crops/`](farming-crops/) | [josehzz](https://opengameart.org/content/farming-crops-16x16) | CC0 1.0, без умов | 20 культур 16×16 (томат, пшениця, кукурудза, картопля, соняшник…): кліп `grow` з 5 стадіями від посіву до врожаю і `icon` з урожаєм |
+| [`tiny-swords/`](tiny-swords/) | [Pixel Frog](https://pixelfrog-assets.itch.io/tiny-swords) | CC0 1.0 (стара версія Update 010) | Лицарі (воїн, лучник, трудівник) і гобліни в 4 кольорах, будівлі, золото, дерево, вівця, земля, скелі, міст, вода, ефекти, інтерфейс; **кожен спрайт описано для AI** (див. нижче) |
 | [`sunnyside/`](sunnyside/) | [Daniel Diggle](https://danieldiggle.itch.io/sunnyside) | Sunnyside World V1 | Селяни з 20 діями (вид збоку, шари: тіло, зачіска, інструмент), гоблін і скелет, тварини, 12 культур зі стадіями росту, вітряк, тайлсет, інтерфейс |
 
 **Sunnyside World** можна поширювати лише як частину навчального курсу і з посиланням на
@@ -22,6 +23,31 @@ https://danieldiggle.itch.io/sunnyside (воно є тут і в `sunnyside/LICE
 публічна збірка на GitHub Pages цієї змінної не задає, тож приватні файли туди не потрапляють.
 
 Музику Ninja Adventure (60 МБ) не додано; звукові ефекти й джингли переведено з WAV в Ogg.
+
+**Tiny Swords.** Pixel Frog викладає стару версію пака (Update 010) окремим файлом «TS_old version_CC0 Licensed», тож вона
+лежить тут. Нова версія (Free Pack 2025) і платні паки Pixel Frog забороняють поширювати файли: їх маніфест будує той самий
+скрипт у приватний пак `tiny-swords-free` (репозиторій edu-assets-private) з тими самими id спрайтів і назвами анімацій,
+де вони показують те саме (`character/warrior-blue`, `item/gold`, `prop/house-red`, `decor/tree`, `tileset/ground`…).
+
+## Опис для людей і AI
+
+Паки, зібрані `scripts/assets/tiny_swords.py`, описують кожен спрайт так, щоб рівень могли скласти без перегляду картинок
+(а AI — без вгадування):
+
+- `title`, `about`: назва й опис українською (що на картинці і як її можна вжити в рівні); у кліпів теж є `about`.
+- `tags`: англійські ключові слова для пошуку; `roles`: ким спрайт може бути в рівні (`hero`, `npc`, `enemy`, `collectible`,
+  `obstacle`, `goal`, `building`, `decor`, `ground`, `water`, `cliff`, `bridge`, `effect`, `ui-button`… тип `AssetRole`).
+- `color`: колір команди; `group`: вид (`warrior`, `house`…); `faces`: куди дивиться фігура на картинці.
+- `anchor`: точка кадру, якою фігура стоїть на землі (ставити її на клітинку); `bounds`: видима частина кадру;
+  `footprint`: скільки клітинок займає основа; `frameCount`: скільки кадрів намальовано.
+- `tiles` у тайлсетів: кожна плитка з ґрунтом (`terrain`), роллю (`fill`, `edge`, `wall`, `stairs`…), краями `edges`
+  і `mask` (N 1, E 2, S 4, W 8 — боки, де ґрунт закінчується). Для клітинки рахують, з яких боків сусід інший, і беруть
+  плитку з таким `mask`. Номери плиток у різних версій пака різні, тож шукати плитку треба за `terrain` і `mask`.
+- `parts` в інтерфейсу: шматки картинки для 3- і 9-slice (`top-left`, `center`, `left`, `right`…).
+
+Поруч із маніфестом лежать `CATALOG.md` (усе те саме таблицями) і `preview/<категорія>.png` (перший кадр кожного спрайта з
+його id). Тест `src/core/assets.test.ts` перевіряє, що опис повний, точки опори в межах кадру, а кожен ґрунт тайлсета має
+плитки для всіх 16 наборів країв.
 
 ## У рівнях
 
@@ -97,6 +123,15 @@ const rect = frameAt(sprite, "walk", "left", msSinceStart) // { file, sx, sy, w,
 `hammering`, `watering`, `casting`, `reeling`, `caught`, `swimming`, `waiting`, `doing`.
 
 ## Як перебудувати
+
+Tiny Swords (потрібні Python 3.11+ і Pillow):
+
+```sh
+python3 scripts/assets/tiny_swords.py --old "<…>/Tiny Swords (Update 010)" --out assets/tiny-swords
+python3 scripts/assets/tiny_swords.py --free "<…>/Tiny Swords (Free Pack)" --out "<edu-assets-private>/tiny-swords-free"
+```
+
+Інші паки:
 
 Потрібні Python 3.11+, Pillow і ffmpeg. Паки розпакувати в окремі папки й запустити:
 

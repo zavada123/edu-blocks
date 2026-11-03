@@ -4,7 +4,9 @@ import { heroLevelOf } from "../core/xp.ts"
 import { chapterOf, chapters } from "../levels/chapters.ts"
 import { HEROES } from "../core/heroes.ts"
 import { Coin } from "./Coin.tsx"
-import { heroSheetOf, type Skin } from "./stage/draw.ts"
+import { ArtIcon } from "./ArtIcon.tsx"
+import { HERO_ART } from "./art.ts"
+import type { Skin } from "./stage/draw.ts"
 
 /** Stars of the levels the student has passed, by level id. The app knows them; the bar shows the chapter's. */
 export type Progress = Readonly<Record<string, number>>
@@ -44,7 +46,7 @@ const HeroBadge = ({
   const name = HEROES.find((h) => h.id === skin)?.name ?? ""
   const portrait = (
     <span className="eb-avatar" aria-hidden="true">
-      <span style={{ backgroundImage: `url(${heroSheetOf(skin)})` }} />
+      <ArtIcon id={HERO_ART[skin]} size={36} />
     </span>
   )
   return (

@@ -75,8 +75,8 @@ export const vmCompat = {
 
 const PACKS_URL = "/packs/"
 const PUBLIC_PACKS = fileURLToPath(new URL("assets", import.meta.url))
-/** Folders the game never draws from: they stay out of the build. */
-const SKIPPED = new Set(["audio"])
+/** Folders the game never draws from: they stay out of the build. Previews are contact sheets for people and AI. */
+const SKIPPED = new Set(["audio", "preview"])
 
 interface PackFolder {
   readonly id: string

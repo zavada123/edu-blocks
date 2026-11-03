@@ -49,6 +49,60 @@ export interface AssetClip {
   readonly mirror?: Readonly<Partial<Record<Direction, Direction>>>
   /** The frame count was guessed from the picture and is worth a look. */
   readonly verify?: boolean
+  /** What the animation shows, in Ukrainian. */
+  readonly about?: string
+}
+
+/** What a picture can be in a level: the roles a level builder (a person or an AI) may give it. */
+export type AssetRole =
+  | "hero"
+  | "npc"
+  | "enemy"
+  | "animal"
+  | "collectible"
+  | "obstacle"
+  | "goal"
+  | "building"
+  | "decor"
+  | "ground"
+  | "path"
+  | "water"
+  | "cliff"
+  | "bridge"
+  | "shadow"
+  | "weather"
+  | "effect"
+  | "projectile"
+  | "ui-panel"
+  | "ui-button"
+  | "ui-icon"
+  | "ui-bar"
+  | "cursor"
+  | "portrait"
+
+/** One tile of a tileset, described: which ground it is and on which sides that ground ends. */
+export interface TileInfo {
+  /** The tile number, counted from 1 as tile layers count them. */
+  readonly index: number
+  readonly col: number
+  readonly row: number
+  /** The ground: `grass`, `sand`, `plateau`, `cliff`, `water`, `bridge`… */
+  readonly terrain: string
+  /** `fill`, `edge`, `wall`, `stairs`, or a name of its own (`horizontal-left`, `slope-left-top`…). */
+  readonly role: string
+  readonly about: string
+  /** Sides where the ground ends (its neighbour there is another ground), from `N`, `E`, `S`, `W`. */
+  readonly edges?: string
+  /** The same as bits, N 1, E 2, S 4, W 8: the tile for a cell is the one whose mask matches its neighbours. */
+  readonly mask?: number
+  readonly verify?: boolean
+}
+
+/** A piece of a UI picture, for 3- and 9-slice scaling: `top-left`, `center`, `left`, `r0c2`… */
+export interface UiPart {
+  readonly name: string
+  /** x, y, width, height in the picture. */
+  readonly rect: readonly [number, number, number, number]
 }
 
 export interface SpriteAsset {
@@ -73,6 +127,30 @@ export interface SpriteAsset {
   /** Other looks of the same picture, as files: `{ night: "…" }`. */
   readonly variants?: Readonly<Record<string, string>>
   readonly verify?: boolean
+  // Descriptions for people and for AI (packs made by scripts/assets/tiny_swords.py have them all).
+  /** The name in Ukrainian. */
+  readonly title?: string
+  /** What the picture shows and how a level can use it, in Ukrainian. */
+  readonly about?: string
+  /** English keywords to search by. */
+  readonly tags?: ReadonlyArray<string>
+  readonly roles?: ReadonlyArray<AssetRole>
+  /** The team colour of a unit or a building: `blue`, `red`, `yellow`, `purple`, `black`. */
+  readonly color?: string
+  /** The way a side-view figure looks in the picture. */
+  readonly faces?: Direction
+  /** Drawn cells of the main picture. */
+  readonly frameCount?: number
+  /** The point in a frame where the figure touches the ground (pixels of the frame): put it on the cell. */
+  readonly anchor?: readonly [number, number]
+  /** The visible part of a frame over all its clips: x, y, width, height in pixels of the frame. */
+  readonly bounds?: readonly [number, number, number, number]
+  /** Cells of the field the thing stands on, width × height. */
+  readonly footprint?: readonly [number, number]
+  /** The tiles of a tileset, described. */
+  readonly tiles?: ReadonlyArray<TileInfo>
+  /** The pieces of a UI picture. */
+  readonly parts?: ReadonlyArray<UiPart>
 }
 
 export interface SoundAsset {
@@ -95,6 +173,12 @@ export interface AssetPack {
   }
   /** Size of one field cell in the pack's pictures. */
   readonly cell: number
+  /** How the pack draws the world, in words. */
+  readonly view?: string
+  /** The team colours of its units and buildings. */
+  readonly colors?: ReadonlyArray<string>
+  /** Another pack whose sprite ids and clip names this one uses for the same things. */
+  readonly sameIdsAs?: string
   readonly sprites: ReadonlyArray<SpriteAsset>
   readonly sounds?: ReadonlyArray<SoundAsset>
 }
@@ -219,14 +303,19 @@ export const packsOf = (level: Parameters<typeof assetRefsOf>[0]): ReadonlyArray
 /** Clips a figure plays when nothing else is asked, best first. */
 const IDLE_CLIPS: ReadonlyArray<string> = ["idle", "play", "walk", "grow"]
 
-/** The clip a sprite plays standing on the field: its `idle` (or the like) or the first one; null when it has none. */
+/**
+ * The clip a sprite plays standing on the field: its `idle` (or the like) or the first one that loops; null when it
+ * has none. A clip played once (a gold bag that appears in a flash) is not how the thing stands.
+ */
 export const restClip = (sprite: SpriteAsset): string | null => {
-  const names = Object.keys(sprite.clips ?? {})
-  return IDLE_CLIPS.find((n) => names.includes(n)) ?? names[0] ?? null
+  const clips = sprite.clips ?? {}
+  const names = Object.keys(clips)
+  return IDLE_CLIPS.find((n) => names.includes(n)) ?? names.find((n) => clips[n]?.loop !== false) ?? null
 }
 
-/** The clip of a walking figure: `walk`, else what it plays at rest. */
-export const walkClip = (sprite: SpriteAsset): string | null => (sprite.clips?.walk !== undefined ? "walk" : restClip(sprite))
+/** The clip of a walking figure: `walk` or `run`, else what it plays at rest. */
+export const walkClip = (sprite: SpriteAsset): string | null =>
+  sprite.clips?.walk !== undefined ? "walk" : sprite.clips?.run !== undefined ? "run" : restClip(sprite)
 
 /**
  * One still frame that shows what the sprite is, for an icon: the `icon` clip of a crop, the ripe last stage of a
