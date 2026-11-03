@@ -28,6 +28,7 @@ import { checkLevel } from "./kit.ts"
 import { type BlockName, describeGoal, startWorld } from "./level.ts"
 import { judgePython } from "./python/judge.ts"
 import { solveLevel } from "./solve.ts"
+import { tilemapIssues } from "./tilemap.ts"
 
 const ALL: ReadonlyArray<BlockName> = ["move", "turnLeft", "turnRight", "collect", "wallAhead", "onCrystal", "atFinish", "repeat", "repeatUntil", "if", "ifElse", "not"]
 
@@ -79,6 +80,24 @@ describe("estate days", () => {
         expect(python.passed).toBe(true)
       }
     }
+  })
+
+  test("every day is drawn as a Sunnyside map that covers the yard and keeps the paths clear", () => {
+    for (const upgrades of SETS) {
+      for (let day = 1; day <= 30; day++) {
+        const { level } = estateDay({ upgrades, day }, ALL)
+        expect(level.scene?.tilemap?.tileset, `day ${day}`).toBe("sunnyside:tileset/16px")
+        expect(level.scene?.props, `day ${day}`).toBeUndefined()
+        expect(tilemapIssues(level), `day ${day} ${JSON.stringify(upgrades)}`).toEqual([])
+      }
+    }
+  })
+
+  test("the carrot bed grows from day to day", () => {
+    const frames = (day: number) =>
+      (estateDay({ upgrades: { carrots: 1 }, day }, ALL).level.scene?.sprites ?? []).filter((s) => s.asset === "sunnyside:crop/carrot").map((s) => s.frame)
+    expect(frames(1)).toHaveLength(START_TREES)
+    expect(frames(1)).not.toEqual(frames(2))
   })
 
   test("the biggest estate still fits the field", () => {

@@ -1,4 +1,5 @@
-import type { BlockName, Level, PlacedSprite, Prop, Scene, Season } from "./level.ts"
+import { estateLook } from "./estate-map.ts"
+import type { BlockName, Level, PlacedSprite, Scene, Season } from "./level.ts"
 import type { RunResult } from "./program.ts"
 import { cellKey } from "./world.ts"
 
@@ -176,29 +177,16 @@ const cropTile = (frame: number): readonly [number, number, number, number] => [
 const tulipTile = cropTile(19)
 const roseTile = cropTile(7)
 
-/** The pictures of the estate: the orchard, the carrot bed, the hen house and what the student bought for looks. */
-const decorOf = (upgrades: EstateUpgrades, trees: number, bottom: number): { readonly sprites: Array<PlacedSprite>; readonly props: Array<Prop> } => {
+/** What the student bought for looks: flowers in the middle of the yard (x from 2 to trees + 2 is a wall every day), a cat and a dog. */
+const petsOf = (upgrades: EstateUpgrades, trees: number, coop: boolean): ReadonlyArray<PlacedSprite> => {
   const sprites: Array<PlacedSprite> = []
-  // The house with its door over the finish, and the trees over the top path, one over each apple cell.
-  const props: Array<Prop> = [{ kind: "house", x: -0.5, y: -2 }]
-  for (let i = 0; i < trees; i++) props.push({ kind: "appleTree", x: 2.75 + i, y: -0.5 })
-  if (upgradeCount(upgrades, "carrots") > 0) {
-    for (let i = 0; i < trees; i++) sprites.push({ asset: "sunnyside:crop/soil", x: 3 + i, y: bottom, tiles: [1, 0, 1, 1], layer: "ground" })
-  }
-  const coop = upgradeCount(upgrades, "coop") > 0
-  if (coop) {
-    props.push({ kind: "woodshed", x: 2, y: 3 })
-    sprites.push({ asset: "ninja-adventure:animal/chicken-white", x: 2, y: 2, clip: "idle" })
-    sprites.push({ asset: "ninja-adventure:animal/chicken-brown", x: 3, y: 2, clip: "idle", flip: true })
-  }
-  // The middle of the yard: x from 2 to trees + 2 is a wall on every day.
   if (upgradeCount(upgrades, "flowers") > 0) {
     sprites.push({ asset: "farming-crops:crop/tulip", x: trees + 1, y: 2, tiles: tulipTile, layer: "object" })
     sprites.push({ asset: "farming-crops:crop/rose", x: trees + 2, y: 2, tiles: roseTile, layer: "object" })
   }
   if (upgradeCount(upgrades, "cat") > 0) sprites.push({ asset: "ninja-adventure:animal/cat", x: coop ? trees + 2 : 2, y: coop ? 3 : 2, clip: "idle" })
   if (upgradeCount(upgrades, "dog") > 0) sprites.push({ asset: "ninja-adventure:animal/dog", x: coop ? trees + 2 : 3, y: coop ? 4 : 2, clip: "idle" })
-  return { sprites, props }
+  return sprites
 }
 
 const taskOf = (upgrades: EstateUpgrades, day: number): ReadonlyArray<string> => [
@@ -257,13 +245,13 @@ export const estateDay = (state: EstateState, blocks: ReadonlyArray<BlockName>):
     rows.push(row)
   }
 
-  const { sprites, props } = decorOf(upgrades, trees, bottom)
+  const look = estateLook({ rows, trees, right, bottom, carrots, coop, nests: NESTS, ready, day })
   const scene: Scene = {
     theme: estateSeason(day),
     item: "apple",
     finish: "home",
-    props,
-    sprites,
+    tilemap: look.tilemap,
+    sprites: [...look.sprites, ...petsOf(upgrades, trees, coop)],
     itemsAt: produce.map(({ x, y, kind }) => ({ x, y, item: kind }))
   }
   const level: Level = {

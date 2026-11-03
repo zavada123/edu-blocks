@@ -132,8 +132,14 @@ const tilemapGround = (ctx: Ctx, map: TileMap) => {
 
 /** Grass, meadow, the path or the ice, flowers, bushes that do not sway and trees; or the flat layers of a tile map. */
 export const drawGround = (ctx: Ctx, { world, scene, season, scenery }: GroundInput) => {
-  if (scene.tilemap !== undefined) tilemapGround(ctx, scene.tilemap)
-  else naturalGround(ctx, { world, scene, season, scenery })
+  if (scene.tilemap !== undefined) {
+    tilemapGround(ctx, scene.tilemap)
+    if (season.tint !== undefined) {
+      const { view } = scenery
+      ctx.fillStyle = season.tint
+      ctx.fillRect(view.x * CELL, view.y * CELL, view.width * CELL, view.height * CELL)
+    }
+  } else naturalGround(ctx, { world, scene, season, scenery })
   // Pictures of the packs that lie flat and still: tiles, water, a rug.
   for (const placed of scene.sprites ?? []) {
     const found = spriteOf(placed.asset)

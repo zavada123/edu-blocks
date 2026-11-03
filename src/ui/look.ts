@@ -100,6 +100,8 @@ export interface Season {
   /** Obstacles drawn as swaying bushes instead of the still picture. */
   readonly swaying: Partial<Readonly<Record<Obstacle, Swaying>>>
   readonly decor: Readonly<Record<Decor, string | null>>
+  /** A colour laid over a hand-drawn tile map, whose tiles have one season: snow in winter, a warm haze in autumn. */
+  readonly tint?: string
 }
 
 const SUMMER: Season = {
@@ -120,6 +122,7 @@ const WINTER: Season = {
   path: pathWinterSheet,
   weather: { href: snowfallImage, drift: 0.25, seconds: 9 },
   icy: true,
+  tint: "rgba(236, 244, 255, 0.55)",
   tree: snowTreeImage,
   obstacles: {
     bush: snowShrubTile,
@@ -150,6 +153,7 @@ const AUTUMN: Season = {
   meadow: meadowAutumnSheet,
   weather: { href: leaffallImage, drift: 0.5, seconds: 12 },
   tree: treeAutumnImage,
+  tint: "rgba(214, 140, 40, 0.16)",
   obstacles: { ...SUMMER.obstacles, bush: bushAutumnTile, bushRound: bushRoundAutumnTile, fern: fernAutumnTile, sunflower: bushAutumnTile },
   swaying: {},
   decor: { petals: leavesTile, flower: leavesTile, tuft: tuftTile, clover: twigTile, sprout: leavesTile }
