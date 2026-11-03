@@ -1,22 +1,31 @@
 import type { PlacedSprite, TileLayer, TileMap } from "./level.ts"
-import {
-  emptyLayer,
-  FARMHOUSE,
-  FLOWERS,
-  GRASS,
-  GRASS_VARIANTS,
-  HEN_HOUSE,
-  SHRUBS,
-  SUNNYSIDE_TILESET,
-  terrainTiles
-} from "./sunnyside.ts"
+import { grassOver, groundTileOf, SAND_DETAIL, TINY_SWORDS_GROUND, TINY_SWORDS_WATER } from "./tiny-swords.ts"
 
 /**
- * How a day of the estate looks: a Sunnyside farm drawn as a tile map around the ring of paths of `estateDay`. The
- * paths get grass edges, the farmhouse stands over the door, the orchard over the top path, the carrot bed under
- * the bottom path and the hen house beside the nests; a meadow with trees and a pond lies around. Only looks: the
- * map of the day stays the rules.
+ * How a day of the estate looks: a Tiny Swords farm drawn as a tile map around the ring of paths of `estateDay`.
+ * Sand lies under the whole farm and grass over it, with soft edges toward the paths and the pond; the farmhouse
+ * stands over the door, the orchard over the top path, the bed under the bottom path and the hen house beside the
+ * nests; a meadow with trees lies around. Only looks: the map of the day stays the rules.
  */
+
+/** The pictures of the farm, all from the public Tiny Swords pack. */
+const ART = (id: string): string => `tiny-swords:${id}`
+export const FARMHOUSE_ART = ART("prop/house-blue")
+export const HEN_HOUSE_ART = ART("prop/house-yellow")
+/** Timber for the hen house not built yet. */
+export const HEN_HOUSE_PLOT_ART = ART("prop/house-construction")
+export const ORCHARD_TREE_ART = ART("decor/tree")
+/** A scarecrow stands where the bed will be, until the seeds are bought. */
+export const BED_PLOT_ART = ART("decor/scarecrow")
+/** The hens of the hen house: the pack has sheep. */
+export const HEN_ART = ART("animal/sheep")
+/** The stages of a carrot in the bed, from just sown (1) to ripe (4): the pack grows pumpkins. */
+export const CARROT_STAGES: ReadonlyArray<string> = [ART("decor/grass-small"), ART("decor/grass-large"), ART("decor/pumpkin-small"), ART("decor/pumpkin-large")]
+const SHRUBS: ReadonlyArray<string> = [ART("decor/bush-small"), ART("decor/bush-medium"), ART("decor/bush-large"), ART("decor/rock-medium")]
+const FLOWERS: ReadonlyArray<string> = [ART("decor/mushroom-small"), ART("decor/grass-small"), ART("decor/mushroom-medium")]
+
+/** Dug ground: a bed or a plot for a tree, a piece of the ground tileset with pebbles. */
+export const soilAt = (x: number, y: number): PlacedSprite => ({ asset: TINY_SWORDS_GROUND, x, y, tiles: [(SAND_DETAIL - 1) % 10, Math.floor((SAND_DETAIL - 1) / 10), 1, 1], layer: "ground" })
 
 export interface EstateLayout {
   /** The map of the day: `#` walls, the ring of paths and its `S`, `F` and `c` cells. */
@@ -71,79 +80,55 @@ export const estateLook = (layout: EstateLayout): { readonly tilemap: TileMap; r
   const { width, height } = frame
   const area = areaOf(width, height)
   const size = { width: area.width, height: area.height }
-  const inside = (x: number, y: number) => x >= area.x && y >= area.y && x < area.x + area.width && y < area.y + area.height
-  const index = (x: number, y: number) => (y - area.y) * area.width + (x - area.x)
-  const layers = {
-    ground: emptyLayer(size),
-    flowers: emptyLayer(size),
-    objects: emptyLayer(size),
-    above: emptyLayer(size)
-  }
-  const put = (layer: Array<number>, x: number, y: number, tile: number) => {
-    if (inside(x, y)) layer[index(x, y)] = tile
-  }
-  // The pond in the meadow under the yard; its corners cut, so the brush bevels them.
+  // The pond in the meadow under the yard; its corners cut.
   const pondX = width - 6
   const pondY = height
   const pondCells = [0, 1, 2, 3, 4]
     .flatMap((i) => [0, 1, 2].map((j) => ({ x: pondX + i, y: pondY + j, corner: (i === 0 || i === 4) && (j === 0 || j === 2) })))
     .filter((c) => !c.corner)
+  const pondSet = new Set(pondCells.map(({ x, y }) => `${x},${y}`))
   const pond = new Set(pondCells.flatMap(({ x, y }) => [-1, 0, 1].flatMap((dx) => [-1, 0, 1].map((dy) => `${x + dx},${y + dy}`))))
   // Cells kept free of meadow things: the yard with its plots, the house, the place of the hen house and the pond.
   const busy = (x: number, y: number) =>
     (x >= -1 && x <= width && y >= -ABOVE && y <= bottom + 1) || (x >= -SIDE && x < 0 && y >= 1 && y <= 6) || pond.has(`${x},${y}`)
 
-  // Grass, a little different here and there, and the pond in it.
-  for (let y = area.y; y < area.y + area.height; y++) {
-    for (let x = area.x; x < area.x + area.width; x++) {
-      const r = hashOf(x, y, 1)
-      put(layers.ground, x, y, r < 0.82 ? GRASS : (GRASS_VARIANTS[Math.floor(r * 97) % GRASS_VARIANTS.length] ?? GRASS))
-    }
-  }
-  terrainTiles("water", pondCells, area).forEach((t, i) => t > 0 && (layers.ground[i] = t))
+  const ring = new Set<string>()
+  rows.forEach((row, y) => [...row].forEach((c, x) => c !== "#" && ring.add(`${x},${y}`)))
+  const low = (x: number, y: number) => ring.has(`${x},${y}`) || pondSet.has(`${x},${y}`)
+  const sand = Array.from({ length: size.width * size.height }, () => groundTileOf("sand", 0))
+  const tileLayers: ReadonlyArray<TileLayer> = [
+    { name: "ground", kind: "ground", data: sand },
+    { name: "grass", kind: "ground", data: grassOver(low, area) }
+  ]
 
-  const ring: Array<{ x: number; y: number }> = []
-  rows.forEach((row, y) => [...row].forEach((c, x) => c !== "#" && ring.push({ x, y })))
-  const bed = carrots ? Array.from({ length: trees }, (_, i) => ({ x: 3 + i, y: bottom + 1 })) : []
-  const soil = terrainTiles("soil", bed, area)
-  const path = terrainTiles("path", ring, area)
-  // A yard one cell across has paths on both sides, and the corner brush would fill it: grass goes back over it.
-  const yard = emptyLayer(size)
-  if (bottom - 1 < 2 + 1) for (let x = 2; x < right; x++) for (let y = 2; y < bottom; y++) yard[index(x, y)] = GRASS
-
-  // The farmhouse over the door, the hen house beside the nests: their roofs over the hero.
-  const building = (at: { readonly col: number; readonly row: number }, x: number, y: number) => {
-    for (let j = 0; j < 4; j++) for (let i = 0; i < 3; i++) put(j < 2 ? layers.above : layers.objects, x + i, y + j, (at.row + j) * 64 + at.col + i + 1)
-  }
-  building(FARMHOUSE, 0, -3)
-  if (coop) building(HEN_HOUSE, -SIDE + 1, 2)
+  const sprites: Array<PlacedSprite> = pondCells.map(({ x, y }) => ({ asset: TINY_SWORDS_WATER, x, y, tiles: [0, 0, 1, 1], layer: "ground" }))
+  // The farmhouse over the door, the hen house beside the nests.
+  sprites.push({ asset: FARMHOUSE_ART, x: 1, y: 0 })
+  if (coop) sprites.push({ asset: HEN_HOUSE_ART, x: -2, y: 4 })
+  else sprites.push({ asset: HEN_HOUSE_PLOT_ART, x: -2, y: 4 })
+  for (let i = 0; i < trees; i++) sprites.push({ asset: ORCHARD_TREE_ART, x: 3 + i, y: 0, frame: 0 })
 
   // The far end of the yard, snowed in or overgrown today: shrubs where the path does not go.
   const yardEnd = trees + 6
-  for (let y = 1; y <= bottom; y++) for (let x = right + 1; x < yardEnd; x++) put(layers.objects, x, y, SHRUBS[(x + y * 3) % SHRUBS.length] ?? SHRUBS[0] ?? 0)
+  for (let y = 1; y <= bottom; y++) for (let x = right + 1; x < yardEnd; x++) sprites.push({ asset: SHRUBS[(x + y * 3) % SHRUBS.length] ?? "", x, y })
 
-  const sprites: Array<PlacedSprite> = []
-  for (let i = 0; i < trees; i++) sprites.push({ asset: "sunnyside:decor/tree-01", x: 3 + i, y: 0, frame: 0 })
-  sprites.push({ asset: "sunnyside:effect/chimneysmoke-01", x: 1, y: -3 })
-  // The carrot bed grows a stage a day; the ripe ones lie on the path for the hero.
-  bed.forEach(({ x, y }, i) => {
-    sprites.push({ asset: "sunnyside:crop/soil", x, y, frame: 0, layer: "ground" })
-    sprites.push({ asset: "sunnyside:crop/carrot", x, y, frame: carrotFrames[i] ?? 1 })
-  })
+  // The bed grows a stage a day; the ripe ones lie on the path for the hero.
+  if (carrots) {
+    for (let i = 0; i < trees; i++) {
+      const x = 3 + i
+      const y = bottom + 1
+      sprites.push(soilAt(x, y))
+      sprites.push({ asset: CARROT_STAGES[(carrotFrames[i] ?? 1) - 1] ?? CARROT_STAGES[0] ?? "", x, y })
+    }
+  } else {
+    sprites.push(soilAt(3, bottom + 1))
+    sprites.push({ asset: BED_PLOT_ART, x: 4, y: bottom + 1 })
+  }
   if (coop) {
-    for (let n = 0; n < nests; n += 2) sprites.push({ asset: "sunnyside:animal/chicken-01", x: 0, y: 2 + n, frame: n % 4, ...(n % 4 === 0 ? {} : { flip: true }) })
+    for (let n = 0; n < nests; n += 2) sprites.push({ asset: HEN_ART, x: 0, y: 2 + n, frame: n % 4, ...(n % 4 === 0 ? {} : { flip: true }) })
   }
-  // The plots of what the shop sells: dug places for trees, seeds where the bed begins, timber where the hen house stands.
-  for (let x = 3 + trees; x < 3 + maxTrees; x++) sprites.push({ asset: "sunnyside:crop/soil", x, y: 0, frame: 0, layer: "ground" })
-  if (!carrots) {
-    sprites.push({ asset: "sunnyside:crop/soil", x: 3, y: bottom + 1, frame: 0, layer: "ground" })
-    sprites.push({ asset: "sunnyside:item/seeds-generic", x: 4, y: bottom + 1 })
-  }
-  if (!coop) {
-    sprites.push({ asset: "sunnyside:item/crate-base", x: -2, y: 4 })
-    sprites.push({ asset: "sunnyside:item/wood", x: -3, y: 4 })
-    sprites.push({ asset: "sunnyside:item/wood", x: -1, y: 4 })
-  }
+  // The plots of the trees the shop sells: dug places in the orchard row.
+  for (let x = 3 + trees; x < 3 + maxTrees; x++) sprites.push(soilAt(x, 0))
 
   // The meadow: trees along the edge of the field, shrubs and flowers between.
   for (let y = area.y; y < area.y + area.height; y++) {
@@ -151,21 +136,12 @@ export const estateLook = (layout: EstateLayout): { readonly tilemap: TileMap; r
       if (busy(x, y)) continue
       const edge = x === area.x || y === area.y || x === area.x + area.width - 1 || y === area.y + area.height - 1
       const r = hashOf(x, y, 2)
-      if (edge && r < 0.45) sprites.push({ asset: "sunnyside:decor/tree-02", x, y, frame: 0 })
-      else if (!edge && r < 0.05) put(layers.objects, x, y, SHRUBS[Math.floor(r * 1000) % SHRUBS.length] ?? 0)
-      else if (!edge && r < 0.11) put(layers.flowers, x, y, FLOWERS[Math.floor(r * 1000) % FLOWERS.length] ?? 0)
+      if (edge && r < 0.45) sprites.push({ asset: ORCHARD_TREE_ART, x, y, frame: 0 })
+      else if (!edge && r < 0.05) sprites.push({ asset: SHRUBS[Math.floor(r * 1000) % SHRUBS.length] ?? "", x, y })
+      else if (!edge && r < 0.11) sprites.push({ asset: FLOWERS[Math.floor(r * 1000) % FLOWERS.length] ?? "", x, y })
     }
   }
-  sprites.push({ asset: "sunnyside:animal/duck-01", x: pondX + 1, y: pondY + 1, frame: 0 })
+  sprites.push({ asset: HEN_ART, x: pondX - 1, y: pondY + 1, frame: 0 })
 
-  const tileLayers: ReadonlyArray<TileLayer> = [
-    { name: "ground", kind: "ground", data: layers.ground },
-    { name: "flowers", kind: "ground", data: layers.flowers },
-    { name: "soil", kind: "ground", data: soil },
-    { name: "path", kind: "ground", data: path },
-    { name: "yard", kind: "ground", data: yard },
-    { name: "objects", kind: "objects", data: layers.objects },
-    { name: "above", kind: "above", data: layers.above }
-  ]
-  return { tilemap: { tileset: SUNNYSIDE_TILESET, x: area.x, y: area.y, ...size, layers: tileLayers }, sprites }
+  return { tilemap: { tileset: TINY_SWORDS_GROUND, x: area.x, y: area.y, ...size, layers: tileLayers }, sprites }
 }

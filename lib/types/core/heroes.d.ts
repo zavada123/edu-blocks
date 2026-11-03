@@ -1,5 +1,6 @@
 /**
- * The heroes a student can play: the look of the hero on the field. The first heroes open at a hero level, so new
+ * The heroes a student can play: the look of the hero on the field (Tiny Swords units, see `HERO_ART` in ui/art.ts). The
+ * ids are those the app keeps, from the first looks; the names are the new ones. The first heroes open at a hero level, so new
  * looks come as the student earns XP. The others are sold for coins (`price`), some only from a hero level. The app
  * keeps which hero the student chose and which heroes they bought; the package draws them and offers the choice.
  */

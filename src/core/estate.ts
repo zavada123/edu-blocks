@@ -172,20 +172,16 @@ export const estatePalette = (passed: ReadonlyArray<Level>): ReadonlyArray<Block
   return BLOCK_ORDER.filter((b) => have.has(b))
 }
 
-/** The grown flowers in the farming-crops sheet (12 columns of 16×16): the last frame of their `grow`. */
-const cropTile = (frame: number): readonly [number, number, number, number] => [frame % 12, Math.floor(frame / 12), 1, 1]
-const tulipTile = cropTile(19)
-const roseTile = cropTile(7)
-
 /** What the student bought for looks: flowers in the middle of the yard (x from 2 to trees + 2 is a wall every day), a cat and a dog. */
 const petsOf = (upgrades: EstateUpgrades, trees: number, coop: boolean): ReadonlyArray<PlacedSprite> => {
   const sprites: Array<PlacedSprite> = []
+  // Tiny Swords has no flowers, cats or dogs: mushrooms bloom in the yard, and two sheep keep the student company.
   if (upgradeCount(upgrades, "flowers") > 0) {
-    sprites.push({ asset: "farming-crops:crop/tulip", x: trees + 1, y: 2, tiles: tulipTile, layer: "object" })
-    sprites.push({ asset: "farming-crops:crop/rose", x: trees + 2, y: 2, tiles: roseTile, layer: "object" })
+    sprites.push({ asset: "tiny-swords:decor/mushroom-large", x: trees + 1, y: 2 })
+    sprites.push({ asset: "tiny-swords:decor/mushroom-medium", x: trees + 2, y: 2 })
   }
-  if (upgradeCount(upgrades, "cat") > 0) sprites.push({ asset: "ninja-adventure:animal/cat", x: coop ? trees + 2 : 2, y: coop ? 3 : 2, clip: "idle" })
-  if (upgradeCount(upgrades, "dog") > 0) sprites.push({ asset: "ninja-adventure:animal/dog", x: coop ? trees + 2 : 3, y: coop ? 4 : 2, clip: "idle" })
+  if (upgradeCount(upgrades, "cat") > 0) sprites.push({ asset: "tiny-swords:animal/sheep", x: coop ? trees + 2 : 2, y: coop ? 3 : 2, clip: "idle" })
+  if (upgradeCount(upgrades, "dog") > 0) sprites.push({ asset: "tiny-swords:animal/sheep", x: coop ? trees + 2 : 3, y: coop ? 4 : 2, clip: "idle", flip: true })
   return sprites
 }
 

@@ -96,14 +96,10 @@
   box-shadow: 0 -3px 0 0 var(--eb-edge), 0 3px 0 0 var(--eb-edge), -3px 0 0 0 var(--eb-edge), 3px 0 0 0 var(--eb-edge);
 }
 
-/* The first frame of the hero's sheet (facing down), twice its size. */
-.eb-avatar span {
-  width: 32px;
-  height: 32px;
-  background-repeat: no-repeat;
-  background-position: 0 0;
-  background-size: 128px auto;
-  image-rendering: pixelated;
+/* The hero standing, cut around its body. */
+.eb-avatar canvas {
+  width: 36px;
+  height: 36px;
 }
 
 .eb-hud-xp {
@@ -720,28 +716,6 @@ html.eb-page-full {
   display: block;
   width: 64px;
   height: 64px;
-  background-repeat: no-repeat;
-  background-position: 0 0;
-  /* A sheet is 4 frames wide: 16 px frames at four times their size. */
-  background-size: 256px auto;
-  image-rendering: pixelated;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .eb-hero-walk {
-    animation: eb-walk 0.72s steps(4) infinite;
-  }
-}
-
-/* The first column of a sheet walks towards the student, a frame per row. */
-@keyframes eb-walk {
-  from {
-    background-position: 0 0;
-  }
-
-  to {
-    background-position: 0 -256px;
-  }
 }
 
 .eb-picker-layer {
@@ -918,11 +892,9 @@ html.eb-page-full {
 
 .eb-coin {
   display: inline-block;
-  width: 1em;
-  height: 1em;
-  background: no-repeat center / contain;
-  image-rendering: pixelated;
-  vertical-align: -0.1em;
+  width: 1.2em;
+  height: 1.2em;
+  vertical-align: -0.25em;
 }
 
 .eb-hud-hero .eb-hud-coins {

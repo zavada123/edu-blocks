@@ -17,11 +17,8 @@ import { levels } from "../levels/index.ts"
 import { farmMockup } from "./farm-mockup.ts"
 import { chapterOf } from "../levels/chapters.ts"
 import { type BlocksReport, EduBlocks } from "../ui/EduBlocks.tsx"
-import { ENEMIES, ITEM_TILES, NPCS, PROPS } from "../ui/look.ts"
-import bushTile from "../ui/sprites/bush.png"
-import flagStrip from "../ui/sprites/flag.png"
-import ninjaSheet from "../ui/sprites/ninja.png"
-import pathSheet from "../ui/sprites/path-summer.png"
+import { ArtIcon } from "../ui/ArtIcon.tsx"
+import { ENEMY_ART, FINISH_ART, GROUND_ART, HERO_ART, ITEM_ART, NPC_ART, OBSTACLE_ART, PROP_ART } from "../ui/art.ts"
 import "./demo.css"
 import "./editor.css"
 
@@ -143,39 +140,27 @@ const openGlade = (map: Level["map"]): Level["map"] =>
   )
 
 const Icon = ({ tool, item, who, monster }: { readonly tool: Tool; readonly item: ItemKind; readonly who: NpcKind; readonly monster: EnemyKind }) => {
-  if (tool === "enemy")
-    return <span className="ed-icon ed-icon-sheet" style={{ backgroundImage: `url(${ENEMIES[monster]})`, backgroundSize: "96px 96px" }} />
-  if (tool === "npc")
-    return (
-      <span className="ed-icon ed-icon-sheet" style={{ backgroundImage: `url(${NPCS[who]})`, backgroundSize: "96px 168px" }} />
-    )
-  // Sheets show one 16×16 frame at 24 px: the hero looking down, the flag, the middle of the path.
-  if (tool === "start")
-    return (
-      <span className="ed-icon ed-icon-sheet" style={{ backgroundImage: `url(${ninjaSheet})`, backgroundSize: "96px 168px" }} />
-    )
-  if (tool === "finish")
-    return (
-      <span className="ed-icon ed-icon-sheet" style={{ backgroundImage: `url(${flagStrip})`, backgroundSize: "96px 24px" }} />
-    )
   if (tool === "trap") return <span className="ed-icon ed-icon-trap" aria-hidden="true" />
   if (tool === "erase") return <span className="ed-icon ed-icon-erase" aria-hidden="true" />
-  if (tool === "floor")
-    return (
-      <span
-        className="ed-icon ed-icon-sheet"
-        style={{ backgroundImage: `url(${pathSheet})`, backgroundSize: "264px 144px", backgroundPosition: "-24px -24px" }}
-      />
-    )
-  const href =
-    tool === "wall"
-      ? bushTile
-      : tool === "item"
-        ? ITEM_TILES[item]
-        : isPropTool(tool)
-          ? PROPS[tool].href
-          : null
-  return href === null ? null : <img className="ed-icon" src={href} alt="" />
+  const id =
+    tool === "enemy"
+      ? ENEMY_ART[monster]
+      : tool === "npc"
+        ? NPC_ART[who].id
+        : tool === "start"
+          ? HERO_ART.ninja
+          : tool === "finish"
+            ? (FINISH_ART.flag?.id ?? GROUND_ART)
+            : tool === "floor"
+              ? GROUND_ART
+              : tool === "wall"
+                ? OBSTACLE_ART.bush.id
+                : tool === "item"
+                  ? ITEM_ART[item].id
+                  : isPropTool(tool)
+                    ? PROP_ART[tool].id
+                    : null
+  return id === null ? null : <ArtIcon id={id} className="ed-icon" size={24} />
 }
 
 /** The checks of the level; whether the palette can pass it only once the map itself has no errors. */

@@ -180,7 +180,10 @@ export declare const assetRefsOf: (level: {
 }) => ReadonlyArray<string>;
 /** The packs a level needs. */
 export declare const packsOf: (level: Parameters<typeof assetRefsOf>[0]) => ReadonlyArray<string>;
-/** The clip a sprite plays standing on the field: its `idle` (or the like) or the first one; null when it has none. */
+/**
+ * The clip a sprite plays standing on the field: its `idle` (or the like) or the first one that loops; null when it
+ * has none. A clip played once (a gold bag that appears in a flash) is not how the thing stands.
+ */
 export declare const restClip: (sprite: SpriteAsset) => string | null;
 /** The clip of a walking figure: `walk` or `run`, else what it plays at rest. */
 export declare const walkClip: (sprite: SpriteAsset) => string | null;

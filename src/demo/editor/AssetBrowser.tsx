@@ -171,7 +171,7 @@ export const AssetBrowser = ({ level, brush, onBrush, onLevel }: AssetBrowserPro
     void loadPackList().then((packs) => {
       if (!live) return
       setList(packs)
-      setPackId((id) => (id === "" ? (packs.find((p) => p.id === "ninja-adventure")?.id ?? packs[0]?.id ?? "") : id))
+      setPackId((id) => (id === "" ? (packs.find((p) => p.id === "tiny-swords")?.id ?? packs[0]?.id ?? "") : id))
     })
     return () => {
       live = false

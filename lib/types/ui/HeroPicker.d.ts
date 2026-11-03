@@ -1,6 +1,6 @@
 import { type HeroId } from "../core/heroes.ts";
-import { type Skin } from "./stage/draw.ts";
-/** A hero walking towards the student: the first column of its sheet, four frames. */
+import type { Skin } from "./stage/draw.ts";
+/** A hero that can be played breathes in place; a locked one stands as a still shadow. */
 export declare const HeroSprite: ({ skin, walking }: {
     readonly skin: Skin;
     readonly walking: boolean;

@@ -34,7 +34,7 @@ export const levels: ReadonlyArray<Level> = [
     blocks: ["move", "turnLeft", "turnRight", "collect"],
     goals: [{ type: "crystals" }],
     stars: { three: 6, two: 8 },
-    hint: "Ніндзя повертається на місці. Після повороту він іде туди, куди дивиться.",
+    hint: "Герой повертається на місці. Після повороту він іде туди, куди дивиться.",
     scene: { theme: "autumn", item: "wood", props: [HOME, { kind: "woodshed", x: 4, y: 2 }] }
   },
   {

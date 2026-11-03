@@ -1,39 +1,46 @@
-import type { ItemKind, Npc, Scene, TileMap } from "../../core/level.ts"
+import type { HeroId } from "../../core/heroes.ts"
+import type { ItemKind, Npc, Prop, Scene, TileMap } from "../../core/level.ts"
 import { tilesOfKind } from "../../core/tilemap.ts"
-import { cellKey, type Direction, type World } from "../../core/world.ts"
-import { ENEMIES, FLOORS, ITEM_TILES, NPCS, PROPS, type Season, waterTile } from "../look.ts"
+import { cellKey, type World } from "../../core/world.ts"
+import {
+  type Art,
+  art,
+  attackClips,
+  baseArt,
+  BRIDGE_ART,
+  DEAD_ART,
+  ENEMY_ART,
+  fighterOf,
+  FINISH_ART,
+  FIRE_ART,
+  GROUND_ART,
+  HERO_ART,
+  ITEM_ART,
+  type Look,
+  NPC_ART,
+  OBSTACLE_ART,
+  pickClip,
+  POINTER_ART,
+  PROP_ART,
+  SPRING_ROCKS_ART,
+  TAKE_CLIPS,
+  TREE_ART,
+  WATER_ART
+} from "../art.ts"
+import { PROPS, type Season } from "../look.ts"
 import { cellHash, type Scenery } from "../scenery.ts"
-import beeSheet from "../sprites/bee.png"
-import fireStrip from "../sprites/fire.png"
-import flagStrip from "../sprites/flag.png"
-import grandmaSheet from "../sprites/grandma.png"
-import heartSheet from "../sprites/heart.png"
-import cavegirlSheet from "../sprites/cavegirl.png"
-import eskimoSheet from "../sprites/eskimo.png"
-import knightGoldSheet from "../sprites/knight-gold.png"
-import knightSheet from "../sprites/knight.png"
-import ninjaSheet from "../sprites/ninja.png"
-import robotSheet from "../sprites/robot.png"
-import roverSheet from "../sprites/rover.png"
-import samuraiSheet from "../sprites/samurai.png"
-import womanSheet from "../sprites/woman.png"
-import slashStrip from "../sprites/slash.png"
-import smokeStrip from "../sprites/smoke.png"
-import wellTile from "../sprites/well.png"
-import { meadowTile, PATH_SHEET_COLUMNS, pathPiece } from "../terrain.ts"
-import { image } from "./images.ts"
 import { spriteOf } from "./packs.ts"
 import { drawFigure, drawPlaced, drawTile, isAnimated, layerOf, placedDepth } from "./sprites.ts"
 import { walkClip } from "../../core/assets.ts"
 import type { Effect, EnemyPose, HeroPose, StagePose } from "./playback.ts"
-import type { HeroId } from "../../core/heroes.ts"
+import { groundTile, tileByRole } from "./tiles.ts"
+import { drawWeather } from "./weather.ts"
 
 /**
- * Drawing the field on a canvas. Pixel art from the Ninja Adventure pack (CC0), see sprites/CREDITS.md.
- * One cell is one 16×16 tile; the canvas is scaled so that a picture pixel is a whole number of screen pixels.
- * The ground, trees and props do not move, so they are drawn once (`drawGround`); everything else is drawn
- * each animation frame (`drawActors`) in layers: villagers, traps, the goal, items, enemies, the hero, effects,
- * weather and the counters on top.
+ * Drawing the field on a canvas, all from the Tiny Swords packs (see art.ts). One cell is 16 canvas units; a pack
+ * picture is scaled so that one cell of the pack (64 pixels) is one cell of the field. The ground and the bushes do
+ * not move, so they are drawn once (`drawGround`); everything else is drawn each animation frame (`drawActors`):
+ * villagers, traps, the goal, items, trees, enemies and the hero by depth, effects, weather and the counters on top.
  */
 
 export const CELL = 16
@@ -41,62 +48,19 @@ export const CELL = 16
 /** Hero looks: the heroes of `HEROES`. */
 export type Skin = HeroId
 
-/** A sheet has a column per direction and a row per frame: rows 0–3 walk, 4 attack, 6 special poses. */
-const SHEETS: Readonly<Record<Skin, { readonly href: string; readonly rows: number }>> = {
-  ninja: { href: ninjaSheet, rows: 7 },
-  robot: { href: robotSheet, rows: 7 },
-  rover: { href: roverSheet, rows: 7 },
-  bee: { href: beeSheet, rows: 4 },
-  knight: { href: knightSheet, rows: 7 },
-  eskimo: { href: eskimoSheet, rows: 7 },
-  cavegirl: { href: cavegirlSheet, rows: 7 },
-  woman: { href: womanSheet, rows: 7 },
-  samurai: { href: samuraiSheet, rows: 7 },
-  "knight-gold": { href: knightGoldSheet, rows: 7 }
-}
-
-/** The sheet of a hero look: its first frame is the hero facing down, for a portrait. */
-export const heroSheetOf = (skin: Skin): string => SHEETS[skin].href
-
-const COLUMN: Readonly<Record<Direction, number>> = { down: 0, up: 1, left: 2, right: 3 }
-const ATTACK_ROW = 4
-const POSE_ROW = 6
-/** Row 6, column 1: the hero holds a thing over the head. */
-const HOLD_COLUMN = 1
-
-const PATH_SHEET_ROWS = 6
-/** A weather picture (320×240) drawn at half size, so the drops match the 16-pixel tiles. */
-const WEATHER_W = 160
-const WEATHER_H = 120
+/** Figures stand a little above the bottom of their cell, so their feet are on it. */
+const FEET = 3
 const BOSS_SCALE = 1.5
-const FX = 32
+/** A tree of the scenery takes 2×2 cells: smaller than the pack draws it, so its crown does not hide the path. */
+const TREE_SCALE = 0.8
+/** How tall a figure of the pack stands, in canvas units: where a bar over its head goes. */
+const HEAD = 20
 const HEART = 9
-const HEART_FULL = 0
-const HEART_EMPTY = 4
 const HUD_BACK = "rgba(30, 20, 30, 0.45)"
 const DANGER = "#ff3355"
+const ICE = "rgba(225, 242, 255, 0.62)"
 
 type Ctx = CanvasRenderingContext2D
-
-/** Part of a sheet, `w`×`h` from (`sx`, `sy`), drawn at `x`, `y`. Skipped until the picture has loaded. */
-const blit = (ctx: Ctx, href: string, sx: number, sy: number, w: number, h: number, x: number, y: number, dw = w, dh = h) => {
-  const img = image(href)
-  if (img !== null) ctx.drawImage(img, sx, sy, w, h, x, y, dw, dh)
-}
-
-/** A whole picture at `x`, `y`, at its own size or the given one. */
-const picture = (ctx: Ctx, href: string, x: number, y: number, w?: number, h?: number) => {
-  const img = image(href)
-  if (img !== null) ctx.drawImage(img, x, y, w ?? img.naturalWidth, h ?? img.naturalHeight)
-}
-
-/** A 16×16 piece of a sheet with its top-left corner at x, y. */
-const piece = (ctx: Ctx, href: string, col: number, row: number, x: number, y: number) =>
-  blit(ctx, href, col * CELL, row * CELL, CELL, CELL, x, y)
-
-/** The frame of a looping strip at time `now` (ms), each place starting at its own frame. */
-const loopFrame = (now: number, seconds: number, frames: number, offset = 0) =>
-  Math.floor((((now / 1000 + offset) / seconds) % 1) * frames) % frames
 
 const ellipse = (ctx: Ctx, cx: number, cy: number, rx: number, ry: number, fill: string) => {
   ctx.beginPath()
@@ -112,7 +76,35 @@ const roundRect = (ctx: Ctx, x: number, y: number, w: number, h: number, r: numb
   ctx.fill()
 }
 
-const shadow = (ctx: Ctx, cx: number, cy: number, scale = 1) => ellipse(ctx, cx, cy + 7, 5 * scale, 1.5 * scale, "rgba(0, 0, 0, 0.25)")
+const shadow = (ctx: Ctx, cx: number, cy: number, scale = 1) => ellipse(ctx, cx, cy + 5, 4.5 * scale, 1.4 * scale, "rgba(0, 0, 0, 0.22)")
+
+/** Draws with a filter where the browser can filter a canvas; elsewhere just the picture. */
+const withFilter = (ctx: Ctx, filter: string | undefined, draw: () => void) => {
+  if (filter === undefined) {
+    draw()
+    return
+  }
+  ctx.save()
+  if ("filter" in ctx) ctx.filter = filter
+  draw()
+  ctx.restore()
+}
+
+/** A look standing on cell (x, y), or at (`cx`, `bottom`). */
+const stand = (ctx: Ctx, look: Look, cx: number, bottom: number, now: number, extra: { readonly flip?: boolean; readonly scale?: number } = {}) => {
+  const found = art(look.id)
+  if (found === null) return null
+  return drawFigure(ctx, found, {
+    cx,
+    bottom,
+    now,
+    ...(look.clip === undefined ? {} : { clip: look.clip }),
+    scale: (look.scale ?? 1) * (extra.scale ?? 1),
+    ...(extra.flip === undefined ? {} : { flip: extra.flip })
+  })
+}
+
+const cellBottom = (y: number) => (y + 1) * CELL - FEET
 
 // ── Ground: drawn once ───────────────────────────────────────────────────────────────────────────────────────────
 
@@ -123,66 +115,95 @@ export interface GroundInput {
   readonly scenery: Scenery
 }
 
-/** The flat layers of a hand-drawn tile map, in place of the grass, the meadow and the path. */
+/** The flat layers of a hand-drawn tile map, in place of the field's own ground. */
 const tilemapGround = (ctx: Ctx, map: TileMap) => {
   const tileset = spriteOf(map.tileset)
   if (tileset === null) return
   for (const t of tilesOfKind(map, "ground")) drawTile(ctx, tileset, t.tile, t.x, t.y)
 }
 
-/** Grass, meadow, the path or the ice, flowers, bushes that do not sway and trees; or the flat layers of a tile map. */
+/** Grass, the ground or the ice under the path, flowers, bushes and stones; or the flat layers of a tile map. */
 export const drawGround = (ctx: Ctx, { world, scene, season, scenery }: GroundInput) => {
-  if (scene.tilemap !== undefined) {
-    tilemapGround(ctx, scene.tilemap)
-    if (season.tint !== undefined) {
-      const { view } = scenery
-      ctx.fillStyle = season.tint
-      ctx.fillRect(view.x * CELL, view.y * CELL, view.width * CELL, view.height * CELL)
-    }
-  } else naturalGround(ctx, { world, scene, season, scenery })
+  if (scene.tilemap !== undefined) tilemapGround(ctx, scene.tilemap)
+  else naturalGround(ctx, { world, scene, season, scenery })
+  if (season.tint !== undefined) {
+    const { view } = scenery
+    ctx.fillStyle = season.tint
+    ctx.fillRect(view.x * CELL, view.y * CELL, view.width * CELL, view.height * CELL)
+  }
   // Pictures of the packs that lie flat and still: tiles, water, a rug.
   for (const placed of scene.sprites ?? []) {
     const found = spriteOf(placed.asset)
     if (found !== null && layerOf(placed, found) === "ground" && !isAnimated(placed, found)) drawPlaced(ctx, placed, 0)
   }
   const { width, height } = world
-  for (const { x, y, kind } of scenery.decor) {
-    // The path has its own texture: flowers and grass grow only in the meadow.
-    const href = x < 0 || y < 0 || x >= width || y >= height ? season.decor[kind] : null
-    if (href !== null) picture(ctx, href, x * CELL, y * CELL, CELL, CELL)
-  }
-  for (const { x, y, kind } of scenery.obstacles) {
-    if (season.swaying[kind] === undefined) picture(ctx, season.obstacles[kind], x * CELL, y * CELL, CELL, CELL)
-  }
-  for (const { x, y } of scenery.trees) picture(ctx, season.tree, x * CELL, y * CELL, CELL * 2, CELL * 2)
+  withFilter(ctx, season.plants, () => {
+    for (const { x, y, kind } of scenery.decor) {
+      // Flowers and grass grow only in the meadow: on the path they would look like a wall.
+      const look = x < 0 || y < 0 || x >= width || y >= height ? season.decor[kind] : null
+      if (look !== null) stand(ctx, look, (x + 0.5) * CELL, cellBottom(y), 0)
+    }
+    for (const { x, y, kind } of scenery.obstacles) stand(ctx, OBSTACLE_ART[kind], (x + 0.5) * CELL, cellBottom(y) + 1, 0)
+  })
 }
 
-/** The field's own ground: grass, the meadow around, and the path, the ice or the bridge where the hero walks. */
-const naturalGround = (ctx: Ctx, { world, scene, season, scenery }: GroundInput) => {
+/**
+ * The field's own ground. Under everything lies sand (or water for ice and a bridge); grass covers every cell where
+ * the hero does not walk, with soft edges toward the path, as the islands of Tiny Swords lie on the sand.
+ */
+const naturalGround = (ctx: Ctx, { world, scene, scenery }: GroundInput) => {
+  const ground = baseArt(GROUND_ART)
+  const water = baseArt(WATER_ART)
+  if (ground === null || water === null) return
   const { view } = scenery
-  const ground = scene.ground ?? "path"
-  const grass = image(season.grass)
-  if (grass !== null) {
-    for (let y = view.y; y < view.y + view.height; y++) for (let x = view.x; x < view.x + view.width; x++) ctx.drawImage(grass, x * CELL, y * CELL, CELL, CELL)
-  }
-  if (season.meadow !== null) {
-    for (let y = view.y; y < view.y + view.height; y++) {
-      for (let x = view.x; x < view.x + view.width; x++) {
-        const look = meadowTile(x, y)
-        if (look !== 0) blit(ctx, season.meadow, look * CELL, 0, CELL, CELL, x * CELL, y * CELL)
-      }
+  const kind = scene.ground ?? "path"
+  const { width, height, walls } = world
+  const inside = (x: number, y: number) => x >= 0 && y >= 0 && x < width && y < height
+  const open = (x: number, y: number) => inside(x, y) && !walls.has(cellKey(x, y))
+  // Where there is no grass: the path or the ice, or the whole lake under a bridge.
+  const low = kind === "bridge" ? inside : open
+  const sand = groundTile(ground.sprite, "sand", 0)
+  for (let y = view.y; y < view.y + view.height; y++) {
+    for (let x = view.x; x < view.x + view.width; x++) {
+      if (kind === "path" && sand !== null) drawTile(ctx, ground, sand, x, y)
+      else drawTile(ctx, water, 1, x, y)
     }
   }
-  const { width, height, walls } = world
-  const isPath = (x: number, y: number) => x >= 0 && y >= 0 && x < width && y < height && !walls.has(cellKey(x, y))
+  if (kind === "ice") {
+    ctx.fillStyle = ICE
+    ctx.fillRect(view.x * CELL, view.y * CELL, view.width * CELL, view.height * CELL)
+  }
+  for (let y = view.y; y < view.y + view.height; y++) {
+    for (let x = view.x; x < view.x + view.width; x++) {
+      if (low(x, y)) continue
+      const mask = (low(x, y - 1) ? 1 : 0) | (low(x + 1, y) ? 2 : 0) | (low(x, y + 1) ? 4 : 0) | (low(x - 1, y) ? 8 : 0)
+      const tile = groundTile(ground.sprite, "grass", mask)
+      if (tile !== null) drawTile(ctx, ground, tile, x, y)
+    }
+  }
+  if (kind === "path") {
+    // Now and then a few pebbles on the path.
+    const pebbles = ground.sprite.tiles?.find((t) => t.terrain === "sand" && t.role === "detail")?.index
+    for (const { x, y, kind: decor } of scenery.decor) if (decor === "petals" && open(x, y) && pebbles !== undefined) drawTile(ctx, ground, pebbles, x, y)
+  }
+  if (kind === "bridge") bridge(ctx, open, width, height)
+}
+
+/** Planks over the water: along a row where the path runs sideways, along a column where it runs up and down. */
+const bridge = (ctx: Ctx, open: (x: number, y: number) => boolean, width: number, height: number) => {
+  const planks = baseArt(BRIDGE_ART)
+  if (planks === null) return
+  const sideways = tileByRole(planks.sprite, "horizontal-middle")
+  const upright = tileByRole(planks.sprite, "vertical-middle")
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      const wall = walls.has(cellKey(x, y))
-      if (wall && ground !== "bridge") continue
-      if (ground === "path") {
-        const { col, row } = pathPiece(isPath, x, y)
-        if (col < PATH_SHEET_COLUMNS && row < PATH_SHEET_ROWS) piece(ctx, season.path, col, row, x * CELL, y * CELL)
-      } else picture(ctx, wall ? waterTile : FLOORS[ground], x * CELL, y * CELL, CELL, CELL)
+      if (!open(x, y)) continue
+      const across = open(x - 1, y) || open(x + 1, y)
+      const along = open(x, y - 1) || open(x, y + 1)
+      const tile = across || !along ? sideways : upright
+      if (tile !== null) drawTile(ctx, planks, tile, x, y)
+      // A crossing gets both, so the planks meet.
+      if (across && along && upright !== null) drawTile(ctx, planks, upright, x, y)
     }
   }
 }
@@ -197,7 +218,7 @@ export interface ActorsInput {
   readonly skin: Skin
   /** Every item cell of the level, also the taken ones: a lit campfire stays where it was. */
   readonly items: ReadonlyArray<{ readonly x: number; readonly y: number }>
-  /** Milliseconds, for the looping animations: flags, flames, bushes in the wind, weather. */
+  /** Milliseconds, for the looping animations: flags, flames, trees in the wind, weather. */
   readonly now: number
   /** The viewer asked for less motion: nothing loops and no weather falls. */
   readonly still: boolean
@@ -205,29 +226,18 @@ export interface ActorsInput {
   readonly counter?: string | undefined
 }
 
-const swayingBushes = (ctx: Ctx, { season, scenery, now, still }: ActorsInput) => {
-  for (const { x, y, kind } of scenery.obstacles) {
-    const look = season.swaying[kind]
-    if (look === undefined) continue
-    const frame = still ? 0 : loopFrame(now, 0.8, look.frames, (cellHash(x, y, 9) % 8) * 0.1)
-    blit(ctx, look.href, frame * CELL, 0, CELL, CELL, x * CELL, y * CELL)
-  }
-}
-
-/** Villagers look down and shift from foot to foot, each at their own pace. */
-const NPC_STEPS: ReadonlyArray<number> = [0, 0, 0, 1, 0, 0, 2, 0]
-
+/** Villagers stand and breathe, each at their own pace, some facing left. */
 const villager = (ctx: Ctx, npc: Npc, now: number, still: boolean) => {
   const cx = npc.x * CELL + CELL / 2
-  const cy = npc.y * CELL + CELL / 2
-  shadow(ctx, cx, cy)
-  const look = npc.look === undefined ? null : spriteOf(npc.look)
-  if (look !== null) {
-    drawFigure(ctx, look, { cx, bottom: cy + CELL / 2, now: still ? 0 : now + (cellHash(npc.x, npc.y, 11) % 8) * 300 })
+  const bottom = cellBottom(npc.y)
+  shadow(ctx, cx, npc.y * CELL + CELL / 2)
+  const t = still ? 0 : now + (cellHash(npc.x, npc.y, 11) % 8) * 300
+  const own = npc.look === undefined ? null : spriteOf(npc.look)
+  if (own !== null) {
+    drawFigure(ctx, own, { cx, bottom: (npc.y + 1) * CELL, now: t })
     return
   }
-  const row = still ? 0 : (NPC_STEPS[loopFrame(now, 2.4, 8, (cellHash(npc.x, npc.y, 11) % 8) * 0.3)] ?? 0)
-  piece(ctx, NPCS[npc.who], 0, row, cx - CELL / 2, cy - CELL / 2)
+  stand(ctx, NPC_ART[npc.who], cx, bottom, t, { flip: cellHash(npc.x, npc.y, 12) % 2 === 0 })
 }
 
 /** A trap: thin ice with cracks in winter, a pit in the ground otherwise. Once the hero fell in, the ice is broken. */
@@ -264,27 +274,33 @@ const trap = (ctx: Ctx, cx: number, cy: number, icy: boolean, broken: boolean) =
   ctx.stroke()
 }
 
-const flame = (ctx: Ctx, cx: number, cy: number, now: number, still: boolean) => {
-  const frame = 1 + (still ? 0 : loopFrame(now, 0.6, 6))
-  blit(ctx, fireStrip, frame * 8, 0, 8, 12, cx - 4, cy - 10)
-}
+const flame = (ctx: Ctx, cx: number, bottom: number, now: number, still: boolean) =>
+  stand(ctx, { id: FIRE_ART, scale: 0.55 }, cx, bottom, still ? 0 : now)
 
-const finishLook = (ctx: Ctx, scene: Scene, cx: number, cy: number, now: number, still: boolean) => {
+/** The goal. A well is a spring in the grass: water with stones. At home the house is the goal: the cell is marked. */
+const finishLook = (ctx: Ctx, scene: Scene, x: number, y: number, now: number, still: boolean) => {
   const kind = scene.finish ?? "flag"
+  const cx = x * CELL + CELL / 2
   const own = scene.finishLook === undefined ? null : spriteOf(scene.finishLook)
-  if (own !== null && drawFigure(ctx, own, { cx, bottom: cy + CELL / 2, now: still ? 0 : now }) !== null) return
-  const x = cx - CELL / 2
-  const y = cy - CELL / 2
-  if (kind === "flag") blit(ctx, flagStrip, (still ? 0 : loopFrame(now, 0.6, 4)) * CELL, 0, CELL, CELL, x, y)
-  else if (kind === "well") picture(ctx, wellTile, x, y, CELL, CELL)
-  else if (kind === "grandma") piece(ctx, grandmaSheet, 0, 0, x, y)
-  else {
-    // At home the house above is the goal; a doormat marks the cell.
-    roundRect(ctx, cx - 6, cy - 4, 12, 8, 2, "#9b5b34")
-    ctx.lineWidth = 1
-    ctx.strokeStyle = "#5e3216"
-    ctx.stroke()
+  if (own !== null && drawFigure(ctx, own, { cx, bottom: (y + 1) * CELL, now: still ? 0 : now }) !== null) return
+  const look = FINISH_ART[kind]
+  if (look !== null) {
+    shadow(ctx, cx, y * CELL + CELL / 2)
+    stand(ctx, look, cx, cellBottom(y), still ? 0 : now)
+    return
   }
+  if (kind === "well") {
+    const water = baseArt(WATER_ART)
+    if (water !== null) drawTile(ctx, water, 1, x, y)
+    stand(ctx, { id: SPRING_ROCKS_ART }, cx, (y + 1) * CELL - 1, still ? 0 : now)
+    return
+  }
+  const pointer = art(POINTER_ART)
+  if (pointer === null) return
+  ctx.save()
+  ctx.globalAlpha = still ? 0.9 : 0.65 + 0.35 * Math.sin(now / 300)
+  drawFigure(ctx, pointer, { cx, bottom: (y + 1) * CELL, now: 0 })
+  ctx.restore()
 }
 
 /** What lies on a cell: its own item from `itemsAt`, or the level's item. */
@@ -293,22 +309,18 @@ const itemAt = (scene: Scene, x: number, y: number): { readonly kind: ItemKind; 
   return at === undefined ? { kind: scene.item ?? "crystal", own: scene.itemLook !== undefined } : { kind: at.item, own: false }
 }
 
+const ownItem = (scene: Scene, own: boolean) => (!own || scene.itemLook === undefined ? null : spriteOf(scene.itemLook))
+
 const itemLook = (ctx: Ctx, scene: Scene, x: number, y: number, lit: boolean, now: number, still: boolean) => {
   const cx = x * CELL + CELL / 2
-  const cy = y * CELL + CELL / 2
+  const bottom = cellBottom(y)
   const { kind, own: hasOwn } = itemAt(scene, x, y)
-  const own = !hasOwn || scene.itemLook === undefined ? null : spriteOf(scene.itemLook)
-  if (own !== null) {
-    drawFigure(ctx, own, { cx, bottom: cy + CELL / 2, clip: null, now })
-    if (lit) flame(ctx, cx, cy, now, still)
-    return
-  }
-  if (kind === "fish") ellipse(ctx, cx, cy + 1, 7, 5, "#1d4f6e")
-  // Crystals bob up and down.
-  const bob = kind === "crystal" && !still ? -1.5 * (0.5 - 0.5 * Math.cos(Math.PI * ((now / 1200) % 2))) : 0
-  if (kind === "key") picture(ctx, ITEM_TILES.key, cx - 6, cy - 4, 12, 8)
-  else picture(ctx, ITEM_TILES[kind], cx - CELL / 2, cy - CELL / 2 + bob, CELL, CELL)
-  if (lit) flame(ctx, cx, cy, now, still)
+  const own = ownItem(scene, hasOwn)
+  // Gold bobs up and down.
+  const bob = kind === "crystal" && !still ? -1.2 * (0.5 - 0.5 * Math.cos(Math.PI * ((now / 1200) % 2))) : 0
+  if (own !== null) drawFigure(ctx, own, { cx, bottom: (y + 1) * CELL, clip: null, now })
+  else stand(ctx, ITEM_ART[kind], cx, bottom + 1 + bob, now)
+  if (lit) flame(ctx, cx, bottom, now, still)
 }
 
 /** Hit points over a boss or a strong enemy. */
@@ -316,14 +328,6 @@ const hpBar = (ctx: Ctx, cx: number, top: number, hp: number, maxHp: number) => 
   const w = Math.min(14, maxHp * 3 + 1)
   roundRect(ctx, cx - w / 2, top, w, 3, 1, "rgba(30, 20, 30, 0.75)")
   roundRect(ctx, cx - w / 2 + 0.5, top + 0.5, ((w - 1) * hp) / maxHp, 2, 0.5, "#e8434f")
-}
-
-/** Draws with a glow or a flash where the browser can filter a canvas; elsewhere just the picture. */
-const withFilter = (ctx: Ctx, filter: string, draw: () => void) => {
-  ctx.save()
-  if ("filter" in ctx) ctx.filter = filter
-  draw()
-  ctx.restore()
 }
 
 const enemyFigure = (ctx: Ctx, pose: EnemyPose, hero: HeroPose, now: number, still: boolean) => {
@@ -338,33 +342,27 @@ const enemyFigure = (ctx: Ctx, pose: EnemyPose, hero: HeroPose, now: number, sti
   ctx.save()
   ctx.globalAlpha = pose.opacity
   shadow(ctx, cx, cy, scale)
-  const row = still ? 0 : loopFrame(now, enemy.boss ? 0.9 : 0.6, 4, (enemy.id % 4) * 0.15)
   // A raised weapon: the enemy rises and falls and glows red. It hits on its next turn.
-  const swing = enemy.swinging && !still ? -1.5 * Math.abs(Math.sin((now / 350) * Math.PI)) : 0
-  const size = CELL * scale
-  // A boss stands on the same ground line: it grows upwards.
-  const x = cx - size / 2
-  const y = cy + (1 - scale) * 6 - size / 2 + swing
-  const look = enemy.look === undefined ? null : spriteOf(enemy.look)
+  const swing = enemy.swinging && !still ? -1.2 * Math.abs(Math.sin((now / 350) * Math.PI)) : 0
+  const look = (enemy.look === undefined ? null : spriteOf(enemy.look)) ?? art(ENEMY_ART[enemy.kind])
   let top = cy - CELL / 2 - (scale - 1) * 12
   const draw = () => {
-    if (look === null) {
-      blit(ctx, ENEMIES[enemy.kind], COLUMN[pose.face] * CELL, row * CELL, CELL, CELL, x, y, size, size)
-      return
-    }
-    // A pack enemy plays its walk; a picture drawn facing one way is turned to the hero.
-    const side = look.sprite.layout === "side" && pose.face === "left"
-    const big = (look.sprite.frame?.[1] ?? look.sprite.size[1]) > look.pack.cell
+    if (look === null) return
+    // A goblin drawn from the side turns to the hero; one with a raised weapon swings it.
+    const side = look.sprite.layout === "side" && (hero.x === pose.x ? pose.face === "left" : hero.x < pose.x)
+    const clip = still ? undefined : enemy.swinging ? (pickClip(look.sprite, ["attack", "throw", "explode"]) ?? walkClip(look.sprite)) : walkClip(look.sprite)
+    const own = enemy.look !== undefined
     const drawn = drawFigure(ctx, look, {
       cx,
-      bottom: cy + CELL / 2 + swing,
-      clip: still ? undefined : walkClip(look.sprite),
+      bottom: (own ? cy + CELL / 2 : cellBottom(pose.y + ly)) + swing,
+      clip,
       dir: pose.face,
       now: still ? 0 : now + enemy.id * 150,
       flip: side,
-      scale: big ? 1 : scale
+      scale
     })
-    if (drawn !== null) top = drawn + 4
+    // The bar floats over the head, not over the torch it may raise.
+    if (drawn !== null) top = cellBottom(pose.y + ly) - HEAD * scale
   }
   if (pose.flash > 0) withFilter(ctx, `brightness(${1 + 1.5 * pose.flash})`, draw)
   else if (enemy.swinging) withFilter(ctx, `drop-shadow(0 0 1.2px ${DANGER})`, draw)
@@ -373,34 +371,50 @@ const enemyFigure = (ctx: Ctx, pose: EnemyPose, hero: HeroPose, now: number, sti
   ctx.restore()
 }
 
-const heroFigure = (ctx: Ctx, hero: HeroPose, skin: Skin, now: number) => {
-  const sheet = SHEETS[skin]
+/** The clip and its frame for what the hero does now. */
+const heroClip = (found: Art, spriteId: string, hero: HeroPose): { readonly clip: string | null; readonly progress?: number } => {
+  const { sprite } = found
+  if (hero.act === "walk" || hero.act === "bump") return { clip: walkClip(sprite) }
+  if (hero.act === "attack") return { clip: pickClip(sprite, [...attackClips(fighterOf(spriteId), hero.dir), "attack", "idle"]), progress: hero.progress }
+  if (hero.act === "take") return { clip: pickClip(sprite, TAKE_CLIPS) }
+  return { clip: pickClip(sprite, ["idle"]) }
+}
+
+const heroFigure = (ctx: Ctx, hero: HeroPose, skin: Skin, now: number, still: boolean) => {
+  const spriteId = HERO_ART[skin]
+  const found = art(spriteId)
   const cx = hero.x * CELL + CELL / 2
   const cy = hero.y * CELL + CELL / 2
-  let col = COLUMN[hero.dir]
-  let row = 0
-  if (hero.act === "walk" || hero.act === "bump") row = Math.floor(hero.progress * 4) % 4
-  if (hero.act === "attack" && sheet.rows > ATTACK_ROW) row = ATTACK_ROW
-  if (hero.act === "take" && sheet.rows > POSE_ROW) {
-    row = POSE_ROW
-    col = HOLD_COLUMN
-  }
   const scale = 1 - 0.4 * hero.fallen
   ctx.save()
   ctx.globalAlpha = 1 - 0.65 * hero.fallen
   shadow(ctx, cx, cy, scale)
-  // A crash shakes the hero; an attack leans into the blow.
+  // A crash shakes the hero.
   const shake = hero.crashed ? Math.sin(now / 40) * 1.2 : 0
-  const lean = hero.act === "attack" ? Math.sin(Math.PI * hero.progress) * 2 : 0
-  const d = { down: [0, 1], up: [0, -1], left: [-1, 0], right: [1, 0] }[hero.dir]
-  const size = CELL * scale
-  const x = cx - size / 2 + shake + (d[0] ?? 0) * lean
-  const y = cy - size / 2 + 3 * hero.fallen + (d[1] ?? 0) * lean
-  const draw = () => blit(ctx, sheet.href, col * CELL, row * CELL, CELL, CELL, x, y, size, size)
+  const draw = () => {
+    if (found === null) return
+    const { clip, progress } = heroClip(found, spriteId, hero)
+    drawFigure(ctx, found, {
+      cx: cx + shake,
+      bottom: cellBottom(hero.y) + 3 * hero.fallen,
+      clip,
+      // The pictures face right: a hero going left is mirrored.
+      flip: hero.dir === "left",
+      now: still ? 0 : now,
+      scale,
+      ...(progress === undefined ? {} : { progress })
+    })
+  }
   if (hero.act === "hurt") withFilter(ctx, `brightness(${1 + 1.2 * Math.sin(Math.PI * hero.progress)}) drop-shadow(0 0 1.5px ${DANGER})`, draw)
   else if (hero.crashed) withFilter(ctx, `drop-shadow(0 0 1.5px ${DANGER})`, draw)
   else draw()
   ctx.restore()
+}
+
+/** A building or a big tree, standing on the middle of the bottom row of its cells. */
+const propFigure = (ctx: Ctx, prop: Prop, now: number) => {
+  const { width, height } = PROPS[prop.kind]
+  stand(ctx, PROP_ART[prop.kind], (prop.x + width / 2) * CELL, (prop.y + height) * CELL - 1, now)
 }
 
 const bubble = (ctx: Ctx, text: string, cx: number, cy: number, progress: number) => {
@@ -415,14 +429,32 @@ const bubble = (ctx: Ctx, text: string, cx: number, cy: number, progress: number
   ctx.restore()
 }
 
+/** A blow: a white arc over the enemy, thinning as it goes. */
+const slash = (ctx: Ctx, cx: number, cy: number, progress: number) => {
+  ctx.save()
+  ctx.globalAlpha = 1 - progress
+  ctx.beginPath()
+  const start = -Math.PI * 0.9 + progress * 1.2
+  ctx.arc(cx, cy - 2, 6, start, start + Math.PI * 0.7)
+  ctx.lineWidth = 1.6 * (1 - progress) + 0.4
+  ctx.lineCap = "round"
+  ctx.strokeStyle = "#ffffff"
+  ctx.stroke()
+  ctx.restore()
+}
+
 const effect = (ctx: Ctx, fx: Effect, scene: Scene, now: number) => {
   const { kind: item, own: hasOwn } = itemAt(scene, fx.x, fx.y)
   const cx = fx.x * CELL + CELL / 2
   const cy = fx.y * CELL + CELL / 2
-  if (fx.kind === "slash" || fx.kind === "smoke") {
-    const frames = fx.kind === "slash" ? 4 : 6
-    const frame = Math.min(frames - 1, Math.floor(fx.progress * frames))
-    blit(ctx, fx.kind === "slash" ? slashStrip : smokeStrip, frame * FX, 0, FX, FX, cx - FX / 2, cy - FX / 2)
+  if (fx.kind === "slash") {
+    slash(ctx, cx, cy, fx.progress)
+    return
+  }
+  if (fx.kind === "smoke") {
+    // A beaten enemy turns into a skull and a puff.
+    const dead = art(DEAD_ART)
+    if (dead !== null) drawFigure(ctx, dead, { cx, bottom: cellBottom(fx.y), clip: "die", now, progress: fx.progress, scale: 0.8 })
     return
   }
   if (fx.kind === "lift") {
@@ -430,29 +462,30 @@ const effect = (ctx: Ctx, fx: Effect, scene: Scene, now: number) => {
     if (item === "campfire") return
     ctx.save()
     ctx.globalAlpha = 1 - Math.max(0, fx.progress - 0.6) / 0.4
-    const rise = 9 * Math.min(1, fx.progress * 2)
-    const own = !hasOwn || scene.itemLook === undefined ? null : spriteOf(scene.itemLook)
+    const rise = 11 * Math.min(1, fx.progress * 2)
+    const own = ownItem(scene, hasOwn)
     if (own !== null) drawFigure(ctx, own, { cx, bottom: cy + 4 - rise, clip: null, now, scale: 0.75 })
-    else picture(ctx, ITEM_TILES[item], cx - 6, cy - CELL / 2 - rise, 12, item === "key" ? 8 : 12)
+    else stand(ctx, ITEM_ART[item], cx, cy - 2 - rise, now, { scale: 0.8 })
     ctx.restore()
     return
   }
   bubble(ctx, fx.kind === "question" ? "?" : "z", cx, cy, fx.progress)
 }
 
-const weather = (ctx: Ctx, { season, scenery, now }: ActorsInput) => {
-  const w = season.weather
-  const img = w === null ? null : image(w.href)
-  if (w === null || img === null) return
-  const { view } = scenery
-  const phase = (now / 1000 / w.seconds) % 1
-  const ox = (WEATHER_W * w.drift * phase) % WEATHER_W
-  const oy = (WEATHER_H * phase) % WEATHER_H
-  const left = view.x * CELL
-  const top = view.y * CELL
-  for (let y = top - WEATHER_H + oy; y < top + view.height * CELL; y += WEATHER_H) {
-    for (let x = left - WEATHER_W + ox; x < left + view.width * CELL; x += WEATHER_W) ctx.drawImage(img, x, y, WEATHER_W, WEATHER_H)
-  }
+/** A heart of the HUD, full or empty. */
+const heart = (ctx: Ctx, x: number, y: number, full: boolean) => {
+  const s = HEART / 9
+  ctx.beginPath()
+  ctx.moveTo(x + 4.5 * s, y + 8 * s)
+  ctx.bezierCurveTo(x - 1 * s, y + 4 * s, x + 0.5 * s, y - 0.5 * s, x + 4.5 * s, y + 2.2 * s)
+  ctx.bezierCurveTo(x + 8.5 * s, y - 0.5 * s, x + 10 * s, y + 4 * s, x + 4.5 * s, y + 8 * s)
+  ctx.closePath()
+  ctx.fillStyle = full ? "#e8434f" : "rgba(255, 255, 255, 0.18)"
+  ctx.fill()
+  ctx.lineWidth = 0.8
+  ctx.strokeStyle = full ? "#7d1a24" : "rgba(255, 255, 255, 0.6)"
+  ctx.stroke()
+  if (full) ellipse(ctx, x + 2.6 * s, y + 3 * s, 0.9 * s, 0.7 * s, "rgba(255, 255, 255, 0.7)")
 }
 
 /** A dark plate with a line of white text, for the steps and the counter. */
@@ -471,9 +504,7 @@ const hud = (ctx: Ctx, { pose, scenery, counter }: ActorsInput) => {
   let y = scenery.view.y * CELL + 3
   if (world.enemies.length > 0) {
     roundRect(ctx, x - 1.5, y - 1.5, world.maxHearts * (HEART + 1) + 2, HEART + 3, 3, HUD_BACK)
-    for (let i = 0; i < world.maxHearts; i++) {
-      blit(ctx, heartSheet, (i < world.hearts ? HEART_FULL : HEART_EMPTY) * CELL, 0, CELL, CELL, x + i * (HEART + 1), y, HEART, HEART)
-    }
+    for (let i = 0; i < world.maxHearts; i++) heart(ctx, x + i * (HEART + 1), y, i < world.hearts)
     y += HEART + 4
   }
   if (world.energy !== null) {
@@ -485,20 +516,19 @@ const hud = (ctx: Ctx, { pose, scenery, counter }: ActorsInput) => {
 
 /** Everything that moves or changes, over the ground. */
 export const drawActors = (ctx: Ctx, input: ActorsInput) => {
-  const { pose, scene, season, now, still, skin } = input
+  const { pose, scene, season, scenery, now, still, skin } = input
   const { world } = pose
   const sprites = (scene.sprites ?? []).map((placed) => ({ placed, found: spriteOf(placed.asset) }))
   // Pictures of the packs that lie flat and move: water, flowers in the wind.
   for (const { placed, found } of sprites) {
     if (found !== null && layerOf(placed, found) === "ground" && isAnimated(placed, found)) drawPlaced(ctx, placed, still ? 0 : now)
   }
-  swayingBushes(ctx, input)
   for (const npc of scene.npcs ?? []) villager(ctx, npc, now, still)
   for (const key of world.traps) {
     const [tx = 0, ty = 0] = key.split(",").map(Number)
     trap(ctx, tx * CELL + CELL / 2, ty * CELL + CELL / 2, season.icy, world.fell && Math.round(pose.hero.x) === tx && Math.round(pose.hero.y) === ty)
   }
-  if (world.finish !== null) finishLook(ctx, scene, world.finish.x * CELL + CELL / 2, world.finish.y * CELL + CELL / 2, now, still)
+  if (world.finish !== null) finishLook(ctx, scene, world.finish.x, world.finish.y, now, still)
   for (const { x, y } of input.items) {
     const taken = !world.crystals.has(cellKey(x, y))
     if (taken && itemAt(scene, x, y).kind !== "campfire") continue
@@ -506,13 +536,20 @@ export const drawActors = (ctx: Ctx, input: ActorsInput) => {
   }
   const map = scene.tilemap
   const tileset = map === undefined ? null : spriteOf(map.tileset)
-  // Who stands lower on the field is drawn later, so a figure in front covers the one behind. A house or a fence
+  const tree = art(TREE_ART)
+  // Who stands lower on the field is drawn later, so a figure in front covers the one behind. A house or a tree
   // stands by its bottom row: the hero above it walks behind it, the hero below it in front.
   const figures = [
-    ...(scene.props ?? []).map((p) => {
-      const look = PROPS[p.kind]
-      return { y: p.y + look.height - 1 - 0.02, draw: () => picture(ctx, look.href, p.x * CELL, p.y * CELL, look.width * CELL, look.height * CELL) }
-    }),
+    ...(scene.props ?? []).map((p) => ({ y: p.y + PROPS[p.kind].height - 1 - 0.02, draw: () => propFigure(ctx, p, still ? 0 : now) })),
+    ...(tree === null
+      ? []
+      : scenery.trees.map((t) => ({
+          y: t.y + 1 - 0.02,
+          draw: () =>
+            withFilter(ctx, season.plants, () =>
+              drawFigure(ctx, tree, { cx: (t.x + 1) * CELL, bottom: (t.y + 2) * CELL - FEET, now: still ? 0 : now + (cellHash(t.x, t.y, 6) % 1000), scale: TREE_SCALE })
+            )
+        }))),
     ...(map === undefined || tileset === null
       ? []
       : tilesOfKind(map, "objects").map((t) => ({ y: t.y - 0.02, draw: () => drawTile(ctx, tileset, t.tile, t.x, t.y) }))),
@@ -520,13 +557,12 @@ export const drawActors = (ctx: Ctx, input: ActorsInput) => {
       .filter(({ placed, found }) => found !== null && layerOf(placed, found) === "object")
       .map(({ placed }) => ({ y: placedDepth(placed) - 0.01, draw: () => drawPlaced(ctx, placed, still ? 0 : now) })),
     ...pose.enemies.map((e) => ({ y: e.y, draw: () => enemyFigure(ctx, e, pose.hero, now, still) })),
-    { y: pose.hero.y + 0.01, draw: () => heroFigure(ctx, pose.hero, skin, now) }
+    { y: pose.hero.y + 0.01, draw: () => heroFigure(ctx, pose.hero, skin, now, still) }
   ]
   for (const f of figures.sort((a, b) => a.y - b.y)) f.draw()
   // Roofs and crowns of the tile map cover the hero who walks under them.
   if (map !== undefined && tileset !== null) for (const t of tilesOfKind(map, "above")) drawTile(ctx, tileset, t.tile, t.x, t.y)
   for (const fx of pose.effects) effect(ctx, fx, scene, now)
-  // With less motion the weather stays as a still picture.
-  weather(ctx, still ? { ...input, now: 0 } : input)
+  if (!still && season.weather !== null) drawWeather(ctx, season.weather, scenery.view, CELL, now)
   hud(ctx, input)
 }

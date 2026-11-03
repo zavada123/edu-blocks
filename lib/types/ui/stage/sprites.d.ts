@@ -17,6 +17,8 @@ export interface FigureOptions {
     readonly flip?: boolean;
     /** Grows the figure, as a boss. */
     readonly scale?: number;
+    /** Plays the clip by the progress of an act (0…1) instead of the clock. */
+    readonly progress?: number;
 }
 /** A figure standing at (`cx`, `bottom`). Returns the top edge it was drawn to, or null when not drawn yet. */
 export declare const drawFigure: (ctx: Ctx, found: Resolved, o: FigureOptions) => number | null;

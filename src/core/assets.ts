@@ -303,10 +303,14 @@ export const packsOf = (level: Parameters<typeof assetRefsOf>[0]): ReadonlyArray
 /** Clips a figure plays when nothing else is asked, best first. */
 const IDLE_CLIPS: ReadonlyArray<string> = ["idle", "play", "walk", "grow"]
 
-/** The clip a sprite plays standing on the field: its `idle` (or the like) or the first one; null when it has none. */
+/**
+ * The clip a sprite plays standing on the field: its `idle` (or the like) or the first one that loops; null when it
+ * has none. A clip played once (a gold bag that appears in a flash) is not how the thing stands.
+ */
 export const restClip = (sprite: SpriteAsset): string | null => {
-  const names = Object.keys(sprite.clips ?? {})
-  return IDLE_CLIPS.find((n) => names.includes(n)) ?? names[0] ?? null
+  const clips = sprite.clips ?? {}
+  const names = Object.keys(clips)
+  return IDLE_CLIPS.find((n) => names.includes(n)) ?? names.find((n) => clips[n]?.loop !== false) ?? null
 }
 
 /** The clip of a walking figure: `walk` or `run`, else what it plays at rest. */

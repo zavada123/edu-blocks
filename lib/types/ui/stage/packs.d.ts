@@ -24,6 +24,8 @@ export declare const loadPack: (id: string) => Promise<AssetPack | null>;
 /** The packs the build serves, from `<base>index.json`; empty when there is no list. */
 export declare const loadPackList: () => Promise<ReadonlyArray<PackInfo>>;
 export declare const loadedPack: (id: string) => AssetPack | null;
+/** Whether a pack is there: loading starts on the first call. A missing pack (no such folder) stays missing. */
+export declare const packStatus: (id: string) => "loading" | "ready" | "missing";
 /** A sprite and its pack, by reference: null while the pack loads or when there is no such sprite. */
 export declare const spriteOf: (ref: string) => {
     readonly pack: AssetPack;
