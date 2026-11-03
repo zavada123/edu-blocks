@@ -101,7 +101,7 @@ describe("paletteIssues", () => {
 describe("the words of «взяти»", () => {
   test("follow the items of the level", () => {
     expect(collectText({ item: "campfire" })).toBe("розпалити")
-    expect(collectText({ item: "fish" })).toBe("зловити")
+    expect(collectText({ item: "fish" })).toBe("взяти")
     expect(collectText({ item: "wood" })).toBe("взяти")
     expect(collectText(undefined)).toBe("взяти")
     expect(heroBlockText("collect", { item: "campfire" })).toBe("розпалити")

@@ -6,9 +6,9 @@ const harvest = (apple: number, carrot: number, egg: number, full = false) => ({
 
 describe("harvest in the result", () => {
   test("names what the hero gathered, as Ukrainian counts it", () => {
-    expect(harvestText(harvest(3, 2, 1))).toBe("3 яблука, 2 морквини і 1 яйце")
-    expect(harvestText(harvest(1, 0, 0))).toBe("1 яблуко")
-    expect(harvestText(harvest(11, 0, 5))).toBe("11 яблук і 5 яєць")
+    expect(harvestText(harvest(3, 2, 1))).toBe("3 гриби, 2 гарбузи і 1 ягня")
+    expect(harvestText(harvest(1, 0, 0))).toBe("1 гриб")
+    expect(harvestText(harvest(11, 0, 5))).toBe("11 грибів і 5 ягнят")
     expect(harvestText(harvest(0, 0, 0))).toBe("нічого")
   })
 

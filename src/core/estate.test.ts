@@ -194,7 +194,7 @@ describe("estate days", () => {
     const world = startWorld(day.level)
     expect(describeGoal({ type: "crystals" }, world, day.level.scene)).toBe(`Збери врожай (${day.produce.length})`)
     const apples = estateDay(NEW_ESTATE, ALL)
-    expect(describeGoal({ type: "crystals" }, startWorld(apples.level), apples.level.scene)).toMatch(/^Збери яблука/)
+    expect(describeGoal({ type: "crystals" }, startWorld(apples.level), apples.level.scene)).toMatch(/^Збери гриби/)
   })
 
   test("the seasons change every week, from autumn", () => {

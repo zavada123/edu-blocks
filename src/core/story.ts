@@ -11,37 +11,37 @@ import { parseMap } from "./world.ts"
 const stems = (...list: ReadonlyArray<string>): RegExp => new RegExp(`(?:^|[^а-яіїєґ'’])(?:${list.join("|")})`, "i")
 
 const ITEM_WORDS: Readonly<Record<ItemKind, RegExp>> = {
-  crystal: stems("кристал"),
+  crystal: stems("золот"),
   wood: stems("дров", "поліно", "поліна"),
-  apple: stems("яблук", "яблуч"),
-  fish: stems("риб"),
-  key: stems("ключ"),
+  apple: stems("гриб"),
+  fish: stems("м'яс", "м’яс"),
+  key: stems("стріл"),
   campfire: stems("вогнищ", "багатт"),
-  carrot: stems("морк"),
-  egg: stems("яйц", "яєц", "яйце")
+  carrot: stems("гарбуз"),
+  egg: stems("ягн")
 }
 
 const ITEM_NAMES: Readonly<Record<ItemKind, string>> = {
-  crystal: "кристали",
+  crystal: "золото",
   wood: "дрова",
-  apple: "яблука",
-  fish: "риба",
-  key: "ключ",
+  apple: "гриби",
+  fish: "м'ясо",
+  key: "стріла",
   campfire: "вогнища",
-  carrot: "морква",
-  egg: "яйця"
+  carrot: "гарбузи",
+  egg: "ягнята"
 }
 
 const FINISH_WORDS: Readonly<Record<Exclude<FinishKind, "home">, RegExp>> = {
-  well: stems("криниц"),
+  well: stems("джерел"),
   grandma: stems("бабус", "бабц"),
-  flag: stems("прапор")
+  flag: stems("вказівн")
 }
 
-const FINISH_NAMES: Readonly<Record<FinishKind, string>> = { flag: "прапорець", well: "криниця", grandma: "бабуся", home: "дім" }
+const FINISH_NAMES: Readonly<Record<FinishKind, string>> = { flag: "вказівник", well: "джерело", grandma: "бабуся", home: "дім" }
 
 const HOUSE_WORDS = stems("хат", "будин", "дім", "додому", "домівк", "хатин")
-const ENEMY_WORDS = stems("ворог", "монстр", "слиз", "гоблін", "черепа", "череп ", "ведмед", "бос", "дух")
+const ENEMY_WORDS = stems("ворог", "монстр", "гоблін", "ватаж", "підривн", "бос")
 const BRIDGE_WORDS = stems("міст", "мост")
 
 const SEASON_WORDS: Readonly<Record<Season, RegExp>> = {

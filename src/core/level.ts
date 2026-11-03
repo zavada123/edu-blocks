@@ -246,14 +246,14 @@ export const allGoalsMet = (level: Level, world: World): boolean => level.goals.
 export const goalStatus = (level: Level, world: World): ReadonlyArray<boolean> => level.goals.map((g) => goalMet(world, g))
 
 const ITEM_GOALS: Readonly<Record<ItemKind, (count: number) => string>> = {
-  crystal: (n) => `Збери всі кристали (${n})`,
+  crystal: (n) => `Збери все золото (${n})`,
   wood: (n) => (n === 1 ? "Візьми дрова" : `Візьми дрова (${n})`),
-  apple: (n) => `Збери яблука (${n})`,
-  fish: (n) => `Злови всю рибу (${n})`,
-  key: (n) => (n === 1 ? "Візьми ключ" : `Візьми ключі (${n})`),
+  apple: (n) => `Збери гриби (${n})`,
+  fish: (n) => `Збери м'ясо (${n})`,
+  key: (n) => (n === 1 ? "Візьми стрілу" : `Збери стріли (${n})`),
   campfire: (n) => `Розпали вогнища (${n})`,
-  carrot: (n) => `Збери моркву (${n})`,
-  egg: (n) => (n === 1 ? "Візьми яйце" : `Збери яйця (${n})`)
+  carrot: (n) => `Збери гарбузи (${n})`,
+  egg: (n) => (n === 1 ? "Забери ягня" : `Збери ягнят (${n})`)
 }
 
 /** The kind the goal names: the one kind of `itemsAt` when there is one, the level's `item` otherwise. */
@@ -264,8 +264,8 @@ const goalItem = (scene: Scene): ItemKind | "harvest" => {
 }
 
 const FINISH_GOALS: Readonly<Record<FinishKind, string>> = {
-  flag: "Дійди до прапорця",
-  well: "Дійди до криниці",
+  flag: "Дійди до вказівника",
+  well: "Дійди до джерела",
   grandma: "Дійди до бабусі",
   home: "Повернись додому"
 }
