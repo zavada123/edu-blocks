@@ -30,9 +30,12 @@ export interface EstateLayout {
   readonly coop: boolean
   /** The nests: rows of the left path from 2. */
   readonly nests: number
-  /** Which carrots are ripe today, one per tree column. */
-  readonly ready: ReadonlyArray<boolean>
-  readonly day: number
+  /** The frame of the carrot of each tree column today, from 1 (just sown) to 4 (ripe). */
+  readonly carrotFrames: ReadonlyArray<number>
+  /** The size of the map of the biggest estate: the farm is drawn for it, so nothing moves when the yard grows. */
+  readonly frame: { readonly width: number; readonly height: number }
+  /** How many trees the orchard can have: the places of the trees not bought yet are dug. */
+  readonly maxTrees: number
 }
 
 /** Cells of meadow around the yard; the hen house needs four on the left. */
@@ -64,9 +67,8 @@ const areaOf = (width: number, height: number): Area => {
 
 /** The look of a day: its tile map and the pictures that stand on it. */
 export const estateLook = (layout: EstateLayout): { readonly tilemap: TileMap; readonly sprites: ReadonlyArray<PlacedSprite> } => {
-  const { rows, trees, right, bottom, carrots, coop, nests, ready, day } = layout
-  const width = rows[0]?.length ?? 0
-  const height = rows.length
+  const { rows, trees, right, bottom, carrots, coop, nests, carrotFrames, frame, maxTrees } = layout
+  const { width, height } = frame
   const area = areaOf(width, height)
   const size = { width: area.width, height: area.height }
   const inside = (x: number, y: number) => x >= area.x && y >= area.y && x < area.x + area.width && y < area.y + area.height
@@ -87,9 +89,9 @@ export const estateLook = (layout: EstateLayout): { readonly tilemap: TileMap; r
     .flatMap((i) => [0, 1, 2].map((j) => ({ x: pondX + i, y: pondY + j, corner: (i === 0 || i === 4) && (j === 0 || j === 2) })))
     .filter((c) => !c.corner)
   const pond = new Set(pondCells.flatMap(({ x, y }) => [-1, 0, 1].flatMap((dx) => [-1, 0, 1].map((dy) => `${x + dx},${y + dy}`))))
-  // Cells kept free of meadow things: the yard, the house, the hen house and the pond.
+  // Cells kept free of meadow things: the yard with its plots, the house, the place of the hen house and the pond.
   const busy = (x: number, y: number) =>
-    (x >= -1 && x <= width && y >= -ABOVE && y <= height) || (coop && x >= -SIDE && x < 0 && y >= 1 && y <= 6) || pond.has(`${x},${y}`)
+    (x >= -1 && x <= width && y >= -ABOVE && y <= bottom + 1) || (x >= -SIDE && x < 0 && y >= 1 && y <= 6) || pond.has(`${x},${y}`)
 
   // Grass, a little different here and there, and the pond in it.
   for (let y = area.y; y < area.y + area.height; y++) {
@@ -117,7 +119,8 @@ export const estateLook = (layout: EstateLayout): { readonly tilemap: TileMap; r
   if (coop) building(HEN_HOUSE, -SIDE + 1, 2)
 
   // The far end of the yard, snowed in or overgrown today: shrubs where the path does not go.
-  for (let y = 1; y <= bottom; y++) for (let x = right + 1; x < width - 1; x++) put(layers.objects, x, y, SHRUBS[(x + y * 3) % SHRUBS.length] ?? SHRUBS[0] ?? 0)
+  const yardEnd = trees + 6
+  for (let y = 1; y <= bottom; y++) for (let x = right + 1; x < yardEnd; x++) put(layers.objects, x, y, SHRUBS[(x + y * 3) % SHRUBS.length] ?? SHRUBS[0] ?? 0)
 
   const sprites: Array<PlacedSprite> = []
   for (let i = 0; i < trees; i++) sprites.push({ asset: "sunnyside:decor/tree-01", x: 3 + i, y: 0, frame: 0 })
@@ -125,10 +128,21 @@ export const estateLook = (layout: EstateLayout): { readonly tilemap: TileMap; r
   // The carrot bed grows a stage a day; the ripe ones lie on the path for the hero.
   bed.forEach(({ x, y }, i) => {
     sprites.push({ asset: "sunnyside:crop/soil", x, y, frame: 0, layer: "ground" })
-    sprites.push({ asset: "sunnyside:crop/carrot", x, y, frame: ready[i] === true ? 4 : 1 + ((day + i) % 3) })
+    sprites.push({ asset: "sunnyside:crop/carrot", x, y, frame: carrotFrames[i] ?? 1 })
   })
   if (coop) {
     for (let n = 0; n < nests; n += 2) sprites.push({ asset: "sunnyside:animal/chicken-01", x: 0, y: 2 + n, frame: n % 4, ...(n % 4 === 0 ? {} : { flip: true }) })
+  }
+  // The plots of what the shop sells: dug places for trees, seeds where the bed begins, timber where the hen house stands.
+  for (let x = 3 + trees; x < 3 + maxTrees; x++) sprites.push({ asset: "sunnyside:crop/soil", x, y: 0, frame: 0, layer: "ground" })
+  if (!carrots) {
+    sprites.push({ asset: "sunnyside:crop/soil", x: 3, y: bottom + 1, frame: 0, layer: "ground" })
+    sprites.push({ asset: "sunnyside:item/seeds-generic", x: 4, y: bottom + 1 })
+  }
+  if (!coop) {
+    sprites.push({ asset: "sunnyside:item/crate-base", x: -2, y: 4 })
+    sprites.push({ asset: "sunnyside:item/wood", x: -3, y: 4 })
+    sprites.push({ asset: "sunnyside:item/wood", x: -1, y: 4 })
   }
 
   // The meadow: trees along the edge of the field, shrubs and flowers between.

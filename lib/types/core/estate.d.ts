@@ -72,10 +72,10 @@ export declare const estateSeason: (day: number) => Season;
 /** The blocks of the estate: those of every level the student passed, and always the hero's walk and «взяти». */
 export declare const estatePalette: (passed: ReadonlyArray<Level>) => ReadonlyArray<BlockName>;
 /**
- * The level of a day. The yard is a ring of paths: from the door along the orchard, down the far end of the yard,
- * back along the carrot bed and up past the hen house to the door. The trees, the bed and the hen house come from
- * the upgrades; the ripe apples, carrots, eggs and the snowed-in end of the yard come from the day number.
+ * How each carrot of the bed looks today: ripe when it is ready, else grown for the days since it was last picked
+ * (ready on a day before), so a carrot picked yesterday is sown again today.
  */
+export declare const carrotFrames: (upgrades: EstateUpgrades, day: number) => ReadonlyArray<number>;
 export declare const estateDay: (state: EstateState, blocks: ReadonlyArray<BlockName>) => EstateDay;
 /** Whether a level is a day of the estate (its id), so the game shows it as one. */
 export declare const isEstateLevel: (levelId: string) => boolean;
