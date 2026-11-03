@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
 import { goalMet, type Level, startWorld } from "./level.ts"
-import { type Action, applyAction, atFinish, atStorehouse, cellKey, enemiesLeft, type EnemySpec, enemyAhead, handsFull, onCrystal, parseMap, trapAhead, wallAhead, type World } from "./world.ts"
+import { type Action, applyAction, atFinish, atStorehouse, cellKey, enemiesLeft, type Enemy, enemyOf, type EnemySpec, enemyAhead, handsFull, onCrystal, parseMap, seesInLine, trapAhead, wallAhead, type World } from "./world.ts"
 
 describe("parseMap", () => {
   test("reads walls, crystals, start and finish", () => {
@@ -224,5 +224,38 @@ describe("the storehouse", () => {
     expect(back.outcomes.at(-1)).toBe("stored")
     expect(back.world).toMatchObject({ carrying: 0, stored: 1 })
     expect(run(back.world, ["store"]).outcomes).toEqual(["nothingToStore"])
+  })
+})
+
+describe("moving enemies", () => {
+  const world = (rows: ReadonlyArray<string>, specs: ReadonlyArray<EnemySpec>): World => ({
+    ...parseMap(rows),
+    enemies: specs.map((s, i) => enemyOf(s, i))
+  })
+
+  test("a patrol walks its route round and round", () => {
+    let w = world(["#######", "#S....#", "#######"], [{ kind: "goblin", x: 3, y: 1, walk: "patrol", sight: 0, route: [{ x: 5, y: 1 }, { x: 3, y: 1 }] }])
+    const xs: Array<number> = []
+    for (let i = 0; i < 6; i++) {
+      w = applyAction(w, "wait").world
+      xs.push(w.enemies[0]?.x ?? -1)
+    }
+    expect(xs).toEqual([4, 5, 4, 3, 4, 5])
+  })
+
+  test("a line enemy sees along its row, not through a wall, and keeps coming once it saw the hero", () => {
+    const open = world(["#######", "#S....#", "#######"], [{ kind: "goblin", x: 5, y: 1, sees: "line", sight: 4 }])
+    expect(seesInLine(open, open.enemies[0] as Enemy)).toBe(true)
+    const walled = world(["#######", "#S.#..#", "#######"], [{ kind: "goblin", x: 5, y: 1, sees: "line", sight: 4 }])
+    expect(seesInLine(walled, walled.enemies[0] as Enemy)).toBe(false)
+    const done = applyAction(open, "wait")
+    expect(done.events.map((e) => e.type)).toEqual(["heroWaited", "enemyAlerted", "enemyMoved"])
+    expect(done.world.enemies[0]).toMatchObject({ x: 4, alerted: true })
+  })
+
+  test("a line enemy does not notice the hero in another row", () => {
+    const w = world(["#######", "#S....#", "#.....#", "#######"], [{ kind: "goblin", x: 5, y: 2, sees: "line", sight: 4 }])
+    const done = applyAction(w, "wait")
+    expect(done.world.enemies[0]).toMatchObject({ x: 5, y: 2, alerted: false })
   })
 })

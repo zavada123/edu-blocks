@@ -14,7 +14,7 @@ import { type Action, applyAction, isAlive, isFatal, type World } from "./world.
  * Also checks that the palette makes sense: a question needs a block to put it in, «якщо» needs a question.
  */
 
-const ACTIONS: ReadonlyArray<Action> = ["move", "turnLeft", "turnRight", "collect", "attack", "store"]
+const ACTIONS: ReadonlyArray<Action> = ["move", "turnLeft", "turnRight", "collect", "attack", "store", "wait"]
 
 /** States of the world the search looks at before it gives up. Big enough for any map of the editor. */
 export const SOLVE_LIMIT = 400_000
@@ -29,7 +29,7 @@ const stateKey = (w: World): string =>
     w.hearts,
     w.carrying,
     [...w.crystals].sort().join(";"),
-    w.enemies.map((e) => `${e.x},${e.y},${e.hp},${e.heading},${e.swinging ? 1 : 0}`).join(";")
+    w.enemies.map((e) => `${e.x},${e.y},${e.hp},${e.heading},${e.swinging ? 1 : 0},${e.target},${e.alerted ? 1 : 0}`).join(";")
   ].join("|")
 
 export type SolveResult =
@@ -72,7 +72,7 @@ export const solveLevel = (level: Level, limit = SOLVE_LIMIT): SolveResult => {
     for (const node of wave) {
       for (const action of actions) {
         // A swing at nothing or a take on an empty cell only lets the enemies move: no use without enemies.
-        if ((action === "attack" || action === "collect" || action === "store") && !node.world.enemies.some(isAlive) && wastes(node.world, action)) continue
+        if ((action === "attack" || action === "collect" || action === "store" || action === "wait") && !node.world.enemies.some(isAlive) && wastes(node.world, action)) continue
         const done = applyAction(node.world, action)
         if (isFatal(done.outcome) || done.world.hearts <= 0) continue
         const child: Node = { world: done.world, action, parent: node }

@@ -43,7 +43,7 @@ export interface EnemyPose {
   readonly lunge: number
 }
 
-export type EffectKind = "slash" | "smoke" | "lift" | "question" | "tired"
+export type EffectKind = "slash" | "smoke" | "lift" | "question" | "tired" | "alert"
 
 export interface Effect {
   readonly kind: EffectKind
@@ -77,6 +77,12 @@ export const faceOf = (enemy: Enemy, hero: Cell): Direction => {
   if (near) return Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? "right" : "left") : dy > 0 ? "down" : "up"
   if (enemy.walk === "across") return enemy.heading === 1 ? "right" : "left"
   if (enemy.walk === "updown") return enemy.heading === 1 ? "down" : "up"
+  const goal = enemy.route[enemy.target % Math.max(1, enemy.route.length)]
+  if (enemy.walk === "patrol" && goal !== undefined && (goal.x !== enemy.x || goal.y !== enemy.y)) {
+    const gx = goal.x - enemy.x
+    const gy = goal.y - enemy.y
+    return Math.abs(gx) >= Math.abs(gy) ? (gx > 0 ? "right" : "left") : gy > 0 ? "down" : "up"
+  }
   return "down"
 }
 
@@ -203,6 +209,11 @@ const effectsOf = (before: World, events: ReadonlyArray<GameEvent>, p: number): 
     if (ev.type === "nothingToTake" || ev.type === "handsFull" || ev.type === "nothingToStore") {
       const q = after(0.1, 0.9)
       if (q > 0 && q < 1) out.push({ kind: "question", x: ev.at.x, y: ev.at.y, progress: q })
+    }
+    if (ev.type === "enemyAlerted") {
+      const enemy = before.enemies.find((e) => e.id === ev.id)
+      const a = within(p, ENEMY_PART)
+      if (enemy !== undefined && a > 0 && a < 1) out.push({ kind: "alert", x: enemy.x, y: enemy.y, progress: a })
     }
     if (ev.type === "heroTired") {
       const z = after(0.1, 0.9)

@@ -37,7 +37,7 @@ export interface EnemyPose {
     /** Lunges toward the hero when it hits: 0…1. */
     readonly lunge: number;
 }
-export type EffectKind = "slash" | "smoke" | "lift" | "question" | "tired";
+export type EffectKind = "slash" | "smoke" | "lift" | "question" | "tired" | "alert";
 export interface Effect {
     readonly kind: EffectKind;
     readonly x: number;

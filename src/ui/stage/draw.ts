@@ -488,7 +488,7 @@ const effect = (ctx: Ctx, fx: Effect, scene: Scene, now: number) => {
     ctx.restore()
     return
   }
-  bubble(ctx, fx.kind === "question" ? "?" : "z", cx, cy, fx.progress)
+  bubble(ctx, fx.kind === "question" ? "?" : fx.kind === "alert" ? "!" : "z", cx, cy, fx.progress)
 }
 
 /** A heart of the HUD, full or empty. */

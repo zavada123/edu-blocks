@@ -13,7 +13,7 @@ import { type Action, applyAction, atFinish, atStorehouse, enemyAhead, handsFull
 export type Sensor = "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse"
 
 /** The hero's actions, in palette order. */
-export const HERO_ACTIONS: ReadonlyArray<Action> = ["move", "turnLeft", "turnRight", "collect", "attack", "store"]
+export const HERO_ACTIONS: ReadonlyArray<Action> = ["move", "turnLeft", "turnRight", "collect", "attack", "store", "wait"]
 
 /** Each question and how the world answers it. */
 export const HERO_SENSORS: Readonly<Record<Sensor, (world: World) => boolean>> = {

@@ -191,6 +191,9 @@ const tiredAdvice = (level: Level, result: RunResult): ReadonlyArray<string> => 
 
 const extraAdvice = (level: Level, frames: ReadonlyArray<Frame>): ReadonlyArray<string> => {
   const tips: Array<string> = []
+  const spotted = frames.findIndex((f) => f.events.some((e) => e.type === "enemyAlerted"))
+  if (spotted >= 0 && !level.goals.some((g) => g.type === "enemies"))
+    tips.push(`На ${spotted + 1}-й дії ворог помітив героя і рушив до нього. Вороги бачать уздовж свого ряду й стовпчика, але не крізь стіни й кущі: обійди їх поза їхнім поглядом.`)
   const empty = frames.filter((f) => f.outcome === "nothingToCollect").length
   const canAsk = level.blocks.includes("if") && level.blocks.includes("onCrystal")
   const block = collectText(level.scene)

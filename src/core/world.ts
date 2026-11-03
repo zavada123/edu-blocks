@@ -53,8 +53,18 @@ export interface World {
 /** Monsters from the pack. Which one only changes the picture. */
 export type EnemyKind = "slime" | "spirit" | "goblin" | "skull" | "flame" | "bear" | "toad"
 
-/** How an enemy moves while the hero is far: stands, walks left and right, or walks up and down. */
-export type EnemyWalk = "stand" | "across" | "updown"
+/**
+ * How an enemy moves while it does not come for the hero: stands, walks left and right, walks up and down, or
+ * walks its `route` round and round.
+ */
+export type EnemyWalk = "stand" | "across" | "updown" | "patrol"
+
+/**
+ * When an enemy notices the hero. `near`: the hero is `sight` steps away or closer, walls or not. `line`: the enemy
+ * sees the hero in its row or column, `sight` cells away or closer, with no wall between; once it has seen the hero
+ * it keeps coming for them.
+ */
+export type EnemySees = "near" | "line"
 
 /** An enemy as a level puts it on the map. */
 export interface EnemySpec {
@@ -66,6 +76,10 @@ export interface EnemySpec {
   /** It comes for the hero once the hero is this many steps away or closer. 2 by default; 0 never comes. */
   readonly sight?: number
   readonly walk?: EnemyWalk
+  /** The cells a patrolling enemy walks to, one after another, then again from the first. */
+  readonly route?: ReadonlyArray<Cell>
+  /** When it notices the hero: `near` by default. */
+  readonly sees?: EnemySees
   /** A boss is drawn bigger and shows its hp. */
   readonly boss?: boolean
   /** A picture from an asset pack (`"<pack>:<sprite id>"`) instead of the kind's own. Only looks. */
@@ -85,6 +99,13 @@ export interface Enemy {
   readonly heading: 1 | -1
   /** Set when the enemy stands next to the hero and swings: it hits on its next turn if the hero is still there. */
   readonly swinging: boolean
+  /** The patrol route, empty for an enemy that does not patrol. */
+  readonly route: ReadonlyArray<Cell>
+  /** The cell of `route` it walks to now. */
+  readonly target: number
+  readonly sees: EnemySees
+  /** Set once a `line` enemy has seen the hero: from then on it comes for them. */
+  readonly alerted: boolean
   readonly boss: boolean
   /** The picture from an asset pack, when the level gave one. */
   readonly look?: string
@@ -108,6 +129,10 @@ export const enemyOf = (spec: EnemySpec, id: number): Enemy => {
     walk: spec.walk ?? "stand",
     heading: 1,
     swinging: false,
+    route: (spec.route ?? []).map((c) => ({ x: c.x, y: c.y })),
+    target: 0,
+    sees: spec.sees ?? "near",
+    alerted: false,
     boss,
     ...(spec.look === undefined ? {} : { look: spec.look })
   }
@@ -210,7 +235,7 @@ export const atStorehouse = (world: World): boolean =>
 /** The hero carries as much as it can: «взяти» would take nothing now. Never true on a level without a limit. */
 export const handsFull = (world: World): boolean => world.capacity !== null && world.carrying >= world.capacity
 
-export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store"
+export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait"
 
 /** What one action did, for the animation and the error message. */
 export type Outcome =
@@ -232,6 +257,8 @@ export type Outcome =
   | "notStorehouse"
   /** «віднести на склад» on the storehouse with empty hands. */
   | "nothingToStore"
+  /** «зачекати»: the hero stands, the enemies take their turn. */
+  | "waited"
 
 /**
  * What happened in the world, in the order it happened: the hero's action first, then each enemy's turn.
@@ -261,6 +288,10 @@ export type GameEvent =
   /** The enemy raised its weapon: it hits on its next turn if the hero is still next to it. */
   | { readonly type: "enemyWindUp"; readonly id: number }
   | { readonly type: "heroHurt"; readonly by: number; readonly hearts: number }
+  /** The enemy saw the hero and comes for them now. */
+  | { readonly type: "enemyAlerted"; readonly id: number }
+  /** The hero stood one turn. */
+  | { readonly type: "heroWaited" }
 
 export interface ActionResult {
   readonly world: World
@@ -304,6 +335,7 @@ const heroAction = (world: World, action: Action): ActionResult => {
     }
   }
   if (action === "store") return store(world)
+  if (action === "wait") return { world, outcome: "waited", events: [{ type: "heroWaited" }] }
   const key = cellKey(world.hero.x, world.hero.y)
   if (!world.crystals.has(key)) return { world, outcome: "nothingToCollect", events: [{ type: "nothingToTake", at: here }] }
   if (handsFull(world)) return { world, outcome: "handsFull", events: [{ type: "handsFull", at: here }] }
@@ -332,16 +364,18 @@ const freeFor = (world: World, enemies: ReadonlyArray<Enemy>, self: Enemy, x: nu
   !(world.hero.x === x && world.hero.y === y) &&
   !enemies.some((e) => e.id !== self.id && isAlive(e) && e.x === x && e.y === y)
 
-/** The first step of a shortest way from the enemy to a cell next to the hero, or null when there is none. */
-const stepToward = (world: World, enemies: ReadonlyArray<Enemy>, self: Enemy): Cell | null => {
+/**
+ * The first step of a shortest way from the enemy to a cell where `arrived` is true, or null when there is none
+ * within `depth` steps.
+ */
+const firstStep = (world: World, enemies: ReadonlyArray<Enemy>, self: Enemy, arrived: (c: Cell) => boolean, depth: number): Cell | null => {
   const first = new Map<string, Cell>()
   const seen = new Set([cellKey(self.x, self.y)])
   let wave: ReadonlyArray<Cell> = [self]
-  // The way is searched only as far as the enemy sees, and a little more to go around a tree.
-  for (let d = 0; wave.length > 0 && d <= self.sight * 2 + 2; d++) {
+  for (let d = 0; wave.length > 0 && d <= depth; d++) {
     const next: Array<Cell> = []
     for (const c of wave) {
-      if (distance(c, world.hero) === 1) return first.get(cellKey(c.x, c.y)) ?? null
+      if (arrived(c)) return first.get(cellKey(c.x, c.y)) ?? null
       for (const dir of CLOCKWISE) {
         const x = c.x + DELTA[dir].x
         const y = c.y + DELTA[dir].y
@@ -357,16 +391,57 @@ const stepToward = (world: World, enemies: ReadonlyArray<Enemy>, self: Enemy): C
   return null
 }
 
+/** The first step of a shortest way to a cell next to the hero. Searched as far as the enemy sees, and a little more. */
+const stepToward = (world: World, enemies: ReadonlyArray<Enemy>, self: Enemy): Cell | null =>
+  firstStep(world, enemies, self, (c) => distance(c, world.hero) === 1, self.sight * 2 + 2)
+
+/** The patrol searches its next cell this far: a route goes round a few walls at most. */
+const PATROL_DEPTH = 32
+
+/** The enemy sees the hero in its row or column, `sight` cells away or closer, with no wall between. */
+export const seesInLine = (world: World, self: Enemy): boolean => {
+  const { hero } = world
+  if (hero.x !== self.x && hero.y !== self.y) return false
+  const far = distance(self, hero)
+  if (far > self.sight) return false
+  const dx = Math.sign(hero.x - self.x)
+  const dy = Math.sign(hero.y - self.y)
+  for (let i = 1; i < far; i++) if (isWall(world, self.x + dx * i, self.y + dy * i)) return false
+  return true
+}
+
+/** Whether the enemy comes for the hero this turn, and whether it has just noticed them. */
+const noticing = (world: World, self: Enemy): { readonly comes: boolean; readonly alerted: boolean } => {
+  if (self.sight === 0) return { comes: false, alerted: self.alerted }
+  if (self.sees === "near") return { comes: distance(self, world.hero) <= self.sight, alerted: false }
+  const alerted = self.alerted || seesInLine(world, self)
+  return { comes: alerted, alerted }
+}
+
+/** A patrolling enemy's step along its route: to the cell it walks to, then on to the next one. */
+const patrolStep = (world: World, enemies: ReadonlyArray<Enemy>, self: Enemy): Enemy => {
+  if (self.route.length === 0) return self
+  let target = self.target % self.route.length
+  const goal = self.route[target] as Cell
+  if (goal.x === self.x && goal.y === self.y) target = (target + 1) % self.route.length
+  const to = self.route[target] as Cell
+  const step = firstStep(world, enemies, self, (c) => c.x === to.x && c.y === to.y, PATROL_DEPTH)
+  return step === null ? { ...self, target } : { ...self, target, x: step.x, y: step.y }
+}
+
 /** One enemy's turn: swing or hit when next to the hero, come closer when it sees the hero, walk its way otherwise. */
 const enemyTurn = (world: World, enemies: ReadonlyArray<Enemy>, self: Enemy): { readonly enemy: Enemy; readonly hit: boolean } => {
   const near = distance(self, world.hero)
-  if (near === 1) return self.swinging ? { enemy: { ...self, swinging: false }, hit: true } : { enemy: { ...self, swinging: true }, hit: false }
-  const calm = { ...self, swinging: false }
-  if (self.sight > 0 && near <= self.sight) {
+  const { comes, alerted } = noticing(world, self)
+  const me = { ...self, alerted }
+  if (near === 1) return self.swinging ? { enemy: { ...me, swinging: false }, hit: true } : { enemy: { ...me, swinging: true }, hit: false }
+  const calm = { ...me, swinging: false }
+  if (comes) {
     const step = stepToward(world, enemies, self)
     if (step !== null) return { enemy: { ...calm, x: step.x, y: step.y }, hit: false }
   }
   if (self.walk === "stand") return { enemy: calm, hit: false }
+  if (self.walk === "patrol") return { enemy: patrolStep(world, enemies, calm), hit: false }
   const along = (heading: 1 | -1): Cell =>
     self.walk === "across" ? { x: self.x + heading, y: self.y } : { x: self.x, y: self.y + heading }
   for (const heading of [self.heading, self.heading === 1 ? -1 : 1] as const) {
@@ -378,6 +453,7 @@ const enemyTurn = (world: World, enemies: ReadonlyArray<Enemy>, self: Enemy): { 
 
 /** The events of one enemy's turn, from the enemy before and after it. */
 const enemyEvents = (before: Enemy, after: Enemy, hit: boolean, hearts: number): ReadonlyArray<GameEvent> => {
+  if (after.alerted && !before.alerted) return [{ type: "enemyAlerted", id: after.id }, ...enemyEvents({ ...before, alerted: true }, after, hit, hearts)]
   if (hit) return [{ type: "heroHurt", by: after.id, hearts }]
   if (after.swinging && !before.swinging) return [{ type: "enemyWindUp", id: after.id }]
   if (after.x !== before.x || after.y !== before.y) return [{ type: "enemyMoved", id: after.id, from: at(before), to: at(after) }]

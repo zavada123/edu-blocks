@@ -28,6 +28,7 @@ export const PYTHON_METHODS: ReadonlyArray<PythonMethod> = [
   { name: "collect", signature: "collect()", doc: "Взяти те, що лежить тут: на інших рівнях — розпалити вогнище чи зловити рибу.", block: "collect", action: "collect" },
   { name: "attack", signature: "attack()", doc: "Вдарити ворога попереду.", block: "attack", action: "attack" },
   { name: "store", signature: "store()", doc: "Віднести на склад усе, що несеш: герой має стояти на складі.", block: "store", action: "store" },
+  { name: "wait", signature: "wait()", doc: "Зачекати один хід: герой стоїть, а вороги ходять.", block: "wait", action: "wait" },
   { name: "wall_ahead", signature: "wall_ahead()", doc: "True, якщо попереду стіна.", block: "wallAhead", sensor: "wallAhead" },
   { name: "item_here", signature: "item_here()", doc: "True, якщо тут щось лежить.", block: "onCrystal", sensor: "onCrystal" },
   { name: "at_finish", signature: "at_finish()", doc: "True, якщо герой дійшов до мети.", block: "atFinish", sensor: "atFinish" },

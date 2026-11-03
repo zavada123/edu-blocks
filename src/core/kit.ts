@@ -156,6 +156,12 @@ export const checkLevel = (level: Level): ReadonlyArray<Issue> => {
   if (world.finish !== null && !open.has(cellKey(world.finish.x, world.finish.y)))
     error("Герой не дійде до мети F: її відрізають стіни або пастки")
   for (const e of enemies) if (world.traps.has(cellKey(e.x, e.y))) error(`Ворог на (${e.x}, ${e.y}) стоїть на пастці`)
+  for (const e of enemies) {
+    if (e.walk === "patrol" && (e.route ?? []).length === 0) error(`Ворог на (${e.x}, ${e.y}) патрулює, але не має маршруту route`)
+    for (const c of e.route ?? [])
+      if (world.walls.has(cellKey(c.x, c.y)) || c.x < 0 || c.y < 0 || c.x >= world.width || c.y >= world.height)
+        error(`Маршрут ворога на (${e.x}, ${e.y}) проходить через стіну (${c.x}, ${c.y})`)
+  }
   if (level.maxSteps !== undefined && !(level.maxSteps >= 1)) error("Кроків має бути щонайменше 1")
   if (world.storehouse !== null && !open.has(cellKey(world.storehouse.x, world.storehouse.y)))
     error("Герой не дійде до складу H: його відрізають стіни або пастки")

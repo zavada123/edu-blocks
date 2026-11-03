@@ -615,6 +615,69 @@ export const levels: ReadonlyArray<Level> = [
     scene: { theme: "summer", finish: "grandma" }
   },
   {
+    id: "v-ambush",
+    tier: "intro",
+    title: "Засідка в ущелині",
+    task: [
+      "Гобліни помітили героя з того кінця ущелини й біжать сюди. Тікати нікуди.",
+      "Стій на місці: якщо гоблін попереду — вдар, інакше зачекай. Ця програма спрацює, скільки б їх не прибігло."
+    ],
+    map: ["##########", "#S.......#", "##########"],
+    blocks: ["move", "attack", "wait", "forever", "ifElse", "enemyAhead"],
+    goals: [{ type: "enemies" }],
+    enemies: [
+      { kind: "goblin", x: 6, y: 1, sees: "line", sight: 7 },
+      { kind: "goblin", x: 8, y: 1, sees: "line", sight: 7, walk: "patrol", route: [{ x: 8, y: 1 }, { x: 7, y: 1 }] }
+    ],
+    hearts: 3,
+    stars: { three: 5, two: 7 },
+    hint: "«Завжди»: «якщо попереду ворог? — вдарити, інакше — зачекати». Гобліни самі прийдуть до тебе.",
+    scene: { theme: "summer" }
+  },
+  {
+    id: "v-unseen",
+    tier: "practice",
+    title: "Не трапитися на очі",
+    task: [
+      "Наприкінці стежки стоїть вартовий-ведмідь. Він бачить уздовж свого ряду й стовпчика, але не крізь кущі.",
+      "Якщо помітить — наздожене. Дійди до мети так, щоб він тебе не побачив."
+    ],
+    map: ["###########", "#S........#", "#.#########", "#........F#", "###########"],
+    blocks: ["move", "turnLeft", "turnRight", "repeat"],
+    goals: [{ type: "finish" }],
+    enemies: [{ kind: "bear", x: 9, y: 1, boss: true, sees: "line", sight: 5 }],
+    hearts: 1,
+    stars: { three: 6, two: 9 },
+    hint: "Верхня стежка коротша, але ведмідь дивиться вздовж неї. Спустися вниз за кущі й іди нижньою стежкою.",
+    scene: { theme: "summer" }
+  },
+  {
+    id: "v-patrol",
+    tier: "challenge",
+    title: "Патруль на стежці",
+    task: [
+      "По стежці до криниці ходять гобліни-патрульні, а під ногами лежать яблука.",
+      "Одна програма на обидві стежки: йди до мети, бери яблука, а коли патрульний попереду — вдар його."
+    ],
+    map: ["#############", "#S.c..c..c.F#", "#############"],
+    blocks: ["move", "collect", "attack", "repeatUntil", "if", "ifElse", "enemyAhead", "onCrystal", "atFinish"],
+    goals: [{ type: "crystals" }, { type: "enemies" }, { type: "finish" }],
+    enemies: [
+      { kind: "goblin", x: 8, y: 1, walk: "patrol", route: [{ x: 9, y: 1 }, { x: 5, y: 1 }], sight: 0 },
+      { kind: "goblin", x: 10, y: 1, sees: "line", sight: 3 }
+    ],
+    hearts: 3,
+    stars: { three: 9, two: 12 },
+    hint: "«Повторити до ‹дійшов до мети?›»: якщо ворог попереду — вдарити, інакше — крок і «якщо тут щось є? — взяти».",
+    scene: { theme: "summer", item: "apple", finish: "well" },
+    fields: [
+      {
+        map: ["##########", "#S..c.c.F#", "##########"],
+        enemies: [{ kind: "goblin", x: 6, y: 1, walk: "patrol", route: [{ x: 7, y: 1 }, { x: 3, y: 1 }], sight: 0 }]
+      }
+    ]
+  },
+  {
     id: "c-apples",
     tier: "practice",
     title: "Яблука все далі",

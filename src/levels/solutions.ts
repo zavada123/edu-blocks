@@ -102,6 +102,9 @@ export const solutions: Readonly<Record<string, ReadonlyArray<Step>>> = {
       ]
     }
   ],
+  "v-ambush": [{ forever: [{ if: "enemyAhead", then: ["attack"], else: ["wait"] }] }],
+  "v-unseen": ["turnRight", { repeat: 2, body: ["move"] }, "turnLeft", { repeat: 8, body: ["move"] }],
+  "v-patrol": [{ until: "atFinish", body: [{ if: "enemyAhead", then: ["attack"], else: ["move", { if: "onCrystal", then: ["collect"] }] }] }],
   "l-drift": [
     {
       until: "atFinish",

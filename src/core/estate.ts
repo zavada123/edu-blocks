@@ -150,6 +150,7 @@ const BLOCK_ORDER: ReadonlyArray<BlockName> = [
   "collect",
   "attack",
   "store",
+  "wait",
   "wallAhead",
   "enemyAhead",
   "trapAhead",

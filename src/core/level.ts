@@ -11,6 +11,8 @@ export type BlockName =
   | "attack"
   /** «віднести на склад»: puts down on the storehouse what the hero carries. */
   | "store"
+  /** «зачекати»: the hero stands one turn while the enemies move. */
+  | "wait"
   | "wallAhead"
   | "enemyAhead"
   | "trapAhead"
