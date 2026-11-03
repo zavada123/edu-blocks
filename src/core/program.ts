@@ -1,4 +1,4 @@
-import { allowedOpcodes, isNumberShadow, PROTOTYPE_OPCODE, START_OPCODE, VARIABLE_OPCODE, VARIABLE_PRIMITIVE } from "./blocks.ts"
+import { allowedOpcodes, DEFINITION_OPCODE, isNumberShadow, PROTOTYPE_OPCODE, START_OPCODE, VARIABLE_OPCODE, VARIABLE_PRIMITIVE } from "./blocks.ts"
 import { allGoalsMet, type Level, starsFor } from "./level.ts"
 import type { Action, GameEvent, Outcome, World } from "./world.ts"
 
@@ -68,6 +68,7 @@ export interface RunResult {
 
 interface ProgramBlock {
   readonly opcode: string
+  readonly parent?: unknown
   readonly shadow?: boolean
   readonly inputs?: unknown
   readonly mutation?: unknown
@@ -90,6 +91,31 @@ const isWarp = (block: ProgramBlock): boolean => isRecord(block.mutation) && (bl
 
 const proccodeOf = (block: ProgramBlock): unknown => (isRecord(block.mutation) ? block.mutation.proccode : undefined)
 
+/** Hats a script hangs from: the blocks under them are the program. */
+const HATS: ReadonlySet<string> = new Set([START_OPCODE, DEFINITION_OPCODE])
+
+/**
+ * Whether a block is part of a script: following its parents leads to «коли прапорець натиснуто» or «визначити».
+ * A block left alone on the canvas does not run, so it does not count against the stars.
+ */
+const attachedTo = (program: Program): ((id: string) => boolean) => {
+  const memo = new Map<string, boolean>()
+  const attached = (id: string, seen: Set<string>): boolean => {
+    const known = memo.get(id)
+    if (known !== undefined) return known
+    const block = program[id]
+    let result = false
+    if (isProgramBlock(block) && !seen.has(id)) {
+      seen.add(id)
+      const parent = block.parent
+      result = typeof parent === "string" && Object.hasOwn(program, parent) ? attached(parent, seen) : HATS.has(block.opcode)
+    }
+    memo.set(id, result)
+    return result
+  }
+  return (id) => attached(id, new Set())
+}
+
 /** Checks the program shape and palette before it runs. Returns the error text or the block count. */
 export const checkProgram = (level: Level, program: Program): { readonly error: string } | { readonly blocks: number; readonly hasStart: boolean } => {
   const entries = Object.entries(program)
@@ -98,11 +124,9 @@ export const checkProgram = (level: Level, program: Program): { readonly error: 
   const defined = new Set<unknown>()
   let blocks = 0
   let hasStart = false
-  for (const [, block] of entries) {
-    if (isVariablePrimitive(block) && allowed.has(VARIABLE_OPCODE)) {
-      blocks++
-      continue
-    }
+  const attached = attachedTo(program)
+  for (const [id, block] of entries) {
+    if (isVariablePrimitive(block) && allowed.has(VARIABLE_OPCODE)) continue
     if (!isProgramBlock(block)) return { error: "Блок без опкоду або змінна: цей рівень їх не має" }
     if (!allowed.has(block.opcode)) return { error: `Блок ${block.opcode} не з цього рівня` }
     if (isWarp(block)) return { error: "Власний блок «без оновлення екрана» тут не працює: зніми цю позначку" }
@@ -111,9 +135,10 @@ export const checkProgram = (level: Level, program: Program): { readonly error: 
       if (defined.has(name)) return { error: `Блок «${String(name)}» визначено двічі: залиш одне «визначити»` }
       defined.add(name)
     }
-    blocks += variablesIn(block)
     if (block.opcode === START_OPCODE) hasStart = true
-    else if (block.shadow !== true && !isNumberShadow(block.opcode)) blocks++
+    if (!attached(id)) continue
+    blocks += variablesIn(block)
+    if (block.opcode !== START_OPCODE && block.shadow !== true && !isNumberShadow(block.opcode)) blocks++
   }
   return { blocks, hasStart }
 }

@@ -89,10 +89,18 @@ describe("runProgram", () => {
     expect(checkProgram(level("g3-steps"), huge)).toHaveProperty("error")
   })
 
-  test("a loose counter is a block on a level with the counter, and a stranger elsewhere", () => {
+  test("a loose counter does not count on a level with the counter, and is a stranger elsewhere", () => {
     const program = { ...buildProgram(["move"]), v: [12, "лічильник", "eb-counter", 200, 40] }
-    expect(checkProgram({ ...level("g3-steps"), blocks: ["move", "counter"] }, program)).toEqual({ blocks: 2, hasStart: true })
+    expect(checkProgram({ ...level("g3-steps"), blocks: ["move", "counter"] }, program)).toEqual({ blocks: 1, hasStart: true })
     expect(checkProgram(level("g3-steps"), program)).toHaveProperty("error")
+  })
+
+  test("blocks left alone on the canvas do not count: only the scripts under a hat", () => {
+    const program = buildProgram(["move", "move"])
+    const stray = { opcode: "hero_move", next: "s2", parent: null, inputs: {}, fields: {}, shadow: false, topLevel: true, x: 300, y: 40 }
+    const below = { opcode: "hero_turnRight", next: null, parent: "s1", inputs: {}, fields: {}, shadow: false, topLevel: false }
+    const lvl: Level = { ...level("g3-steps"), blocks: ["move", "turnRight"] }
+    expect(checkProgram(lvl, { ...program, s1: stray, s2: below })).toEqual({ blocks: 2, hasStart: true })
   })
 
   test("a custom block counts its «визначити» and calls, not its name", () => {

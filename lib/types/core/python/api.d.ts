@@ -17,7 +17,11 @@ export interface PythonMethod {
     readonly block: BlockName;
     readonly action?: Action;
     readonly sensor?: Sensor;
+    /** «тут ‹…›?»: asks with the item kind in the brackets, as `hero.item_is("egg")`. */
+    readonly probesItem?: true;
 }
+/** The method of «тут ‹…›?». */
+export declare const ITEM_METHOD = "item_is";
 export declare const PYTHON_METHODS: ReadonlyArray<PythonMethod>;
 /** The methods a level opens, in palette order. */
 export declare const pythonMethodsOf: (blocks: ReadonlyArray<BlockName>) => ReadonlyArray<PythonMethod>;

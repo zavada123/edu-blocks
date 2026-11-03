@@ -1,8 +1,8 @@
-import { collectText, opcodeOf } from "./blocks.ts"
+import { collectText, ITEM_NAMES, opcodeOf } from "./blocks.ts"
 import type { BlockName, ItemKind, Level } from "./level.ts"
 import type { Frame, Program, RunResult } from "./program.ts"
 import { startWorld } from "./level.ts"
-import { applyAction, type Cell, cellAhead, cellKey, enemiesLeft, enemyAt, wallAhead, type World } from "./world.ts"
+import { applyAction, type Cell, cellAhead, cellKey, enemiesLeft, enemyAt, isClosedGate, itemCount, wallAhead, type World } from "./world.ts"
 
 /**
  * Advice after a run, made from what the hero did with this very program: what is missing («взяти», a turn,
@@ -92,11 +92,21 @@ const bumpAdvice = (level: Level, n: number): ReadonlyArray<string> => {
   ]
 }
 
+/** The hero walked into a shut gate: some lever is still off. */
+const gateAdvice = (level: Level, world: World): ReadonlyArray<string> => {
+  const off = world.levers.size - world.leversOn.size
+  const tips = [`Ворота зачинені: ще ${off} ${off === 1 ? "важіль вимкнено" : few(off) ? "важелі вимкнено" : "важелів вимкнено"}. Ворота відчиняться, коли всі важелі увімкнено.`]
+  if (level.blocks.includes("leverOn"))
+    tips.push("Важіль, який уже увімкнено, від «потягнути» вимкнеться. Спитай «важіль увімкнено?» і тягни лише той, що вимкнений.")
+  return tips
+}
+
 const crashAdvice = (level: Level, result: RunResult, has: (b: BlockName) => boolean): ReadonlyArray<string> => {
   const n = result.frames.length
   const before = result.frames[n - 2]?.world ?? startWorld(level)
   const ahead = cellAhead(result.world)
   if (enemyAt(result.world, ahead.x, ahead.y) !== undefined) return bumpAdvice(level, n)
+  if (isClosedGate(result.world, ahead.x, ahead.y)) return gateAdvice(level, result.world)
   const leftFree = !wallAhead(applyAction(before, "turnLeft").world)
   const rightFree = !wallAhead(applyAction(before, "turnRight").world)
   const where = `На ${n}-й дії герой урізався в перешкоду.`
@@ -115,7 +125,7 @@ const crashAdvice = (level: Level, result: RunResult, has: (b: BlockName) => boo
 
 const itemAdvice = (level: Level, result: RunResult, has: (b: BlockName) => boolean): ReadonlyArray<string> => {
   const left = result.world.crystals
-  if (!level.goals.some((g) => g.type === "crystals") || left.size === 0) return []
+  if (!level.goals.some((g) => g.type === "crystals" || g.type === "store") || left.size === 0) return []
   const item = level.scene?.item ?? "crystal"
   const noun = NOUNS[item]
   const verb = item === "campfire" ? "запалив" : "взяв"
@@ -133,6 +143,32 @@ const itemAdvice = (level: Level, result: RunResult, has: (b: BlockName) => bool
   else if (missed > 0) tips.push(`${passed} Постав «${block}» одразу після кроку, яким він туди стає.`)
   if (unreached > 0) tips.push(`Ще ${unreached} — там, куди герой не дійшов: потрібно більше кроків або повторень.`)
   return tips
+}
+
+/** The goal «збери лише …»: things of other kinds taken, and things of the kind left lying. */
+const pickAdvice = (level: Level, result: RunResult): ReadonlyArray<string> => {
+  const goal = level.goals.find((g) => g.type === "pick")
+  if (goal === undefined || goal.type !== "pick") return []
+  const world = result.world
+  const mine = itemCount(world, goal.item)
+  const wrong = world.totalCrystals - mine.total - (world.crystals.size - mine.left)
+  const name = ITEM_NAMES[goal.item]
+  const tips: Array<string> = []
+  if (wrong > 0)
+    tips.push(
+      `Герой узяв ${wrong} ${wrong === 1 ? "зайву річ" : few(wrong) ? "зайві речі" : "зайвих речей"}. Перш ніж «взяти», спитай «тут ${name}?».`
+    )
+  if (mine.left > 0) tips.push(`Ще не взято: ${name}, ${mine.left}. Пройди всі клітинки, де вона може лежати.`)
+  return tips
+}
+
+/** The storehouse goal: things still in the hero's hands at the end. */
+const storeAdvice = (level: Level, result: RunResult, has: (b: BlockName) => boolean): ReadonlyArray<string> => {
+  if (!level.goals.some((g) => g.type === "store")) return []
+  const carrying = result.world.carrying
+  if (carrying === 0) return []
+  const tip = `Наприкінці герой ще тримав у руках: ${carrying}. Віднеси це на склад.`
+  return [has("store") ? tip : `${tip} У програмі немає блока «віднести на склад».`]
 }
 
 const finishAdvice = (level: Level, result: RunResult): ReadonlyArray<string> => {
@@ -182,6 +218,9 @@ const tiredAdvice = (level: Level, result: RunResult): ReadonlyArray<string> => 
 
 const extraAdvice = (level: Level, frames: ReadonlyArray<Frame>): ReadonlyArray<string> => {
   const tips: Array<string> = []
+  const spotted = frames.findIndex((f) => f.events.some((e) => e.type === "enemyAlerted"))
+  if (spotted >= 0 && !level.goals.some((g) => g.type === "enemies"))
+    tips.push(`На ${spotted + 1}-й дії ворог помітив героя і рушив до нього. Вороги бачать уздовж свого ряду й стовпчика, але не крізь стіни й кущі: обійди їх поза їхнім поглядом.`)
   const empty = frames.filter((f) => f.outcome === "nothingToCollect").length
   const canAsk = level.blocks.includes("if") && level.blocks.includes("onCrystal")
   const block = collectText(level.scene)
@@ -190,6 +229,17 @@ const extraAdvice = (level: Level, frames: ReadonlyArray<Frame>): ReadonlyArray<
     tips.push(
       `«${Block}» ${empty} ${times(empty)} спрацював на порожній клітинці. ${canAsk ? `Прибери зайвий «${block}» або сховай його в «якщо тут щось є?».` : `Прибери зайвий «${block}».`}`
     )
+  const full = frames.filter((f) => f.outcome === "handsFull").length
+  if (full > 0)
+    tips.push(
+      `${full} ${times(full)} герой хотів узяти ще, а руки вже були повні.${level.blocks.includes("handsFull") ? " Спитай «руки повні?» і віднеси все на склад." : " Спершу віднеси те, що несеш, на склад."}`
+    )
+  const away = frames.filter((f) => f.outcome === "notStorehouse").length
+  if (away > 0) tips.push(`«Віднести на склад» ${away} ${times(away)} спрацював не на складі. Спершу дійди до складу.`)
+  const emptyHands = frames.filter((f) => f.outcome === "nothingToStore").length
+  if (emptyHands > 0) tips.push(`«Віднести на склад» ${emptyHands} ${times(emptyHands)} спрацював з порожніми руками.`)
+  const noLever = frames.filter((f) => f.outcome === "noLever").length
+  if (noLever > 0) tips.push(`«Потягнути важіль» ${noLever} ${times(noLever)} спрацював там, де важеля немає.`)
   const missed = frames.filter((f) => f.outcome === "swingMissed").length
   if (missed > 0) tips.push(`«Вдарити» ${missed} ${times(missed)} влучив у порожнечу: попереду не було ворога.`)
   const turns = wastedTurns(frames)
@@ -218,7 +268,7 @@ export const adviseRun = (level: Level, program: Program, result: RunResult): Re
     case "defeated":
       return [...defeatAdvice(level, result), ...extraAdvice(level, result.frames)].slice(0, MAX_ADVICE)
     case "goalsNotMet":
-      return [...itemAdvice(level, result, has), ...enemyGoalAdvice(level, result), ...finishAdvice(level, result), ...extraAdvice(level, result.frames)].slice(
+      return [...pickAdvice(level, result), ...itemAdvice(level, result, has), ...storeAdvice(level, result, has), ...enemyGoalAdvice(level, result), ...finishAdvice(level, result), ...extraAdvice(level, result.frames)].slice(
         0,
         MAX_ADVICE
       )

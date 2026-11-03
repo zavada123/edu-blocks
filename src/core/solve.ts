@@ -14,7 +14,7 @@ import { type Action, applyAction, isAlive, isFatal, type World } from "./world.
  * Also checks that the palette makes sense: a question needs a block to put it in, «якщо» needs a question.
  */
 
-const ACTIONS: ReadonlyArray<Action> = ["move", "turnLeft", "turnRight", "collect", "attack"]
+const ACTIONS: ReadonlyArray<Action> = ["move", "turnLeft", "turnRight", "collect", "attack", "store", "wait", "pull"]
 
 /** States of the world the search looks at before it gives up. Big enough for any map of the editor. */
 export const SOLVE_LIMIT = 400_000
@@ -27,8 +27,10 @@ const stateKey = (w: World): string =>
     w.hero.dir,
     w.energy ?? "-",
     w.hearts,
+    w.carrying,
     [...w.crystals].sort().join(";"),
-    w.enemies.map((e) => `${e.x},${e.y},${e.hp},${e.heading},${e.swinging ? 1 : 0}`).join(";")
+    [...w.leversOn].sort().join(";"),
+    w.enemies.map((e) => `${e.x},${e.y},${e.hp},${e.heading},${e.swinging ? 1 : 0},${e.target},${e.alerted ? 1 : 0}`).join(";")
   ].join("|")
 
 export type SolveResult =
@@ -71,7 +73,7 @@ export const solveLevel = (level: Level, limit = SOLVE_LIMIT): SolveResult => {
     for (const node of wave) {
       for (const action of actions) {
         // A swing at nothing or a take on an empty cell only lets the enemies move: no use without enemies.
-        if ((action === "attack" || action === "collect") && !node.world.enemies.some(isAlive) && wastes(node.world, action)) continue
+        if ((action === "attack" || action === "collect" || action === "store" || action === "wait" || action === "pull") && !node.world.enemies.some(isAlive) && wastes(node.world, action)) continue
         const done = applyAction(node.world, action)
         if (isFatal(done.outcome) || done.world.hearts <= 0) continue
         const child: Node = { world: done.world, action, parent: node }
@@ -88,10 +90,13 @@ export const solveLevel = (level: Level, limit = SOLVE_LIMIT): SolveResult => {
   return { kind: "impossible" }
 }
 
-const wastes = (world: World, action: Action): boolean =>
-  action === "attack" || !world.crystals.has(`${world.hero.x},${world.hero.y}`)
+const wastes = (world: World, action: Action): boolean => {
+  if (action === "pull") return !world.levers.has(`${world.hero.x},${world.hero.y}`)
+  if (action === "store") return world.carrying === 0 || world.storehouse === null || world.hero.x !== world.storehouse.x || world.hero.y !== world.storehouse.y
+  return action === "attack" || !world.crystals.has(`${world.hero.x},${world.hero.y}`) || (world.capacity !== null && world.carrying >= world.capacity)
+}
 
-const QUESTIONS: ReadonlyArray<BlockName> = ["wallAhead", "onCrystal", "atFinish", "enemyAhead", "trapAhead"]
+const QUESTIONS: ReadonlyArray<BlockName> = ["wallAhead", "onCrystal", "atFinish", "enemyAhead", "trapAhead", "handsFull", "atStorehouse", "onLever", "leverOn", "itemIs"]
 const ASKING: ReadonlyArray<BlockName> = ["if", "ifElse", "repeatUntil"]
 const LOGIC: ReadonlyArray<BlockName> = ["not", "and", "or"]
 

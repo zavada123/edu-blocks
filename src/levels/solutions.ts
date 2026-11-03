@@ -75,6 +75,56 @@ export const solutions: Readonly<Record<string, ReadonlyArray<Step>>> = {
   "b-define": ["call", "call", "call", "call"],
   "l-mill": [{ until: "atFinish", body: [{ if: { or: ["wallAhead", "trapAhead"] }, then: ["turnRight"], else: ["move"] }] }],
   "l-fish": ["move", { until: { not: "onCrystal" }, body: ["collect", "move"] }, "turnRight", { until: "atFinish", body: ["move"] }],
+  "s-woodshed": ["move", "move", "collect", "move", "move", "collect", "move", "store"],
+  "s-two-hands": [
+    { repeat: 2, body: ["move", "collect"] },
+    "turnRight", "turnRight", { repeat: 3, body: ["move"] }, "store",
+    "turnRight", "turnRight", { repeat: 4, body: ["move"] }, "collect",
+    "turnRight", "turnRight", { repeat: 4, body: ["move"] }, "store"
+  ],
+  "s-trips": [
+    {
+      forever: [
+        { until: "handsFull", body: ["move", { if: "onCrystal", then: ["collect"] }] },
+        "turnRight", "turnRight",
+        { until: "atStorehouse", body: ["move"] },
+        "store", "turnRight", "turnRight"
+      ]
+    }
+  ],
+  "s-last-trip": [
+    {
+      forever: [
+        { until: { or: ["handsFull", "wallAhead"] }, body: ["move", { if: "onCrystal", then: ["collect"] }] },
+        "turnRight", "turnRight",
+        { until: "atStorehouse", body: ["move"] },
+        "store", "turnRight", "turnRight"
+      ]
+    }
+  ],
+  "w-lever": [{ repeat: 2, body: ["move"] }, "pull", { repeat: 3, body: ["move"] }],
+  "w-careful": [{ repeat: 2, body: ["move"] }, "pull", { repeat: 4, body: ["move"] }, "pull", { repeat: 3, body: ["move"] }],
+  "w-row": [{ until: "atFinish", body: ["move", { if: { and: ["onLever", { not: "leverOn" }] }, then: ["pull"] }] }],
+  "w-yard": [
+    {
+      until: "atFinish",
+      body: [
+        { if: { and: ["onLever", { not: "leverOn" }] }, then: ["pull"] },
+        { if: "wallAhead", then: ["turnRight"], else: ["move"] }
+      ]
+    }
+  ],
+  "k-carrots": [{ repeat: 6, body: ["move", { if: { itemIs: "carrot" }, then: ["collect"] }] }],
+  "k-eggs": [{ until: "wallAhead", body: ["move", { if: { itemIs: "egg" }, then: ["collect"] }] }],
+  "k-garden": [
+    {
+      until: "atFinish",
+      body: [{ if: { itemIs: "carrot" }, then: ["collect"] }, { if: "wallAhead", then: ["turnRight"], else: ["move"] }]
+    }
+  ],
+  "v-ambush": [{ forever: [{ if: "enemyAhead", then: ["attack"], else: ["wait"] }] }],
+  "v-unseen": ["turnRight", { repeat: 2, body: ["move"] }, "turnLeft", { repeat: 8, body: ["move"] }],
+  "v-patrol": [{ until: "atFinish", body: [{ if: "enemyAhead", then: ["attack"], else: ["move", { if: "onCrystal", then: ["collect"] }] }] }],
   "l-drift": [
     {
       until: "atFinish",

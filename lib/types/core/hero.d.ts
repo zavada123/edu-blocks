@@ -1,13 +1,13 @@
 import { type Level } from "./level.ts";
 import { type Session } from "./program.ts";
-import { type Action, type World } from "./world.ts";
+import { type Action, type ItemKind, type World } from "./world.ts";
 /**
  * The hero API: what a program may tell the hero to do and ask the hero about. Every way of programming calls
  * only this: the Scratch blocks today (`judge.ts`, and the VM in `run.ts`), Python blocks and Python code later.
  * So a new language needs no change of the game, and a new action or question needs no change of a language.
  */
 /** The questions a program may ask, for «якщо» and «повторити до». */
-export type Sensor = "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead";
+export type Sensor = "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn";
 /** The hero's actions, in palette order. */
 export declare const HERO_ACTIONS: ReadonlyArray<Action>;
 /** Each question and how the world answers it. */
@@ -33,5 +33,9 @@ export interface ActionSource {
  * The caller then stops the program.
  */
 export declare const heroAct: (level: Level, session: Session, action: Action, source: ActionSource) => boolean;
+/** A question to the world: a plain one, or «тут ‹…›?» with the kind chosen in the block. */
+export type Probe = Sensor | {
+    readonly itemIs: ItemKind;
+};
 /** The answer to a question about the world as it is now. */
-export declare const heroSense: (session: Session, sensor: Sensor) => boolean;
+export declare const heroSense: (session: Session, probe: Probe) => boolean;

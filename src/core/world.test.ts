@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
 import { goalMet, type Level, startWorld } from "./level.ts"
-import { type Action, applyAction, atFinish, cellKey, enemiesLeft, type EnemySpec, enemyAhead, onCrystal, parseMap, trapAhead, wallAhead, type World } from "./world.ts"
+import { type Action, applyAction, atFinish, atStorehouse, cellKey, enemiesLeft, type Enemy, enemyOf, type EnemySpec, enemyAhead, gatesOpen, handsFull, leverOn, onCrystal, onLever, parseMap, seesInLine, trapAhead, wallAhead, type World } from "./world.ts"
 
 describe("parseMap", () => {
   test("reads walls, crystals, start and finish", () => {
@@ -180,5 +180,125 @@ describe("traps and steps", () => {
     expect(tired.outcome).toBe("tired")
     expect(tired.world.hero).toEqual(once.hero)
     expect(parseMap(level.map).energy).toBeNull()
+  })
+})
+
+describe("the storehouse", () => {
+  const start = (capacity: number | null) => ({ ...parseMap(["#######", "#HSccc#", "#######"]), capacity })
+  const run = (world: ReturnType<typeof start>, actions: ReadonlyArray<Action>) =>
+    actions.reduce<{ world: typeof world; outcomes: Array<string> }>(
+      (acc, a) => {
+        const done = applyAction(acc.world, a)
+        return { world: done.world, outcomes: [...acc.outcomes, done.outcome] }
+      },
+      { world, outcomes: [] }
+    )
+
+  test("finds the storehouse on the map and starts with empty hands", () => {
+    const world = start(null)
+    expect(world.storehouse).toEqual({ x: 1, y: 1 })
+    expect(world.carrying).toBe(0)
+    expect(world.stored).toBe(0)
+  })
+
+  test("a take with full hands leaves the thing where it lies", () => {
+    const { world, outcomes } = run(start(2), ["move", "collect", "move", "collect", "move", "collect"])
+    expect(outcomes.at(-1)).toBe("handsFull")
+    expect(world.carrying).toBe(2)
+    expect(world.crystals.size).toBe(1)
+    expect(handsFull(world)).toBe(true)
+  })
+
+  test("without a limit the hands are never full", () => {
+    const { world } = run(start(null), ["move", "collect", "move", "collect", "move", "collect"])
+    expect(world.carrying).toBe(3)
+    expect(handsFull(world)).toBe(false)
+  })
+
+  test("puts down everything on the storehouse and nothing elsewhere", () => {
+    const away = run(start(2), ["move", "collect", "store"])
+    expect(away.outcomes.at(-1)).toBe("notStorehouse")
+    expect(away.world.carrying).toBe(1)
+    const back = run(away.world, ["turnRight", "turnRight", "move", "move", "store"])
+    expect(atStorehouse(back.world)).toBe(true)
+    expect(back.outcomes.at(-1)).toBe("stored")
+    expect(back.world).toMatchObject({ carrying: 0, stored: 1 })
+    expect(run(back.world, ["store"]).outcomes).toEqual(["nothingToStore"])
+  })
+})
+
+describe("moving enemies", () => {
+  const world = (rows: ReadonlyArray<string>, specs: ReadonlyArray<EnemySpec>): World => ({
+    ...parseMap(rows),
+    enemies: specs.map((s, i) => enemyOf(s, i))
+  })
+
+  test("a patrol walks its route round and round", () => {
+    let w = world(["#######", "#S....#", "#######"], [{ kind: "goblin", x: 3, y: 1, walk: "patrol", sight: 0, route: [{ x: 5, y: 1 }, { x: 3, y: 1 }] }])
+    const xs: Array<number> = []
+    for (let i = 0; i < 6; i++) {
+      w = applyAction(w, "wait").world
+      xs.push(w.enemies[0]?.x ?? -1)
+    }
+    expect(xs).toEqual([4, 5, 4, 3, 4, 5])
+  })
+
+  test("a line enemy sees along its row, not through a wall, and keeps coming once it saw the hero", () => {
+    const open = world(["#######", "#S....#", "#######"], [{ kind: "goblin", x: 5, y: 1, sees: "line", sight: 4 }])
+    expect(seesInLine(open, open.enemies[0] as Enemy)).toBe(true)
+    const walled = world(["#######", "#S.#..#", "#######"], [{ kind: "goblin", x: 5, y: 1, sees: "line", sight: 4 }])
+    expect(seesInLine(walled, walled.enemies[0] as Enemy)).toBe(false)
+    const done = applyAction(open, "wait")
+    expect(done.events.map((e) => e.type)).toEqual(["heroWaited", "enemyAlerted", "enemyMoved"])
+    expect(done.world.enemies[0]).toMatchObject({ x: 4, alerted: true })
+  })
+
+  test("a line enemy does not notice the hero in another row", () => {
+    const w = world(["#######", "#S....#", "#.....#", "#######"], [{ kind: "goblin", x: 5, y: 2, sees: "line", sight: 4 }])
+    const done = applyAction(w, "wait")
+    expect(done.world.enemies[0]).toMatchObject({ x: 5, y: 2, alerted: false })
+  })
+})
+
+describe("levers and gates", () => {
+  const rows = ["#######", "#SLlGF#", "#######"]
+
+  test("reads levers, which are on, and the gates", () => {
+    const w = parseMap(rows)
+    expect([...w.levers].sort()).toEqual([cellKey(2, 1), cellKey(3, 1)])
+    expect([...w.leversOn]).toEqual([cellKey(3, 1)])
+    expect([...w.gates]).toEqual([cellKey(4, 1)])
+    expect(gatesOpen(w)).toBe(false)
+  })
+
+  test("a shut gate is a wall, and pulling the last lever opens it", () => {
+    let w = applyAction(parseMap(rows), "move").world
+    expect(onLever(w)).toBe(true)
+    expect(leverOn(w)).toBe(false)
+    const pulled = applyAction(w, "pull")
+    expect(pulled.outcome).toBe("pulled")
+    expect(pulled.events.map((e) => e.type)).toEqual(["leverPulled", "gatesOpened"])
+    w = applyAction(pulled.world, "move").world
+    expect(leverOn(w)).toBe(true)
+    expect(wallAhead(w)).toBe(false)
+    w = applyAction(applyAction(w, "move").world, "move").world
+    expect(atFinish(w)).toBe(true)
+  })
+
+  test("pulling a lever that is on switches it off and shuts the gates", () => {
+    const open = parseMap(["######", "#SlGF#", "######"])
+    expect(gatesOpen(open)).toBe(true)
+    const on = applyAction(open, "move").world
+    const pulled = applyAction(on, "pull")
+    expect(pulled.events.map((e) => e.type)).toEqual(["leverPulled", "gatesClosed"])
+    expect(wallAhead(pulled.world)).toBe(true)
+    expect(applyAction(pulled.world, "move").outcome).toBe("crashed")
+  })
+
+  test("pulling where there is no lever does nothing", () => {
+    const w = parseMap(rows)
+    const done = applyAction(w, "pull")
+    expect(done.outcome).toBe("noLever")
+    expect(done.world.leversOn).toEqual(w.leversOn)
   })
 })

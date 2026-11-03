@@ -387,6 +387,181 @@ export const levels: ReadonlyArray<Level> = [
     ]
   },
   {
+    id: "s-woodshed",
+    tier: "intro",
+    title: "Дрова в дровітню",
+    task: [
+      "Узимку дрова мокнуть під снігом. Їх треба занести в дровітню.",
+      "Візьми обидва поліна, дійди до дровітні й віднеси їх на склад."
+    ],
+    map: ["########", "#S.c.cH#", "########"],
+    blocks: ["move", "collect", "store"],
+    goals: [{ type: "store" }],
+    stars: { three: 8, two: 10 },
+    hint: "«Віднести на склад» працює лише тоді, коли герой стоїть на складі, тобто на останній клітинці.",
+    scene: { theme: "winter", item: "wood", props: [{ kind: "woodshed", x: 5.5, y: -1 }] }
+  },
+  {
+    id: "s-two-hands",
+    tier: "practice",
+    title: "Лише дві руки",
+    task: [
+      "Під парканом три поліна, а ніндзя може нести лише два за раз.",
+      "Принеси два, віднеси їх на склад, тоді повернись по третє."
+    ],
+    map: ["#######", "#HSccc#", "#######"],
+    capacity: 2,
+    blocks: ["move", "turnRight", "collect", "store", "repeat"],
+    goals: [{ type: "store" }],
+    stars: { three: 18, two: 23 },
+    hint: "Дві ходки. Розвернутися назад — це два повороти праворуч. Порахуй кроки до складу: склад ліворуч від старту.",
+    scene: { theme: "winter", item: "wood", props: [{ kind: "woodshed", x: 0.5, y: -1 }] }
+  },
+  {
+    id: "s-trips",
+    tier: "practice",
+    title: "Ходки до складу",
+    task: [
+      "Сусідам теж треба занести дрова, а в кожного їх різна кількість.",
+      "Одна програма для обох дворів: іди, поки руки не повні, вертайся на склад, віднеси і йди знову."
+    ],
+    map: ["########", "#HScccc#", "########"],
+    capacity: 2,
+    blocks: ["move", "turnRight", "collect", "store", "forever", "repeatUntil", "if", "onCrystal", "handsFull", "atStorehouse"],
+    goals: [{ type: "store" }],
+    stars: { three: 15, two: 19 },
+    hint: "«Завжди»: повторюй до «руки повні?» крок і «якщо тут щось є? — взяти». Потім розвернись, іди до складу, віднеси й розвернись знову.",
+    scene: { theme: "winter", item: "wood", props: [{ kind: "woodshed", x: 0.5, y: -1 }] },
+    fields: [{ map: ["###########", "#HS.cccccc#", "###########"] }]
+  },
+  {
+    id: "s-last-trip",
+    tier: "challenge",
+    title: "Остання ходка",
+    task: [
+      "Ціла купа хмизу вздовж стежки, а несеш ти лише по два.",
+      "Але останньої ходки руки можуть і не наповнитися: тоді вертайся, коли стежка скінчилася."
+    ],
+    map: ["##########", "#HS.ccccc#", "##########"],
+    capacity: 2,
+    blocks: ["move", "turnRight", "collect", "store", "forever", "repeatUntil", "if", "or", "onCrystal", "handsFull", "atStorehouse", "wallAhead"],
+    goals: [{ type: "store" }],
+    stars: { three: 17, two: 21 },
+    hint: "Повертайся на склад, коли руки повні АБО попереду стіна: «повторити до ‹руки повні?› або ‹попереду стіна?›».",
+    scene: { theme: "winter", item: "wood", props: [{ kind: "woodshed", x: 0.5, y: -1 }] },
+    fields: [{ map: ["#######", "#HSccc#", "#######"] }, { map: ["##########", "#HSc.c.cc#", "##########"] }]
+  },
+  {
+    id: "w-lever",
+    tier: "intro",
+    title: "Важіль біля воріт",
+    task: [
+      "Дорогу до прапорця перегородили дерев'яні ворота. Вони відчиняються важелем.",
+      "Дійди до важеля, потягни його й пройди крізь ворота."
+    ],
+    map: ["########", "#S.L.GF#", "########"],
+    blocks: ["move", "pull", "repeat"],
+    goals: [{ type: "finish" }],
+    stars: { three: 5, two: 6 },
+    hint: "«Потягнути важіль» працює, коли герой стоїть на важелі. Червоний важіль вимкнений, зелений увімкнений.",
+    scene: { theme: "autumn" }
+  },
+  {
+    id: "w-careful",
+    tier: "practice",
+    title: "Не чіпай зеленого",
+    task: [
+      "Тут три важелі, і ворота відчиняться, коли всі три увімкнені (зелені).",
+      "Один уже увімкнено. Якщо потягнути його, він вимкнеться!"
+    ],
+    map: ["############", "#S.L.l.L.GF#", "############"],
+    blocks: ["move", "pull", "repeat"],
+    goals: [{ type: "finish" }],
+    stars: { three: 8, two: 10 },
+    hint: "Тягни лише червоні важелі. Порахуй кроки від одного червоного важеля до наступного.",
+    scene: { theme: "autumn" }
+  },
+  {
+    id: "w-row",
+    tier: "practice",
+    title: "Ряд важелів",
+    task: [
+      "У кожному дворі свій ряд важелів: одні ввімкнені, інші ні.",
+      "Одна програма для всіх дворів: іди до прапорця і на кожному вимкненому важелі тягни його."
+    ],
+    map: ["#########", "#SLlLlGF#", "#########"],
+    blocks: ["move", "pull", "repeatUntil", "if", "and", "not", "onLever", "leverOn", "atFinish"],
+    goals: [{ type: "finish" }],
+    stars: { three: 9, two: 11 },
+    hint: "Тягни, якщо «тут важіль?» І НЕ «важіль увімкнено?». Склади цю умову з блоків «і» та «не».",
+    scene: { theme: "autumn" },
+    fields: [{ map: ["#########", "#SllLLGF#", "#########"] }, { map: ["##########", "#S.L.l.GF#", "##########"] }]
+  },
+  {
+    id: "w-yard",
+    tier: "challenge",
+    title: "Двір з воротами",
+    task: [
+      "Стежка двору звивається, а важелі стоять і на прямій, і на поворотах.",
+      "Пройди стежкою до прапорця: увімкни дорогою всі вимкнені важелі й повертай, коли попереду стіна."
+    ],
+    map: ["#######", "#SLl.L#", "#####.#", "#F.G.l#", "#######"],
+    blocks: ["move", "turnRight", "pull", "repeatUntil", "if", "ifElse", "and", "not", "onLever", "leverOn", "wallAhead", "atFinish"],
+    goals: [{ type: "finish" }],
+    stars: { three: 12, two: 15 },
+    hint: "У кожному кроці циклу дві перевірки по черзі: спершу важіль (тягни, якщо він вимкнений), потім стіна (повертай, якщо попереду стіна, інакше крок).",
+    scene: { theme: "autumn" },
+    fields: [{ map: ["########", "#S.L.Ll#", "######.#", "#F.G..L#", "########"] }]
+  },
+  {
+    id: "k-carrots",
+    tier: "intro",
+    title: "Лише гарбузи",
+    task: [
+      "На городі вперемішку гарбузи і ягнята, що вибігли з кошари.",
+      "Збери лише гарбузи: перед «взяти» спитай «тут гарбуз?». Ягнят не чіпай."
+    ],
+    map: ["#########", "#Scccccc#", "#########"],
+    blocks: ["move", "collect", "repeat", "if", "itemIs"],
+    goals: [{ type: "pick", item: "carrot" }],
+    stars: { three: 5, two: 7 },
+    hint: "Повтори: крок, а тоді «якщо тут гарбуз? — взяти». У блоці «тут …?» вибери гарбуз.",
+    scene: { theme: "spring", item: "carrot", itemsAt: [{ x: 2, y: 1, item: "carrot" }, { x: 3, y: 1, item: "egg" }, { x: 4, y: 1, item: "carrot" }, { x: 5, y: 1, item: "carrot" }, { x: 6, y: 1, item: "egg" }, { x: 7, y: 1, item: "carrot" }] },
+    fields: [{ map: ["#########", "#Scccccc#", "#########"], scene: { theme: "spring", item: "carrot", itemsAt: [{ x: 2, y: 1, item: "egg" }, { x: 3, y: 1, item: "carrot" }, { x: 4, y: 1, item: "carrot" }, { x: 5, y: 1, item: "egg" }, { x: 6, y: 1, item: "carrot" }, { x: 7, y: 1, item: "egg" }] } }]
+  },
+  {
+    id: "k-eggs",
+    tier: "practice",
+    title: "Ягнята в кошару",
+    task: [
+      "Ягнята розбіглися поміж гарбузів. Пройди стежкою до кінця й забери всіх ягнят.",
+      "Стежки різної довжини, тож іди, поки попереду не стіна."
+    ],
+    map: ["##########", "#Sccccccc#", "##########"],
+    blocks: ["move", "collect", "repeatUntil", "if", "wallAhead", "itemIs"],
+    goals: [{ type: "pick", item: "egg" }],
+    stars: { three: 6, two: 8 },
+    hint: "Повторюй до «попереду стіна?»: крок, і «якщо тут ягня? — взяти».",
+    scene: { theme: "spring", item: "egg", itemsAt: [{ x: 2, y: 1, item: "egg" }, { x: 3, y: 1, item: "carrot" }, { x: 4, y: 1, item: "egg" }, { x: 5, y: 1, item: "egg" }, { x: 6, y: 1, item: "carrot" }, { x: 7, y: 1, item: "carrot" }, { x: 8, y: 1, item: "egg" }] },
+    fields: [{ map: ["#######", "#Scccc#", "#######"], scene: { theme: "spring", item: "egg", itemsAt: [{ x: 2, y: 1, item: "carrot" }, { x: 3, y: 1, item: "egg" }, { x: 4, y: 1, item: "egg" }, { x: 5, y: 1, item: "carrot" }] } }]
+  },
+  {
+    id: "k-garden",
+    tier: "challenge",
+    title: "Город довкола",
+    task: [
+      "Стежка обходить город довкола і веде до прапорця.",
+      "Збери дорогою лише гарбузи і повертай праворуч, коли попереду стіна."
+    ],
+    map: ["#######", "#Scccc#", "#####c#", "#Fcccc#", "#######"],
+    blocks: ["move", "turnRight", "collect", "repeatUntil", "if", "ifElse", "wallAhead", "atFinish", "itemIs"],
+    goals: [{ type: "pick", item: "carrot" }, { type: "finish" }],
+    stars: { three: 9, two: 11 },
+    hint: "У кожному кроці циклу: спершу «якщо тут гарбуз? — взяти», потім «якщо попереду стіна? — поворот, інакше крок».",
+    scene: { theme: "spring", item: "carrot", itemsAt: [{ x: 2, y: 1, item: "carrot" }, { x: 3, y: 1, item: "egg" }, { x: 4, y: 1, item: "carrot" }, { x: 5, y: 1, item: "egg" }, { x: 5, y: 2, item: "egg" }, { x: 2, y: 3, item: "carrot" }, { x: 3, y: 3, item: "carrot" }, { x: 4, y: 3, item: "egg" }, { x: 5, y: 3, item: "carrot" }] },
+    fields: [{ map: ["#######", "#Scccc#", "#####c#", "#Fcccc#", "#######"], scene: { theme: "spring", item: "carrot", itemsAt: [{ x: 2, y: 1, item: "egg" }, { x: 3, y: 1, item: "egg" }, { x: 4, y: 1, item: "carrot" }, { x: 5, y: 1, item: "carrot" }, { x: 5, y: 2, item: "carrot" }, { x: 2, y: 3, item: "egg" }, { x: 3, y: 3, item: "egg" }, { x: 4, y: 3, item: "carrot" }, { x: 5, y: 3, item: "egg" }] } }]
+  },
+  {
     id: "p-thin-ice",
     tier: "intro",
     title: "Тонкий лід",
@@ -548,6 +723,69 @@ export const levels: ReadonlyArray<Level> = [
     stars: { three: 11, two: 16 },
     hint: "Іди, доки попереду не з'явиться ватажок, тоді вдар тричі. Далі шлях до бабусі вільний.",
     scene: { theme: "summer", finish: "grandma" }
+  },
+  {
+    id: "v-ambush",
+    tier: "intro",
+    title: "Засідка в ущелині",
+    task: [
+      "Гобліни помітили героя з того кінця ущелини й біжать сюди. Тікати нікуди.",
+      "Стій на місці: якщо гоблін попереду — вдар, інакше зачекай. Ця програма спрацює, скільки б їх не прибігло."
+    ],
+    map: ["##########", "#S.......#", "##########"],
+    blocks: ["move", "attack", "wait", "forever", "ifElse", "enemyAhead"],
+    goals: [{ type: "enemies" }],
+    enemies: [
+      { kind: "goblin", x: 6, y: 1, sees: "line", sight: 7 },
+      { kind: "goblin", x: 8, y: 1, sees: "line", sight: 7, walk: "patrol", route: [{ x: 8, y: 1 }, { x: 7, y: 1 }] }
+    ],
+    hearts: 3,
+    stars: { three: 5, two: 7 },
+    hint: "«Завжди»: «якщо попереду ворог? — вдарити, інакше — зачекати». Гобліни самі прийдуть до тебе.",
+    scene: { theme: "summer" }
+  },
+  {
+    id: "v-unseen",
+    tier: "practice",
+    title: "Не трапитися на очі",
+    task: [
+      "Наприкінці стежки стоїть ватажок гоблінів. Він бачить уздовж свого ряду й стовпчика, але не крізь кущі.",
+      "Якщо помітить — наздожене. Дійди до мети так, щоб він тебе не побачив."
+    ],
+    map: ["###########", "#S........#", "#.#########", "#........F#", "###########"],
+    blocks: ["move", "turnLeft", "turnRight", "repeat"],
+    goals: [{ type: "finish" }],
+    enemies: [{ kind: "bear", x: 9, y: 1, boss: true, sees: "line", sight: 5 }],
+    hearts: 1,
+    stars: { three: 6, two: 9 },
+    hint: "Верхня стежка коротша, але ватажок дивиться вздовж неї. Спустися вниз за кущі й іди нижньою стежкою.",
+    scene: { theme: "summer" }
+  },
+  {
+    id: "v-patrol",
+    tier: "challenge",
+    title: "Патруль на стежці",
+    task: [
+      "По стежці до джерела ходять гобліни-патрульні, а під ногами ростуть гриби.",
+      "Одна програма на обидві стежки: йди до мети, збирай гриби, а коли патрульний попереду — вдар його."
+    ],
+    map: ["#############", "#S.c..c..c.F#", "#############"],
+    blocks: ["move", "collect", "attack", "repeatUntil", "if", "ifElse", "enemyAhead", "onCrystal", "atFinish"],
+    goals: [{ type: "crystals" }, { type: "enemies" }, { type: "finish" }],
+    enemies: [
+      { kind: "goblin", x: 8, y: 1, walk: "patrol", route: [{ x: 9, y: 1 }, { x: 5, y: 1 }], sight: 0 },
+      { kind: "goblin", x: 10, y: 1, sees: "line", sight: 3 }
+    ],
+    hearts: 3,
+    stars: { three: 9, two: 12 },
+    hint: "«Повторити до ‹дійшов до мети?›»: якщо ворог попереду — вдарити, інакше — крок і «якщо тут щось є? — взяти».",
+    scene: { theme: "summer", item: "apple", finish: "well" },
+    fields: [
+      {
+        map: ["##########", "#S..c.c.F#", "##########"],
+        enemies: [{ kind: "goblin", x: 6, y: 1, walk: "patrol", route: [{ x: 7, y: 1 }, { x: 3, y: 1 }], sight: 0 }]
+      }
+    ]
   },
   {
     id: "c-apples",

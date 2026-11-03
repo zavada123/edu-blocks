@@ -2,13 +2,36 @@ import type { BlockName, ItemKind } from "./level.ts";
 /** ID of the VM extension with the hero blocks. Opcodes in a program read `hero_move`. */
 export declare const HERO_EXTENSION_ID = "hero";
 export declare const HERO_COLOR = "#0FBD8C";
-export type HeroBlock = Extract<BlockName, "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead">;
+export type HeroBlock = Extract<BlockName, "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "itemIs">;
 /** Hero blocks in palette order. `boolean` blocks are the questions for «якщо» and «повторити до». */
-export declare const HERO_BLOCKS: ReadonlyArray<{
+/**
+ * A hero block. `[ITEM]` in the text is a drop-down of the item kinds (`itemMenu`): the block keeps the choice in
+ * its field `ITEM`.
+ */
+export interface HeroBlockInfo {
     readonly name: HeroBlock;
     readonly text: string;
     readonly boolean: boolean;
-}>;
+}
+/** The field of «тут ‹…›?» that holds the item kind. */
+export declare const ITEM_FIELD = "ITEM";
+export declare const HERO_BLOCKS: ReadonlyArray<HeroBlockInfo>;
+/** Item kinds by name, as the drop-down of «тут ‹…›?» shows them. */
+export declare const ITEM_NAMES: Readonly<Record<ItemKind, string>>;
+/** Whether a value of a program is an item kind. */
+export declare const isItemKind: (value: unknown) => value is ItemKind;
+/** The kind a «тут ‹…›?» block holds in its field; a crystal when the field is damaged. */
+export declare const itemOfField: (field: unknown) => ItemKind;
+/**
+ * The choices of «тут ‹…›?» on a level: the kinds that lie on its map (`itemsAt`, then `item`), every kind when
+ * the level names none.
+ */
+export declare const itemMenu: (scene: {
+    readonly item?: ItemKind;
+    readonly itemsAt?: ReadonlyArray<{
+        readonly item: ItemKind;
+    }>;
+} | undefined) => ReadonlyArray<ItemKind>;
 /** The words of the «взяти» block on a level with these items. */
 export declare const collectText: (scene: {
     readonly item?: ItemKind;

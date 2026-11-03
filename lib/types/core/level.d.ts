@@ -1,8 +1,16 @@
 import type { Definition, Step } from "./build.ts";
-import { type Direction, type EnemySpec, type MapRows, type World } from "./world.ts";
+import { type Direction, type EnemySpec, type ItemKind, type MapRows, type World } from "./world.ts";
 import type { Tier } from "./xp.ts";
 /** Blocks a level can put into the palette. Hero blocks and the Scratch blocks with the same meaning. */
-export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "wallAhead" | "enemyAhead" | "trapAhead" | "onCrystal" | "atFinish" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or"
+export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "attack"
+/** «віднести на склад»: puts down on the storehouse what the hero carries. */
+ | "store"
+/** «зачекати»: the hero stands one turn while the enemies move. */
+ | "wait"
+/** «потягнути важіль»: switches the lever under the hero; the gates open when every lever is on. */
+ | "pull" | "wallAhead" | "enemyAhead" | "trapAhead" | "onCrystal" | "atFinish" | "handsFull" | "atStorehouse" | "onLever" | "leverOn"
+/** «тут ‹морква›?»: a question with a choice of the item kind in the block. */
+ | "itemIs" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or"
 /** «задати / змінити лічильник» and the (лічильник) reporter: one variable, as «Змінні» in Scratch. */
  | "counter"
 /** A custom block of the level: its «визначити» hat and the call, as «Мої блоки» in Scratch. */
@@ -14,9 +22,17 @@ export type Goal = {
     readonly type: "finish";
 } | {
     readonly type: "enemies";
+}
+/** Every item taken and put down in the storehouse (`H`). */
+ | {
+    readonly type: "store";
+}
+/** Take every item of this kind and leave the others where they lie. */
+ | {
+    readonly type: "pick";
+    readonly item: ItemKind;
 };
-/** What lies on the `c` cells and what `collect` takes. A campfire is not taken but lit. */
-export type ItemKind = "crystal" | "wood" | "apple" | "fish" | "key" | "campfire" | "carrot" | "egg";
+export type { ItemKind } from "./world.ts";
 /** Another item on one `c` cell than the level's `item`: the carrots and eggs of the estate. */
 export interface ItemAt {
     readonly x: number;
@@ -158,6 +174,8 @@ export interface Level {
     readonly hearts?: number;
     /** Steps («крок уперед») the hero may take. No limit when left out. */
     readonly maxSteps?: number;
+    /** How many things the hero can carry at once («руки повні?»). No limit when left out. */
+    readonly capacity?: number;
     /** The name of the custom block when the palette has «procedure». «мій блок» when left out. */
     readonly procedure?: string;
     /** Summer, crystals and a flag when left out. */

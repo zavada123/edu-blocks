@@ -1,7 +1,7 @@
-import { CALL_OPCODE, CHANGE_OPCODE, DEFINITION_OPCODE, SET_OPCODE, START_OPCODE, VARIABLE_OPCODE, VARIABLE_PRIMITIVE } from "./blocks.ts"
+import { CALL_OPCODE, CHANGE_OPCODE, DEFINITION_OPCODE, ITEM_FIELD, itemOfField, opcodeOf, SET_OPCODE, START_OPCODE, VARIABLE_OPCODE, VARIABLE_PRIMITIVE } from "./blocks.ts"
 import { actionOfOpcode, type Sensor, sensorOfOpcode } from "./hero.ts"
 import { MAX_PROGRAM_BLOCKS, type Program } from "./program.ts"
-import type { Action } from "./world.ts"
+import type { Action, ItemKind } from "./world.ts"
 
 /**
  * Reads a program of the editor back into steps, as `build.ts` writes them: for the Python view under the blocks.
@@ -9,7 +9,7 @@ import type { Action } from "./world.ts"
  * block, and a number slot can hold the counter. Blocks that do not run (outside every script) are left out.
  */
 
-export type Condition = Sensor | { readonly not: Slot } | { readonly and: readonly [Slot, Slot] } | { readonly or: readonly [Slot, Slot] }
+export type Condition = Sensor | { readonly itemIs: ItemKind } | { readonly not: Slot } | { readonly and: readonly [Slot, Slot] } | { readonly or: readonly [Slot, Slot] }
 /** A condition slot: empty when the student has not put a question into it. */
 export type Slot = Condition | null
 /** A number slot: a number, or the counter. */
@@ -89,6 +89,7 @@ export const readProgram = (program: Program): ReadProgram => {
     if (block === null) return null
     const sensor = sensorOfOpcode(block.opcode)
     if (sensor !== undefined) return sensor
+    if (block.opcode === opcodeOf("itemIs")) return { itemIs: itemOfField(block.fields[ITEM_FIELD]) }
     if (block.opcode === "operator_not") return { not: slot(inputOf(block, "OPERAND")) }
     const pair = (): readonly [Slot, Slot] => [slot(inputOf(block, "OPERAND1")), slot(inputOf(block, "OPERAND2"))]
     if (block.opcode === "operator_and") return { and: pair() }

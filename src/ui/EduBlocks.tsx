@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import ScratchBlocks, { type WorkspaceSvg } from "scratch-blocks/dist/vertical.js"
 import type VirtualMachine from "scratch-vm"
 import { serializeBlocks } from "scratch-vm/src/serialization/sb3.js"
-import { HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID, heroBlockText, procedureName } from "../core/blocks.ts"
+import { HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID, heroBlockText, ITEM_FIELD, ITEM_NAMES, itemMenu, procedureName } from "../core/blocks.ts"
 import { brokenProgram } from "../core/broken.ts"
 import { buildProgram } from "../core/build.ts"
 import { combineFields } from "../core/fields.ts"
@@ -86,6 +86,12 @@ for (const b of HERO_BLOCKS) {
   }
   ScratchBlocks.Blocks[json.type] = {
     init() {
+      if (b.name === "itemIs") {
+        // «тут ‹…›?»: the drop-down offers the kinds that lie on this level.
+        const options = itemMenu(editorScene).map((k) => [ITEM_NAMES[k], k])
+        this.jsonInit({ ...json, message0: "тут %1?", args0: [{ type: "field_dropdown", name: ITEM_FIELD, options }] })
+        return
+      }
       this.jsonInit({ ...json, message0: heroBlockText(b.name, editorScene) })
     }
   }
@@ -223,9 +229,9 @@ export const EduBlocks = ({
     setResult(null)
     setPhase({ kind: "edit" })
 
-    // A narrow editor (a phone) gets a flat palette, a thinner flyout and smaller blocks.
+    // A narrow editor (a phone) gets a flat palette and a thinner flyout. The blocks stay big enough for a finger.
     const compact = el.clientWidth < COMPACT_WIDTH
-    ScratchBlocks.VerticalFlyout.prototype.DEFAULT_WIDTH = compact ? 150 : 250
+    ScratchBlocks.VerticalFlyout.prototype.DEFAULT_WIDTH = compact ? 190 : 250
     ScratchBlocks.ScratchMsgs.setLocale("uk")
     editorScene = level.scene
     const toolbox = toolboxXml(level.blocks, compact, procedureName(level))
@@ -238,7 +244,7 @@ export const EduBlocks = ({
       scrollbars: true,
       trashcan: false,
       grid: { spacing: 40, length: 2, colour: "#ddd" },
-      zoom: { controls: true, wheel: true, startScale: (large ? 0.9 : 0.75) * (compact ? 0.75 : 1) }
+      zoom: { controls: true, wheel: true, startScale: (large ? 0.9 : 0.75) * (compact ? 0.95 : 1) }
     })
     workspaceRef.current = ws
     // The zoom the student chose last time, also on another level or after a reload.

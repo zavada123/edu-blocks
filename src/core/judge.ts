@@ -4,6 +4,9 @@ import {
   COUNTER_ID,
   COUNTER_NAME,
   DEFINITION_OPCODE,
+  ITEM_FIELD,
+  itemOfField,
+  opcodeOf,
   SET_OPCODE,
   START_OPCODE,
   VARIABLE_OPCODE,
@@ -166,6 +169,7 @@ export const judgeField = (level: Level, program: Program): RunResult => {
     step()
     const sensor = sensorOfOpcode(block.opcode)
     if (sensor !== undefined) return heroSense(session, sensor)
+    if (block.opcode === opcodeOf("itemIs")) return heroSense(session, { itemIs: itemOfField(fieldOf(block, ITEM_FIELD)) })
     switch (block.opcode) {
       case "operator_not":
         return !question(inputOf(block, "OPERAND"), depth + 1)

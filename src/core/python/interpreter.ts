@@ -1,4 +1,5 @@
-import type { Sensor } from "../hero.ts"
+import { isItemKind, ITEM_NAMES } from "../blocks.ts"
+import type { Probe } from "../hero.ts"
 import type { Action } from "../world.ts"
 import { HERO_NAME, MAX_MOVE_STEPS, PYTHON_METHODS, type PythonMethod } from "./api.ts"
 import type { Body, Expr, Stmt, Target } from "./ast.ts"
@@ -36,7 +37,7 @@ export const MAX_PY_DEPTH = 100
 export interface PyHost {
   /** The hero acts. Throws `Halt` when the run is over. `globals` are the program's variables at this moment. */
   readonly act: (action: Action, line: number, globals: ReadonlyMap<string, Value>) => void
-  readonly sense: (sensor: Sensor) => boolean
+  readonly sense: (probe: Probe) => boolean
   /** Whether the level opens this method. */
   readonly allows: (method: PythonMethod) => boolean
   readonly print: (text: string) => void
@@ -315,6 +316,13 @@ class Interpreter {
   }
 
   private heroCall(method: PythonMethod, args: ReadonlyArray<Value>, line: number): Value {
+    if (method.probesItem === true) {
+      const kind = args[0]
+      if (args.length !== 1 || typeof kind !== "string")
+        throw new PyError(`${HERO_NAME}.${method.name}() чекає в дужках одне слово в лапках: ${HERO_NAME}.${method.name}("carrot")`, line)
+      if (!isItemKind(kind)) throw new PyError(`Немає такої речі «${kind}». Можна: ${Object.keys(ITEM_NAMES).join(", ")}`, line)
+      return this.host.sense({ itemIs: kind })
+    }
     if (method.sensor !== undefined) {
       if (args.length > 0) throw new PyError(`${HERO_NAME}.${method.name}() нічого не приймає в дужках`, line)
       return this.host.sense(method.sensor)

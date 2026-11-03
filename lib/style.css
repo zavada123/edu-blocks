@@ -215,7 +215,7 @@
   border-radius: 0;
   background: var(--eb-btn-bg);
   color: var(--eb-btn-fg);
-  font: 400 18px/1 var(--eb-font-pixel);
+  font: 700 17px/1 var(--eb-font-text);
   letter-spacing: 0.02em;
   cursor: pointer;
   box-shadow:
@@ -356,7 +356,7 @@
 .eb-hud-title {
   margin: 0;
   color: var(--eb-gold);
-  font: 400 20px/1.1 var(--eb-font-pixel);
+  font: 700 20px/1.1 var(--eb-font-text);
 }
 
 .eb-hud-levels {
@@ -423,7 +423,7 @@
   justify-content: space-between;
   align-items: baseline;
   gap: 12px;
-  font: 400 15px/1 var(--eb-font-pixel);
+  font: 700 15px/1 var(--eb-font-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -602,7 +602,7 @@
   background: var(--eb-slate);
   color: var(--eb-fg);
   box-shadow: 0 0 0 2px var(--eb-edge);
-  font: 400 15px var(--eb-font-pixel);
+  font: 600 15px var(--eb-font-text);
 }
 
 /* ---- The task ---- */
@@ -615,7 +615,7 @@
 
 .eb-quest h2 {
   margin: 0 0 8px;
-  font: 400 26px/1.05 var(--eb-font-pixel);
+  font: 700 24px/1.15 var(--eb-font-text);
   text-wrap: balance;
 }
 
@@ -689,7 +689,7 @@
   background: var(--eb-code-head);
   border-bottom: var(--eb-px) solid var(--eb-edge);
   color: var(--eb-fg);
-  font: 400 18px/1 var(--eb-font-pixel);
+  font: 700 17px/1 var(--eb-font-text);
 }
 
 /* «Вже зроблено»: the pieces behind the hero, over the editor of the next piece. */
@@ -753,7 +753,7 @@
 
 .eb-verdict h3 {
   margin: 0;
-  font: 400 28px/1.05 var(--eb-font-pixel);
+  font: 700 26px/1.1 var(--eb-font-text);
   text-wrap: balance;
 }
 
@@ -913,18 +913,76 @@ html.eb-page-full {
 
 /* ---- Phone and narrow window ---- */
 
-@media (max-width: 760px) {
+/* The tabs «Гра» and «Програма» are for a phone only: a wider screen shows both at once. */
+.eb-tabs {
+  display: none;
+}
+
+@media (max-width: 760px), (max-height: 500px) {
+  /* A phone shows one part at a time: the task and the field, or the program on the whole screen. */
   .eb-root {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto auto minmax(280px, 1fr);
+    grid-template-rows: auto auto auto auto;
     grid-template-areas:
       "hud"
-      "quest"
+      "tabs"
       "stage"
-      "editor";
+      "quest";
+    align-content: start;
     gap: 8px;
     padding: 8px;
     overflow-y: auto;
+  }
+
+  .eb-root.eb-tab-code {
+    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-areas:
+      "hud"
+      "tabs"
+      "editor";
+    align-content: stretch;
+    overflow: hidden;
+  }
+
+  /* The part that waits keeps its size off screen, so the blocks editor never starts in a box of no size. */
+  .eb-tab-field .eb-editor-pane,
+  .eb-tab-code .eb-stage,
+  .eb-tab-code .eb-quest {
+    position: absolute;
+    inset: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .eb-tabs {
+    grid-area: tabs;
+    display: flex;
+    gap: 6px;
+  }
+
+  /* The tabs are the game's own buttons: the open one is gold. */
+  .eb-tab {
+    flex: 1;
+    min-height: 40px;
+    padding-inline: 10px;
+    font-size: 16px;
+  }
+
+  .eb-tab[aria-pressed="true"] {
+    --eb-btn-bg: var(--eb-gold);
+    --eb-btn-fg: var(--eb-edge);
+  }
+
+  /* The tab already says «Програма». */
+  .eb-editor-head {
+    display: none;
+  }
+
+  .eb-tab-run {
+    flex: none;
+    min-height: 40px;
+    padding-inline: 12px;
+    font-size: 15px;
   }
 
   .eb-hud {
@@ -948,7 +1006,7 @@ html.eb-page-full {
 
   .eb-field-frame,
   .eb-stage-bottom {
-    width: min(100cqw - 8px, 38dvh);
+    width: min(100cqw - 8px, 48dvh);
   }
 
   .eb-field-frame {
@@ -1000,6 +1058,26 @@ html.eb-page-full {
   }
 }
 
+/* A phone on its side: the field and the task stand side by side, and the field fits the low screen. */
+@media (max-height: 500px) and (min-width: 761px) {
+  .eb-root.eb-tab-field {
+    grid-template-columns: calc(58dvh + 16px) minmax(0, 1fr);
+    grid-template-areas:
+      "hud hud"
+      "tabs tabs"
+      "stage quest";
+  }
+
+  .eb-root.eb-tab-field .eb-quest {
+    align-self: start;
+  }
+
+  .eb-field-frame,
+  .eb-stage-bottom {
+    width: min(100cqw - 8px, 58dvh);
+  }
+}
+
 /* ---- The hero: the portrait in the bar opens the choice ---- */
 
 .eb-hud-pick {
@@ -1010,7 +1088,7 @@ html.eb-page-full {
   border: 0;
   background: none;
   color: var(--eb-gold);
-  font: 400 12px/1 var(--eb-font-pixel);
+  font: 600 12px/1 var(--eb-font-text);
   cursor: pointer;
 }
 
@@ -1054,7 +1132,7 @@ html.eb-page-full {
 
 .eb-picker-head h3 {
   margin: 0;
-  font: 400 28px/1 var(--eb-font-pixel);
+  font: 700 26px/1.1 var(--eb-font-text);
 }
 
 .eb-picker-list {
@@ -1117,7 +1195,7 @@ html.eb-page-full {
 }
 
 .eb-hero-name {
-  font: 400 22px/1 var(--eb-font-pixel);
+  font: 700 20px/1 var(--eb-font-text);
 }
 
 .eb-hero-about {
@@ -1132,7 +1210,7 @@ html.eb-page-full {
   padding: 5px 8px 6px;
   background: var(--eb-stone);
   color: #fff;
-  font: 400 14px/1 var(--eb-font-pixel);
+  font: 600 13px/1 var(--eb-font-text);
 }
 
 .eb-hero-card-on .eb-hero-state {
@@ -1270,6 +1348,15 @@ html.eb-page-full {
   background: transparent;
   color: var(--eb-ink-soft);
   box-shadow: inset 0 0 0 2px var(--eb-parch-line);
+}
+
+/* ---- The blocks speak the game's font ---- */
+
+.eb-root .blocklyText,
+.eb-root .blocklyHtmlInput,
+.blocklyDropDownDiv .goog-menuitem-content,
+.blocklyWidgetDiv .goog-menuitem-content {
+  font-family: var(--eb-font-text, "Edu Text"), system-ui, sans-serif !important;
 }
 /* The Python editor: the commands of the level above the code, the code fills the rest, the output under it. */
 .eb-palette {

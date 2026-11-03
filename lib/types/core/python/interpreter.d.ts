@@ -1,4 +1,4 @@
-import type { Sensor } from "../hero.ts";
+import type { Probe } from "../hero.ts";
 import type { Action } from "../world.ts";
 import { type PythonMethod } from "./api.ts";
 import type { Body } from "./ast.ts";
@@ -16,7 +16,7 @@ export declare const MAX_PY_DEPTH = 100;
 export interface PyHost {
     /** The hero acts. Throws `Halt` when the run is over. `globals` are the program's variables at this moment. */
     readonly act: (action: Action, line: number, globals: ReadonlyMap<string, Value>) => void;
-    readonly sense: (sensor: Sensor) => boolean;
+    readonly sense: (probe: Probe) => boolean;
     /** Whether the level opens this method. */
     readonly allows: (method: PythonMethod) => boolean;
     readonly print: (text: string) => void;

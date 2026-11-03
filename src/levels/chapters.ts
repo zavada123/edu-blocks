@@ -5,7 +5,7 @@ import { levels } from "./index.ts"
  * The course in chapters by what a student learns, not by school grade: each chapter brings one new idea and
  * ends with a level that makes the student think. A student of any age starts with the first chapter.
  */
-export type ChapterId = "sequence" | "loops" | "conditions" | "while" | "logic" | "puzzles" | "enemies" | "counter" | "functions"
+export type ChapterId = "sequence" | "loops" | "conditions" | "while" | "logic" | "store" | "gates" | "pick" | "puzzles" | "enemies" | "guards" | "counter" | "functions"
 
 export interface Chapter {
   readonly id: ChapterId
@@ -48,6 +48,24 @@ export const chapters: ReadonlyArray<Chapter> = [
     levels: ["l-mill", "l-fish", "l-drift"]
   },
   {
+    id: "store",
+    title: "Склад і ходки",
+    skill: "Носити не більше, ніж уміщається в руки: рахувати ходки й вертатися на склад, коли руки повні.",
+    levels: ["s-woodshed", "s-two-hands", "s-trips", "s-last-trip"]
+  },
+  {
+    id: "gates",
+    title: "Важелі й ворота",
+    skill: "Перевірити стан, перш ніж діяти: тягнути лише вимкнений важіль, склавши умову з «і» та «не».",
+    levels: ["w-lever", "w-careful", "w-row", "w-yard"]
+  },
+  {
+    id: "pick",
+    title: "Що тут лежить?",
+    skill: "Спитати, що саме лежить під ногами, і взяти лише потрібне: питання з вибором у самому блоці.",
+    levels: ["k-carrots", "k-eggs", "k-garden"]
+  },
+  {
     id: "puzzles",
     title: "Пастки й сили",
     skill: "Обійти пастки й знайти найкоротший шлях, коли сил мало: подумати, перш ніж іти.",
@@ -58,6 +76,12 @@ export const chapters: ReadonlyArray<Chapter> = [
     title: "Вороги",
     skill: "Стежити за ворогом: вдарити вчасно і не підставити спину.",
     levels: ["g5-spirit", "g5-glade", "g5-guards", "g6-bear"]
+  },
+  {
+    id: "guards",
+    title: "Вартові й патрулі",
+    skill: "Вороги ходять і помічають героя: чекати слушної миті, реагувати на ворога й не трапитися йому на очі.",
+    levels: ["v-ambush", "v-unseen", "v-patrol"]
   },
   {
     id: "counter",
