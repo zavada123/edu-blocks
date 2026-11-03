@@ -17,9 +17,15 @@ export interface EstateLayout {
     readonly coop: boolean;
     /** The nests: rows of the left path from 2. */
     readonly nests: number;
-    /** Which carrots are ripe today, one per tree column. */
-    readonly ready: ReadonlyArray<boolean>;
-    readonly day: number;
+    /** The frame of the carrot of each tree column today, from 1 (just sown) to 4 (ripe). */
+    readonly carrotFrames: ReadonlyArray<number>;
+    /** The size of the map of the biggest estate: the farm is drawn for it, so nothing moves when the yard grows. */
+    readonly frame: {
+        readonly width: number;
+        readonly height: number;
+    };
+    /** How many trees the orchard can have: the places of the trees not bought yet are dug. */
+    readonly maxTrees: number;
 }
 /** The look of a day: its tile map and the pictures that stand on it. */
 export declare const estateLook: (layout: EstateLayout) => {

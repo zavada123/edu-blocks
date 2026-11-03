@@ -206,9 +206,8 @@ const taskOf = (upgrades: EstateUpgrades, day: number): ReadonlyArray<string> =>
  * back along the carrot bed and up past the hen house to the door. The trees, the bed and the hen house come from
  * the upgrades; the ripe apples, carrots, eggs and the snowed-in end of the yard come from the day number.
  */
-export const estateDay = (state: EstateState, blocks: ReadonlyArray<BlockName>): EstateDay => {
-  const { upgrades } = state
-  const day = Math.max(1, Math.round(state.day))
+/** What the day number decides: how far the yard is snowed in, and which apples, carrots and eggs are there. */
+const dayChances = (upgrades: EstateUpgrades, day: number) => {
   const random = randomOf(day * 7919 + 17)
   const trees = START_TREES + upgradeCount(upgrades, "tree")
   const carrots = upgradeCount(upgrades, "carrots") > 0
@@ -217,6 +216,34 @@ export const estateDay = (state: EstateState, blocks: ReadonlyArray<BlockName>):
   const ripe = pick(random, trees, RIPE_APPLE, true)
   const ready = pick(random, carrots ? trees : 0, RIPE_CARROT, true)
   const eggs = pick(random, coop ? NESTS : 0, EGG, false)
+  return { trees, carrots, coop, drift, ripe, ready, eggs }
+}
+
+/** Frames of the carrot: 1 just sown, 2 and 3 growing, 4 ripe. */
+const SOWN = 1
+const RIPE_FRAME = 4
+
+/**
+ * How each carrot of the bed looks today: ripe when it is ready, else grown for the days since it was last picked
+ * (ready on a day before), so a carrot picked yesterday is sown again today.
+ */
+export const carrotFrames = (upgrades: EstateUpgrades, day: number): ReadonlyArray<number> => {
+  const { ready } = dayChances(upgrades, day)
+  const before = [1, 2].map((back) => (day - back >= 1 ? dayChances(upgrades, day - back).ready : []))
+  return ready.map((ripe, i) => {
+    if (ripe) return RIPE_FRAME
+    const since = before.findIndex((r) => r[i] === true)
+    return since < 0 ? RIPE_FRAME - 1 : SOWN + since
+  })
+}
+
+/** The map of the biggest estate: the farm is drawn for it, so the house, the hen house and the pond never move. */
+const FARM_FRAME = { width: MAX_TREES + YARD + 4, height: NESTS + 4 }
+
+export const estateDay = (state: EstateState, blocks: ReadonlyArray<BlockName>): EstateDay => {
+  const { upgrades } = state
+  const day = Math.max(1, Math.round(state.day))
+  const { trees, carrots, coop, drift, ripe, ready, eggs } = dayChances(upgrades, day)
 
   const width = trees + YARD + 4
   const right = trees + YARD + 2 - drift
@@ -245,7 +272,18 @@ export const estateDay = (state: EstateState, blocks: ReadonlyArray<BlockName>):
     rows.push(row)
   }
 
-  const look = estateLook({ rows, trees, right, bottom, carrots, coop, nests: NESTS, ready, day })
+  const look = estateLook({
+    rows,
+    trees,
+    right,
+    bottom,
+    carrots,
+    coop,
+    nests: NESTS,
+    carrotFrames: carrotFrames(upgrades, day),
+    frame: FARM_FRAME,
+    maxTrees: MAX_TREES
+  })
   const scene: Scene = {
     theme: estateSeason(day),
     item: "apple",

@@ -4,6 +4,7 @@ import { buildProgram, type Step } from "./build.ts"
 import {
   buyUpgrade,
   canBuyUpgrade,
+  carrotFrames,
   canStartDay,
   ESTATE_UPGRADES,
   type EstateUpgrade,
@@ -98,6 +99,58 @@ describe("estate days", () => {
       (estateDay({ upgrades: { carrots: 1 }, day }, ALL).level.scene?.sprites ?? []).filter((s) => s.asset === "sunnyside:crop/carrot").map((s) => s.frame)
     expect(frames(1)).toHaveLength(START_TREES)
     expect(frames(1)).not.toEqual(frames(2))
+  })
+
+  test("the farm stays in place: the same map, house and pond for every day and every upgrade", () => {
+    const placeOf = (upgrades: EstateUpgrades, day: number) => {
+      const map = estateDay({ upgrades, day }, ALL).level.scene?.tilemap
+      const ground = map?.layers.find((l) => l.name === "ground")?.data ?? []
+      const water = ground.flatMap((t, i) => (t !== ground[0] && t > 300 ? [i] : []))
+      return { x: map?.x, y: map?.y, width: map?.width, height: map?.height, above: map?.layers.find((l) => l.kind === "above")?.data, water }
+    }
+    const first = placeOf({}, 1)
+    for (const upgrades of SETS) {
+      for (const day of [1, 2, 9, 17]) {
+        const place = placeOf(upgrades, day)
+        expect({ ...place, above: undefined }, `${JSON.stringify(upgrades)} day ${day}`).toEqual({ ...first, above: undefined })
+      }
+    }
+    // The farmhouse roof is the same; the hen house roof joins it once it is bought.
+    const roofs = (upgrades: EstateUpgrades) => (placeOf(upgrades, 3).above ?? []).flatMap((t, i) => (t > 0 ? [i] : []))
+    expect(roofs({ carrots: 1, coop: 1 })).toEqual(expect.arrayContaining(roofs({})))
+    expect(roofs({ carrots: 1, coop: 1 }).length).toBeGreaterThan(roofs({}).length)
+  })
+
+  test("the shop's plots show on the farm until they are bought", () => {
+    const sprites = (upgrades: EstateUpgrades) => estateDay({ upgrades, day: 4 }, ALL).level.scene?.sprites ?? []
+    const dug = (upgrades: EstateUpgrades) => sprites(upgrades).filter((s) => s.asset === "sunnyside:crop/soil" && s.y === 0).length
+    expect(dug({})).toBe(MAX_TREES - START_TREES)
+    expect(dug({ tree: 2 })).toBe(MAX_TREES - START_TREES - 2)
+    expect(dug(FULL)).toBe(0)
+    expect(sprites({}).some((s) => s.asset === "sunnyside:item/seeds-generic")).toBe(true)
+    expect(sprites({ carrots: 1 }).some((s) => s.asset === "sunnyside:item/seeds-generic")).toBe(false)
+    expect(sprites({ carrots: 1 }).some((s) => s.asset === "sunnyside:item/crate-base")).toBe(true)
+    expect(sprites({ carrots: 1, coop: 1 }).some((s) => s.asset === "sunnyside:item/crate-base")).toBe(false)
+  })
+
+  test("a carrot picked on one day is sown again the next and grows", () => {
+    const upgrades: EstateUpgrades = { carrots: 1, tree: 2 }
+    let checked = 0
+    for (let day = 1; day <= 40; day++) {
+      const today = carrotFrames(upgrades, day)
+      const tomorrow = carrotFrames(upgrades, day + 1)
+      const after = carrotFrames(upgrades, day + 2)
+      today.forEach((frame, i) => {
+        if (frame !== 4 || tomorrow[i] === 4) return
+        expect(tomorrow[i], `day ${day + 1} carrot ${i}`).toBe(1)
+        if (after[i] !== 4) expect(after[i], `day ${day + 2} carrot ${i}`).toBe(2)
+        checked++
+      })
+    }
+    expect(checked).toBeGreaterThan(10)
+    // The ripe ones are the carrots lying on the path to pick.
+    const day = estateDay({ upgrades, day: 6 }, ALL)
+    expect(carrotFrames(upgrades, 6).filter((f) => f === 4)).toHaveLength(day.produce.filter((p) => p.kind === "carrot").length)
   })
 
   test("the biggest estate still fits the field", () => {
