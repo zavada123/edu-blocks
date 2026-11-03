@@ -1,6 +1,7 @@
 import type { Sensor } from "../hero.ts"
 import type { BlockName } from "../level.ts"
-import type { Action } from "../world.ts"
+import { ITEM_NAMES } from "../blocks.ts"
+import type { Action, ItemKind } from "../world.ts"
 
 /**
  * The hero in Python: `hero.move()`, `hero.wall_ahead()` and the rest. Each method is a hero action or question of
@@ -19,7 +20,14 @@ export interface PythonMethod {
   readonly block: BlockName
   readonly action?: Action
   readonly sensor?: Sensor
+  /** «тут ‹…›?»: asks with the item kind in the brackets, as `hero.item_is("egg")`. */
+  readonly probesItem?: true
 }
+
+/** The method of «тут ‹…›?». */
+export const ITEM_METHOD = "item_is"
+
+const ITEM_KINDS_TEXT = (Object.keys(ITEM_NAMES) as ReadonlyArray<ItemKind>).map((k) => `"${k}" (${ITEM_NAMES[k]})`).join(", ")
 
 export const PYTHON_METHODS: ReadonlyArray<PythonMethod> = [
   { name: "move", signature: "move()", doc: "Крок уперед. hero.move(3) робить три кроки.", block: "move", action: "move" },
@@ -38,7 +46,14 @@ export const PYTHON_METHODS: ReadonlyArray<PythonMethod> = [
   { name: "hands_full", signature: "hands_full()", doc: "True, якщо руки повні й більше не взяти.", block: "handsFull", sensor: "handsFull" },
   { name: "at_storehouse", signature: "at_storehouse()", doc: "True, якщо герой стоїть на складі.", block: "atStorehouse", sensor: "atStorehouse" },
   { name: "on_lever", signature: "on_lever()", doc: "True, якщо герой стоїть на важелі.", block: "onLever", sensor: "onLever" },
-  { name: "lever_on", signature: "lever_on()", doc: "True, якщо важіль під героєм увімкнено.", block: "leverOn", sensor: "leverOn" }
+  { name: "lever_on", signature: "lever_on()", doc: "True, якщо важіль під героєм увімкнено.", block: "leverOn", sensor: "leverOn" },
+  {
+    name: "item_is",
+    signature: 'item_is("carrot")',
+    doc: `True, якщо тут лежить саме це: ${ITEM_KINDS_TEXT}.`,
+    block: "itemIs",
+    probesItem: true
+  }
 ]
 
 /** The methods a level opens, in palette order. */

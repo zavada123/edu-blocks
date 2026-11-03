@@ -514,6 +514,54 @@ export const levels: ReadonlyArray<Level> = [
     fields: [{ map: ["########", "#S.L.Ll#", "######.#", "#F.G..L#", "########"] }]
   },
   {
+    id: "k-carrots",
+    tier: "intro",
+    title: "Лише морква",
+    task: [
+      "На грядці вперемішку морква і яйця, які загубили кури.",
+      "Збери лише моркву: перед «взяти» спитай «тут морква?». Яйця не чіпай."
+    ],
+    map: ["#########", "#Scccccc#", "#########"],
+    blocks: ["move", "collect", "repeat", "if", "itemIs"],
+    goals: [{ type: "pick", item: "carrot" }],
+    stars: { three: 5, two: 7 },
+    hint: "Повтори: крок, а тоді «якщо тут морква? — взяти». У блоці «тут …?» вибери моркву.",
+    scene: { theme: "spring", item: "carrot", itemsAt: [{ x: 2, y: 1, item: "carrot" }, { x: 3, y: 1, item: "egg" }, { x: 4, y: 1, item: "carrot" }, { x: 5, y: 1, item: "carrot" }, { x: 6, y: 1, item: "egg" }, { x: 7, y: 1, item: "carrot" }] },
+    fields: [{ map: ["#########", "#Scccccc#", "#########"], scene: { theme: "spring", item: "carrot", itemsAt: [{ x: 2, y: 1, item: "egg" }, { x: 3, y: 1, item: "carrot" }, { x: 4, y: 1, item: "carrot" }, { x: 5, y: 1, item: "egg" }, { x: 6, y: 1, item: "carrot" }, { x: 7, y: 1, item: "egg" }] } }]
+  },
+  {
+    id: "k-eggs",
+    tier: "practice",
+    title: "Яйця в кошик",
+    task: [
+      "Кури знеслися де попало. Пройди стежкою до кінця й збери всі яйця.",
+      "Стежки різної довжини, тож іди, поки попереду не стіна."
+    ],
+    map: ["##########", "#Sccccccc#", "##########"],
+    blocks: ["move", "collect", "repeatUntil", "if", "wallAhead", "itemIs"],
+    goals: [{ type: "pick", item: "egg" }],
+    stars: { three: 6, two: 8 },
+    hint: "Повторюй до «попереду стіна?»: крок, і «якщо тут яйце? — взяти».",
+    scene: { theme: "spring", item: "egg", itemsAt: [{ x: 2, y: 1, item: "egg" }, { x: 3, y: 1, item: "carrot" }, { x: 4, y: 1, item: "egg" }, { x: 5, y: 1, item: "egg" }, { x: 6, y: 1, item: "carrot" }, { x: 7, y: 1, item: "carrot" }, { x: 8, y: 1, item: "egg" }] },
+    fields: [{ map: ["#######", "#Scccc#", "#######"], scene: { theme: "spring", item: "egg", itemsAt: [{ x: 2, y: 1, item: "carrot" }, { x: 3, y: 1, item: "egg" }, { x: 4, y: 1, item: "egg" }, { x: 5, y: 1, item: "carrot" }] } }]
+  },
+  {
+    id: "k-garden",
+    tier: "challenge",
+    title: "Город довкола",
+    task: [
+      "Стежка обходить город довкола і веде до прапорця.",
+      "Збери дорогою лише моркву і повертай праворуч, коли попереду стіна."
+    ],
+    map: ["#######", "#Scccc#", "#####c#", "#Fcccc#", "#######"],
+    blocks: ["move", "turnRight", "collect", "repeatUntil", "if", "ifElse", "wallAhead", "atFinish", "itemIs"],
+    goals: [{ type: "pick", item: "carrot" }, { type: "finish" }],
+    stars: { three: 9, two: 11 },
+    hint: "У кожному кроці циклу: спершу «якщо тут морква? — взяти», потім «якщо попереду стіна? — поворот, інакше крок».",
+    scene: { theme: "spring", item: "carrot", itemsAt: [{ x: 2, y: 1, item: "carrot" }, { x: 3, y: 1, item: "egg" }, { x: 4, y: 1, item: "carrot" }, { x: 5, y: 1, item: "egg" }, { x: 5, y: 2, item: "egg" }, { x: 2, y: 3, item: "carrot" }, { x: 3, y: 3, item: "carrot" }, { x: 4, y: 3, item: "egg" }, { x: 5, y: 3, item: "carrot" }] },
+    fields: [{ map: ["#######", "#Scccc#", "#####c#", "#Fcccc#", "#######"], scene: { theme: "spring", item: "carrot", itemsAt: [{ x: 2, y: 1, item: "egg" }, { x: 3, y: 1, item: "egg" }, { x: 4, y: 1, item: "carrot" }, { x: 5, y: 1, item: "carrot" }, { x: 5, y: 2, item: "carrot" }, { x: 2, y: 3, item: "egg" }, { x: 3, y: 3, item: "egg" }, { x: 4, y: 3, item: "carrot" }, { x: 5, y: 3, item: "egg" }] } }]
+  },
+  {
     id: "p-thin-ice",
     tier: "intro",
     title: "Тонкий лід",

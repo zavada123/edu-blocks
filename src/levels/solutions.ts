@@ -114,6 +114,14 @@ export const solutions: Readonly<Record<string, ReadonlyArray<Step>>> = {
       ]
     }
   ],
+  "k-carrots": [{ repeat: 6, body: ["move", { if: { itemIs: "carrot" }, then: ["collect"] }] }],
+  "k-eggs": [{ until: "wallAhead", body: ["move", { if: { itemIs: "egg" }, then: ["collect"] }] }],
+  "k-garden": [
+    {
+      until: "atFinish",
+      body: [{ if: { itemIs: "carrot" }, then: ["collect"] }, { if: "wallAhead", then: ["turnRight"], else: ["move"] }]
+    }
+  ],
   "v-ambush": [{ forever: [{ if: "enemyAhead", then: ["attack"], else: ["wait"] }] }],
   "v-unseen": ["turnRight", { repeat: 2, body: ["move"] }, "turnLeft", { repeat: 8, body: ["move"] }],
   "v-patrol": [{ until: "atFinish", body: [{ if: "enemyAhead", then: ["attack"], else: ["move", { if: "onCrystal", then: ["collect"] }] }] }],

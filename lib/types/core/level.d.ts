@@ -1,5 +1,5 @@
 import type { Definition, Step } from "./build.ts";
-import { type Direction, type EnemySpec, type MapRows, type World } from "./world.ts";
+import { type Direction, type EnemySpec, type ItemKind, type MapRows, type World } from "./world.ts";
 import type { Tier } from "./xp.ts";
 /** Blocks a level can put into the palette. Hero blocks and the Scratch blocks with the same meaning. */
 export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "attack"
@@ -8,7 +8,9 @@ export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "attack"
 /** «зачекати»: the hero stands one turn while the enemies move. */
  | "wait"
 /** «потягнути важіль»: switches the lever under the hero; the gates open when every lever is on. */
- | "pull" | "wallAhead" | "enemyAhead" | "trapAhead" | "onCrystal" | "atFinish" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or"
+ | "pull" | "wallAhead" | "enemyAhead" | "trapAhead" | "onCrystal" | "atFinish" | "handsFull" | "atStorehouse" | "onLever" | "leverOn"
+/** «тут ‹морква›?»: a question with a choice of the item kind in the block. */
+ | "itemIs" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or"
 /** «задати / змінити лічильник» and the (лічильник) reporter: one variable, as «Змінні» in Scratch. */
  | "counter"
 /** A custom block of the level: its «визначити» hat and the call, as «Мої блоки» in Scratch. */
@@ -24,9 +26,13 @@ export type Goal = {
 /** Every item taken and put down in the storehouse (`H`). */
  | {
     readonly type: "store";
+}
+/** Take every item of this kind and leave the others where they lie. */
+ | {
+    readonly type: "pick";
+    readonly item: ItemKind;
 };
-/** What lies on the `c` cells and what `collect` takes. A campfire is not taken but lit. */
-export type ItemKind = "crystal" | "wood" | "apple" | "fish" | "key" | "campfire" | "carrot" | "egg";
+export type { ItemKind } from "./world.ts";
 /** Another item on one `c` cell than the level's `item`: the carrots and eggs of the estate. */
 export interface ItemAt {
     readonly x: number;

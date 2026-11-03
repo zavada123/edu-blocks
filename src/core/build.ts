@@ -5,6 +5,7 @@ import {
   COUNTER_NAME,
   DEFAULT_PROCEDURE,
   DEFINITION_OPCODE,
+  ITEM_FIELD,
   opcodeOf,
   PROTOTYPE_OPCODE,
   SET_OPCODE,
@@ -13,7 +14,7 @@ import {
 } from "./blocks.ts"
 import type { Sensor } from "./hero.ts"
 import type { Program } from "./program.ts"
-import type { Action } from "./world.ts"
+import type { Action, ItemKind } from "./world.ts"
 
 /**
  * A short way to write a program in code: reference solutions of the levels and tests.
@@ -21,6 +22,8 @@ import type { Action } from "./world.ts"
  */
 export type Question =
   | Sensor
+  /** «тут ‹морква›?» */
+  | { readonly itemIs: ItemKind }
   | { readonly not: Question } | { readonly and: readonly [Question, Question] } | { readonly or: readonly [Question, Question] }
 
 export type Step =
@@ -76,6 +79,7 @@ export const buildProgram = (steps: ReadonlyArray<Step>, definition?: Definition
 
   const question = (q: Question, parent: string): string => {
     if (typeof q === "string") return add(opcodeOf(q), parent)
+    if ("itemIs" in q) return add(opcodeOf("itemIs"), parent, { fields: { [ITEM_FIELD]: [q.itemIs, null] } })
     if ("not" in q) {
       const id = add("operator_not", parent)
       blocks[id]!.inputs.OPERAND = [2, question(q.not, id)]

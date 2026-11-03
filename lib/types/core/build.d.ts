@@ -1,11 +1,15 @@
 import type { Sensor } from "./hero.ts";
 import type { Program } from "./program.ts";
-import type { Action } from "./world.ts";
+import type { Action, ItemKind } from "./world.ts";
 /**
  * A short way to write a program in code: reference solutions of the levels and tests.
  * `buildProgram(["move", { repeat: 3, body: ["move", "collect"] }])` gives the same blocks the editor makes.
  */
-export type Question = Sensor | {
+export type Question = Sensor
+/** «тут ‹морква›?» */
+ | {
+    readonly itemIs: ItemKind;
+} | {
     readonly not: Question;
 } | {
     readonly and: readonly [Question, Question];

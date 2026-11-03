@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import ScratchBlocks, { type WorkspaceSvg } from "scratch-blocks/dist/vertical.js"
 import type VirtualMachine from "scratch-vm"
 import { serializeBlocks } from "scratch-vm/src/serialization/sb3.js"
-import { HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID, heroBlockText, procedureName } from "../core/blocks.ts"
+import { HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID, heroBlockText, ITEM_FIELD, ITEM_NAMES, itemMenu, procedureName } from "../core/blocks.ts"
 import { brokenProgram } from "../core/broken.ts"
 import { buildProgram } from "../core/build.ts"
 import { combineFields } from "../core/fields.ts"
@@ -86,6 +86,12 @@ for (const b of HERO_BLOCKS) {
   }
   ScratchBlocks.Blocks[json.type] = {
     init() {
+      if (b.name === "itemIs") {
+        // «тут ‹…›?»: the drop-down offers the kinds that lie on this level.
+        const options = itemMenu(editorScene).map((k) => [ITEM_NAMES[k], k])
+        this.jsonInit({ ...json, message0: "тут %1?", args0: [{ type: "field_dropdown", name: ITEM_FIELD, options }] })
+        return
+      }
       this.jsonInit({ ...json, message0: heroBlockText(b.name, editorScene) })
     }
   }

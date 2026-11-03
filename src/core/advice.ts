@@ -1,8 +1,8 @@
-import { collectText, opcodeOf } from "./blocks.ts"
+import { collectText, ITEM_NAMES, opcodeOf } from "./blocks.ts"
 import type { BlockName, ItemKind, Level } from "./level.ts"
 import type { Frame, Program, RunResult } from "./program.ts"
 import { startWorld } from "./level.ts"
-import { applyAction, type Cell, cellAhead, cellKey, enemiesLeft, enemyAt, isClosedGate, wallAhead, type World } from "./world.ts"
+import { applyAction, type Cell, cellAhead, cellKey, enemiesLeft, enemyAt, isClosedGate, itemCount, wallAhead, type World } from "./world.ts"
 
 /**
  * Advice after a run, made from what the hero did with this very program: what is missing («взяти», a turn,
@@ -145,6 +145,23 @@ const itemAdvice = (level: Level, result: RunResult, has: (b: BlockName) => bool
   return tips
 }
 
+/** The goal «збери лише …»: things of other kinds taken, and things of the kind left lying. */
+const pickAdvice = (level: Level, result: RunResult): ReadonlyArray<string> => {
+  const goal = level.goals.find((g) => g.type === "pick")
+  if (goal === undefined || goal.type !== "pick") return []
+  const world = result.world
+  const mine = itemCount(world, goal.item)
+  const wrong = world.totalCrystals - mine.total - (world.crystals.size - mine.left)
+  const name = ITEM_NAMES[goal.item]
+  const tips: Array<string> = []
+  if (wrong > 0)
+    tips.push(
+      `Герой узяв ${wrong} ${wrong === 1 ? "зайву річ" : few(wrong) ? "зайві речі" : "зайвих речей"}. Перш ніж «взяти», спитай «тут ${name}?».`
+    )
+  if (mine.left > 0) tips.push(`Ще не взято: ${name}, ${mine.left}. Пройди всі клітинки, де вона може лежати.`)
+  return tips
+}
+
 /** The storehouse goal: things still in the hero's hands at the end. */
 const storeAdvice = (level: Level, result: RunResult, has: (b: BlockName) => boolean): ReadonlyArray<string> => {
   if (!level.goals.some((g) => g.type === "store")) return []
@@ -251,7 +268,7 @@ export const adviseRun = (level: Level, program: Program, result: RunResult): Re
     case "defeated":
       return [...defeatAdvice(level, result), ...extraAdvice(level, result.frames)].slice(0, MAX_ADVICE)
     case "goalsNotMet":
-      return [...itemAdvice(level, result, has), ...storeAdvice(level, result, has), ...enemyGoalAdvice(level, result), ...finishAdvice(level, result), ...extraAdvice(level, result.frames)].slice(
+      return [...pickAdvice(level, result), ...itemAdvice(level, result, has), ...storeAdvice(level, result, has), ...enemyGoalAdvice(level, result), ...finishAdvice(level, result), ...extraAdvice(level, result.frames)].slice(
         0,
         MAX_ADVICE
       )

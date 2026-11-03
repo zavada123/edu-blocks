@@ -4,7 +4,7 @@ import type { Definition, Question, Step } from "../build.ts"
 import type { Level } from "../level.ts"
 import type { Program } from "../program.ts"
 import { type ReadStep, readProgram, type Slot } from "../read.ts"
-import { PYTHON_METHODS } from "./api.ts"
+import { ITEM_METHOD, PYTHON_METHODS } from "./api.ts"
 
 /** Blocks programs as Python code, as a student would write them. */
 
@@ -19,6 +19,7 @@ type CodeStep = Step | ReadStep
 const question = (q: Question | Slot): string => {
   if (q === null) return "False"
   if (typeof q === "string") return `hero.${METHOD.get(q)}()`
+  if ("itemIs" in q) return `hero.${ITEM_METHOD}("${q.itemIs}")`
   if ("not" in q) return `not ${question(q.not)}`
   const [a, b] = "and" in q ? q.and : q.or
   return `(${question(a)} ${"and" in q ? "and" : "or"} ${question(b)})`

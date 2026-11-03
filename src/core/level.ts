@@ -1,5 +1,5 @@
 import type { Definition, Step } from "./build.ts"
-import { atFinish, type Direction, enemiesLeft, enemyOf, type EnemySpec, type MapRows, parseMap, type World } from "./world.ts"
+import { atFinish, cellKey, type Direction, enemiesLeft, enemyOf, type EnemySpec, itemCount, type ItemKind, type MapRows, parseMap, type World } from "./world.ts"
 import type { Tier } from "./xp.ts"
 
 /** Blocks a level can put into the palette. Hero blocks and the Scratch blocks with the same meaning. */
@@ -24,6 +24,8 @@ export type BlockName =
   | "atStorehouse"
   | "onLever"
   | "leverOn"
+  /** «тут ‹морква›?»: a question with a choice of the item kind in the block. */
+  | "itemIs"
   | "repeat"
   | "forever"
   | "repeatUntil"
@@ -44,9 +46,10 @@ export type Goal =
   | { readonly type: "enemies" }
   /** Every item taken and put down in the storehouse (`H`). */
   | { readonly type: "store" }
+  /** Take every item of this kind and leave the others where they lie. */
+  | { readonly type: "pick"; readonly item: ItemKind }
 
-/** What lies on the `c` cells and what `collect` takes. A campfire is not taken but lit. */
-export type ItemKind = "crystal" | "wood" | "apple" | "fish" | "key" | "campfire" | "carrot" | "egg"
+export type { ItemKind } from "./world.ts"
 
 /** Another item on one `c` cell than the level's `item`: the carrots and eggs of the estate. */
 export interface ItemAt {
@@ -244,7 +247,14 @@ export const startWorld = (level: Level): World => {
   const hearts = Math.max(1, Math.round(level.hearts ?? world.hearts))
   const energy = level.maxSteps === undefined ? null : Math.max(0, Math.round(level.maxSteps))
   const capacity = level.capacity === undefined ? null : Math.max(1, Math.round(level.capacity))
-  return { ...world, enemies: (level.enemies ?? []).map(enemyOf), hearts, maxHearts: hearts, energy, capacity }
+  const itemKinds = itemKindsOf(world, level.scene ?? {})
+  return { ...world, enemies: (level.enemies ?? []).map(enemyOf), hearts, maxHearts: hearts, energy, capacity, itemKinds }
+}
+
+/** What lies on each `c` cell: its own kind from `itemsAt`, the level's `item` otherwise. */
+const itemKindsOf = (world: World, scene: Scene): ReadonlyMap<string, ItemKind> => {
+  const own = new Map((scene.itemsAt ?? []).map((i) => [cellKey(i.x, i.y), i.item]))
+  return new Map([...world.crystals].map((key) => [key, own.get(key) ?? scene.item ?? "crystal"]))
 }
 
 export const goalMet = (world: World, goal: Goal): boolean => {
@@ -257,6 +267,10 @@ export const goalMet = (world: World, goal: Goal): boolean => {
       return enemiesLeft(world) === 0
     case "store":
       return world.crystals.size === 0 && world.carrying === 0
+    case "pick": {
+      const mine = itemCount(world, goal.item)
+      return mine.left === 0 && world.crystals.size === world.totalCrystals - mine.total
+    }
   }
 }
 
@@ -274,6 +288,18 @@ const ITEM_GOALS: Readonly<Record<ItemKind, (count: number) => string>> = {
   campfire: (n) => `Розпали вогнища (${n})`,
   carrot: (n) => `Збери моркву (${n})`,
   egg: (n) => (n === 1 ? "Візьми яйце" : `Збери яйця (${n})`)
+}
+
+/** «Збери лише …»: the goal that takes one kind and leaves the others. */
+const ITEM_PICKS: Readonly<Record<ItemKind, string>> = {
+  crystal: "Збери лише кристали",
+  wood: "Візьми лише дрова",
+  apple: "Збери лише яблука",
+  fish: "Злови лише рибу",
+  key: "Візьми лише ключі",
+  campfire: "Розпали лише вогнища",
+  carrot: "Збери лише моркву",
+  egg: "Збери лише яйця"
 }
 
 /** The kind the goal names: the one kind of `itemsAt` when there is one, the level's `item` otherwise. */
@@ -309,6 +335,8 @@ export const describeGoal = (goal: Goal, world: World, scene: Scene = {}): strin
       return enemiesGoal(world)
     case "store":
       return `Віднеси все на склад (${world.totalCrystals})`
+    case "pick":
+      return `${ITEM_PICKS[goal.item]} (${itemCount(world, goal.item).total}), а решту не чіпай`
   }
 }
 

@@ -1,12 +1,14 @@
 import { type Sensor } from "./hero.ts";
 import { type Program } from "./program.ts";
-import type { Action } from "./world.ts";
+import type { Action, ItemKind } from "./world.ts";
 /**
  * Reads a program of the editor back into steps, as `build.ts` writes them: for the Python view under the blocks.
  * Unlike a `Step`, a condition slot can be empty (`null`, which Scratch reads as false), a call names its custom
  * block, and a number slot can hold the counter. Blocks that do not run (outside every script) are left out.
  */
 export type Condition = Sensor | {
+    readonly itemIs: ItemKind;
+} | {
     readonly not: Slot;
 } | {
     readonly and: readonly [Slot, Slot];

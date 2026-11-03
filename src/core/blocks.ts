@@ -4,10 +4,23 @@ import type { BlockName, ItemKind } from "./level.ts"
 export const HERO_EXTENSION_ID = "hero"
 export const HERO_COLOR = "#0FBD8C"
 
-export type HeroBlock = Extract<BlockName, "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn">
+export type HeroBlock = Extract<BlockName, "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "itemIs">
 
 /** Hero blocks in palette order. `boolean` blocks are the questions for «якщо» and «повторити до». */
-export const HERO_BLOCKS: ReadonlyArray<{ readonly name: HeroBlock; readonly text: string; readonly boolean: boolean }> = [
+/**
+ * A hero block. `[ITEM]` in the text is a drop-down of the item kinds (`itemMenu`): the block keeps the choice in
+ * its field `ITEM`.
+ */
+export interface HeroBlockInfo {
+  readonly name: HeroBlock
+  readonly text: string
+  readonly boolean: boolean
+}
+
+/** The field of «тут ‹…›?» that holds the item kind. */
+export const ITEM_FIELD = "ITEM"
+
+export const HERO_BLOCKS: ReadonlyArray<HeroBlockInfo> = [
   { name: "move", text: "крок уперед", boolean: false },
   { name: "turnLeft", text: "поворот ліворуч ↺", boolean: false },
   { name: "turnRight", text: "поворот праворуч ↻", boolean: false },
@@ -24,7 +37,8 @@ export const HERO_BLOCKS: ReadonlyArray<{ readonly name: HeroBlock; readonly tex
   { name: "handsFull", text: "руки повні?", boolean: true },
   { name: "atStorehouse", text: "тут склад?", boolean: true },
   { name: "onLever", text: "тут важіль?", boolean: true },
-  { name: "leverOn", text: "важіль увімкнено?", boolean: true }
+  { name: "leverOn", text: "важіль увімкнено?", boolean: true },
+  { name: "itemIs", text: "тут [ITEM]?", boolean: true }
 ]
 
 /**
@@ -40,6 +54,35 @@ const COLLECT_TEXT: Readonly<Record<ItemKind, string>> = {
   campfire: "розпалити",
   carrot: "взяти",
   egg: "взяти"
+}
+
+/** Item kinds by name, as the drop-down of «тут ‹…›?» shows them. */
+export const ITEM_NAMES: Readonly<Record<ItemKind, string>> = {
+  crystal: "кристал",
+  wood: "дрова",
+  apple: "яблуко",
+  fish: "риба",
+  key: "ключ",
+  campfire: "вогнище",
+  carrot: "морква",
+  egg: "яйце"
+}
+
+const ITEM_KINDS = Object.keys(ITEM_NAMES) as ReadonlyArray<ItemKind>
+
+/** Whether a value of a program is an item kind. */
+export const isItemKind = (value: unknown): value is ItemKind => typeof value === "string" && (ITEM_KINDS as ReadonlyArray<string>).includes(value)
+
+/** The kind a «тут ‹…›?» block holds in its field; a crystal when the field is damaged. */
+export const itemOfField = (field: unknown): ItemKind => (Array.isArray(field) && isItemKind(field[0]) ? field[0] : "crystal")
+
+/**
+ * The choices of «тут ‹…›?» on a level: the kinds that lie on its map (`itemsAt`, then `item`), every kind when
+ * the level names none.
+ */
+export const itemMenu = (scene: { readonly item?: ItemKind; readonly itemsAt?: ReadonlyArray<{ readonly item: ItemKind }> } | undefined): ReadonlyArray<ItemKind> => {
+  const kinds = new Set([...(scene?.itemsAt ?? []).map((i) => i.item), ...(scene?.item === undefined ? [] : [scene.item])])
+  return kinds.size === 0 ? ITEM_KINDS : ITEM_KINDS.filter((k) => kinds.has(k))
 }
 
 /** The words of the «взяти» block on a level with these items. */

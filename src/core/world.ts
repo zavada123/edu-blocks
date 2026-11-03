@@ -18,6 +18,9 @@ export interface Cell {
  */
 export type MapRows = ReadonlyArray<string>
 
+/** What lies on the `c` cells and what `collect` takes. A campfire is not taken but lit. */
+export type ItemKind = "crystal" | "wood" | "apple" | "fish" | "key" | "campfire" | "carrot" | "egg"
+
 export interface World {
   readonly width: number
   readonly height: number
@@ -54,6 +57,8 @@ export interface World {
   readonly leversOn: ReadonlySet<string>
   /** Gate cells (`G`): a wall while any lever is off, floor once all of them are on. */
   readonly gates: ReadonlySet<string>
+  /** What lies on each `c` cell, taken or not: the level's items (`startWorld`). A crystal where it is left out. */
+  readonly itemKinds: ReadonlyMap<string, ItemKind>
 }
 
 /** Monsters from the pack. Which one only changes the picture. */
@@ -209,7 +214,27 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
     stored: 0,
     levers,
     leversOn,
-    gates
+    gates,
+    itemKinds: new Map()
+  }
+}
+
+/** What lies or lay on a cell. */
+export const kindAt = (world: World, key: string): ItemKind => world.itemKinds.get(key) ?? "crystal"
+
+/** «тут ‹морква›?»: a thing of this kind lies under the hero. */
+export const itemIs = (world: World, kind: ItemKind): boolean => {
+  const key = cellKey(world.hero.x, world.hero.y)
+  return world.crystals.has(key) && kindAt(world, key) === kind
+}
+
+/** Things of this kind on the map at the start, and the ones still lying there. */
+export const itemCount = (world: World, kind: ItemKind): { readonly total: number; readonly left: number } => {
+  const keys = [...world.crystals]
+  const all = new Set([...world.itemKinds.keys(), ...keys])
+  return {
+    total: [...all].filter((k) => kindAt(world, k) === kind).length,
+    left: keys.filter((k) => kindAt(world, k) === kind).length
   }
 }
 

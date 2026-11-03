@@ -1,7 +1,7 @@
 import { opcodeOf } from "./blocks.ts"
 import { allGoalsMet, goalStatus, type Level, startWorld } from "./level.ts"
 import { fatalReason, MAX_ACTIONS, type Session } from "./program.ts"
-import { type Action, applyAction, atFinish, atStorehouse, enemyAhead, handsFull, leverOn, onCrystal, onLever, trapAhead, wallAhead, type World } from "./world.ts"
+import { type Action, applyAction, atFinish, atStorehouse, enemyAhead, handsFull, itemIs, type ItemKind, leverOn, onCrystal, onLever, trapAhead, wallAhead, type World } from "./world.ts"
 
 /**
  * The hero API: what a program may tell the hero to do and ask the hero about. Every way of programming calls
@@ -79,8 +79,12 @@ export const heroAct = (level: Level, session: Session, action: Action, source: 
   return false
 }
 
+/** A question to the world: a plain one, or «тут ‹…›?» with the kind chosen in the block. */
+export type Probe = Sensor | { readonly itemIs: ItemKind }
+
 /** The answer to a question about the world as it is now. */
-export const heroSense = (session: Session, sensor: Sensor): boolean => HERO_SENSORS[sensor](session.world)
+export const heroSense = (session: Session, probe: Probe): boolean =>
+  typeof probe === "string" ? HERO_SENSORS[probe](session.world) : itemIs(session.world, probe.itemIs)
 
 const end = (session: Session, reason: Session["reason"]): true => {
   session.done = true

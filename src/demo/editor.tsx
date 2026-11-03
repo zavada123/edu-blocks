@@ -79,7 +79,7 @@ const OTHER_BLOCKS: ReadonlyArray<{ readonly name: BlockName; readonly text: str
 ]
 
 const ALL_BLOCKS: ReadonlyArray<{ readonly name: BlockName; readonly text: string }> = [
-  ...HERO_BLOCKS.map((b) => ({ name: b.name, text: b.text })),
+  ...HERO_BLOCKS.map((b) => ({ name: b.name, text: b.text.replace("[ITEM]", "‹річ›") })),
   ...OTHER_BLOCKS
 ]
 
@@ -281,7 +281,7 @@ const Editor = () => {
     on ? [...list.filter((v) => v !== value), value] : list.filter((v) => v !== value)
 
   const goalOn = (type: Goal["type"]) => level.goals.some((g) => g.type === type)
-  const setGoal = (type: Goal["type"], on: boolean) =>
+  const setGoal = (type: Exclude<Goal["type"], "pick">, on: boolean) =>
     update({ goals: on ? [...level.goals.filter((g) => g.type !== type), { type }] : level.goals.filter((g) => g.type !== type) })
 
   return (

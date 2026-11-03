@@ -14,6 +14,8 @@ export interface Cell {
  * A space or a cell outside the rows is a wall too.
  */
 export type MapRows = ReadonlyArray<string>;
+/** What lies on the `c` cells and what `collect` takes. A campfire is not taken but lit. */
+export type ItemKind = "crystal" | "wood" | "apple" | "fish" | "key" | "campfire" | "carrot" | "egg";
 export interface World {
     readonly width: number;
     readonly height: number;
@@ -52,6 +54,8 @@ export interface World {
     readonly leversOn: ReadonlySet<string>;
     /** Gate cells (`G`): a wall while any lever is off, floor once all of them are on. */
     readonly gates: ReadonlySet<string>;
+    /** What lies on each `c` cell, taken or not: the level's items (`startWorld`). A crystal where it is left out. */
+    readonly itemKinds: ReadonlyMap<string, ItemKind>;
 }
 /** Monsters from the pack. Which one only changes the picture. */
 export type EnemyKind = "slime" | "spirit" | "goblin" | "skull" | "flame" | "bear" | "toad";
@@ -117,6 +121,15 @@ export declare const isAlive: (enemy: Enemy) => boolean;
 export declare const enemiesLeft: (world: World) => number;
 export declare const cellKey: (x: number, y: number) => string;
 export declare const parseMap: (rows: MapRows, dir?: Direction) => World;
+/** What lies or lay on a cell. */
+export declare const kindAt: (world: World, key: string) => ItemKind;
+/** «тут ‹морква›?»: a thing of this kind lies under the hero. */
+export declare const itemIs: (world: World, kind: ItemKind) => boolean;
+/** Things of this kind on the map at the start, and the ones still lying there. */
+export declare const itemCount: (world: World, kind: ItemKind) => {
+    readonly total: number;
+    readonly left: number;
+};
 /** Every lever is on, so the gates stand open. True on a map without levers. */
 export declare const gatesOpen: (world: World) => boolean;
 /** A gate that is shut now. */

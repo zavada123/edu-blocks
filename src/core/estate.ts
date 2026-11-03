@@ -161,6 +161,7 @@ const BLOCK_ORDER: ReadonlyArray<BlockName> = [
   "atStorehouse",
   "onLever",
   "leverOn",
+  "itemIs",
   "repeat",
   "forever",
   "repeatUntil",

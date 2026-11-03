@@ -14,6 +14,8 @@ import {
   gatesOpen,
   isAlive,
   isFatal,
+  itemCount,
+  kindAt,
   type MapRows,
   parseMap,
   type World
@@ -150,6 +152,12 @@ export const checkLevel = (level: Level): ReadonlyArray<Issue> => {
   if (world.gates.size > 0 && !gatesOpen(world) && !has("pull")) error("Ворота зачинені, а в палітрі немає «потягнути важіль»")
   if (world.gates.size > 0 && world.levers.size === 0) warning("На мапі є ворота, але немає важелів: ворота завжди відчинені")
   if (world.levers.size > 0 && world.gates.size === 0) warning("На мапі є важелі, але немає воріт G: важелі нічого не відчиняють")
+  const pick = level.goals.find((g) => g.type === "pick")
+  if (pick !== undefined && pick.type === "pick") {
+    const start = startWorld(level)
+    if (itemCount(start, pick.item).total === 0) error("Мета — зібрати лише один вид речей, а таких речей на мапі немає")
+    if (!has("collect")) error("Речі треба брати, а в палітрі немає «взяти»")
+  }
   if (level.capacity !== undefined && !(level.capacity >= 1)) error("Місткість рук має бути щонайменше 1")
   const enemies = level.enemies ?? []
   if (wants("enemies") && enemies.length === 0) error("Мета — перемогти ворогів, а ворогів на мапі немає")
@@ -180,7 +188,7 @@ export const checkLevel = (level: Level): ReadonlyArray<Issue> => {
   if (level.maxSteps !== undefined && !(level.maxSteps >= 1)) error("Кроків має бути щонайменше 1")
   if (world.storehouse !== null && !open.has(cellKey(world.storehouse.x, world.storehouse.y)))
     error("Герой не дійде до складу H: його відрізають стіни або пастки")
-  if (!wants("crystals") && !wants("store") && world.totalCrystals > 0) warning("На мапі є предмети, але мета їх не просить")
+  if (!wants("crystals") && !wants("store") && !wants("pick") && world.totalCrystals > 0) warning("На мапі є предмети, але мета їх не просить")
   if (!wants("finish") && world.finish !== null) warning("На мапі є F, але мета не просить до неї дійти")
   const lostEnemies = enemies.filter((e) => !open.has(cellKey(e.x, e.y))).length
   if (wants("enemies") && lostEnemies > 0) error(`Герой не дійде до ${lostEnemies} ворог${lostEnemies === 1 ? "а" : "ів"}: їх відрізають стіни`)
@@ -320,15 +328,19 @@ export const plainRoute = (level: Level): ReadonlyArray<Step> | null => {
     } else if (!advance(lever)) return null
   }
 
-  const order = itemOrder(level, world)
+  const pickGoal = level.goals.find((g) => g.type === "pick")
+  /** The items the route takes: every one, or only the kind of «збери лише …». */
+  const wanted = (key: string) => pickGoal === undefined || pickGoal.type !== "pick" || kindAt(world, key) === pickGoal.item
+  const order = itemOrder(level, world).filter((c) => wanted(cellKey(c.x, c.y)))
   const storing = wants("store")
-  while ((wants("crystals") || storing) && world.crystals.size > 0 && !done()) {
+  const left = () => [...world.crystals].filter(wanted)
+  while ((wants("crystals") || storing || pickGoal !== undefined) && left().length > 0 && !done()) {
     if (storing && world.capacity !== null && world.carrying >= world.capacity) {
       if (!unload()) return null
       continue
     }
-    const left = order.filter((c) => world.crystals.has(cellKey(c.x, c.y)))
-    const item = left.length > 0 ? left[0] : nearest([...world.crystals].map(cellOf))
+    const next = order.filter((c) => world.crystals.has(cellKey(c.x, c.y)))
+    const item = next.length > 0 ? next[0] : nearest(left().map(cellOf))
     if (item === undefined) return null
     if (world.hero.x === item.x && world.hero.y === item.y) {
       if (!act("collect")) return null

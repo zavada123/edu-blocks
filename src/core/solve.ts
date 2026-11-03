@@ -96,7 +96,7 @@ const wastes = (world: World, action: Action): boolean => {
   return action === "attack" || !world.crystals.has(`${world.hero.x},${world.hero.y}`) || (world.capacity !== null && world.carrying >= world.capacity)
 }
 
-const QUESTIONS: ReadonlyArray<BlockName> = ["wallAhead", "onCrystal", "atFinish", "enemyAhead", "trapAhead", "handsFull", "atStorehouse", "onLever", "leverOn"]
+const QUESTIONS: ReadonlyArray<BlockName> = ["wallAhead", "onCrystal", "atFinish", "enemyAhead", "trapAhead", "handsFull", "atStorehouse", "onLever", "leverOn", "itemIs"]
 const ASKING: ReadonlyArray<BlockName> = ["if", "ifElse", "repeatUntil"]
 const LOGIC: ReadonlyArray<BlockName> = ["not", "and", "or"]
 
