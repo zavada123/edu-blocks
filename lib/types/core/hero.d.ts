@@ -7,7 +7,7 @@ import { type Action, type World } from "./world.ts";
  * So a new language needs no change of the game, and a new action or question needs no change of a language.
  */
 /** The questions a program may ask, for «якщо» and «повторити до». */
-export type Sensor = "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse";
+export type Sensor = "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn";
 /** The hero's actions, in palette order. */
 export declare const HERO_ACTIONS: ReadonlyArray<Action>;
 /** Each question and how the world answers it. */

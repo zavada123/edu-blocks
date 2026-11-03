@@ -11,6 +11,7 @@ import {
   cellKey,
   type Direction,
   enemyAhead,
+  gatesOpen,
   isAlive,
   isFatal,
   type MapRows,
@@ -24,12 +25,23 @@ import {
  * level as code for `src/levels/index.ts`.
  *
  * Map signs: `#` wall (trees, bushes or water under a bridge), `.` floor, `S` start, `c` item, `F` finish, `x` trap,
- * `H` storehouse.
+ * `H` storehouse, `L` lever (off), `l` lever (on), `G` gate.
  */
 
-export type MapTile = "wall" | "floor" | "start" | "item" | "finish" | "trap" | "storehouse"
+export type MapTile = "wall" | "floor" | "start" | "item" | "finish" | "trap" | "storehouse" | "lever" | "leverOn" | "gate"
 
-const SIGN: Readonly<Record<MapTile, string>> = { wall: "#", floor: ".", start: "S", item: "c", finish: "F", trap: "x", storehouse: "H" }
+const SIGN: Readonly<Record<MapTile, string>> = {
+  wall: "#",
+  floor: ".",
+  start: "S",
+  item: "c",
+  finish: "F",
+  trap: "x",
+  storehouse: "H",
+  lever: "L",
+  leverOn: "l",
+  gate: "G"
+}
 
 /** The smallest and the largest map a level can have, walls around it included. */
 export const MAP_LIMITS = { min: 3, max: 16 } as const
@@ -135,6 +147,9 @@ export const checkLevel = (level: Level): ReadonlyArray<Issue> => {
   if (wants("store") && world.storehouse === null) error("Мета — віднести на склад, а на мапі немає складу H")
   if (wants("store") && world.totalCrystals === 0) error("Мета — віднести на склад, а на мапі немає жодного c")
   if (wants("store") && (!has("collect") || !has("store"))) error("Щоб віднести на склад, у палітрі мають бути «взяти» і «віднести на склад»")
+  if (world.gates.size > 0 && !gatesOpen(world) && !has("pull")) error("Ворота зачинені, а в палітрі немає «потягнути важіль»")
+  if (world.gates.size > 0 && world.levers.size === 0) warning("На мапі є ворота, але немає важелів: ворота завжди відчинені")
+  if (world.levers.size > 0 && world.gates.size === 0) warning("На мапі є важелі, але немає воріт G: важелі нічого не відчиняють")
   if (level.capacity !== undefined && !(level.capacity >= 1)) error("Місткість рук має бути щонайменше 1")
   const enemies = level.enemies ?? []
   if (wants("enemies") && enemies.length === 0) error("Мета — перемогти ворогів, а ворогів на мапі немає")
@@ -294,6 +309,15 @@ export const plainRoute = (level: Level): ReadonlyArray<Step> | null => {
     if (house === null) return false
     while (!(world.hero.x === house.x && world.hero.y === house.y)) if (!advance(house)) return false
     return act("store")
+  }
+
+  /** Pulls every lever that is off, nearest first, so the gates open before the hero needs them. */
+  while (world.gates.size > 0 && !gatesOpen(world)) {
+    const lever = nearest([...world.levers].filter((key) => !world.leversOn.has(key)).map(cellOf))
+    if (lever === undefined) return null
+    if (world.hero.x === lever.x && world.hero.y === lever.y) {
+      if (!act("pull")) return null
+    } else if (!advance(lever)) return null
   }
 
   const order = itemOrder(level, world)

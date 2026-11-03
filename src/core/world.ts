@@ -13,7 +13,7 @@ export interface Cell {
 /**
  * Map rows, top to bottom. `#` wall, `.` floor, `S` start, `c` crystal, `F` finish, `x` trap (thin ice or a pit:
  * the hero can step on it, and the run ends there), `H` storehouse (floor where «віднести на склад» puts down what the
- * hero carries).
+ * hero carries), `L` a lever that is off, `l` a lever that is on, `G` a gate (shut like a wall until every lever is on).
  * A space or a cell outside the rows is a wall too.
  */
 export type MapRows = ReadonlyArray<string>
@@ -48,6 +48,12 @@ export interface World {
   readonly capacity: number | null
   /** Things put down in the storehouse. */
   readonly stored: number
+  /** Lever cells (`L`, `l`): floor where «потягнути важіль» switches the lever. */
+  readonly levers: ReadonlySet<string>
+  /** The levers that are on now. */
+  readonly leversOn: ReadonlySet<string>
+  /** Gate cells (`G`): a wall while any lever is off, floor once all of them are on. */
+  readonly gates: ReadonlySet<string>
 }
 
 /** Monsters from the pack. Which one only changes the picture. */
@@ -157,6 +163,9 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
   const walls = new Set<string>()
   const crystals = new Set<string>()
   const traps = new Set<string>()
+  const levers = new Set<string>()
+  const leversOn = new Set<string>()
+  const gates = new Set<string>()
   let start: Cell | null = null
   let finish: Cell | null = null
   let storehouse: Cell | null = null
@@ -170,6 +179,10 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
       else if (ch === "S") start = { x, y }
       else if (ch === "F") finish = { x, y }
       else if (ch === "H") storehouse = { x, y }
+      else if (ch === "L" || ch === "l") {
+        levers.add(cellKey(x, y))
+        if (ch === "l") leversOn.add(cellKey(x, y))
+      } else if (ch === "G") gates.add(cellKey(x, y))
       else if (ch !== ".") throw new Error(`Невідомий знак «${ch}» на мапі, рядок ${y + 1}`)
     }
   })
@@ -193,12 +206,22 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
     storehouse,
     carrying: 0,
     capacity: null,
-    stored: 0
+    stored: 0,
+    levers,
+    leversOn,
+    gates
   }
 }
 
+/** Every lever is on, so the gates stand open. True on a map without levers. */
+export const gatesOpen = (world: World): boolean => world.leversOn.size === world.levers.size
+
+/** A gate that is shut now. */
+export const isClosedGate = (world: World, x: number, y: number): boolean => world.gates.has(cellKey(x, y)) && !gatesOpen(world)
+
+/** A wall, the edge of the map or a shut gate: nobody walks there now. */
 export const isWall = (world: World, x: number, y: number): boolean =>
-  x < 0 || y < 0 || x >= world.width || y >= world.height || world.walls.has(cellKey(x, y))
+  x < 0 || y < 0 || x >= world.width || y >= world.height || world.walls.has(cellKey(x, y)) || isClosedGate(world, x, y)
 
 export const cellAhead = (world: World): Cell => {
   const d = DELTA[world.hero.dir]
@@ -235,7 +258,13 @@ export const atStorehouse = (world: World): boolean =>
 /** The hero carries as much as it can: «взяти» would take nothing now. Never true on a level without a limit. */
 export const handsFull = (world: World): boolean => world.capacity !== null && world.carrying >= world.capacity
 
-export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait"
+/** The hero stands on a lever. */
+export const onLever = (world: World): boolean => world.levers.has(cellKey(world.hero.x, world.hero.y))
+
+/** The hero stands on a lever that is on. */
+export const leverOn = (world: World): boolean => world.leversOn.has(cellKey(world.hero.x, world.hero.y))
+
+export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull"
 
 /** What one action did, for the animation and the error message. */
 export type Outcome =
@@ -259,6 +288,10 @@ export type Outcome =
   | "nothingToStore"
   /** «зачекати»: the hero stands, the enemies take their turn. */
   | "waited"
+  /** «потягнути важіль» on a lever: it is switched. */
+  | "pulled"
+  /** «потягнути важіль» where there is no lever. */
+  | "noLever"
 
 /**
  * What happened in the world, in the order it happened: the hero's action first, then each enemy's turn.
@@ -292,6 +325,14 @@ export type GameEvent =
   | { readonly type: "enemyAlerted"; readonly id: number }
   /** The hero stood one turn. */
   | { readonly type: "heroWaited" }
+  /** The hero switched the lever: on or off now. */
+  | { readonly type: "leverPulled"; readonly at: Cell; readonly on: boolean }
+  /** «потягнути важіль» where there is no lever. */
+  | { readonly type: "noLever"; readonly at: Cell }
+  /** The last lever went on: the gates are open. */
+  | { readonly type: "gatesOpened" }
+  /** A lever went off: the gates shut. */
+  | { readonly type: "gatesClosed" }
 
 export interface ActionResult {
   readonly world: World
@@ -336,6 +377,7 @@ const heroAction = (world: World, action: Action): ActionResult => {
   }
   if (action === "store") return store(world)
   if (action === "wait") return { world, outcome: "waited", events: [{ type: "heroWaited" }] }
+  if (action === "pull") return pull(world)
   const key = cellKey(world.hero.x, world.hero.y)
   if (!world.crystals.has(key)) return { world, outcome: "nothingToCollect", events: [{ type: "nothingToTake", at: here }] }
   if (handsFull(world)) return { world, outcome: "handsFull", events: [{ type: "handsFull", at: here }] }
@@ -354,6 +396,23 @@ const store = (world: World): ActionResult => {
     outcome: "stored",
     events: [{ type: "itemsStored", at: here, count: world.carrying }]
   }
+}
+
+/** «потягнути важіль»: switches the lever under the hero. The gates follow: open when every lever is on. */
+const pull = (world: World): ActionResult => {
+  const here = at(world.hero)
+  const key = cellKey(here.x, here.y)
+  if (!world.levers.has(key)) return { world, outcome: "noLever", events: [{ type: "noLever", at: here }] }
+  const leversOn = new Set(world.leversOn)
+  const on = !leversOn.has(key)
+  if (on) leversOn.add(key)
+  else leversOn.delete(key)
+  const after = { ...world, leversOn }
+  const wasOpen = gatesOpen(world)
+  const isOpen = gatesOpen(after)
+  const gate: ReadonlyArray<GameEvent> =
+    world.gates.size === 0 || wasOpen === isOpen ? [] : [isOpen ? { type: "gatesOpened" } : { type: "gatesClosed" }]
+  return { world: after, outcome: "pulled", events: [{ type: "leverPulled", at: here, on }, ...gate] }
 }
 
 const distance = (a: Cell, b: Cell): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y)

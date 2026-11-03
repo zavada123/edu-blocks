@@ -42,6 +42,9 @@ const TILE_TOOLS: ReadonlyArray<{ readonly tool: MapTile; readonly name: string 
   { tool: "trap", name: "Пастка" },
   { tool: "finish", name: "Мета" },
   { tool: "storehouse", name: "Склад" },
+  { tool: "lever", name: "Важіль" },
+  { tool: "leverOn", name: "Важіль увімк." },
+  { tool: "gate", name: "Ворота" },
   { tool: "start", name: "Старт" }
 ]
 

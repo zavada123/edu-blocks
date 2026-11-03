@@ -40,6 +40,7 @@ const describe = (world: World): string => {
   if (world.energy !== null) parts.push(`Кроків залишилось: ${world.energy}.`)
   if (world.capacity !== null) parts.push(`У руках: ${world.carrying} з ${world.capacity}.`)
   if (world.storehouse !== null) parts.push(`На складі: ${world.stored}.`)
+  if (world.gates.size > 0) parts.push(`Увімкнено важелів: ${world.leversOn.size} з ${world.levers.size}. Ворота ${world.leversOn.size === world.levers.size ? "відчинені" : "зачинені"}.`)
   return `Поле гри. ${parts.join(" ")}`
 }
 

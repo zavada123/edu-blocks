@@ -10,7 +10,7 @@ export interface Cell {
 /**
  * Map rows, top to bottom. `#` wall, `.` floor, `S` start, `c` crystal, `F` finish, `x` trap (thin ice or a pit:
  * the hero can step on it, and the run ends there), `H` storehouse (floor where «віднести на склад» puts down what the
- * hero carries).
+ * hero carries), `L` a lever that is off, `l` a lever that is on, `G` a gate (shut like a wall until every lever is on).
  * A space or a cell outside the rows is a wall too.
  */
 export type MapRows = ReadonlyArray<string>;
@@ -46,6 +46,12 @@ export interface World {
     readonly capacity: number | null;
     /** Things put down in the storehouse. */
     readonly stored: number;
+    /** Lever cells (`L`, `l`): floor where «потягнути важіль» switches the lever. */
+    readonly levers: ReadonlySet<string>;
+    /** The levers that are on now. */
+    readonly leversOn: ReadonlySet<string>;
+    /** Gate cells (`G`): a wall while any lever is off, floor once all of them are on. */
+    readonly gates: ReadonlySet<string>;
 }
 /** Monsters from the pack. Which one only changes the picture. */
 export type EnemyKind = "slime" | "spirit" | "goblin" | "skull" | "flame" | "bear" | "toad";
@@ -111,6 +117,11 @@ export declare const isAlive: (enemy: Enemy) => boolean;
 export declare const enemiesLeft: (world: World) => number;
 export declare const cellKey: (x: number, y: number) => string;
 export declare const parseMap: (rows: MapRows, dir?: Direction) => World;
+/** Every lever is on, so the gates stand open. True on a map without levers. */
+export declare const gatesOpen: (world: World) => boolean;
+/** A gate that is shut now. */
+export declare const isClosedGate: (world: World, x: number, y: number) => boolean;
+/** A wall, the edge of the map or a shut gate: nobody walks there now. */
 export declare const isWall: (world: World, x: number, y: number) => boolean;
 export declare const cellAhead: (world: World) => Cell;
 export declare const wallAhead: (world: World) => boolean;
@@ -123,7 +134,11 @@ export declare const atFinish: (world: World) => boolean;
 export declare const atStorehouse: (world: World) => boolean;
 /** The hero carries as much as it can: «взяти» would take nothing now. Never true on a level without a limit. */
 export declare const handsFull: (world: World) => boolean;
-export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait";
+/** The hero stands on a lever. */
+export declare const onLever: (world: World) => boolean;
+/** The hero stands on a lever that is on. */
+export declare const leverOn: (world: World) => boolean;
+export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull";
 /** What one action did, for the animation and the error message. */
 export type Outcome = "moved" | "crashed" | "fell" | "tired" | "turned" | "collected" | "nothingToCollect" | "enemyHit" | "enemyDown" | "swingMissed"
 /** «взяти» with full hands: the thing stays where it lies. */
@@ -135,7 +150,11 @@ export type Outcome = "moved" | "crashed" | "fell" | "tired" | "turned" | "colle
 /** «віднести на склад» on the storehouse with empty hands. */
  | "nothingToStore"
 /** «зачекати»: the hero stands, the enemies take their turn. */
- | "waited";
+ | "waited"
+/** «потягнути важіль» on a lever: it is switched. */
+ | "pulled"
+/** «потягнути важіль» where there is no lever. */
+ | "noLever";
 /**
  * What happened in the world, in the order it happened: the hero's action first, then each enemy's turn.
  * A frame keeps the events, so an animation shows what was done, not only where everybody stands now.
@@ -217,6 +236,25 @@ export type GameEvent = {
 /** The hero stood one turn. */
  | {
     readonly type: "heroWaited";
+}
+/** The hero switched the lever: on or off now. */
+ | {
+    readonly type: "leverPulled";
+    readonly at: Cell;
+    readonly on: boolean;
+}
+/** «потягнути важіль» where there is no lever. */
+ | {
+    readonly type: "noLever";
+    readonly at: Cell;
+}
+/** The last lever went on: the gates are open. */
+ | {
+    readonly type: "gatesOpened";
+}
+/** A lever went off: the gates shut. */
+ | {
+    readonly type: "gatesClosed";
 };
 export interface ActionResult {
     readonly world: World;

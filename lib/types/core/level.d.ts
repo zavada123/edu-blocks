@@ -6,7 +6,9 @@ export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "attack"
 /** «віднести на склад»: puts down on the storehouse what the hero carries. */
  | "store"
 /** «зачекати»: the hero stands one turn while the enemies move. */
- | "wait" | "wallAhead" | "enemyAhead" | "trapAhead" | "onCrystal" | "atFinish" | "handsFull" | "atStorehouse" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or"
+ | "wait"
+/** «потягнути важіль»: switches the lever under the hero; the gates open when every lever is on. */
+ | "pull" | "wallAhead" | "enemyAhead" | "trapAhead" | "onCrystal" | "atFinish" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or"
 /** «задати / змінити лічильник» and the (лічильник) reporter: one variable, as «Змінні» in Scratch. */
  | "counter"
 /** A custom block of the level: its «визначити» hat and the call, as «Мої блоки» in Scratch. */

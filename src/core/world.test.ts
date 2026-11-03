@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
 import { goalMet, type Level, startWorld } from "./level.ts"
-import { type Action, applyAction, atFinish, atStorehouse, cellKey, enemiesLeft, type Enemy, enemyOf, type EnemySpec, enemyAhead, handsFull, onCrystal, parseMap, seesInLine, trapAhead, wallAhead, type World } from "./world.ts"
+import { type Action, applyAction, atFinish, atStorehouse, cellKey, enemiesLeft, type Enemy, enemyOf, type EnemySpec, enemyAhead, gatesOpen, handsFull, leverOn, onCrystal, onLever, parseMap, seesInLine, trapAhead, wallAhead, type World } from "./world.ts"
 
 describe("parseMap", () => {
   test("reads walls, crystals, start and finish", () => {
@@ -257,5 +257,48 @@ describe("moving enemies", () => {
     const w = world(["#######", "#S....#", "#.....#", "#######"], [{ kind: "goblin", x: 5, y: 2, sees: "line", sight: 4 }])
     const done = applyAction(w, "wait")
     expect(done.world.enemies[0]).toMatchObject({ x: 5, y: 2, alerted: false })
+  })
+})
+
+describe("levers and gates", () => {
+  const rows = ["#######", "#SLlGF#", "#######"]
+
+  test("reads levers, which are on, and the gates", () => {
+    const w = parseMap(rows)
+    expect([...w.levers].sort()).toEqual([cellKey(2, 1), cellKey(3, 1)])
+    expect([...w.leversOn]).toEqual([cellKey(3, 1)])
+    expect([...w.gates]).toEqual([cellKey(4, 1)])
+    expect(gatesOpen(w)).toBe(false)
+  })
+
+  test("a shut gate is a wall, and pulling the last lever opens it", () => {
+    let w = applyAction(parseMap(rows), "move").world
+    expect(onLever(w)).toBe(true)
+    expect(leverOn(w)).toBe(false)
+    const pulled = applyAction(w, "pull")
+    expect(pulled.outcome).toBe("pulled")
+    expect(pulled.events.map((e) => e.type)).toEqual(["leverPulled", "gatesOpened"])
+    w = applyAction(pulled.world, "move").world
+    expect(leverOn(w)).toBe(true)
+    expect(wallAhead(w)).toBe(false)
+    w = applyAction(applyAction(w, "move").world, "move").world
+    expect(atFinish(w)).toBe(true)
+  })
+
+  test("pulling a lever that is on switches it off and shuts the gates", () => {
+    const open = parseMap(["######", "#SlGF#", "######"])
+    expect(gatesOpen(open)).toBe(true)
+    const on = applyAction(open, "move").world
+    const pulled = applyAction(on, "pull")
+    expect(pulled.events.map((e) => e.type)).toEqual(["leverPulled", "gatesClosed"])
+    expect(wallAhead(pulled.world)).toBe(true)
+    expect(applyAction(pulled.world, "move").outcome).toBe("crashed")
+  })
+
+  test("pulling where there is no lever does nothing", () => {
+    const w = parseMap(rows)
+    const done = applyAction(w, "pull")
+    expect(done.outcome).toBe("noLever")
+    expect(done.world.leversOn).toEqual(w.leversOn)
   })
 })

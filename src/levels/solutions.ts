@@ -102,6 +102,18 @@ export const solutions: Readonly<Record<string, ReadonlyArray<Step>>> = {
       ]
     }
   ],
+  "w-lever": [{ repeat: 2, body: ["move"] }, "pull", { repeat: 3, body: ["move"] }],
+  "w-careful": [{ repeat: 2, body: ["move"] }, "pull", { repeat: 4, body: ["move"] }, "pull", { repeat: 3, body: ["move"] }],
+  "w-row": [{ until: "atFinish", body: ["move", { if: { and: ["onLever", { not: "leverOn" }] }, then: ["pull"] }] }],
+  "w-yard": [
+    {
+      until: "atFinish",
+      body: [
+        { if: { and: ["onLever", { not: "leverOn" }] }, then: ["pull"] },
+        { if: "wallAhead", then: ["turnRight"], else: ["move"] }
+      ]
+    }
+  ],
   "v-ambush": [{ forever: [{ if: "enemyAhead", then: ["attack"], else: ["wait"] }] }],
   "v-unseen": ["turnRight", { repeat: 2, body: ["move"] }, "turnLeft", { repeat: 8, body: ["move"] }],
   "v-patrol": [{ until: "atFinish", body: [{ if: "enemyAhead", then: ["attack"], else: ["move", { if: "onCrystal", then: ["collect"] }] }] }],

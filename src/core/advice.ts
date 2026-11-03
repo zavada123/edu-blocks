@@ -2,7 +2,7 @@ import { collectText, opcodeOf } from "./blocks.ts"
 import type { BlockName, ItemKind, Level } from "./level.ts"
 import type { Frame, Program, RunResult } from "./program.ts"
 import { startWorld } from "./level.ts"
-import { applyAction, type Cell, cellAhead, cellKey, enemiesLeft, enemyAt, wallAhead, type World } from "./world.ts"
+import { applyAction, type Cell, cellAhead, cellKey, enemiesLeft, enemyAt, isClosedGate, wallAhead, type World } from "./world.ts"
 
 /**
  * Advice after a run, made from what the hero did with this very program: what is missing («взяти», a turn,
@@ -92,11 +92,21 @@ const bumpAdvice = (level: Level, n: number): ReadonlyArray<string> => {
   ]
 }
 
+/** The hero walked into a shut gate: some lever is still off. */
+const gateAdvice = (level: Level, world: World): ReadonlyArray<string> => {
+  const off = world.levers.size - world.leversOn.size
+  const tips = [`Ворота зачинені: ще ${off} ${off === 1 ? "важіль вимкнено" : few(off) ? "важелі вимкнено" : "важелів вимкнено"}. Ворота відчиняться, коли всі важелі увімкнено.`]
+  if (level.blocks.includes("leverOn"))
+    tips.push("Важіль, який уже увімкнено, від «потягнути» вимкнеться. Спитай «важіль увімкнено?» і тягни лише той, що вимкнений.")
+  return tips
+}
+
 const crashAdvice = (level: Level, result: RunResult, has: (b: BlockName) => boolean): ReadonlyArray<string> => {
   const n = result.frames.length
   const before = result.frames[n - 2]?.world ?? startWorld(level)
   const ahead = cellAhead(result.world)
   if (enemyAt(result.world, ahead.x, ahead.y) !== undefined) return bumpAdvice(level, n)
+  if (isClosedGate(result.world, ahead.x, ahead.y)) return gateAdvice(level, result.world)
   const leftFree = !wallAhead(applyAction(before, "turnLeft").world)
   const rightFree = !wallAhead(applyAction(before, "turnRight").world)
   const where = `На ${n}-й дії герой урізався в перешкоду.`
@@ -211,6 +221,8 @@ const extraAdvice = (level: Level, frames: ReadonlyArray<Frame>): ReadonlyArray<
   if (away > 0) tips.push(`«Віднести на склад» ${away} ${times(away)} спрацював не на складі. Спершу дійди до складу.`)
   const emptyHands = frames.filter((f) => f.outcome === "nothingToStore").length
   if (emptyHands > 0) tips.push(`«Віднести на склад» ${emptyHands} ${times(emptyHands)} спрацював з порожніми руками.`)
+  const noLever = frames.filter((f) => f.outcome === "noLever").length
+  if (noLever > 0) tips.push(`«Потягнути важіль» ${noLever} ${times(noLever)} спрацював там, де важеля немає.`)
   const missed = frames.filter((f) => f.outcome === "swingMissed").length
   if (missed > 0) tips.push(`«Вдарити» ${missed} ${times(missed)} влучив у порожнечу: попереду не було ворога.`)
   const turns = wastedTurns(frames)

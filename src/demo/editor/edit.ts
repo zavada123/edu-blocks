@@ -134,7 +134,10 @@ const TILE_NAMES: Readonly<Record<MapTile, string>> = {
   item: "предмет",
   finish: "мета",
   trap: "пастка",
-  storehouse: "склад"
+  storehouse: "склад",
+  lever: "важіль (вимкнений)",
+  leverOn: "важіль (увімкнений)",
+  gate: "ворота"
 }
 
 /** Cells of the level that pictures cover, for a quick look in tests and the tooltip. */

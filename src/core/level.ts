@@ -13,6 +13,8 @@ export type BlockName =
   | "store"
   /** «зачекати»: the hero stands one turn while the enemies move. */
   | "wait"
+  /** «потягнути важіль»: switches the lever under the hero; the gates open when every lever is on. */
+  | "pull"
   | "wallAhead"
   | "enemyAhead"
   | "trapAhead"
@@ -20,6 +22,8 @@ export type BlockName =
   | "atFinish"
   | "handsFull"
   | "atStorehouse"
+  | "onLever"
+  | "leverOn"
   | "repeat"
   | "forever"
   | "repeatUntil"

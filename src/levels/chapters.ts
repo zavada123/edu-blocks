@@ -5,7 +5,7 @@ import { levels } from "./index.ts"
  * The course in chapters by what a student learns, not by school grade: each chapter brings one new idea and
  * ends with a level that makes the student think. A student of any age starts with the first chapter.
  */
-export type ChapterId = "sequence" | "loops" | "conditions" | "while" | "logic" | "store" | "puzzles" | "enemies" | "guards" | "counter" | "functions"
+export type ChapterId = "sequence" | "loops" | "conditions" | "while" | "logic" | "store" | "gates" | "puzzles" | "enemies" | "guards" | "counter" | "functions"
 
 export interface Chapter {
   readonly id: ChapterId
@@ -52,6 +52,12 @@ export const chapters: ReadonlyArray<Chapter> = [
     title: "Склад і ходки",
     skill: "Носити не більше, ніж уміщається в руки: рахувати ходки й вертатися на склад, коли руки повні.",
     levels: ["s-woodshed", "s-two-hands", "s-trips", "s-last-trip"]
+  },
+  {
+    id: "gates",
+    title: "Важелі й ворота",
+    skill: "Перевірити стан, перш ніж діяти: тягнути лише вимкнений важіль, склавши умову з «і» та «не».",
+    levels: ["w-lever", "w-careful", "w-row", "w-yard"]
   },
   {
     id: "puzzles",

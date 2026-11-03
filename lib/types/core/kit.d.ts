@@ -7,9 +7,9 @@ import { type MapRows } from "./world.ts";
  * level as code for `src/levels/index.ts`.
  *
  * Map signs: `#` wall (trees, bushes or water under a bridge), `.` floor, `S` start, `c` item, `F` finish, `x` trap,
- * `H` storehouse.
+ * `H` storehouse, `L` lever (off), `l` lever (on), `G` gate.
  */
-export type MapTile = "wall" | "floor" | "start" | "item" | "finish" | "trap" | "storehouse";
+export type MapTile = "wall" | "floor" | "start" | "item" | "finish" | "trap" | "storehouse" | "lever" | "leverOn" | "gate";
 /** The smallest and the largest map a level can have, walls around it included. */
 export declare const MAP_LIMITS: {
     readonly min: 3;

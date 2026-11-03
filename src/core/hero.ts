@@ -1,7 +1,7 @@
 import { opcodeOf } from "./blocks.ts"
 import { allGoalsMet, goalStatus, type Level, startWorld } from "./level.ts"
 import { fatalReason, MAX_ACTIONS, type Session } from "./program.ts"
-import { type Action, applyAction, atFinish, atStorehouse, enemyAhead, handsFull, onCrystal, trapAhead, wallAhead, type World } from "./world.ts"
+import { type Action, applyAction, atFinish, atStorehouse, enemyAhead, handsFull, leverOn, onCrystal, onLever, trapAhead, wallAhead, type World } from "./world.ts"
 
 /**
  * The hero API: what a program may tell the hero to do and ask the hero about. Every way of programming calls
@@ -10,10 +10,10 @@ import { type Action, applyAction, atFinish, atStorehouse, enemyAhead, handsFull
  */
 
 /** The questions a program may ask, for «якщо» and «повторити до». */
-export type Sensor = "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse"
+export type Sensor = "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn"
 
 /** The hero's actions, in palette order. */
-export const HERO_ACTIONS: ReadonlyArray<Action> = ["move", "turnLeft", "turnRight", "collect", "attack", "store", "wait"]
+export const HERO_ACTIONS: ReadonlyArray<Action> = ["move", "turnLeft", "turnRight", "collect", "attack", "store", "wait", "pull"]
 
 /** Each question and how the world answers it. */
 export const HERO_SENSORS: Readonly<Record<Sensor, (world: World) => boolean>> = {
@@ -23,7 +23,9 @@ export const HERO_SENSORS: Readonly<Record<Sensor, (world: World) => boolean>> =
   enemyAhead,
   trapAhead,
   handsFull,
-  atStorehouse
+  atStorehouse,
+  onLever,
+  leverOn
 }
 
 const SENSOR_NAMES = Object.keys(HERO_SENSORS) as ReadonlyArray<Sensor>

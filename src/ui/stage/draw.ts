@@ -1,7 +1,7 @@
 import type { HeroId } from "../../core/heroes.ts"
 import type { ItemKind, Npc, Prop, Scene, TileMap } from "../../core/level.ts"
 import { tilesOfKind } from "../../core/tilemap.ts"
-import { cellKey, type World } from "../../core/world.ts"
+import { cellKey, gatesOpen, type World } from "../../core/world.ts"
 import {
   type Art,
   art,
@@ -322,6 +322,42 @@ const storehouseLook = (ctx: Ctx, scene: Scene, x: number, y: number, stored: nu
   }
 }
 
+const LEVER_ON = "#3ccf6e"
+const LEVER_OFF = "#e0483c"
+const WOOD = "#8a5a2b"
+const WOOD_DARK = "#5c3a1a"
+
+/** A lever on a stone base: the handle leans right with a green knob when on, left with a red knob when off. */
+const leverLook = (ctx: Ctx, x: number, y: number, on: boolean) => {
+  const cx = x * CELL + CELL / 2
+  const base = cellBottom(y)
+  shadow(ctx, cx, base - 4)
+  roundRect(ctx, cx - 4, base - 3, 8, 3, 1, "#6d6f78")
+  const tipX = cx + (on ? 4 : -4)
+  const tipY = base - 10
+  ctx.save()
+  ctx.strokeStyle = WOOD_DARK
+  ctx.lineWidth = 1.5
+  ctx.beginPath()
+  ctx.moveTo(cx, base - 2)
+  ctx.lineTo(tipX, tipY)
+  ctx.stroke()
+  ctx.restore()
+  ellipse(ctx, tipX, tipY, 1.8, 1.8, on ? LEVER_ON : LEVER_OFF)
+}
+
+/** A wooden gate: planks across the cell while it is shut, only the two posts once it is open. */
+const gateLook = (ctx: Ctx, x: number, y: number, open: boolean) => {
+  const left = x * CELL
+  const top = y * CELL
+  roundRect(ctx, left, top + 2, 2, CELL - 2, 0.5, WOOD_DARK)
+  roundRect(ctx, left + CELL - 2, top + 2, 2, CELL - 2, 0.5, WOOD_DARK)
+  if (open) return
+  for (let i = 0; i < 4; i++) roundRect(ctx, left + 2.5 + i * 2.8, top + 3, 2.2, CELL - 4, 0.6, WOOD)
+  roundRect(ctx, left + 2, top + 6, CELL - 4, 1.5, 0.5, WOOD_DARK)
+  roundRect(ctx, left + 2, top + CELL - 5, CELL - 4, 1.5, 0.5, WOOD_DARK)
+}
+
 /** What lies on a cell: its own item from `itemsAt`, or the level's item. */
 const itemAt = (scene: Scene, x: number, y: number): { readonly kind: ItemKind; readonly own: boolean } => {
   const at = scene.itemsAt?.find((i) => i.x === Math.round(x) && i.y === Math.round(y))
@@ -538,6 +574,10 @@ const hud = (ctx: Ctx, { pose, scenery, counter }: ActorsInput) => {
     plate(ctx, `на складі: ${world.stored}`, x, y)
     y += HEART + 4
   }
+  if (world.gates.size > 0) {
+    plate(ctx, `важелі: ${world.leversOn.size}/${world.levers.size}`, x, y)
+    y += HEART + 4
+  }
   if (counter !== undefined) plate(ctx, `лічильник: ${counter}`, x, y)
 }
 
@@ -557,6 +597,15 @@ export const drawActors = (ctx: Ctx, input: ActorsInput) => {
   }
   if (world.finish !== null) finishLook(ctx, scene, world.finish.x, world.finish.y, now, still)
   if (world.storehouse !== null) storehouseLook(ctx, scene, world.storehouse.x, world.storehouse.y, world.stored)
+  const open = gatesOpen(world)
+  for (const key of world.gates) {
+    const [gx = 0, gy = 0] = key.split(",").map(Number)
+    gateLook(ctx, gx, gy, open)
+  }
+  for (const key of world.levers) {
+    const [lx = 0, ly = 0] = key.split(",").map(Number)
+    leverLook(ctx, lx, ly, world.leversOn.has(key))
+  }
   for (const { x, y } of input.items) {
     const taken = !world.crystals.has(cellKey(x, y))
     if (taken && itemAt(scene, x, y).kind !== "campfire") continue
