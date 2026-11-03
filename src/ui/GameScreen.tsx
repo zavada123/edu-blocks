@@ -126,10 +126,10 @@ export const GameScreen = ({
         onPickHero={onSkinChange === undefined ? undefined : () => setPicking(true)}
       />
       <div className="eb-tabs" role="group" aria-label="Що показати">
-        <button type="button" className="eb-tab" aria-pressed={tab === "field"} onClick={() => setTab("field")}>
-          Поле
+        <button type="button" className="eb-btn eb-tab" aria-pressed={tab === "field"} onClick={() => setTab("field")}>
+          Гра
         </button>
-        <button type="button" className="eb-tab" aria-pressed={tab === "code"} onClick={() => setTab("code")}>
+        <button type="button" className="eb-btn eb-tab" aria-pressed={tab === "code"} onClick={() => setTab("code")}>
           Програма
         </button>
         {tab === "code" && (

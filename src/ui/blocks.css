@@ -603,7 +603,7 @@ html.eb-page-full {
 
 /* ---- Phone and narrow window ---- */
 
-/* The tabs «Поле» and «Програма» are for a phone only: a wider screen shows both at once. */
+/* The tabs «Гра» and «Програма» are for a phone only: a wider screen shows both at once. */
 .eb-tabs {
   display: none;
 }
@@ -650,22 +650,17 @@ html.eb-page-full {
     gap: 6px;
   }
 
+  /* The tabs are the game's own buttons: the open one is gold. */
   .eb-tab {
     flex: 1;
     min-height: 40px;
-    padding: 0 10px;
-    border: 2px solid var(--eb-slate-line);
-    border-radius: 8px;
-    background: var(--eb-slate);
-    color: var(--eb-fg);
-    font: 700 15px/1 var(--eb-font-text);
-    cursor: pointer;
+    padding-inline: 10px;
+    font-size: 16px;
   }
 
   .eb-tab[aria-pressed="true"] {
-    border-color: var(--eb-gold);
-    background: var(--eb-gold);
-    color: var(--eb-ink);
+    --eb-btn-bg: var(--eb-gold);
+    --eb-btn-fg: var(--eb-edge);
   }
 
   /* The tab already says «Програма». */
