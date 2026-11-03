@@ -97,6 +97,12 @@ export const GameScreen = ({
   readonly children: ReactNode
 }) => {
   const [picking, setPicking] = useState(false)
+  // On a phone the field and the program take turns on the screen; a wider screen shows both and hides the tabs.
+  const [tab, setTab] = useState<"field" | "code">("field")
+  const runFromCode = () => {
+    setTab("field")
+    onRun()
+  }
   const { onSkinChange, onMap, ownedHeroes, onBuyHero } = navigation
   // The map is on the page: the game leaves full screen first.
   const toMap =
@@ -109,7 +115,7 @@ export const GameScreen = ({
   // The goals tick as the hero meets them.
   const world = result === null ? start : (result.frames[Math.floor(player.time) - 1]?.world ?? start)
   return (
-    <div ref={rootRef} className={className}>
+    <div ref={rootRef} className={`${className} eb-tab-${tab}`}>
       <Hud
         level={level}
         skin={skin}
@@ -119,6 +125,19 @@ export const GameScreen = ({
         onMap={toMap}
         onPickHero={onSkinChange === undefined ? undefined : () => setPicking(true)}
       />
+      <div className="eb-tabs" role="group" aria-label="Що показати">
+        <button type="button" className="eb-tab" aria-pressed={tab === "field"} onClick={() => setTab("field")}>
+          Поле
+        </button>
+        <button type="button" className="eb-tab" aria-pressed={tab === "code"} onClick={() => setTab("code")}>
+          Програма
+        </button>
+        {tab === "code" && (
+          <button type="button" className="eb-btn eb-btn-go eb-tab-run" onClick={runFromCode} disabled={running && player.playing}>
+            <span aria-hidden="true">▶</span> Запустити
+          </button>
+        )}
+      </div>
       <div className={fields === null ? "eb-stage" : "eb-stage eb-stage-fields"} role="group" aria-label="Поле">
         <div className="eb-field-frame eb-frame eb-wood">
           <Stage start={start} frames={result?.frames} time={player.time} skin={skin} scene={level.scene} />

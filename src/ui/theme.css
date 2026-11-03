@@ -121,7 +121,7 @@
   border-radius: 0;
   background: var(--eb-btn-bg);
   color: var(--eb-btn-fg);
-  font: 400 18px/1 var(--eb-font-pixel);
+  font: 700 17px/1 var(--eb-font-text);
   letter-spacing: 0.02em;
   cursor: pointer;
   box-shadow:

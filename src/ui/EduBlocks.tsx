@@ -229,9 +229,9 @@ export const EduBlocks = ({
     setResult(null)
     setPhase({ kind: "edit" })
 
-    // A narrow editor (a phone) gets a flat palette, a thinner flyout and smaller blocks.
+    // A narrow editor (a phone) gets a flat palette and a thinner flyout. The blocks stay big enough for a finger.
     const compact = el.clientWidth < COMPACT_WIDTH
-    ScratchBlocks.VerticalFlyout.prototype.DEFAULT_WIDTH = compact ? 150 : 250
+    ScratchBlocks.VerticalFlyout.prototype.DEFAULT_WIDTH = compact ? 190 : 250
     ScratchBlocks.ScratchMsgs.setLocale("uk")
     editorScene = level.scene
     const toolbox = toolboxXml(level.blocks, compact, procedureName(level))
@@ -244,7 +244,7 @@ export const EduBlocks = ({
       scrollbars: true,
       trashcan: false,
       grid: { spacing: 40, length: 2, colour: "#ddd" },
-      zoom: { controls: true, wheel: true, startScale: (large ? 0.9 : 0.75) * (compact ? 0.75 : 1) }
+      zoom: { controls: true, wheel: true, startScale: (large ? 0.9 : 0.75) * (compact ? 0.95 : 1) }
     })
     workspaceRef.current = ws
     // The zoom the student chose last time, also on another level or after a reload.

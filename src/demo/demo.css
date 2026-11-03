@@ -7,7 +7,7 @@ body,
 
 body {
   background: #111a16;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: "Edu Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 .demo {
@@ -76,7 +76,7 @@ body {
   cursor: default;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 760px), (max-height: 500px) {
   .demo-head {
     gap: 6px 10px;
     padding: 6px 10px;
@@ -84,6 +84,24 @@ body {
   }
 
   .demo-head > strong {
+    display: none;
+  }
+
+  /* One short row, so the game keeps the screen. */
+  .demo-head {
+    flex-wrap: nowrap;
+  }
+
+  .demo-head > label {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .demo-head select {
+    width: 100%;
+  }
+
+  .demo-editor-link {
     display: none;
   }
 
