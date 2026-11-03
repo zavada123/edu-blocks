@@ -77,7 +77,7 @@ describe("asset clips", () => {
 
 describe("asset manifests in the repository", () => {
   test("the free packs are there", () => {
-    expect(packs.map((p) => p.pack.id).sort()).toEqual(["farming-crops", "ninja-adventure", "sunnyside"])
+    expect(packs.map((p) => p.pack.id).sort()).toEqual(["farming-crops", "ninja-adventure", "sunnyside", "tiny-swords"])
   })
 
   test.each(packs.map((p) => [p.pack.id, p] as const))("%s: only packs whose files may be shared", (_id, { pack }) => {
@@ -103,5 +103,52 @@ describe("asset manifests in the repository", () => {
     }
     for (const sound of pack.sounds ?? []) if (!existsSync(join(dir, sound.file))) wrong.push(`${sound.id}: no ${sound.file}`)
     expect(wrong).toEqual([])
+  })
+})
+
+/** Packs made by scripts/assets/tiny_swords.py: every sprite is described for people and for AI. */
+const described = packs.filter((p) => p.pack.id === "tiny-swords")
+
+describe("described packs", () => {
+  test("Tiny Swords is described", () => {
+    expect(described).toHaveLength(1)
+  })
+
+  test.each(described.map((p) => [p.pack.id, p] as const))("%s: every sprite has a name, a description, tags and roles", (_id, { pack }) => {
+    const missing = pack.sprites
+      .filter((s) => !s.title || !s.about || (s.tags ?? []).length === 0 || (s.roles ?? []).length === 0)
+      .map((s) => s.id)
+    expect(missing).toEqual([])
+  })
+
+  test.each(described.map((p) => [p.pack.id, p] as const))("%s: every clip says what it shows", (_id, { pack }) => {
+    const missing = pack.sprites.flatMap((s) => Object.entries(s.clips ?? {}).filter(([, c]) => !c.about).map(([n]) => `${s.id} ${n}`))
+    expect(missing).toEqual([])
+  })
+
+  test.each(described.map((p) => [p.pack.id, p] as const))("%s: anchors and bounds lie inside the frame", (_id, { pack }) => {
+    const outside = pack.sprites.filter((s) => {
+      const [w, h] = s.frame ?? s.size
+      const [ax, ay] = s.anchor ?? [0, 0]
+      const [bx, by, bw, bh] = s.bounds ?? [0, 0, 0, 0]
+      return ax < 0 || ay < 0 || ax > w || ay > h || bx < 0 || by < 0 || bx + bw > w || by + bh > h
+    })
+    expect(outside.map((s) => s.id)).toEqual([])
+  })
+
+  test.each(described.map((p) => [p.pack.id, p] as const))("%s: each ground of a tileset has a tile for all 16 sets of edges", (_id, { pack }) => {
+    const gaps: string[] = []
+    for (const sprite of pack.sprites) {
+      const [tw, th] = sprite.frame ?? sprite.size
+      const columns = Math.floor(sprite.size[0] / tw)
+      const rows = Math.floor(sprite.size[1] / th)
+      const byTerrain = new Map<string, Set<number>>()
+      for (const t of sprite.tiles ?? []) {
+        if (t.col >= columns || t.row >= rows || t.index !== t.row * columns + t.col + 1) gaps.push(`${sprite.id}: tile ${t.index} is not at ${t.col}, ${t.row}`)
+        if (t.mask !== undefined) byTerrain.set(t.terrain, (byTerrain.get(t.terrain) ?? new Set()).add(t.mask))
+      }
+      for (const [terrain, masks] of byTerrain) if (masks.size !== 16) gaps.push(`${sprite.id} ${terrain}: ${masks.size} of 16 edge sets`)
+    }
+    expect(gaps).toEqual([])
   })
 })

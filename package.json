@@ -20,7 +20,8 @@
   "files": [
     "lib",
     "assets",
-    "!assets/*/audio"
+    "!assets/*/audio",
+    "!assets/*/preview"
   ],
   "sideEffects": [
     "**/*.css"

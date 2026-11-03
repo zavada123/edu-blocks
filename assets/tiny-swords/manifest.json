@@ -1,0 +1,4979 @@
+{
+ "id": "tiny-swords",
+ "title": "Tiny Swords (Update 010)",
+ "author": "Pixel Frog",
+ "source": "https://pixelfrog-assets.itch.io/tiny-swords",
+ "license": {
+  "name": "CC0 1.0",
+  "url": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "redistribute": "yes",
+  "terms": "The old version of Tiny Swords, published by Pixel Frog as \"TS_old version_CC0 Licensed\": public domain, no conditions. Credit to Pixel Frog is welcome."
+ },
+ "cell": 64,
+ "view": "top-down with a slight tilt: characters and buildings are drawn from the side, the ground from above",
+ "colors": ["blue", "purple", "red", "yellow"],
+ "sprites": [
+  {
+   "id": "animal/sheep",
+   "file": "resources/sheep.png",
+   "category": "animal",
+   "name": "Sheep",
+   "size": [1024, 256],
+   "title": "Вівця",
+   "about": "Біла пухнаста вівця: пасеться, підстрибує від радості. Мешканець ферми, джерело м'яса.",
+   "tags": ["sheep", "lamb", "farm", "animal"],
+   "roles": ["animal", "npc", "collectible"],
+   "frame": [128, 128],
+   "frameCount": 14,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [38, 35, 54, 51],
+   "anchor": [65, 86],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 8,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть, кліпає"
+    },
+    "bounce": {
+     "frames": [8, 9, 10, 11, 12, 13],
+     "fps": 8,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "підстрибує"
+    }
+   }
+  },
+  {
+   "id": "character/archer-blue",
+   "file": "units/archer/blue.png",
+   "category": "character",
+   "name": "Archer blue",
+   "size": [1536, 1344],
+   "title": "Лучник (синій)",
+   "about": "Лучник у світлому шоломі з синім пером і з луком: стріляє вгору, навскіс угору, вперед, навскіс униз і вниз.",
+   "tags": ["archer", "bow", "ranged", "human", "blue"],
+   "roles": ["hero", "npc"],
+   "frame": [192, 192],
+   "frameCount": 52,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [51, 20, 106, 129],
+   "anchor": [100, 134],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть"
+    },
+    "run": {
+     "frames": [8, 9, 10, 11, 12, 13],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить"
+    },
+    "shoot-up": {
+     "frames": [16, 17, 18, 19, 20, 21, 22, 23],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "стріляє вгору"
+    },
+    "shoot-up-side": {
+     "frames": [24, 25, 26, 27, 28, 29, 30, 31],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "стріляє навскіс угору"
+    },
+    "shoot": {
+     "frames": [32, 33, 34, 35, 36, 37, 38, 39],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "стріляє вперед"
+    },
+    "shoot-down-side": {
+     "frames": [40, 41, 42, 43, 44, 45, 46, 47],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "стріляє навскіс униз"
+    },
+    "shoot-down": {
+     "frames": [48, 49, 50, 51, 52, 53, 54, 55],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "стріляє вниз"
+    }
+   },
+   "group": "archer",
+   "color": "blue"
+  },
+  {
+   "id": "character/archer-body-blue",
+   "file": "units/archer-parts/body-blue.png",
+   "category": "character",
+   "name": "Archer body blue",
+   "size": [1152, 384],
+   "title": "Тіло лучника (синій)",
+   "about": "Лучник без рук і лука, шар під `character/archer-bow`: так лук можна повернути на будь-який кут.",
+   "tags": ["archer", "layer", "body", "blue"],
+   "roles": ["hero", "npc"],
+   "frame": [192, 192],
+   "frameCount": 12,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [66, 57, 58, 77],
+   "anchor": [96, 134],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть"
+    },
+    "shoot": {
+     "frames": [6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "напинає лук"
+    }
+   },
+   "group": "archer",
+   "color": "blue",
+   "layer": "body"
+  },
+  {
+   "id": "character/archer-body-purple",
+   "file": "units/archer-parts/body-purple.png",
+   "category": "character",
+   "name": "Archer body purple",
+   "size": [1152, 384],
+   "title": "Тіло лучника (фіолетовий)",
+   "about": "Лучник без рук і лука, шар під `character/archer-bow`: так лук можна повернути на будь-який кут.",
+   "tags": ["archer", "layer", "body", "purple"],
+   "roles": ["hero", "npc"],
+   "frame": [192, 192],
+   "frameCount": 12,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [66, 57, 58, 77],
+   "anchor": [96, 134],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть"
+    },
+    "shoot": {
+     "frames": [6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "напинає лук"
+    }
+   },
+   "group": "archer",
+   "color": "purple",
+   "layer": "body"
+  },
+  {
+   "id": "character/archer-body-red",
+   "file": "units/archer-parts/body-red.png",
+   "category": "character",
+   "name": "Archer body red",
+   "size": [1152, 384],
+   "title": "Тіло лучника (червоний)",
+   "about": "Лучник без рук і лука, шар під `character/archer-bow`: так лук можна повернути на будь-який кут.",
+   "tags": ["archer", "layer", "body", "red"],
+   "roles": ["hero", "npc"],
+   "frame": [192, 192],
+   "frameCount": 12,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [66, 57, 58, 77],
+   "anchor": [96, 134],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть"
+    },
+    "shoot": {
+     "frames": [6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "напинає лук"
+    }
+   },
+   "group": "archer",
+   "color": "red",
+   "layer": "body"
+  },
+  {
+   "id": "character/archer-body-yellow",
+   "file": "units/archer-parts/body-yellow.png",
+   "category": "character",
+   "name": "Archer body yellow",
+   "size": [1152, 384],
+   "title": "Тіло лучника (жовтий)",
+   "about": "Лучник без рук і лука, шар під `character/archer-bow`: так лук можна повернути на будь-який кут.",
+   "tags": ["archer", "layer", "body", "yellow"],
+   "roles": ["hero", "npc"],
+   "frame": [192, 192],
+   "frameCount": 12,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [66, 57, 58, 77],
+   "anchor": [96, 134],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть"
+    },
+    "shoot": {
+     "frames": [6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "напинає лук"
+    }
+   },
+   "group": "archer",
+   "color": "yellow",
+   "layer": "body"
+  },
+  {
+   "id": "character/archer-bow-blue",
+   "file": "units/archer-parts/bow-blue.png",
+   "category": "character",
+   "name": "Archer bow blue",
+   "size": [1536, 384],
+   "title": "Лук і руки лучника (синій)",
+   "about": "Руки з луком, шар над `character/archer-body`; повертати навколо плеча лучника.",
+   "tags": ["archer", "layer", "bow", "blue"],
+   "roles": ["hero", "npc"],
+   "frame": [192, 192],
+   "frameCount": 9,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [47, 73, 110, 61],
+   "anchor": [100, 132],
+   "clips": {
+    "idle": {
+     "frames": [0],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "лук опущено"
+    },
+    "shoot": {
+     "frames": [8, 9, 10, 11, 12, 13, 14, 15],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "натягує й пускає стрілу"
+    }
+   },
+   "group": "archer",
+   "color": "blue",
+   "layer": "tool"
+  },
+  {
+   "id": "character/archer-bow-purple",
+   "file": "units/archer-parts/bow-purple.png",
+   "category": "character",
+   "name": "Archer bow purple",
+   "size": [1536, 384],
+   "title": "Лук і руки лучника (фіолетовий)",
+   "about": "Руки з луком, шар над `character/archer-body`; повертати навколо плеча лучника.",
+   "tags": ["archer", "layer", "bow", "purple"],
+   "roles": ["hero", "npc"],
+   "frame": [192, 192],
+   "frameCount": 9,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [47, 73, 110, 61],
+   "anchor": [100, 132],
+   "clips": {
+    "idle": {
+     "frames": [0],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "лук опущено"
+    },
+    "shoot": {
+     "frames": [8, 9, 10, 11, 12, 13, 14, 15],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "натягує й пускає стрілу"
+    }
+   },
+   "group": "archer",
+   "color": "purple",
+   "layer": "tool"
+  },
+  {
+   "id": "character/archer-bow-red",
+   "file": "units/archer-parts/bow-red.png",
+   "category": "character",
+   "name": "Archer bow red",
+   "size": [1536, 384],
+   "title": "Лук і руки лучника (червоний)",
+   "about": "Руки з луком, шар над `character/archer-body`; повертати навколо плеча лучника.",
+   "tags": ["archer", "layer", "bow", "red"],
+   "roles": ["hero", "npc"],
+   "frame": [192, 192],
+   "frameCount": 9,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [47, 73, 110, 61],
+   "anchor": [100, 132],
+   "clips": {
+    "idle": {
+     "frames": [0],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "лук опущено"
+    },
+    "shoot": {
+     "frames": [8, 9, 10, 11, 12, 13, 14, 15],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "натягує й пускає стрілу"
+    }
+   },
+   "group": "archer",
+   "color": "red",
+   "layer": "tool"
+  },
+  {
+   "id": "character/archer-bow-yellow",
+   "file": "units/archer-parts/bow-yellow.png",
+   "category": "character",
+   "name": "Archer bow yellow",
+   "size": [1536, 384],
+   "title": "Лук і руки лучника (жовтий)",
+   "about": "Руки з луком, шар над `character/archer-body`; повертати навколо плеча лучника.",
+   "tags": ["archer", "layer", "bow", "yellow"],
+   "roles": ["hero", "npc"],
+   "frame": [192, 192],
+   "frameCount": 9,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [47, 73, 110, 61],
+   "anchor": [100, 132],
+   "clips": {
+    "idle": {
+     "frames": [0],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "лук опущено"
+    },
+    "shoot": {
+     "frames": [8, 9, 10, 11, 12, 13, 14, 15],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "натягує й пускає стрілу"
+    }
+   },
+   "group": "archer",
+   "color": "yellow",
+   "layer": "tool"
+  },
+  {
+   "id": "character/archer-purple",
+   "file": "units/archer/purple.png",
+   "category": "character",
+   "name": "Archer purple",
+   "size": [1536, 1344],
+   "title": "Лучник (фіолетовий)",
+   "about": "Лучник у світлому шоломі з фіолетовим пером і з луком: стріляє вгору, навскіс угору, вперед, навскіс униз і вниз.",
+   "tags": ["archer", "bow", "ranged", "human", "purple"],
+   "roles": ["hero", "npc"],
+   "frame": [192, 192],
+   "frameCount": 52,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [51, 20, 106, 129],
+   "anchor": [100, 134],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть"
+    },
+    "run": {
+     "frames": [8, 9, 10, 11, 12, 13],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить"
+    },
+    "shoot-up": {
+     "frames": [16, 17, 18, 19, 20, 21, 22, 23],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "стріляє вгору"
+    },
+    "shoot-up-side": {
+     "frames": [24, 25, 26, 27, 28, 29, 30, 31],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "стріляє навскіс угору"
+    },
+    "shoot": {
+     "frames": [32, 33, 34, 35, 36, 37, 38, 39],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "стріляє вперед"
+    },
+    "shoot-down-side": {
+     "frames": [40, 41, 42, 43, 44, 45, 46, 47],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "стріляє навскіс униз"
+    },
+    "shoot-down": {
+     "frames": [48, 49, 50, 51, 52, 53, 54, 55],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "стріляє вниз"
+    }
+   },
+   "group": "archer",
+   "color": "purple"
+  },
+  {
+   "id": "character/archer-red",
+   "file": "units/archer/red.png",
+   "category": "character",
+   "name": "Archer red",
+   "size": [1536, 1344],
+   "title": "Лучник (червоний)",
+   "about": "Лучник у світлому шоломі з червоним пером і з луком: стріляє вгору, навскіс угору, вперед, навскіс униз і вниз.",
+   "tags": ["archer", "bow", "ranged", "human", "red"],
+   "roles": ["hero", "npc"],
+   "frame": [192, 192],
+   "frameCount": 52,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [51, 20, 106, 129],
+   "anchor": [100, 134],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть"
+    },
+    "run": {
+     "frames": [8, 9, 10, 11, 12, 13],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить"
+    },
+    "shoot-up": {
+     "frames": [16, 17, 18, 19, 20, 21, 22, 23],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "стріляє вгору"
+    },
+    "shoot-up-side": {
+     "frames": [24, 25, 26, 27, 28, 29, 30, 31],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "стріляє навскіс угору"
+    },
+    "shoot": {
+     "frames": [32, 33, 34, 35, 36, 37, 38, 39],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "стріляє вперед"
+    },
+    "shoot-down-side": {
+     "frames": [40, 41, 42, 43, 44, 45, 46, 47],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "стріляє навскіс униз"
+    },
+    "shoot-down": {
+     "frames": [48, 49, 50, 51, 52, 53, 54, 55],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "стріляє вниз"
+    }
+   },
+   "group": "archer",
+   "color": "red"
+  },
+  {
+   "id": "character/archer-yellow",
+   "file": "units/archer/yellow.png",
+   "category": "character",
+   "name": "Archer yellow",
+   "size": [1536, 1344],
+   "title": "Лучник (жовтий)",
+   "about": "Лучник у світлому шоломі з жовтим пером і з луком: стріляє вгору, навскіс угору, вперед, навскіс униз і вниз.",
+   "tags": ["archer", "bow", "ranged", "human", "yellow"],
+   "roles": ["hero", "npc"],
+   "frame": [192, 192],
+   "frameCount": 52,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [51, 20, 106, 129],
+   "anchor": [100, 134],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть"
+    },
+    "run": {
+     "frames": [8, 9, 10, 11, 12, 13],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить"
+    },
+    "shoot-up": {
+     "frames": [16, 17, 18, 19, 20, 21, 22, 23],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "стріляє вгору"
+    },
+    "shoot-up-side": {
+     "frames": [24, 25, 26, 27, 28, 29, 30, 31],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "стріляє навскіс угору"
+    },
+    "shoot": {
+     "frames": [32, 33, 34, 35, 36, 37, 38, 39],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "стріляє вперед"
+    },
+    "shoot-down-side": {
+     "frames": [40, 41, 42, 43, 44, 45, 46, 47],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "стріляє навскіс униз"
+    },
+    "shoot-down": {
+     "frames": [48, 49, 50, 51, 52, 53, 54, 55],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "стріляє вниз"
+    }
+   },
+   "group": "archer",
+   "color": "yellow"
+  },
+  {
+   "id": "character/pawn-blue",
+   "file": "units/pawn/blue.png",
+   "category": "character",
+   "name": "Pawn blue",
+   "size": [1152, 1152],
+   "title": "Трудівник (синій)",
+   "about": "Білявий селянин-робітник у синьому одязі: будує молотом, рубає дерево сокирою, носить ресурс над головою. Мирний герой або мешканець села.",
+   "tags": ["pawn", "worker", "peasant", "villager", "builder", "lumberjack", "human", "blue"],
+   "roles": ["hero", "npc"],
+   "frame": [192, 192],
+   "frameCount": 36,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [37, 51, 126, 85],
+   "anchor": [96, 128],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть"
+    },
+    "run": {
+     "frames": [6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить"
+    },
+    "build": {
+     "frames": [12, 13, 14, 15, 16, 17],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "б'є молотом, будує"
+    },
+    "chop": {
+     "frames": [18, 19, 20, 21, 22, 23],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "рубає сокирою"
+    },
+    "carry-idle": {
+     "frames": [24, 25, 26, 27, 28, 29],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть, тримаючи ресурс над головою"
+    },
+    "carry-run": {
+     "frames": [30, 31, 32, 33, 34, 35],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить, тримаючи ресурс над головою"
+    }
+   },
+   "group": "pawn",
+   "color": "blue"
+  },
+  {
+   "id": "character/pawn-purple",
+   "file": "units/pawn/purple.png",
+   "category": "character",
+   "name": "Pawn purple",
+   "size": [1152, 1152],
+   "title": "Трудівник (фіолетовий)",
+   "about": "Білявий селянин-робітник у фіолетовому одязі: будує молотом, рубає дерево сокирою, носить ресурс над головою. Мирний герой або мешканець села.",
+   "tags": ["pawn", "worker", "peasant", "villager", "builder", "lumberjack", "human", "purple"],
+   "roles": ["hero", "npc"],
+   "frame": [192, 192],
+   "frameCount": 36,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [37, 51, 126, 85],
+   "anchor": [96, 128],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть"
+    },
+    "run": {
+     "frames": [6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить"
+    },
+    "build": {
+     "frames": [12, 13, 14, 15, 16, 17],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "б'є молотом, будує"
+    },
+    "chop": {
+     "frames": [18, 19, 20, 21, 22, 23],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "рубає сокирою"
+    },
+    "carry-idle": {
+     "frames": [24, 25, 26, 27, 28, 29],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть, тримаючи ресурс над головою"
+    },
+    "carry-run": {
+     "frames": [30, 31, 32, 33, 34, 35],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить, тримаючи ресурс над головою"
+    }
+   },
+   "group": "pawn",
+   "color": "purple"
+  },
+  {
+   "id": "character/pawn-red",
+   "file": "units/pawn/red.png",
+   "category": "character",
+   "name": "Pawn red",
+   "size": [1152, 1152],
+   "title": "Трудівник (червоний)",
+   "about": "Білявий селянин-робітник у червоному одязі: будує молотом, рубає дерево сокирою, носить ресурс над головою. Мирний герой або мешканець села.",
+   "tags": ["pawn", "worker", "peasant", "villager", "builder", "lumberjack", "human", "red"],
+   "roles": ["hero", "npc"],
+   "frame": [192, 192],
+   "frameCount": 36,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [37, 51, 126, 85],
+   "anchor": [96, 128],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть"
+    },
+    "run": {
+     "frames": [6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить"
+    },
+    "build": {
+     "frames": [12, 13, 14, 15, 16, 17],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "б'є молотом, будує"
+    },
+    "chop": {
+     "frames": [18, 19, 20, 21, 22, 23],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "рубає сокирою"
+    },
+    "carry-idle": {
+     "frames": [24, 25, 26, 27, 28, 29],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть, тримаючи ресурс над головою"
+    },
+    "carry-run": {
+     "frames": [30, 31, 32, 33, 34, 35],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить, тримаючи ресурс над головою"
+    }
+   },
+   "group": "pawn",
+   "color": "red"
+  },
+  {
+   "id": "character/pawn-yellow",
+   "file": "units/pawn/yellow.png",
+   "category": "character",
+   "name": "Pawn yellow",
+   "size": [1152, 1152],
+   "title": "Трудівник (жовтий)",
+   "about": "Білявий селянин-робітник у жовтому одязі: будує молотом, рубає дерево сокирою, носить ресурс над головою. Мирний герой або мешканець села.",
+   "tags": ["pawn", "worker", "peasant", "villager", "builder", "lumberjack", "human", "yellow"],
+   "roles": ["hero", "npc"],
+   "frame": [192, 192],
+   "frameCount": 36,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [37, 51, 126, 85],
+   "anchor": [96, 128],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть"
+    },
+    "run": {
+     "frames": [6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить"
+    },
+    "build": {
+     "frames": [12, 13, 14, 15, 16, 17],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "б'є молотом, будує"
+    },
+    "chop": {
+     "frames": [18, 19, 20, 21, 22, 23],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "рубає сокирою"
+    },
+    "carry-idle": {
+     "frames": [24, 25, 26, 27, 28, 29],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть, тримаючи ресурс над головою"
+    },
+    "carry-run": {
+     "frames": [30, 31, 32, 33, 34, 35],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить, тримаючи ресурс над головою"
+    }
+   },
+   "group": "pawn",
+   "color": "yellow"
+  },
+  {
+   "id": "character/warrior-blue",
+   "file": "units/warrior/blue.png",
+   "category": "character",
+   "name": "Warrior blue",
+   "size": [1152, 1536],
+   "title": "Воїн (синій)",
+   "about": "Лицар у шоломі з синім пером, з мечем і щитом. Головний герой або охоронець: стоїть, біжить, б'є мечем праворуч, униз і вгору (по два різні удари).",
+   "tags": ["knight", "warrior", "sword", "shield", "human", "blue"],
+   "roles": ["hero", "npc"],
+   "frame": [192, 192],
+   "frameCount": 48,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [5, 24, 180, 155],
+   "anchor": [102, 136],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть і дихає"
+    },
+    "run": {
+     "frames": [6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить"
+    },
+    "attack": {
+     "frames": [12, 13, 14, 15, 16, 17],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "удар мечем уперед (праворуч)"
+    },
+    "attack-2": {
+     "frames": [18, 19, 20, 21, 22, 23],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "другий удар уперед, зворотний замах"
+    },
+    "attack-down": {
+     "frames": [24, 25, 26, 27, 28, 29],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "удар униз"
+    },
+    "attack-down-2": {
+     "frames": [30, 31, 32, 33, 34, 35],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "другий удар униз"
+    },
+    "attack-up": {
+     "frames": [36, 37, 38, 39, 40, 41],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "удар угору"
+    },
+    "attack-up-2": {
+     "frames": [42, 43, 44, 45, 46, 47],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "другий удар угору"
+    }
+   },
+   "group": "warrior",
+   "color": "blue"
+  },
+  {
+   "id": "character/warrior-purple",
+   "file": "units/warrior/purple.png",
+   "category": "character",
+   "name": "Warrior purple",
+   "size": [1152, 1536],
+   "title": "Воїн (фіолетовий)",
+   "about": "Лицар у шоломі з фіолетовим пером, з мечем і щитом. Головний герой або охоронець: стоїть, біжить, б'є мечем праворуч, униз і вгору (по два різні удари).",
+   "tags": ["knight", "warrior", "sword", "shield", "human", "purple"],
+   "roles": ["hero", "npc"],
+   "frame": [192, 192],
+   "frameCount": 48,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [5, 24, 180, 155],
+   "anchor": [102, 136],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть і дихає"
+    },
+    "run": {
+     "frames": [6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить"
+    },
+    "attack": {
+     "frames": [12, 13, 14, 15, 16, 17],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "удар мечем уперед (праворуч)"
+    },
+    "attack-2": {
+     "frames": [18, 19, 20, 21, 22, 23],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "другий удар уперед, зворотний замах"
+    },
+    "attack-down": {
+     "frames": [24, 25, 26, 27, 28, 29],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "удар униз"
+    },
+    "attack-down-2": {
+     "frames": [30, 31, 32, 33, 34, 35],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "другий удар униз"
+    },
+    "attack-up": {
+     "frames": [36, 37, 38, 39, 40, 41],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "удар угору"
+    },
+    "attack-up-2": {
+     "frames": [42, 43, 44, 45, 46, 47],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "другий удар угору"
+    }
+   },
+   "group": "warrior",
+   "color": "purple"
+  },
+  {
+   "id": "character/warrior-red",
+   "file": "units/warrior/red.png",
+   "category": "character",
+   "name": "Warrior red",
+   "size": [1152, 1536],
+   "title": "Воїн (червоний)",
+   "about": "Лицар у шоломі з червоним пером, з мечем і щитом. Головний герой або охоронець: стоїть, біжить, б'є мечем праворуч, униз і вгору (по два різні удари).",
+   "tags": ["knight", "warrior", "sword", "shield", "human", "red"],
+   "roles": ["hero", "npc"],
+   "frame": [192, 192],
+   "frameCount": 48,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [5, 24, 180, 155],
+   "anchor": [102, 136],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть і дихає"
+    },
+    "run": {
+     "frames": [6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить"
+    },
+    "attack": {
+     "frames": [12, 13, 14, 15, 16, 17],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "удар мечем уперед (праворуч)"
+    },
+    "attack-2": {
+     "frames": [18, 19, 20, 21, 22, 23],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "другий удар уперед, зворотний замах"
+    },
+    "attack-down": {
+     "frames": [24, 25, 26, 27, 28, 29],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "удар униз"
+    },
+    "attack-down-2": {
+     "frames": [30, 31, 32, 33, 34, 35],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "другий удар униз"
+    },
+    "attack-up": {
+     "frames": [36, 37, 38, 39, 40, 41],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "удар угору"
+    },
+    "attack-up-2": {
+     "frames": [42, 43, 44, 45, 46, 47],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "другий удар угору"
+    }
+   },
+   "group": "warrior",
+   "color": "red"
+  },
+  {
+   "id": "character/warrior-yellow",
+   "file": "units/warrior/yellow.png",
+   "category": "character",
+   "name": "Warrior yellow",
+   "size": [1152, 1536],
+   "title": "Воїн (жовтий)",
+   "about": "Лицар у шоломі з жовтим пером, з мечем і щитом. Головний герой або охоронець: стоїть, біжить, б'є мечем праворуч, униз і вгору (по два різні удари).",
+   "tags": ["knight", "warrior", "sword", "shield", "human", "yellow"],
+   "roles": ["hero", "npc"],
+   "frame": [192, 192],
+   "frameCount": 48,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [5, 24, 180, 155],
+   "anchor": [102, 136],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть і дихає"
+    },
+    "run": {
+     "frames": [6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить"
+    },
+    "attack": {
+     "frames": [12, 13, 14, 15, 16, 17],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "удар мечем уперед (праворуч)"
+    },
+    "attack-2": {
+     "frames": [18, 19, 20, 21, 22, 23],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "другий удар уперед, зворотний замах"
+    },
+    "attack-down": {
+     "frames": [24, 25, 26, 27, 28, 29],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "удар униз"
+    },
+    "attack-down-2": {
+     "frames": [30, 31, 32, 33, 34, 35],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "другий удар униз"
+    },
+    "attack-up": {
+     "frames": [36, 37, 38, 39, 40, 41],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "удар угору"
+    },
+    "attack-up-2": {
+     "frames": [42, 43, 44, 45, 46, 47],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "другий удар угору"
+    }
+   },
+   "group": "warrior",
+   "color": "yellow"
+  },
+  {
+   "id": "decor/bone-large",
+   "file": "deco/bone-large.png",
+   "category": "decor",
+   "name": "Bone large",
+   "size": [64, 64],
+   "title": "Кістка",
+   "about": "Велика кістка на землі.",
+   "tags": ["bone", "remains"],
+   "roles": ["decor"],
+   "bounds": [15, 16, 36, 31],
+   "anchor": [33, 47],
+   "footprint": [1, 1]
+  },
+  {
+   "id": "decor/bone-small",
+   "file": "deco/bone-small.png",
+   "category": "decor",
+   "name": "Bone small",
+   "size": [64, 64],
+   "title": "Кісточка",
+   "about": "Маленька кістка.",
+   "tags": ["bone", "remains"],
+   "roles": ["decor"],
+   "bounds": [24, 20, 24, 24],
+   "anchor": [36, 44],
+   "footprint": [1, 1]
+  },
+  {
+   "id": "decor/bush-large",
+   "file": "deco/bush-large.png",
+   "category": "decor",
+   "name": "Bush large",
+   "size": [64, 64],
+   "title": "Великий кущ",
+   "about": "Великий густий кущ, через нього не пройти.",
+   "tags": ["bush", "shrub", "large"],
+   "roles": ["obstacle"],
+   "bounds": [2, 11, 61, 42],
+   "anchor": [32, 53],
+   "footprint": [1, 1]
+  },
+  {
+   "id": "decor/bush-medium",
+   "file": "deco/bush-medium.png",
+   "category": "decor",
+   "name": "Bush medium",
+   "size": [64, 64],
+   "title": "Кущ",
+   "about": "Зелений кущ.",
+   "tags": ["bush", "shrub"],
+   "roles": ["decor", "obstacle"],
+   "bounds": [11, 17, 42, 32],
+   "anchor": [32, 49],
+   "footprint": [1, 1]
+  },
+  {
+   "id": "decor/bush-small",
+   "file": "deco/bush-small.png",
+   "category": "decor",
+   "name": "Bush small",
+   "size": [64, 64],
+   "title": "Кущик",
+   "about": "Маленький зелений кущ.",
+   "tags": ["bush", "shrub", "small"],
+   "roles": ["decor"],
+   "bounds": [16, 21, 31, 22],
+   "anchor": [32, 43],
+   "footprint": [1, 1]
+  },
+  {
+   "id": "decor/grass-large",
+   "file": "deco/grass-large.png",
+   "category": "decor",
+   "name": "Grass large",
+   "size": [64, 64],
+   "title": "Трава",
+   "about": "Високий пучок трави.",
+   "tags": ["grass", "tuft", "plant"],
+   "roles": ["decor"],
+   "bounds": [20, 15, 32, 35],
+   "anchor": [36, 50],
+   "footprint": [1, 1]
+  },
+  {
+   "id": "decor/grass-small",
+   "file": "deco/grass-small.png",
+   "category": "decor",
+   "name": "Grass small",
+   "size": [64, 64],
+   "title": "Травичка",
+   "about": "Невеликий пучок трави.",
+   "tags": ["grass", "tuft", "plant"],
+   "roles": ["decor"],
+   "bounds": [22, 23, 22, 23],
+   "anchor": [33, 46],
+   "footprint": [1, 1]
+  },
+  {
+   "id": "decor/mushroom-large",
+   "file": "deco/mushroom-large.png",
+   "category": "decor",
+   "name": "Mushroom large",
+   "size": [64, 64],
+   "title": "Великий гриб",
+   "about": "Великий червоний мухомор із білими цятками.",
+   "tags": ["mushroom", "large"],
+   "roles": ["decor", "obstacle"],
+   "bounds": [14, 12, 38, 37],
+   "anchor": [33, 49],
+   "footprint": [1, 1]
+  },
+  {
+   "id": "decor/mushroom-medium",
+   "file": "deco/mushroom-medium.png",
+   "category": "decor",
+   "name": "Mushroom medium",
+   "size": [64, 64],
+   "title": "Гриб",
+   "about": "Червоний мухомор.",
+   "tags": ["mushroom", "forest"],
+   "roles": ["decor"],
+   "bounds": [21, 20, 26, 27],
+   "anchor": [34, 47],
+   "footprint": [1, 1]
+  },
+  {
+   "id": "decor/mushroom-small",
+   "file": "deco/mushroom-small.png",
+   "category": "decor",
+   "name": "Mushroom small",
+   "size": [64, 64],
+   "title": "Маленький гриб",
+   "about": "Крихітний червоний мухомор.",
+   "tags": ["mushroom", "small", "forest"],
+   "roles": ["decor"],
+   "bounds": [25, 24, 17, 19],
+   "anchor": [34, 43],
+   "footprint": [1, 1]
+  },
+  {
+   "id": "decor/pumpkin-large",
+   "file": "deco/pumpkin-large.png",
+   "category": "decor",
+   "name": "Pumpkin large",
+   "size": [64, 64],
+   "title": "Гарбуз",
+   "about": "Великий помаранчевий гарбуз.",
+   "tags": ["pumpkin", "vegetable", "farm", "harvest"],
+   "roles": ["decor", "collectible", "obstacle"],
+   "bounds": [5, 10, 56, 45],
+   "anchor": [33, 55],
+   "footprint": [1, 1]
+  },
+  {
+   "id": "decor/pumpkin-small",
+   "file": "deco/pumpkin-small.png",
+   "category": "decor",
+   "name": "Pumpkin small",
+   "size": [64, 64],
+   "title": "Гарбузик",
+   "about": "Маленький помаранчевий гарбуз на грядці.",
+   "tags": ["pumpkin", "vegetable", "farm", "harvest"],
+   "roles": ["decor", "collectible"],
+   "bounds": [11, 12, 40, 39],
+   "anchor": [31, 51],
+   "footprint": [1, 1]
+  },
+  {
+   "id": "decor/rock-large",
+   "file": "deco/rock-large.png",
+   "category": "decor",
+   "name": "Rock large",
+   "size": [64, 64],
+   "title": "Великий камінь",
+   "about": "Великий валун, через нього не пройти.",
+   "tags": ["rock", "boulder"],
+   "roles": ["obstacle"],
+   "bounds": [12, 15, 44, 34],
+   "anchor": [34, 49],
+   "footprint": [1, 1]
+  },
+  {
+   "id": "decor/rock-medium",
+   "file": "deco/rock-medium.png",
+   "category": "decor",
+   "name": "Rock medium",
+   "size": [64, 64],
+   "title": "Камінь",
+   "about": "Середній камінь.",
+   "tags": ["rock", "stone"],
+   "roles": ["decor", "obstacle"],
+   "bounds": [18, 18, 29, 22],
+   "anchor": [32, 40],
+   "footprint": [1, 1]
+  },
+  {
+   "id": "decor/rock-small",
+   "file": "deco/rock-small.png",
+   "category": "decor",
+   "name": "Rock small",
+   "size": [64, 64],
+   "title": "Камінчик",
+   "about": "Маленький сіро-блакитний камінь.",
+   "tags": ["rock", "stone", "pebble"],
+   "roles": ["decor"],
+   "bounds": [24, 19, 20, 18],
+   "anchor": [34, 37],
+   "footprint": [1, 1]
+  },
+  {
+   "id": "decor/scarecrow",
+   "file": "deco/scarecrow.png",
+   "category": "decor",
+   "name": "Scarecrow",
+   "size": [192, 192],
+   "title": "Опудало",
+   "about": "Опудало в капелюсі на полі. Займає 3×3 клітинки малюнка, стоїть на одній.",
+   "tags": ["scarecrow", "farm", "field"],
+   "roles": ["decor", "obstacle", "npc"],
+   "bounds": [54, 48, 87, 121],
+   "anchor": [98, 169],
+   "footprint": [1, 1]
+  },
+  {
+   "id": "decor/sign-arrow",
+   "file": "deco/sign-arrow.png",
+   "category": "decor",
+   "name": "Sign arrow",
+   "size": [64, 128],
+   "title": "Дороговказ",
+   "about": "Дерев'яний стовп зі стрілкою: дороговказ. Дві клітинки заввишки.",
+   "tags": ["sign", "signpost", "arrow", "direction"],
+   "roles": ["decor", "goal"],
+   "bounds": [2, 15, 59, 90],
+   "anchor": [32, 105],
+   "footprint": [1, 1]
+  },
+  {
+   "id": "decor/sign-danger",
+   "file": "deco/sign-danger.png",
+   "category": "decor",
+   "name": "Sign danger",
+   "size": [64, 128],
+   "title": "Знак небезпеки",
+   "about": "Дерев'яний знак: хрест із дощок і череп. Попереджає про небезпеку. Дві клітинки заввишки.",
+   "tags": ["sign", "warning", "danger", "skull"],
+   "roles": ["decor", "obstacle", "goal"],
+   "bounds": [7, 3, 52, 101],
+   "anchor": [33, 104],
+   "footprint": [1, 1]
+  },
+  {
+   "id": "decor/tree",
+   "file": "resources/tree.png",
+   "category": "decor",
+   "name": "Tree",
+   "size": [768, 576],
+   "title": "Ялина",
+   "about": "Висока ялина, що гойдається на вітрі; від удару сокирою тремтить, потім лишається пеньок. Стоїть на одній клітинці, крона закриває клітинку вище.",
+   "tags": ["tree", "pine", "fir", "forest", "wood", "stump"],
+   "roles": ["obstacle", "decor"],
+   "frame": [192, 192],
+   "frameCount": 7,
+   "bounds": [39, 4, 115, 174],
+   "anchor": [98, 178],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3],
+     "fps": 8,
+     "loop": true,
+     "about": "гойдається"
+    },
+    "hit": {
+     "frames": [4, 5],
+     "fps": 8,
+     "loop": false,
+     "about": "тремтить від удару"
+    },
+    "stump": {
+     "frames": [8],
+     "fps": 8,
+     "loop": true,
+     "about": "пеньок після рубки"
+    }
+   },
+   "footprint": [1, 1]
+  },
+  {
+   "id": "effect/dead",
+   "file": "units/dead.png",
+   "category": "effect",
+   "name": "Dead",
+   "size": [896, 256],
+   "title": "Череп переможеного",
+   "about": "Спалах і череп, що лишається на місці переможеного персонажа, потім іде в землю.",
+   "tags": ["death", "skull", "defeat", "grave"],
+   "roles": ["effect"],
+   "frame": [128, 128],
+   "frameCount": 14,
+   "bounds": [35, 32, 60, 67],
+   "anchor": [65, 99],
+   "clips": {
+    "die": {
+     "frames": [0, 1, 2, 3, 4, 5, 6],
+     "fps": 10,
+     "loop": false,
+     "about": "спалах і череп падає"
+    },
+    "fade": {
+     "frames": [7, 8, 9, 10, 11, 12, 13],
+     "fps": 10,
+     "loop": false,
+     "about": "череп іде в землю"
+    }
+   }
+  },
+  {
+   "id": "effect/explosion",
+   "file": "effects/explosion.png",
+   "category": "effect",
+   "name": "Explosion",
+   "size": [1728, 192],
+   "title": "Вибух",
+   "about": "Вибух динаміту чи бочки: вогонь і дим.",
+   "tags": ["explosion", "blast", "fire", "boom"],
+   "roles": ["effect"],
+   "frame": [192, 192],
+   "frameCount": 9,
+   "bounds": [44, 36, 105, 113],
+   "anchor": [96, 149],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+     "fps": 12,
+     "loop": false,
+     "about": "вибух"
+    }
+   }
+  },
+  {
+   "id": "effect/fire",
+   "file": "effects/fire.png",
+   "category": "effect",
+   "name": "Fire",
+   "size": [896, 128],
+   "title": "Вогонь",
+   "about": "Полум'я, що горить на місці: вогнище, пожежа будинку.",
+   "tags": ["fire", "flame", "campfire", "burning"],
+   "roles": ["effect", "obstacle"],
+   "frame": [128, 128],
+   "frameCount": 7,
+   "bounds": [27, 13, 75, 101],
+   "anchor": [64, 114],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3, 4, 5, 6],
+     "fps": 10,
+     "loop": true,
+     "about": "горить"
+    }
+   }
+  },
+  {
+   "id": "enemy/goblin-barrel-blue",
+   "file": "units/goblin-barrel/blue.png",
+   "category": "enemy",
+   "name": "Goblin barrel blue",
+   "size": [768, 768],
+   "title": "Гоблін у бочці (синій)",
+   "about": "Кольорова бочка з написом TNT і ґнотом, у якій ховається гоблін: визирає, біжить і вибухає. Пастка, що прикидається бочкою.",
+   "tags": ["goblin", "barrel", "trap", "explosive", "hidden", "monster", "blue"],
+   "roles": ["enemy", "obstacle"],
+   "frame": [128, 128],
+   "frameCount": 20,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [35, 8, 58, 95],
+   "anchor": [64, 99],
+   "clips": {
+    "hidden": {
+     "frames": [0],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "звичайна бочка, гобліна не видно"
+    },
+    "peek": {
+     "frames": [6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "кришка піднімається, гоблін вилазить"
+    },
+    "out": {
+     "frames": [12],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "гоблін визирає з бочки"
+    },
+    "hide": {
+     "frames": [18, 19, 20, 21, 22, 23],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "ховається назад"
+    },
+    "run": {
+     "frames": [24, 25, 26],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить у бочці"
+    },
+    "explode": {
+     "frames": [30, 31, 32],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "запалений, ось-ось вибухне"
+    }
+   },
+   "group": "goblin-barrel",
+   "color": "blue"
+  },
+  {
+   "id": "enemy/goblin-barrel-purple",
+   "file": "units/goblin-barrel/purple.png",
+   "category": "enemy",
+   "name": "Goblin barrel purple",
+   "size": [768, 768],
+   "title": "Гоблін у бочці (фіолетовий)",
+   "about": "Кольорова бочка з написом TNT і ґнотом, у якій ховається гоблін: визирає, біжить і вибухає. Пастка, що прикидається бочкою.",
+   "tags": ["goblin", "barrel", "trap", "explosive", "hidden", "monster", "purple"],
+   "roles": ["enemy", "obstacle"],
+   "frame": [128, 128],
+   "frameCount": 20,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [35, 8, 58, 95],
+   "anchor": [64, 99],
+   "clips": {
+    "hidden": {
+     "frames": [0],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "звичайна бочка, гобліна не видно"
+    },
+    "peek": {
+     "frames": [6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "кришка піднімається, гоблін вилазить"
+    },
+    "out": {
+     "frames": [12],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "гоблін визирає з бочки"
+    },
+    "hide": {
+     "frames": [18, 19, 20, 21, 22, 23],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "ховається назад"
+    },
+    "run": {
+     "frames": [24, 25, 26],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить у бочці"
+    },
+    "explode": {
+     "frames": [30, 31, 32],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "запалений, ось-ось вибухне"
+    }
+   },
+   "group": "goblin-barrel",
+   "color": "purple"
+  },
+  {
+   "id": "enemy/goblin-barrel-red",
+   "file": "units/goblin-barrel/red.png",
+   "category": "enemy",
+   "name": "Goblin barrel red",
+   "size": [768, 768],
+   "title": "Гоблін у бочці (червоний)",
+   "about": "Кольорова бочка з написом TNT і ґнотом, у якій ховається гоблін: визирає, біжить і вибухає. Пастка, що прикидається бочкою.",
+   "tags": ["goblin", "barrel", "trap", "explosive", "hidden", "monster", "red"],
+   "roles": ["enemy", "obstacle"],
+   "frame": [128, 128],
+   "frameCount": 20,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [35, 8, 58, 95],
+   "anchor": [64, 99],
+   "clips": {
+    "hidden": {
+     "frames": [0],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "звичайна бочка, гобліна не видно"
+    },
+    "peek": {
+     "frames": [6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "кришка піднімається, гоблін вилазить"
+    },
+    "out": {
+     "frames": [12],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "гоблін визирає з бочки"
+    },
+    "hide": {
+     "frames": [18, 19, 20, 21, 22, 23],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "ховається назад"
+    },
+    "run": {
+     "frames": [24, 25, 26],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить у бочці"
+    },
+    "explode": {
+     "frames": [30, 31, 32],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "запалений, ось-ось вибухне"
+    }
+   },
+   "group": "goblin-barrel",
+   "color": "red"
+  },
+  {
+   "id": "enemy/goblin-barrel-yellow",
+   "file": "units/goblin-barrel/yellow.png",
+   "category": "enemy",
+   "name": "Goblin barrel yellow",
+   "size": [768, 768],
+   "title": "Гоблін у бочці (жовтий)",
+   "about": "Кольорова бочка з написом TNT і ґнотом, у якій ховається гоблін: визирає, біжить і вибухає. Пастка, що прикидається бочкою.",
+   "tags": ["goblin", "barrel", "trap", "explosive", "hidden", "monster", "yellow"],
+   "roles": ["enemy", "obstacle"],
+   "frame": [128, 128],
+   "frameCount": 20,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [35, 8, 58, 95],
+   "anchor": [64, 99],
+   "clips": {
+    "hidden": {
+     "frames": [0],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "звичайна бочка, гобліна не видно"
+    },
+    "peek": {
+     "frames": [6, 7, 8, 9, 10, 11],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "кришка піднімається, гоблін вилазить"
+    },
+    "out": {
+     "frames": [12],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "гоблін визирає з бочки"
+    },
+    "hide": {
+     "frames": [18, 19, 20, 21, 22, 23],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "ховається назад"
+    },
+    "run": {
+     "frames": [24, 25, 26],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить у бочці"
+    },
+    "explode": {
+     "frames": [30, 31, 32],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "запалений, ось-ось вибухне"
+    }
+   },
+   "group": "goblin-barrel",
+   "color": "yellow"
+  },
+  {
+   "id": "enemy/goblin-tnt-blue",
+   "file": "units/goblin-tnt/blue.png",
+   "category": "enemy",
+   "name": "Goblin TNT blue",
+   "size": [1344, 576],
+   "title": "Гоблін-підривник (синій)",
+   "about": "Гоблін у льотних окулярах з кольоровим рюкзаком, повним динаміту: кидає динаміт (`weapon/dynamite`), той вибухає (`effect/explosion`).",
+   "tags": ["goblin", "dynamite", "bomber", "ranged", "monster", "blue"],
+   "roles": ["enemy"],
+   "frame": [192, 192],
+   "frameCount": 19,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [51, 54, 94, 81],
+   "anchor": [101, 135],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть"
+    },
+    "run": {
+     "frames": [7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить"
+    },
+    "throw": {
+     "frames": [14, 15, 16, 17, 18, 19, 20],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "кидає динаміт"
+    }
+   },
+   "group": "goblin-tnt",
+   "color": "blue"
+  },
+  {
+   "id": "enemy/goblin-tnt-purple",
+   "file": "units/goblin-tnt/purple.png",
+   "category": "enemy",
+   "name": "Goblin TNT purple",
+   "size": [1344, 576],
+   "title": "Гоблін-підривник (фіолетовий)",
+   "about": "Гоблін у льотних окулярах з кольоровим рюкзаком, повним динаміту: кидає динаміт (`weapon/dynamite`), той вибухає (`effect/explosion`).",
+   "tags": ["goblin", "dynamite", "bomber", "ranged", "monster", "purple"],
+   "roles": ["enemy"],
+   "frame": [192, 192],
+   "frameCount": 19,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [51, 54, 94, 81],
+   "anchor": [101, 135],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть"
+    },
+    "run": {
+     "frames": [7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить"
+    },
+    "throw": {
+     "frames": [14, 15, 16, 17, 18, 19, 20],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "кидає динаміт"
+    }
+   },
+   "group": "goblin-tnt",
+   "color": "purple"
+  },
+  {
+   "id": "enemy/goblin-tnt-red",
+   "file": "units/goblin-tnt/red.png",
+   "category": "enemy",
+   "name": "Goblin TNT red",
+   "size": [1344, 576],
+   "title": "Гоблін-підривник (червоний)",
+   "about": "Гоблін у льотних окулярах з кольоровим рюкзаком, повним динаміту: кидає динаміт (`weapon/dynamite`), той вибухає (`effect/explosion`).",
+   "tags": ["goblin", "dynamite", "bomber", "ranged", "monster", "red"],
+   "roles": ["enemy"],
+   "frame": [192, 192],
+   "frameCount": 19,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [51, 54, 94, 81],
+   "anchor": [101, 135],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть"
+    },
+    "run": {
+     "frames": [7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить"
+    },
+    "throw": {
+     "frames": [14, 15, 16, 17, 18, 19, 20],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "кидає динаміт"
+    }
+   },
+   "group": "goblin-tnt",
+   "color": "red"
+  },
+  {
+   "id": "enemy/goblin-tnt-yellow",
+   "file": "units/goblin-tnt/yellow.png",
+   "category": "enemy",
+   "name": "Goblin TNT yellow",
+   "size": [1344, 576],
+   "title": "Гоблін-підривник (жовтий)",
+   "about": "Гоблін у льотних окулярах з кольоровим рюкзаком, повним динаміту: кидає динаміт (`weapon/dynamite`), той вибухає (`effect/explosion`).",
+   "tags": ["goblin", "dynamite", "bomber", "ranged", "monster", "yellow"],
+   "roles": ["enemy"],
+   "frame": [192, 192],
+   "frameCount": 19,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [51, 54, 94, 81],
+   "anchor": [101, 135],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть"
+    },
+    "run": {
+     "frames": [7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить"
+    },
+    "throw": {
+     "frames": [14, 15, 16, 17, 18, 19, 20],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "кидає динаміт"
+    }
+   },
+   "group": "goblin-tnt",
+   "color": "yellow"
+  },
+  {
+   "id": "enemy/goblin-torch-blue",
+   "file": "units/goblin-torch/blue.png",
+   "category": "enemy",
+   "name": "Goblin torch blue",
+   "size": [1344, 960],
+   "title": "Гоблін зі смолоскипом (синій)",
+   "about": "Зелений гоблін у синьому гостроверхому каптурі з палаючим смолоскипом: ближній бій, б'є вперед, униз і вгору.",
+   "tags": ["goblin", "torch", "fire", "melee", "monster", "blue"],
+   "roles": ["enemy"],
+   "frame": [192, 192],
+   "frameCount": 31,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [13, 24, 163, 145],
+   "anchor": [89, 133],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5, 6],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть, смолоскип горить"
+    },
+    "run": {
+     "frames": [7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить"
+    },
+    "attack": {
+     "frames": [14, 15, 16, 17, 18, 19],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "б'є смолоскипом уперед"
+    },
+    "attack-down": {
+     "frames": [21, 22, 23, 24, 25, 26],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "б'є вниз"
+    },
+    "attack-up": {
+     "frames": [28, 29, 30, 31, 32, 33],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "б'є вгору"
+    }
+   },
+   "group": "goblin-torch",
+   "color": "blue"
+  },
+  {
+   "id": "enemy/goblin-torch-purple",
+   "file": "units/goblin-torch/purple.png",
+   "category": "enemy",
+   "name": "Goblin torch purple",
+   "size": [1344, 960],
+   "title": "Гоблін зі смолоскипом (фіолетовий)",
+   "about": "Зелений гоблін у фіолетовому гостроверхому каптурі з палаючим смолоскипом: ближній бій, б'є вперед, униз і вгору.",
+   "tags": ["goblin", "torch", "fire", "melee", "monster", "purple"],
+   "roles": ["enemy"],
+   "frame": [192, 192],
+   "frameCount": 31,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [13, 24, 163, 145],
+   "anchor": [89, 133],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5, 6],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть, смолоскип горить"
+    },
+    "run": {
+     "frames": [7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить"
+    },
+    "attack": {
+     "frames": [14, 15, 16, 17, 18, 19],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "б'є смолоскипом уперед"
+    },
+    "attack-down": {
+     "frames": [21, 22, 23, 24, 25, 26],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "б'є вниз"
+    },
+    "attack-up": {
+     "frames": [28, 29, 30, 31, 32, 33],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "б'є вгору"
+    }
+   },
+   "group": "goblin-torch",
+   "color": "purple"
+  },
+  {
+   "id": "enemy/goblin-torch-red",
+   "file": "units/goblin-torch/red.png",
+   "category": "enemy",
+   "name": "Goblin torch red",
+   "size": [1344, 960],
+   "title": "Гоблін зі смолоскипом (червоний)",
+   "about": "Зелений гоблін у червоному гостроверхому каптурі з палаючим смолоскипом: ближній бій, б'є вперед, униз і вгору.",
+   "tags": ["goblin", "torch", "fire", "melee", "monster", "red"],
+   "roles": ["enemy"],
+   "frame": [192, 192],
+   "frameCount": 31,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [13, 24, 163, 145],
+   "anchor": [89, 133],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5, 6],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть, смолоскип горить"
+    },
+    "run": {
+     "frames": [7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить"
+    },
+    "attack": {
+     "frames": [14, 15, 16, 17, 18, 19],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "б'є смолоскипом уперед"
+    },
+    "attack-down": {
+     "frames": [21, 22, 23, 24, 25, 26],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "б'є вниз"
+    },
+    "attack-up": {
+     "frames": [28, 29, 30, 31, 32, 33],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "б'є вгору"
+    }
+   },
+   "group": "goblin-torch",
+   "color": "red"
+  },
+  {
+   "id": "enemy/goblin-torch-yellow",
+   "file": "units/goblin-torch/yellow.png",
+   "category": "enemy",
+   "name": "Goblin torch yellow",
+   "size": [1344, 960],
+   "title": "Гоблін зі смолоскипом (жовтий)",
+   "about": "Зелений гоблін у жовтому гостроверхому каптурі з палаючим смолоскипом: ближній бій, б'є вперед, униз і вгору.",
+   "tags": ["goblin", "torch", "fire", "melee", "monster", "yellow"],
+   "roles": ["enemy"],
+   "frame": [192, 192],
+   "frameCount": 31,
+   "layout": "side",
+   "faces": "right",
+   "bounds": [13, 24, 163, 145],
+   "anchor": [89, 133],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3, 4, 5, 6],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "стоїть, смолоскип горить"
+    },
+    "run": {
+     "frames": [7, 8, 9, 10, 11, 12],
+     "fps": 10,
+     "loop": true,
+     "mirror": {"left": "right"},
+     "about": "біжить"
+    },
+    "attack": {
+     "frames": [14, 15, 16, 17, 18, 19],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "б'є смолоскипом уперед"
+    },
+    "attack-down": {
+     "frames": [21, 22, 23, 24, 25, 26],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "б'є вниз"
+    },
+    "attack-up": {
+     "frames": [28, 29, 30, 31, 32, 33],
+     "fps": 10,
+     "loop": false,
+     "mirror": {"left": "right"},
+     "about": "б'є вгору"
+    }
+   },
+   "group": "goblin-torch",
+   "color": "yellow"
+  },
+  {
+   "id": "item/gold",
+   "file": "resources/gold.png",
+   "category": "item",
+   "name": "Gold",
+   "size": [128, 128],
+   "title": "Мішечок золота",
+   "about": "Мішечок із золотими монетами: скарб, нагорода, те, що збирають. Лежить на землі з тінню; `spawn` — поява з білого спалаху.",
+   "tags": ["gold", "coins", "money", "treasure", "bag"],
+   "roles": ["collectible"],
+   "bounds": [35, 32, 61, 67],
+   "anchor": [66, 99],
+   "clips": {
+    "spawn": {
+     "frames": [0, 1, 2, 3, 4, 5, 6],
+     "fps": 10,
+     "loop": false,
+     "file": "resources/gold-spawn.png",
+     "frame": [128, 128],
+     "size": [896, 128],
+     "about": "з'являється: спалах, кільце, предмет"
+    }
+   },
+   "variants": {
+    "no-shadow": "resources/gold-no-shadow.png"
+   }
+  },
+  {
+   "id": "item/meat",
+   "file": "resources/meat.png",
+   "category": "item",
+   "name": "Meat",
+   "size": [128, 128],
+   "title": "М'ясо",
+   "about": "Шматок м'яса: їжа, ресурс. Лежить на землі з тінню; `spawn` — поява з білого спалаху.",
+   "tags": ["meat", "food", "ham"],
+   "roles": ["collectible"],
+   "bounds": [35, 32, 64, 68],
+   "anchor": [67, 100],
+   "clips": {
+    "spawn": {
+     "frames": [0, 1, 2, 3, 4, 5, 6],
+     "fps": 10,
+     "loop": false,
+     "file": "resources/meat-spawn.png",
+     "frame": [128, 128],
+     "size": [896, 128],
+     "about": "з'являється: спалах, кільце, предмет"
+    }
+   },
+   "variants": {
+    "no-shadow": "resources/meat-no-shadow.png"
+   }
+  },
+  {
+   "id": "item/wood",
+   "file": "resources/wood.png",
+   "category": "item",
+   "name": "Wood",
+   "size": [128, 128],
+   "title": "Колода",
+   "about": "Колода дров: ресурс, який збирають або несуть додому. Лежить на землі з тінню; `spawn` — поява з білого спалаху.",
+   "tags": ["wood", "log", "firewood"],
+   "roles": ["collectible"],
+   "bounds": [35, 32, 60, 71],
+   "anchor": [65, 103],
+   "clips": {
+    "spawn": {
+     "frames": [0, 1, 2, 3, 4, 5, 6],
+     "fps": 10,
+     "loop": false,
+     "file": "resources/wood-spawn.png",
+     "frame": [128, 128],
+     "size": [896, 128],
+     "about": "з'являється: спалах, кільце, предмет"
+    }
+   },
+   "variants": {
+    "no-shadow": "resources/wood-no-shadow.png"
+   }
+  },
+  {
+   "id": "prop/castle-blue",
+   "file": "buildings/castle-blue.png",
+   "category": "prop",
+   "name": "Castle blue",
+   "size": [320, 256],
+   "title": "Замок (синій)",
+   "about": "Великий замок: кольорові кам'яні мури з зубцями навколо дерев'яного двору, ворота посередині. Головна будівля королівства, мета або база. Колір: синій.",
+   "tags": ["castle", "fortress", "base", "building", "knights", "blue"],
+   "roles": ["building", "goal", "obstacle"],
+   "bounds": [12, 45, 296, 205],
+   "anchor": [160, 250],
+   "group": "castle",
+   "color": "blue",
+   "footprint": [5, 2]
+  },
+  {
+   "id": "prop/castle-construction",
+   "file": "buildings/castle-construction.png",
+   "category": "prop",
+   "name": "Castle construction",
+   "size": [320, 256],
+   "title": "Замок: будується",
+   "about": "Замок: лише дерев'яний фундамент і дошки, ще будується.",
+   "tags": ["castle", "fortress", "base", "building", "construction", "scaffold"],
+   "roles": ["building", "obstacle"],
+   "bounds": [16, 140, 288, 107],
+   "anchor": [160, 247],
+   "group": "castle",
+   "footprint": [5, 2]
+  },
+  {
+   "id": "prop/castle-destroyed",
+   "file": "buildings/castle-destroyed.png",
+   "category": "prop",
+   "name": "Castle destroyed",
+   "size": [320, 256],
+   "title": "Замок: зруйновано",
+   "about": "Руїни: замок після пожежі чи нападу.",
+   "tags": ["castle", "fortress", "base", "building", "ruins", "destroyed"],
+   "roles": ["building", "obstacle", "decor"],
+   "bounds": [0, 136, 319, 118],
+   "anchor": [160, 254],
+   "group": "castle",
+   "footprint": [5, 2]
+  },
+  {
+   "id": "prop/castle-purple",
+   "file": "buildings/castle-purple.png",
+   "category": "prop",
+   "name": "Castle purple",
+   "size": [320, 256],
+   "title": "Замок (фіолетовий)",
+   "about": "Великий замок: кольорові кам'яні мури з зубцями навколо дерев'яного двору, ворота посередині. Головна будівля королівства, мета або база. Колір: фіолетовий.",
+   "tags": ["castle", "fortress", "base", "building", "knights", "purple"],
+   "roles": ["building", "goal", "obstacle"],
+   "bounds": [12, 45, 296, 205],
+   "anchor": [160, 250],
+   "group": "castle",
+   "color": "purple",
+   "footprint": [5, 2]
+  },
+  {
+   "id": "prop/castle-red",
+   "file": "buildings/castle-red.png",
+   "category": "prop",
+   "name": "Castle red",
+   "size": [320, 256],
+   "title": "Замок (червоний)",
+   "about": "Великий замок: кольорові кам'яні мури з зубцями навколо дерев'яного двору, ворота посередині. Головна будівля королівства, мета або база. Колір: червоний.",
+   "tags": ["castle", "fortress", "base", "building", "knights", "red"],
+   "roles": ["building", "goal", "obstacle"],
+   "bounds": [12, 45, 296, 205],
+   "anchor": [160, 250],
+   "group": "castle",
+   "color": "red",
+   "footprint": [5, 2]
+  },
+  {
+   "id": "prop/castle-yellow",
+   "file": "buildings/castle-yellow.png",
+   "category": "prop",
+   "name": "Castle yellow",
+   "size": [320, 256],
+   "title": "Замок (жовтий)",
+   "about": "Великий замок: кольорові кам'яні мури з зубцями навколо дерев'яного двору, ворота посередині. Головна будівля королівства, мета або база. Колір: жовтий.",
+   "tags": ["castle", "fortress", "base", "building", "knights", "yellow"],
+   "roles": ["building", "goal", "obstacle"],
+   "bounds": [12, 45, 296, 205],
+   "anchor": [160, 250],
+   "group": "castle",
+   "color": "yellow",
+   "footprint": [5, 2]
+  },
+  {
+   "id": "prop/goblin-house",
+   "file": "buildings/goblin-house.png",
+   "category": "prop",
+   "name": "Goblin house",
+   "size": [128, 192],
+   "title": "Хатина гоблінів",
+   "about": "Кругла хатина гоблінів з колод під червоним латаним дахом із кістками.",
+   "tags": ["goblin", "hut", "house", "building"],
+   "roles": ["building", "obstacle", "goal"],
+   "bounds": [7, 26, 113, 145],
+   "anchor": [64, 171],
+   "group": "goblin-house",
+   "footprint": [2, 1]
+  },
+  {
+   "id": "prop/goblin-house-destroyed",
+   "file": "buildings/goblin-house-destroyed.png",
+   "category": "prop",
+   "name": "Goblin house destroyed",
+   "size": [128, 192],
+   "title": "Хатина гоблінів: зруйновано",
+   "about": "Розвалена хатина гоблінів.",
+   "tags": ["goblin", "hut", "ruins", "building"],
+   "roles": ["building", "obstacle", "decor"],
+   "bounds": [17, 72, 98, 102],
+   "anchor": [66, 174],
+   "group": "goblin-house",
+   "footprint": [2, 1]
+  },
+  {
+   "id": "prop/gold-mine",
+   "file": "resources/gold-mine.png",
+   "category": "prop",
+   "name": "Gold mine inactive",
+   "size": [192, 128],
+   "title": "Золота копальня",
+   "about": "Купол із каменів із золотими вкрапленнями й темним входом у копальню.",
+   "tags": ["gold", "mine", "cave", "rock", "resource"],
+   "roles": ["building", "goal", "obstacle"],
+   "bounds": [12, 5, 169, 114],
+   "anchor": [96, 119],
+   "group": "gold-mine",
+   "footprint": [3, 1]
+  },
+  {
+   "id": "prop/gold-mine-active",
+   "file": "resources/gold-mine-active.png",
+   "category": "prop",
+   "name": "Gold mine active",
+   "size": [192, 128],
+   "title": "Золота копальня: працює",
+   "about": "Копальня зі світлом у вході: тут видобувають золото.",
+   "tags": ["gold", "mine", "cave", "rock", "resource"],
+   "roles": ["building", "goal", "obstacle"],
+   "bounds": [12, 5, 169, 121],
+   "anchor": [96, 126],
+   "group": "gold-mine",
+   "footprint": [3, 1]
+  },
+  {
+   "id": "prop/gold-mine-destroyed",
+   "file": "resources/gold-mine-destroyed.png",
+   "category": "prop",
+   "name": "Gold mine destroyed",
+   "size": [192, 128],
+   "title": "Золота копальня: обвалилась",
+   "about": "Завалений вхід у копальню.",
+   "tags": ["gold", "mine", "cave", "rock", "resource"],
+   "roles": ["building", "goal", "obstacle"],
+   "bounds": [14, 20, 164, 95],
+   "anchor": [96, 115],
+   "group": "gold-mine",
+   "footprint": [3, 1]
+  },
+  {
+   "id": "prop/house-blue",
+   "file": "buildings/house-blue.png",
+   "category": "prop",
+   "name": "House blue",
+   "size": [128, 192],
+   "title": "Будинок (синій)",
+   "about": "Хата з солом'яним дахом і кольоровими стінами, двері й вікно спереду: дім героя чи селян. Колір: синій.",
+   "tags": ["house", "home", "cottage", "building", "knights", "blue"],
+   "roles": ["building", "goal", "obstacle"],
+   "bounds": [10, 24, 108, 148],
+   "anchor": [64, 172],
+   "group": "house",
+   "color": "blue",
+   "footprint": [2, 1]
+  },
+  {
+   "id": "prop/house-construction",
+   "file": "buildings/house-construction.png",
+   "category": "prop",
+   "name": "House construction",
+   "size": [128, 192],
+   "title": "Будинок: будується",
+   "about": "Будинок: лише дерев'яний фундамент і дошки, ще будується.",
+   "tags": ["house", "home", "cottage", "building", "construction", "scaffold"],
+   "roles": ["building", "obstacle"],
+   "bounds": [16, 90, 96, 94],
+   "anchor": [64, 184],
+   "group": "house",
+   "footprint": [2, 1]
+  },
+  {
+   "id": "prop/house-destroyed",
+   "file": "buildings/house-destroyed.png",
+   "category": "prop",
+   "name": "House destroyed",
+   "size": [128, 192],
+   "title": "Будинок: зруйновано",
+   "about": "Руїни: будинок після пожежі чи нападу.",
+   "tags": ["house", "home", "cottage", "building", "ruins", "destroyed"],
+   "roles": ["building", "obstacle", "decor"],
+   "bounds": [16, 83, 94, 83],
+   "anchor": [63, 166],
+   "group": "house",
+   "footprint": [2, 1]
+  },
+  {
+   "id": "prop/house-purple",
+   "file": "buildings/house-purple.png",
+   "category": "prop",
+   "name": "House purple",
+   "size": [128, 192],
+   "title": "Будинок (фіолетовий)",
+   "about": "Хата з солом'яним дахом і кольоровими стінами, двері й вікно спереду: дім героя чи селян. Колір: фіолетовий.",
+   "tags": ["house", "home", "cottage", "building", "knights", "purple"],
+   "roles": ["building", "goal", "obstacle"],
+   "bounds": [10, 24, 108, 148],
+   "anchor": [64, 172],
+   "group": "house",
+   "color": "purple",
+   "footprint": [2, 1]
+  },
+  {
+   "id": "prop/house-red",
+   "file": "buildings/house-red.png",
+   "category": "prop",
+   "name": "House red",
+   "size": [128, 192],
+   "title": "Будинок (червоний)",
+   "about": "Хата з солом'яним дахом і кольоровими стінами, двері й вікно спереду: дім героя чи селян. Колір: червоний.",
+   "tags": ["house", "home", "cottage", "building", "knights", "red"],
+   "roles": ["building", "goal", "obstacle"],
+   "bounds": [10, 24, 108, 148],
+   "anchor": [64, 172],
+   "group": "house",
+   "color": "red",
+   "footprint": [2, 1]
+  },
+  {
+   "id": "prop/house-yellow",
+   "file": "buildings/house-yellow.png",
+   "category": "prop",
+   "name": "House yellow",
+   "size": [128, 192],
+   "title": "Будинок (жовтий)",
+   "about": "Хата з солом'яним дахом і кольоровими стінами, двері й вікно спереду: дім героя чи селян. Колір: жовтий.",
+   "tags": ["house", "home", "cottage", "building", "knights", "yellow"],
+   "roles": ["building", "goal", "obstacle"],
+   "bounds": [10, 24, 108, 148],
+   "anchor": [64, 172],
+   "group": "house",
+   "color": "yellow",
+   "footprint": [2, 1]
+  },
+  {
+   "id": "prop/tower-blue",
+   "file": "buildings/tower-blue.png",
+   "category": "prop",
+   "name": "Tower blue",
+   "size": [128, 256],
+   "title": "Вежа (синій)",
+   "about": "Кругла вартова вежа з кольорового каменю з зубцями й дверима. Колір: синій.",
+   "tags": ["tower", "watchtower", "defense", "building", "knights", "blue"],
+   "roles": ["building", "goal", "obstacle"],
+   "bounds": [7, 52, 114, 183],
+   "anchor": [64, 235],
+   "group": "tower",
+   "color": "blue",
+   "footprint": [2, 1]
+  },
+  {
+   "id": "prop/tower-construction",
+   "file": "buildings/tower-construction.png",
+   "category": "prop",
+   "name": "Tower construction",
+   "size": [128, 256],
+   "title": "Вежа: будується",
+   "about": "Вежа: лише дерев'яний фундамент і дошки, ще будується.",
+   "tags": ["tower", "watchtower", "defense", "building", "construction", "scaffold"],
+   "roles": ["building", "obstacle"],
+   "bounds": [13, 148, 102, 84],
+   "anchor": [64, 232],
+   "group": "tower",
+   "footprint": [2, 1]
+  },
+  {
+   "id": "prop/tower-destroyed",
+   "file": "buildings/tower-destroyed.png",
+   "category": "prop",
+   "name": "Tower destroyed",
+   "size": [128, 256],
+   "title": "Вежа: зруйновано",
+   "about": "Руїни: вежа після пожежі чи нападу.",
+   "tags": ["tower", "watchtower", "defense", "building", "ruins", "destroyed"],
+   "roles": ["building", "obstacle", "decor"],
+   "bounds": [1, 144, 125, 86],
+   "anchor": [64, 230],
+   "group": "tower",
+   "footprint": [2, 1]
+  },
+  {
+   "id": "prop/tower-purple",
+   "file": "buildings/tower-purple.png",
+   "category": "prop",
+   "name": "Tower purple",
+   "size": [128, 256],
+   "title": "Вежа (фіолетовий)",
+   "about": "Кругла вартова вежа з кольорового каменю з зубцями й дверима. Колір: фіолетовий.",
+   "tags": ["tower", "watchtower", "defense", "building", "knights", "purple"],
+   "roles": ["building", "goal", "obstacle"],
+   "bounds": [7, 52, 114, 183],
+   "anchor": [64, 235],
+   "group": "tower",
+   "color": "purple",
+   "footprint": [2, 1]
+  },
+  {
+   "id": "prop/tower-red",
+   "file": "buildings/tower-red.png",
+   "category": "prop",
+   "name": "Tower red",
+   "size": [128, 256],
+   "title": "Вежа (червоний)",
+   "about": "Кругла вартова вежа з кольорового каменю з зубцями й дверима. Колір: червоний.",
+   "tags": ["tower", "watchtower", "defense", "building", "knights", "red"],
+   "roles": ["building", "goal", "obstacle"],
+   "bounds": [7, 52, 114, 183],
+   "anchor": [64, 235],
+   "group": "tower",
+   "color": "red",
+   "footprint": [2, 1]
+  },
+  {
+   "id": "prop/tower-yellow",
+   "file": "buildings/tower-yellow.png",
+   "category": "prop",
+   "name": "Tower yellow",
+   "size": [128, 256],
+   "title": "Вежа (жовтий)",
+   "about": "Кругла вартова вежа з кольорового каменю з зубцями й дверима. Колір: жовтий.",
+   "tags": ["tower", "watchtower", "defense", "building", "knights", "yellow"],
+   "roles": ["building", "goal", "obstacle"],
+   "bounds": [7, 52, 114, 183],
+   "anchor": [64, 235],
+   "group": "tower",
+   "color": "yellow",
+   "footprint": [2, 1]
+  },
+  {
+   "id": "prop/wood-tower-blue",
+   "file": "buildings/wood-tower-blue.png",
+   "category": "prop",
+   "name": "Goblin wood tower blue",
+   "size": [1024, 192],
+   "title": "Дерев'яна вежа гоблінів (синій)",
+   "about": "Хистка вежа гоблінів на дерев'яних ногах з кольоровою тканиною й прапорцями, що майорять.",
+   "tags": ["goblin", "tower", "wood", "building", "blue"],
+   "roles": ["building", "obstacle", "goal"],
+   "frame": [256, 192],
+   "frameCount": 4,
+   "bounds": [63, 16, 130, 155],
+   "anchor": [128, 171],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3],
+     "fps": 8,
+     "loop": true,
+     "about": "прапорці майорять"
+    }
+   },
+   "group": "wood-tower",
+   "color": "blue",
+   "footprint": [2, 1]
+  },
+  {
+   "id": "prop/wood-tower-construction",
+   "file": "buildings/wood-tower-construction.png",
+   "category": "prop",
+   "name": "Goblin wood tower construction",
+   "size": [256, 192],
+   "title": "Вежа гоблінів: будується",
+   "about": "Дерев'яна вежа гоблінів: будується.",
+   "tags": ["goblin", "tower", "wood", "building", "construction"],
+   "roles": ["building", "obstacle"],
+   "bounds": [65, 28, 109, 151],
+   "anchor": [120, 179],
+   "group": "wood-tower",
+   "footprint": [2, 1]
+  },
+  {
+   "id": "prop/wood-tower-destroyed",
+   "file": "buildings/wood-tower-destroyed.png",
+   "category": "prop",
+   "name": "Goblin wood tower destroyed",
+   "size": [256, 192],
+   "title": "Вежа гоблінів: зруйновано",
+   "about": "Дерев'яна вежа гоблінів: зруйновано.",
+   "tags": ["goblin", "tower", "wood", "building", "destroyed"],
+   "roles": ["building", "obstacle"],
+   "bounds": [73, 66, 115, 108],
+   "anchor": [130, 174],
+   "group": "wood-tower",
+   "footprint": [2, 1]
+  },
+  {
+   "id": "prop/wood-tower-purple",
+   "file": "buildings/wood-tower-purple.png",
+   "category": "prop",
+   "name": "Goblin wood tower purple",
+   "size": [1024, 192],
+   "title": "Дерев'яна вежа гоблінів (фіолетовий)",
+   "about": "Хистка вежа гоблінів на дерев'яних ногах з кольоровою тканиною й прапорцями, що майорять.",
+   "tags": ["goblin", "tower", "wood", "building", "purple"],
+   "roles": ["building", "obstacle", "goal"],
+   "frame": [256, 192],
+   "frameCount": 4,
+   "bounds": [63, 16, 130, 155],
+   "anchor": [128, 171],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3],
+     "fps": 8,
+     "loop": true,
+     "about": "прапорці майорять"
+    }
+   },
+   "group": "wood-tower",
+   "color": "purple",
+   "footprint": [2, 1]
+  },
+  {
+   "id": "prop/wood-tower-red",
+   "file": "buildings/wood-tower-red.png",
+   "category": "prop",
+   "name": "Goblin wood tower red",
+   "size": [1024, 192],
+   "title": "Дерев'яна вежа гоблінів (червоний)",
+   "about": "Хистка вежа гоблінів на дерев'яних ногах з кольоровою тканиною й прапорцями, що майорять.",
+   "tags": ["goblin", "tower", "wood", "building", "red"],
+   "roles": ["building", "obstacle", "goal"],
+   "frame": [256, 192],
+   "frameCount": 4,
+   "bounds": [63, 16, 130, 155],
+   "anchor": [128, 171],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3],
+     "fps": 8,
+     "loop": true,
+     "about": "прапорці майорять"
+    }
+   },
+   "group": "wood-tower",
+   "color": "red",
+   "footprint": [2, 1]
+  },
+  {
+   "id": "prop/wood-tower-yellow",
+   "file": "buildings/wood-tower-yellow.png",
+   "category": "prop",
+   "name": "Goblin wood tower yellow",
+   "size": [1024, 192],
+   "title": "Дерев'яна вежа гоблінів (жовтий)",
+   "about": "Хистка вежа гоблінів на дерев'яних ногах з кольоровою тканиною й прапорцями, що майорять.",
+   "tags": ["goblin", "tower", "wood", "building", "yellow"],
+   "roles": ["building", "obstacle", "goal"],
+   "frame": [256, 192],
+   "frameCount": 4,
+   "bounds": [63, 16, 130, 155],
+   "anchor": [128, 171],
+   "clips": {
+    "idle": {
+     "frames": [0, 1, 2, 3],
+     "fps": 8,
+     "loop": true,
+     "about": "прапорці майорять"
+    }
+   },
+   "group": "wood-tower",
+   "color": "yellow",
+   "footprint": [2, 1]
+  },
+  {
+   "id": "terrain/foam",
+   "file": "terrain/foam.png",
+   "category": "terrain",
+   "name": "Foam",
+   "size": [1536, 192],
+   "title": "Піна прибою",
+   "about": "Біла піна навколо землі на воді, 3×3 клітинки: центр кадру ставити на клітинку землі, що межує з водою (малюється під землею).",
+   "tags": ["foam", "shore", "surf", "water", "beach"],
+   "roles": ["water", "decor"],
+   "frame": [192, 192],
+   "frameCount": 8,
+   "bounds": [53, 53, 86, 86],
+   "anchor": [96, 139],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 8,
+     "loop": true,
+     "about": "хвилі набігають"
+    }
+   }
+  },
+  {
+   "id": "terrain/shadow",
+   "file": "terrain/shadow.png",
+   "category": "terrain",
+   "name": "Shadow",
+   "size": [192, 192],
+   "title": "Тінь скелі",
+   "about": "Напівпрозора тінь 3×3 клітинки: класти під кожну плитку плато (центр на ній), щоб скеля відкидала тінь.",
+   "tags": ["shadow", "cliff"],
+   "roles": ["shadow"],
+   "bounds": [59, 57, 74, 78],
+   "anchor": [96, 135]
+  },
+  {
+   "id": "terrain/water-rocks-1",
+   "file": "terrain/water-rocks-1.png",
+   "category": "terrain",
+   "name": "Water rocks small",
+   "size": [1024, 128],
+   "title": "Камені у воді 1",
+   "about": "Маленькі камені у воді з піною навколо.",
+   "tags": ["rock", "water", "sea", "foam"],
+   "roles": ["obstacle", "decor", "water"],
+   "frame": [128, 128],
+   "frameCount": 8,
+   "bounds": [46, 54, 32, 23],
+   "anchor": [62, 77],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 8,
+     "loop": true,
+     "about": "піна хлюпає"
+    }
+   }
+  },
+  {
+   "id": "terrain/water-rocks-2",
+   "file": "terrain/water-rocks-2.png",
+   "category": "terrain",
+   "name": "Water rocks medium",
+   "size": [1024, 128],
+   "title": "Камені у воді 2",
+   "about": "Камені у воді з піною навколо.",
+   "tags": ["rock", "water", "sea", "foam"],
+   "roles": ["obstacle", "decor", "water"],
+   "frame": [128, 128],
+   "frameCount": 8,
+   "bounds": [39, 53, 47, 34],
+   "anchor": [62, 87],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 8,
+     "loop": true,
+     "about": "піна хлюпає"
+    }
+   }
+  },
+  {
+   "id": "terrain/water-rocks-3",
+   "file": "terrain/water-rocks-3.png",
+   "category": "terrain",
+   "name": "Water rocks large",
+   "size": [1024, 128],
+   "title": "Камені у воді 3",
+   "about": "Скеля з трьох каменів у воді з піною навколо.",
+   "tags": ["rock", "water", "sea", "foam"],
+   "roles": ["obstacle", "decor", "water"],
+   "frame": [128, 128],
+   "frameCount": 8,
+   "bounds": [29, 35, 75, 56],
+   "anchor": [66, 91],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 8,
+     "loop": true,
+     "about": "піна хлюпає"
+    }
+   }
+  },
+  {
+   "id": "terrain/water-rocks-4",
+   "file": "terrain/water-rocks-4.png",
+   "category": "terrain",
+   "name": "Water rocks huge",
+   "size": [1024, 128],
+   "title": "Камені у воді 4",
+   "about": "Великі камені у воді з піною навколо.",
+   "tags": ["rock", "water", "sea", "foam"],
+   "roles": ["obstacle", "decor", "water"],
+   "frame": [128, 128],
+   "frameCount": 8,
+   "bounds": [20, 34, 91, 65],
+   "anchor": [66, 99],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+     "fps": 8,
+     "loop": true,
+     "about": "піна хлюпає"
+    }
+   }
+  },
+  {
+   "id": "tileset/bridge",
+   "file": "terrain/bridge.png",
+   "category": "tileset",
+   "name": "Bridge",
+   "size": [192, 256],
+   "title": "Міст",
+   "about": "Дерев'яний міст через воду: горизонтальний і вертикальний, цілий і зламаний.",
+   "tags": ["tileset", "bridge", "wood", "water", "crossing"],
+   "roles": ["bridge", "ground", "path"],
+   "frame": [64, 64],
+   "frameCount": 10,
+   "layout": "grid",
+   "bounds": [0, 0, 64, 64],
+   "anchor": [32, 64],
+   "tiles": [
+    {
+     "index": 1,
+     "col": 0,
+     "row": 0,
+     "terrain": "bridge",
+     "role": "horizontal-left",
+     "about": "Горизонтальний міст: лівий кінець зі стовпчиками"
+    },
+    {
+     "index": 2,
+     "col": 1,
+     "row": 0,
+     "terrain": "bridge",
+     "role": "horizontal-middle",
+     "about": "Горизонтальний міст: середина, дошки"
+    },
+    {
+     "index": 3,
+     "col": 2,
+     "row": 0,
+     "terrain": "bridge",
+     "role": "horizontal-right",
+     "about": "Горизонтальний міст: правий кінець"
+    },
+    {
+     "index": 4,
+     "col": 0,
+     "row": 1,
+     "terrain": "bridge",
+     "role": "vertical-top",
+     "about": "Вертикальний міст: верхній кінець"
+    },
+    {
+     "index": 7,
+     "col": 0,
+     "row": 2,
+     "terrain": "bridge",
+     "role": "vertical-middle",
+     "about": "Вертикальний міст: середина"
+    },
+    {
+     "index": 10,
+     "col": 0,
+     "row": 3,
+     "terrain": "bridge",
+     "role": "vertical-bottom",
+     "about": "Вертикальний міст: нижній кінець"
+    },
+    {
+     "index": 5,
+     "col": 1,
+     "row": 1,
+     "terrain": "bridge",
+     "role": "broken",
+     "about": "Зламаний міст: стовпці й одна дошка"
+    },
+    {
+     "index": 6,
+     "col": 2,
+     "row": 1,
+     "terrain": "bridge",
+     "role": "broken",
+     "about": "Зламаний міст: стовпці й дошка навскіс"
+    },
+    {
+     "index": 8,
+     "col": 1,
+     "row": 2,
+     "terrain": "bridge",
+     "role": "broken",
+     "about": "Розкидані колоди зламаного мосту"
+    },
+    {
+     "index": 12,
+     "col": 2,
+     "row": 3,
+     "terrain": "bridge",
+     "role": "shadow",
+     "about": "Тінь мосту на воді"
+    }
+   ]
+  },
+  {
+   "id": "tileset/elevation",
+   "file": "terrain/elevation.png",
+   "category": "tileset",
+   "name": "Elevation",
+   "size": [256, 512],
+   "title": "Скелі й плато",
+   "about": "Підняту землю малюють так: верх плато (рядки 0–2, стовпець 3, рядок 4) — як траву, за `mask`; під нижнім краєм плато ставлять стіну скелі (рядки 3 і 5); сходи (рядок 7) з'єднують плато з низом. Під плато кладуть тінь `terrain/shadow`.",
+   "tags": ["tileset", "cliff", "plateau", "elevation", "stairs", "autotile"],
+   "roles": ["ground", "cliff", "obstacle"],
+   "frame": [64, 64],
+   "frameCount": 28,
+   "layout": "grid",
+   "bounds": [0, 0, 64, 64],
+   "anchor": [32, 64],
+   "tiles": [
+    {
+     "index": 1,
+     "col": 0,
+     "row": 0,
+     "terrain": "plateau",
+     "role": "edge",
+     "about": "Плато (верх скелі): край там, де верх, лівий бік",
+     "edges": "NW",
+     "mask": 9
+    },
+    {
+     "index": 2,
+     "col": 1,
+     "row": 0,
+     "terrain": "plateau",
+     "role": "edge",
+     "about": "Плато (верх скелі): край там, де верх",
+     "edges": "N",
+     "mask": 1
+    },
+    {
+     "index": 3,
+     "col": 2,
+     "row": 0,
+     "terrain": "plateau",
+     "role": "edge",
+     "about": "Плато (верх скелі): край там, де верх, правий бік",
+     "edges": "NE",
+     "mask": 3
+    },
+    {
+     "index": 4,
+     "col": 3,
+     "row": 0,
+     "terrain": "plateau",
+     "role": "edge",
+     "about": "Плато (верх скелі): край там, де верх, правий бік, лівий бік",
+     "edges": "NEW",
+     "mask": 11
+    },
+    {
+     "index": 5,
+     "col": 0,
+     "row": 1,
+     "terrain": "plateau",
+     "role": "edge",
+     "about": "Плато (верх скелі): край там, де лівий бік",
+     "edges": "W",
+     "mask": 8
+    },
+    {
+     "index": 6,
+     "col": 1,
+     "row": 1,
+     "terrain": "plateau",
+     "role": "fill",
+     "about": "Плато (верх скелі): середина, з усіх боків той самий ґрунт",
+     "edges": "",
+     "mask": 0
+    },
+    {
+     "index": 7,
+     "col": 2,
+     "row": 1,
+     "terrain": "plateau",
+     "role": "edge",
+     "about": "Плато (верх скелі): край там, де правий бік",
+     "edges": "E",
+     "mask": 2
+    },
+    {
+     "index": 8,
+     "col": 3,
+     "row": 1,
+     "terrain": "plateau",
+     "role": "edge",
+     "about": "Плато (верх скелі): край там, де правий бік, лівий бік",
+     "edges": "EW",
+     "mask": 10
+    },
+    {
+     "index": 9,
+     "col": 0,
+     "row": 2,
+     "terrain": "plateau",
+     "role": "edge",
+     "about": "Плато (верх скелі): край там, де низ, лівий бік",
+     "edges": "SW",
+     "mask": 12
+    },
+    {
+     "index": 10,
+     "col": 1,
+     "row": 2,
+     "terrain": "plateau",
+     "role": "edge",
+     "about": "Плато (верх скелі): край там, де низ",
+     "edges": "S",
+     "mask": 4
+    },
+    {
+     "index": 11,
+     "col": 2,
+     "row": 2,
+     "terrain": "plateau",
+     "role": "edge",
+     "about": "Плато (верх скелі): край там, де правий бік, низ",
+     "edges": "ES",
+     "mask": 6
+    },
+    {
+     "index": 12,
+     "col": 3,
+     "row": 2,
+     "terrain": "plateau",
+     "role": "edge",
+     "about": "Плато (верх скелі): край там, де правий бік, низ, лівий бік",
+     "edges": "ESW",
+     "mask": 14
+    },
+    {
+     "index": 17,
+     "col": 0,
+     "row": 4,
+     "terrain": "plateau",
+     "role": "edge",
+     "about": "Плато в одну клітинку заввишки: лівий край",
+     "edges": "NSW",
+     "mask": 13
+    },
+    {
+     "index": 18,
+     "col": 1,
+     "row": 4,
+     "terrain": "plateau",
+     "role": "edge",
+     "about": "Плато в одну клітинку заввишки: середина",
+     "edges": "NS",
+     "mask": 5
+    },
+    {
+     "index": 19,
+     "col": 2,
+     "row": 4,
+     "terrain": "plateau",
+     "role": "edge",
+     "about": "Плато в одну клітинку заввишки: правий край",
+     "edges": "NES",
+     "mask": 7
+    },
+    {
+     "index": 20,
+     "col": 3,
+     "row": 4,
+     "terrain": "plateau",
+     "role": "edge",
+     "about": "Плато в одну клітинку заввишки: одна клітинка",
+     "edges": "NESW",
+     "mask": 15
+    },
+    {
+     "index": 13,
+     "col": 0,
+     "row": 3,
+     "terrain": "cliff",
+     "role": "wall",
+     "about": "Стіна скелі під нижнім рядом плато: лівий край"
+    },
+    {
+     "index": 14,
+     "col": 1,
+     "row": 3,
+     "terrain": "cliff",
+     "role": "wall",
+     "about": "Стіна скелі під нижнім рядом плато: середина"
+    },
+    {
+     "index": 15,
+     "col": 2,
+     "row": 3,
+     "terrain": "cliff",
+     "role": "wall",
+     "about": "Стіна скелі під нижнім рядом плато: правий край"
+    },
+    {
+     "index": 16,
+     "col": 3,
+     "row": 3,
+     "terrain": "cliff",
+     "role": "wall",
+     "about": "Стіна скелі під нижнім рядом плато: одна клітинка"
+    },
+    {
+     "index": 21,
+     "col": 0,
+     "row": 5,
+     "terrain": "cliff",
+     "role": "wall",
+     "about": "Стіна скелі під плато в одну клітинку: лівий край"
+    },
+    {
+     "index": 22,
+     "col": 1,
+     "row": 5,
+     "terrain": "cliff",
+     "role": "wall",
+     "about": "Стіна скелі під плато в одну клітинку: середина"
+    },
+    {
+     "index": 23,
+     "col": 2,
+     "row": 5,
+     "terrain": "cliff",
+     "role": "wall",
+     "about": "Стіна скелі під плато в одну клітинку: правий край"
+    },
+    {
+     "index": 24,
+     "col": 3,
+     "row": 5,
+     "terrain": "cliff",
+     "role": "wall",
+     "about": "Стіна скелі під плато в одну клітинку: одна клітинка"
+    },
+    {
+     "index": 29,
+     "col": 0,
+     "row": 7,
+     "terrain": "stairs",
+     "role": "stairs",
+     "about": "Сходи з плато вниз: лівий край"
+    },
+    {
+     "index": 30,
+     "col": 1,
+     "row": 7,
+     "terrain": "stairs",
+     "role": "stairs",
+     "about": "Сходи з плато вниз: середина"
+    },
+    {
+     "index": 31,
+     "col": 2,
+     "row": 7,
+     "terrain": "stairs",
+     "role": "stairs",
+     "about": "Сходи з плато вниз: правий край"
+    },
+    {
+     "index": 32,
+     "col": 3,
+     "row": 7,
+     "terrain": "stairs",
+     "role": "stairs",
+     "about": "Сходи з плато вниз: одна клітинка"
+    }
+   ]
+  },
+  {
+   "id": "tileset/ground",
+   "file": "terrain/ground.png",
+   "category": "tileset",
+   "name": "Flat ground",
+   "size": [640, 256],
+   "title": "Плоска земля: трава й пісок",
+   "about": "Тайлсет плоскої землі на воді: блок 4×4 трави (стовпці 0–3) і піску (5–8). Кожна плитка має `edges` (боки, де ґрунт закінчується) і `mask` (N=1, E=2, S=4, W=8): для клітинки рахують, з яких боків сусід не той ґрунт, і беруть плитку з таким `mask`. Пісок на траві дає стежку, трава на воді дає острів.",
+   "tags": ["tileset", "ground", "grass", "sand", "path", "island", "autotile"],
+   "roles": ["ground", "path"],
+   "frame": [64, 64],
+   "frameCount": 34,
+   "layout": "grid",
+   "bounds": [0, 0, 64, 64],
+   "anchor": [32, 64],
+   "tiles": [
+    {
+     "index": 1,
+     "col": 0,
+     "row": 0,
+     "terrain": "grass",
+     "role": "edge",
+     "about": "Трава: край там, де верх, лівий бік",
+     "edges": "NW",
+     "mask": 9
+    },
+    {
+     "index": 2,
+     "col": 1,
+     "row": 0,
+     "terrain": "grass",
+     "role": "edge",
+     "about": "Трава: край там, де верх",
+     "edges": "N",
+     "mask": 1
+    },
+    {
+     "index": 3,
+     "col": 2,
+     "row": 0,
+     "terrain": "grass",
+     "role": "edge",
+     "about": "Трава: край там, де верх, правий бік",
+     "edges": "NE",
+     "mask": 3
+    },
+    {
+     "index": 4,
+     "col": 3,
+     "row": 0,
+     "terrain": "grass",
+     "role": "edge",
+     "about": "Трава: край там, де верх, правий бік, лівий бік",
+     "edges": "NEW",
+     "mask": 11
+    },
+    {
+     "index": 11,
+     "col": 0,
+     "row": 1,
+     "terrain": "grass",
+     "role": "edge",
+     "about": "Трава: край там, де лівий бік",
+     "edges": "W",
+     "mask": 8
+    },
+    {
+     "index": 12,
+     "col": 1,
+     "row": 1,
+     "terrain": "grass",
+     "role": "fill",
+     "about": "Трава: середина, з усіх боків той самий ґрунт",
+     "edges": "",
+     "mask": 0
+    },
+    {
+     "index": 13,
+     "col": 2,
+     "row": 1,
+     "terrain": "grass",
+     "role": "edge",
+     "about": "Трава: край там, де правий бік",
+     "edges": "E",
+     "mask": 2
+    },
+    {
+     "index": 14,
+     "col": 3,
+     "row": 1,
+     "terrain": "grass",
+     "role": "edge",
+     "about": "Трава: край там, де правий бік, лівий бік",
+     "edges": "EW",
+     "mask": 10
+    },
+    {
+     "index": 21,
+     "col": 0,
+     "row": 2,
+     "terrain": "grass",
+     "role": "edge",
+     "about": "Трава: край там, де низ, лівий бік",
+     "edges": "SW",
+     "mask": 12
+    },
+    {
+     "index": 22,
+     "col": 1,
+     "row": 2,
+     "terrain": "grass",
+     "role": "edge",
+     "about": "Трава: край там, де низ",
+     "edges": "S",
+     "mask": 4
+    },
+    {
+     "index": 23,
+     "col": 2,
+     "row": 2,
+     "terrain": "grass",
+     "role": "edge",
+     "about": "Трава: край там, де правий бік, низ",
+     "edges": "ES",
+     "mask": 6
+    },
+    {
+     "index": 24,
+     "col": 3,
+     "row": 2,
+     "terrain": "grass",
+     "role": "edge",
+     "about": "Трава: край там, де правий бік, низ, лівий бік",
+     "edges": "ESW",
+     "mask": 14
+    },
+    {
+     "index": 31,
+     "col": 0,
+     "row": 3,
+     "terrain": "grass",
+     "role": "edge",
+     "about": "Трава: край там, де верх, низ, лівий бік",
+     "edges": "NSW",
+     "mask": 13
+    },
+    {
+     "index": 32,
+     "col": 1,
+     "row": 3,
+     "terrain": "grass",
+     "role": "edge",
+     "about": "Трава: край там, де верх, низ",
+     "edges": "NS",
+     "mask": 5
+    },
+    {
+     "index": 33,
+     "col": 2,
+     "row": 3,
+     "terrain": "grass",
+     "role": "edge",
+     "about": "Трава: край там, де верх, правий бік, низ",
+     "edges": "NES",
+     "mask": 7
+    },
+    {
+     "index": 34,
+     "col": 3,
+     "row": 3,
+     "terrain": "grass",
+     "role": "edge",
+     "about": "Трава: край там, де верх, правий бік, низ, лівий бік",
+     "edges": "NESW",
+     "mask": 15
+    },
+    {
+     "index": 6,
+     "col": 5,
+     "row": 0,
+     "terrain": "sand",
+     "role": "edge",
+     "about": "Пісок: край там, де верх, лівий бік",
+     "edges": "NW",
+     "mask": 9
+    },
+    {
+     "index": 7,
+     "col": 6,
+     "row": 0,
+     "terrain": "sand",
+     "role": "edge",
+     "about": "Пісок: край там, де верх",
+     "edges": "N",
+     "mask": 1
+    },
+    {
+     "index": 8,
+     "col": 7,
+     "row": 0,
+     "terrain": "sand",
+     "role": "edge",
+     "about": "Пісок: край там, де верх, правий бік",
+     "edges": "NE",
+     "mask": 3
+    },
+    {
+     "index": 9,
+     "col": 8,
+     "row": 0,
+     "terrain": "sand",
+     "role": "edge",
+     "about": "Пісок: край там, де верх, правий бік, лівий бік",
+     "edges": "NEW",
+     "mask": 11
+    },
+    {
+     "index": 16,
+     "col": 5,
+     "row": 1,
+     "terrain": "sand",
+     "role": "edge",
+     "about": "Пісок: край там, де лівий бік",
+     "edges": "W",
+     "mask": 8
+    },
+    {
+     "index": 17,
+     "col": 6,
+     "row": 1,
+     "terrain": "sand",
+     "role": "fill",
+     "about": "Пісок: середина, з усіх боків той самий ґрунт",
+     "edges": "",
+     "mask": 0
+    },
+    {
+     "index": 18,
+     "col": 7,
+     "row": 1,
+     "terrain": "sand",
+     "role": "edge",
+     "about": "Пісок: край там, де правий бік",
+     "edges": "E",
+     "mask": 2
+    },
+    {
+     "index": 19,
+     "col": 8,
+     "row": 1,
+     "terrain": "sand",
+     "role": "edge",
+     "about": "Пісок: край там, де правий бік, лівий бік",
+     "edges": "EW",
+     "mask": 10
+    },
+    {
+     "index": 26,
+     "col": 5,
+     "row": 2,
+     "terrain": "sand",
+     "role": "edge",
+     "about": "Пісок: край там, де низ, лівий бік",
+     "edges": "SW",
+     "mask": 12
+    },
+    {
+     "index": 27,
+     "col": 6,
+     "row": 2,
+     "terrain": "sand",
+     "role": "edge",
+     "about": "Пісок: край там, де низ",
+     "edges": "S",
+     "mask": 4
+    },
+    {
+     "index": 28,
+     "col": 7,
+     "row": 2,
+     "terrain": "sand",
+     "role": "edge",
+     "about": "Пісок: край там, де правий бік, низ",
+     "edges": "ES",
+     "mask": 6
+    },
+    {
+     "index": 29,
+     "col": 8,
+     "row": 2,
+     "terrain": "sand",
+     "role": "edge",
+     "about": "Пісок: край там, де правий бік, низ, лівий бік",
+     "edges": "ESW",
+     "mask": 14
+    },
+    {
+     "index": 36,
+     "col": 5,
+     "row": 3,
+     "terrain": "sand",
+     "role": "edge",
+     "about": "Пісок: край там, де верх, низ, лівий бік",
+     "edges": "NSW",
+     "mask": 13
+    },
+    {
+     "index": 37,
+     "col": 6,
+     "row": 3,
+     "terrain": "sand",
+     "role": "edge",
+     "about": "Пісок: край там, де верх, низ",
+     "edges": "NS",
+     "mask": 5
+    },
+    {
+     "index": 38,
+     "col": 7,
+     "row": 3,
+     "terrain": "sand",
+     "role": "edge",
+     "about": "Пісок: край там, де верх, правий бік, низ",
+     "edges": "NES",
+     "mask": 7
+    },
+    {
+     "index": 39,
+     "col": 8,
+     "row": 3,
+     "terrain": "sand",
+     "role": "edge",
+     "about": "Пісок: край там, де верх, правий бік, низ, лівий бік",
+     "edges": "NESW",
+     "mask": 15
+    },
+    {
+     "index": 5,
+     "col": 4,
+     "row": 0,
+     "terrain": "grass",
+     "role": "detail",
+     "about": "Кущики трави внизу плитки: класти під нижній край трави, щоб край виглядав живим",
+     "verify": true
+    },
+    {
+     "index": 10,
+     "col": 9,
+     "row": 0,
+     "terrain": "sand",
+     "role": "detail",
+     "about": "Камінці піску внизу плитки, як і для трави",
+     "verify": true
+    }
+   ]
+  },
+  {
+   "id": "tileset/water",
+   "file": "terrain/water.png",
+   "category": "tileset",
+   "name": "Water",
+   "size": [64, 64],
+   "title": "Вода",
+   "about": "Плитка води: фон під усією картою. Через воду не пройти; береги дає `terrain/foam`.",
+   "tags": ["water", "sea", "lake", "background"],
+   "roles": ["water", "obstacle"],
+   "frame": [64, 64],
+   "frameCount": 1,
+   "layout": "grid",
+   "bounds": [0, 0, 64, 64],
+   "anchor": [32, 64],
+   "tiles": [
+    {
+     "index": 1,
+     "col": 0,
+     "row": 0,
+     "terrain": "water",
+     "role": "fill",
+     "about": "Вода"
+    }
+   ]
+  },
+  {
+   "id": "ui/banner-connection-down",
+   "file": "ui/banners/banner-connection-down.png",
+   "category": "ui",
+   "name": "Banner connection down",
+   "size": [192, 192],
+   "title": "Сувій-панель",
+   "about": "Сувій зі звивом знизу: з'єднання панелей. 9 частин по 64 пікселі (`parts`).",
+   "tags": ["banner", "scroll", "parchment", "panel"],
+   "roles": ["ui-panel"],
+   "bounds": [38, 47, 116, 143],
+   "anchor": [96, 190],
+   "parts": [
+    {
+     "name": "top-left",
+     "rect": [0, 0, 64, 64]
+    },
+    {
+     "name": "top",
+     "rect": [64, 0, 64, 64]
+    },
+    {
+     "name": "top-right",
+     "rect": [128, 0, 64, 64]
+    },
+    {
+     "name": "left",
+     "rect": [0, 64, 64, 64]
+    },
+    {
+     "name": "center",
+     "rect": [64, 64, 64, 64]
+    },
+    {
+     "name": "right",
+     "rect": [128, 64, 64, 64]
+    },
+    {
+     "name": "bottom-left",
+     "rect": [0, 128, 64, 64]
+    },
+    {
+     "name": "bottom",
+     "rect": [64, 128, 64, 64]
+    },
+    {
+     "name": "bottom-right",
+     "rect": [128, 128, 64, 64]
+    }
+   ]
+  },
+  {
+   "id": "ui/banner-connection-left",
+   "file": "ui/banners/banner-connection-left.png",
+   "category": "ui",
+   "name": "Banner connection left",
+   "size": [192, 192],
+   "title": "Сувій-панель",
+   "about": "Сувій зі звивом зліва. 9 частин по 64 пікселі (`parts`).",
+   "tags": ["banner", "scroll", "parchment", "panel"],
+   "roles": ["ui-panel"],
+   "bounds": [2, 47, 143, 123],
+   "anchor": [74, 170],
+   "parts": [
+    {
+     "name": "top-left",
+     "rect": [0, 0, 64, 64]
+    },
+    {
+     "name": "top",
+     "rect": [64, 0, 64, 64]
+    },
+    {
+     "name": "top-right",
+     "rect": [128, 0, 64, 64]
+    },
+    {
+     "name": "left",
+     "rect": [0, 64, 64, 64]
+    },
+    {
+     "name": "center",
+     "rect": [64, 64, 64, 64]
+    },
+    {
+     "name": "right",
+     "rect": [128, 64, 64, 64]
+    },
+    {
+     "name": "bottom-left",
+     "rect": [0, 128, 64, 64]
+    },
+    {
+     "name": "bottom",
+     "rect": [64, 128, 64, 64]
+    },
+    {
+     "name": "bottom-right",
+     "rect": [128, 128, 64, 64]
+    }
+   ]
+  },
+  {
+   "id": "ui/banner-connection-right",
+   "file": "ui/banners/banner-connection-right.png",
+   "category": "ui",
+   "name": "Banner connection right",
+   "size": [192, 192],
+   "title": "Сувій-панель",
+   "about": "Сувій зі звивом справа. 9 частин по 64 пікселі (`parts`).",
+   "tags": ["banner", "scroll", "parchment", "panel"],
+   "roles": ["ui-panel"],
+   "bounds": [47, 47, 143, 124],
+   "anchor": [118, 171],
+   "parts": [
+    {
+     "name": "top-left",
+     "rect": [0, 0, 64, 64]
+    },
+    {
+     "name": "top",
+     "rect": [64, 0, 64, 64]
+    },
+    {
+     "name": "top-right",
+     "rect": [128, 0, 64, 64]
+    },
+    {
+     "name": "left",
+     "rect": [0, 64, 64, 64]
+    },
+    {
+     "name": "center",
+     "rect": [64, 64, 64, 64]
+    },
+    {
+     "name": "right",
+     "rect": [128, 64, 64, 64]
+    },
+    {
+     "name": "bottom-left",
+     "rect": [0, 128, 64, 64]
+    },
+    {
+     "name": "bottom",
+     "rect": [64, 128, 64, 64]
+    },
+    {
+     "name": "bottom-right",
+     "rect": [128, 128, 64, 64]
+    }
+   ]
+  },
+  {
+   "id": "ui/banner-connection-up",
+   "file": "ui/banners/banner-connection-up.png",
+   "category": "ui",
+   "name": "Banner connection up",
+   "size": [192, 192],
+   "title": "Сувій-панель",
+   "about": "Сувій зі звивом зверху. 9 частин по 64 пікселі (`parts`).",
+   "tags": ["banner", "scroll", "parchment", "panel"],
+   "roles": ["ui-panel"],
+   "bounds": [38, 2, 116, 151],
+   "anchor": [96, 153],
+   "parts": [
+    {
+     "name": "top-left",
+     "rect": [0, 0, 64, 64]
+    },
+    {
+     "name": "top",
+     "rect": [64, 0, 64, 64]
+    },
+    {
+     "name": "top-right",
+     "rect": [128, 0, 64, 64]
+    },
+    {
+     "name": "left",
+     "rect": [0, 64, 64, 64]
+    },
+    {
+     "name": "center",
+     "rect": [64, 64, 64, 64]
+    },
+    {
+     "name": "right",
+     "rect": [128, 64, 64, 64]
+    },
+    {
+     "name": "bottom-left",
+     "rect": [0, 128, 64, 64]
+    },
+    {
+     "name": "bottom",
+     "rect": [64, 128, 64, 64]
+    },
+    {
+     "name": "bottom-right",
+     "rect": [128, 128, 64, 64]
+    }
+   ]
+  },
+  {
+   "id": "ui/banner-horizontal",
+   "file": "ui/banners/banner-horizontal.png",
+   "category": "ui",
+   "name": "Banner horizontal",
+   "size": [192, 192],
+   "title": "Сувій-панель",
+   "about": "Сувій, розгорнутий горизонтально: панель для тексту. 9 частин по 64 пікселі (`parts`).",
+   "tags": ["banner", "scroll", "parchment", "panel"],
+   "roles": ["ui-panel"],
+   "bounds": [33, 47, 126, 123],
+   "anchor": [96, 170],
+   "parts": [
+    {
+     "name": "top-left",
+     "rect": [0, 0, 64, 64]
+    },
+    {
+     "name": "top",
+     "rect": [64, 0, 64, 64]
+    },
+    {
+     "name": "top-right",
+     "rect": [128, 0, 64, 64]
+    },
+    {
+     "name": "left",
+     "rect": [0, 64, 64, 64]
+    },
+    {
+     "name": "center",
+     "rect": [64, 64, 64, 64]
+    },
+    {
+     "name": "right",
+     "rect": [128, 64, 64, 64]
+    },
+    {
+     "name": "bottom-left",
+     "rect": [0, 128, 64, 64]
+    },
+    {
+     "name": "bottom",
+     "rect": [64, 128, 64, 64]
+    },
+    {
+     "name": "bottom-right",
+     "rect": [128, 128, 64, 64]
+    }
+   ]
+  },
+  {
+   "id": "ui/banner-vertical",
+   "file": "ui/banners/banner-vertical.png",
+   "category": "ui",
+   "name": "Banner vertical",
+   "size": [192, 192],
+   "title": "Сувій-панель",
+   "about": "Сувій, розгорнутий вертикально: панель для тексту. 9 частин по 64 пікселі (`parts`).",
+   "tags": ["banner", "scroll", "parchment", "panel"],
+   "roles": ["ui-panel"],
+   "bounds": [36, 31, 120, 131],
+   "anchor": [96, 162],
+   "parts": [
+    {
+     "name": "top-left",
+     "rect": [0, 0, 64, 64]
+    },
+    {
+     "name": "top",
+     "rect": [64, 0, 64, 64]
+    },
+    {
+     "name": "top-right",
+     "rect": [128, 0, 64, 64]
+    },
+    {
+     "name": "left",
+     "rect": [0, 64, 64, 64]
+    },
+    {
+     "name": "center",
+     "rect": [64, 64, 64, 64]
+    },
+    {
+     "name": "right",
+     "rect": [128, 64, 64, 64]
+    },
+    {
+     "name": "bottom-left",
+     "rect": [0, 128, 64, 64]
+    },
+    {
+     "name": "bottom",
+     "rect": [64, 128, 64, 64]
+    },
+    {
+     "name": "bottom-right",
+     "rect": [128, 128, 64, 64]
+    }
+   ]
+  },
+  {
+   "id": "ui/button-blue",
+   "file": "ui/buttons/blue.png",
+   "category": "ui",
+   "name": "Button blue",
+   "size": [64, 64],
+   "title": "Кнопка синя",
+   "about": "Квадратна синя кнопка; `pressed` — натиснута.",
+   "tags": ["button", "blue"],
+   "roles": ["ui-button"],
+   "bounds": [7, 0, 50, 56],
+   "anchor": [32, 56],
+   "variants": {
+    "pressed": "ui/buttons/blue-pressed.png"
+   }
+  },
+  {
+   "id": "ui/button-blue-3slice",
+   "file": "ui/buttons/blue-3slice.png",
+   "category": "ui",
+   "name": "Button blue 3-slice",
+   "size": [192, 64],
+   "title": "Кнопка синя, розтяжна",
+   "about": "Синя кнопка, нарізана на 3 частини по 64 пікселі для розтягування (`parts`).",
+   "tags": ["button", "slice", "blue"],
+   "roles": ["ui-button", "ui-panel"],
+   "bounds": [7, 0, 178, 56],
+   "anchor": [96, 56],
+   "parts": [
+    {
+     "name": "left",
+     "rect": [0, 0, 64, 64]
+    },
+    {
+     "name": "center",
+     "rect": [64, 0, 64, 64]
+    },
+    {
+     "name": "right",
+     "rect": [128, 0, 64, 64]
+    }
+   ],
+   "variants": {
+    "pressed": "ui/buttons/blue-3slice-pressed.png"
+   }
+  },
+  {
+   "id": "ui/button-blue-9slice",
+   "file": "ui/buttons/blue-9slice.png",
+   "category": "ui",
+   "name": "Button blue 9-slice",
+   "size": [192, 192],
+   "title": "Кнопка синя, розтяжна",
+   "about": "Синя кнопка, нарізана на 9 частини по 64 пікселі для розтягування (`parts`).",
+   "tags": ["button", "slice", "blue"],
+   "roles": ["ui-button", "ui-panel"],
+   "bounds": [7, 0, 178, 184],
+   "anchor": [96, 184],
+   "parts": [
+    {
+     "name": "top-left",
+     "rect": [0, 0, 64, 64]
+    },
+    {
+     "name": "top",
+     "rect": [64, 0, 64, 64]
+    },
+    {
+     "name": "top-right",
+     "rect": [128, 0, 64, 64]
+    },
+    {
+     "name": "left",
+     "rect": [0, 64, 64, 64]
+    },
+    {
+     "name": "center",
+     "rect": [64, 64, 64, 64]
+    },
+    {
+     "name": "right",
+     "rect": [128, 64, 64, 64]
+    },
+    {
+     "name": "bottom-left",
+     "rect": [0, 128, 64, 64]
+    },
+    {
+     "name": "bottom",
+     "rect": [64, 128, 64, 64]
+    },
+    {
+     "name": "bottom-right",
+     "rect": [128, 128, 64, 64]
+    }
+   ],
+   "variants": {
+    "pressed": "ui/buttons/blue-9slice-pressed.png"
+   }
+  },
+  {
+   "id": "ui/button-disable",
+   "file": "ui/buttons/disable.png",
+   "category": "ui",
+   "name": "Button disable",
+   "size": [64, 64],
+   "title": "Кнопка: вимкнена",
+   "about": "Квадратна кнопка в стані «вимкнена».",
+   "tags": ["button", "disable"],
+   "roles": ["ui-button"],
+   "bounds": [7, 4, 50, 52],
+   "anchor": [32, 56]
+  },
+  {
+   "id": "ui/button-disable-3slice",
+   "file": "ui/buttons/disable-3slice.png",
+   "category": "ui",
+   "name": "Button disable 3-slice",
+   "size": [192, 64],
+   "title": "Кнопка вимкнена, розтяжна",
+   "about": "Розтяжна кнопка в стані «вимкнена», 3 частини.",
+   "tags": ["button", "slice", "disable"],
+   "roles": ["ui-button", "ui-panel"],
+   "bounds": [7, 4, 178, 52],
+   "anchor": [96, 56],
+   "parts": [
+    {
+     "name": "left",
+     "rect": [0, 0, 64, 64]
+    },
+    {
+     "name": "center",
+     "rect": [64, 0, 64, 64]
+    },
+    {
+     "name": "right",
+     "rect": [128, 0, 64, 64]
+    }
+   ]
+  },
+  {
+   "id": "ui/button-disable-9slice",
+   "file": "ui/buttons/disable-9slice.png",
+   "category": "ui",
+   "name": "Button disable 9-slice",
+   "size": [192, 192],
+   "title": "Кнопка вимкнена, розтяжна",
+   "about": "Розтяжна кнопка в стані «вимкнена», 9 частини.",
+   "tags": ["button", "slice", "disable"],
+   "roles": ["ui-button", "ui-panel"],
+   "bounds": [7, 4, 178, 180],
+   "anchor": [96, 184],
+   "parts": [
+    {
+     "name": "top-left",
+     "rect": [0, 0, 64, 64]
+    },
+    {
+     "name": "top",
+     "rect": [64, 0, 64, 64]
+    },
+    {
+     "name": "top-right",
+     "rect": [128, 0, 64, 64]
+    },
+    {
+     "name": "left",
+     "rect": [0, 64, 64, 64]
+    },
+    {
+     "name": "center",
+     "rect": [64, 64, 64, 64]
+    },
+    {
+     "name": "right",
+     "rect": [128, 64, 64, 64]
+    },
+    {
+     "name": "bottom-left",
+     "rect": [0, 128, 64, 64]
+    },
+    {
+     "name": "bottom",
+     "rect": [64, 128, 64, 64]
+    },
+    {
+     "name": "bottom-right",
+     "rect": [128, 128, 64, 64]
+    }
+   ]
+  },
+  {
+   "id": "ui/button-hover",
+   "file": "ui/buttons/hover.png",
+   "category": "ui",
+   "name": "Button hover",
+   "size": [64, 64],
+   "title": "Кнопка: під курсором",
+   "about": "Квадратна кнопка в стані «під курсором».",
+   "tags": ["button", "hover"],
+   "roles": ["ui-button"],
+   "bounds": [7, 0, 50, 56],
+   "anchor": [32, 56]
+  },
+  {
+   "id": "ui/button-hover-3slice",
+   "file": "ui/buttons/hover-3slice.png",
+   "category": "ui",
+   "name": "Button hover 3-slice",
+   "size": [192, 64],
+   "title": "Кнопка під курсором, розтяжна",
+   "about": "Розтяжна кнопка в стані «під курсором», 3 частини.",
+   "tags": ["button", "slice", "hover"],
+   "roles": ["ui-button", "ui-panel"],
+   "bounds": [7, 0, 178, 56],
+   "anchor": [96, 56],
+   "parts": [
+    {
+     "name": "left",
+     "rect": [0, 0, 64, 64]
+    },
+    {
+     "name": "center",
+     "rect": [64, 0, 64, 64]
+    },
+    {
+     "name": "right",
+     "rect": [128, 0, 64, 64]
+    }
+   ]
+  },
+  {
+   "id": "ui/button-hover-9slice",
+   "file": "ui/buttons/hover-9slice.png",
+   "category": "ui",
+   "name": "Button hover 9-slice",
+   "size": [192, 192],
+   "title": "Кнопка під курсором, розтяжна",
+   "about": "Розтяжна кнопка в стані «під курсором», 9 частини.",
+   "tags": ["button", "slice", "hover"],
+   "roles": ["ui-button", "ui-panel"],
+   "bounds": [7, 0, 178, 184],
+   "anchor": [96, 184],
+   "parts": [
+    {
+     "name": "top-left",
+     "rect": [0, 0, 64, 64]
+    },
+    {
+     "name": "top",
+     "rect": [64, 0, 64, 64]
+    },
+    {
+     "name": "top-right",
+     "rect": [128, 0, 64, 64]
+    },
+    {
+     "name": "left",
+     "rect": [0, 64, 64, 64]
+    },
+    {
+     "name": "center",
+     "rect": [64, 64, 64, 64]
+    },
+    {
+     "name": "right",
+     "rect": [128, 64, 64, 64]
+    },
+    {
+     "name": "bottom-left",
+     "rect": [0, 128, 64, 64]
+    },
+    {
+     "name": "bottom",
+     "rect": [64, 128, 64, 64]
+    },
+    {
+     "name": "bottom-right",
+     "rect": [128, 128, 64, 64]
+    }
+   ]
+  },
+  {
+   "id": "ui/button-red",
+   "file": "ui/buttons/red.png",
+   "category": "ui",
+   "name": "Button red",
+   "size": [64, 64],
+   "title": "Кнопка червона",
+   "about": "Квадратна червона кнопка; `pressed` — натиснута.",
+   "tags": ["button", "red"],
+   "roles": ["ui-button"],
+   "bounds": [7, 0, 50, 56],
+   "anchor": [32, 56],
+   "variants": {
+    "pressed": "ui/buttons/red-pressed.png"
+   }
+  },
+  {
+   "id": "ui/button-red-3slice",
+   "file": "ui/buttons/red-3slice.png",
+   "category": "ui",
+   "name": "Button red 3-slice",
+   "size": [192, 64],
+   "title": "Кнопка червона, розтяжна",
+   "about": "Червона кнопка, нарізана на 3 частини по 64 пікселі для розтягування (`parts`).",
+   "tags": ["button", "slice", "red"],
+   "roles": ["ui-button", "ui-panel"],
+   "bounds": [7, 0, 178, 56],
+   "anchor": [96, 56],
+   "parts": [
+    {
+     "name": "left",
+     "rect": [0, 0, 64, 64]
+    },
+    {
+     "name": "center",
+     "rect": [64, 0, 64, 64]
+    },
+    {
+     "name": "right",
+     "rect": [128, 0, 64, 64]
+    }
+   ],
+   "variants": {
+    "pressed": "ui/buttons/red-3slice-pressed.png"
+   }
+  },
+  {
+   "id": "ui/button-red-9slice",
+   "file": "ui/buttons/red-9slice.png",
+   "category": "ui",
+   "name": "Button red 9-slice",
+   "size": [192, 192],
+   "title": "Кнопка червона, розтяжна",
+   "about": "Червона кнопка, нарізана на 9 частини по 64 пікселі для розтягування (`parts`).",
+   "tags": ["button", "slice", "red"],
+   "roles": ["ui-button", "ui-panel"],
+   "bounds": [7, 0, 178, 184],
+   "anchor": [96, 184],
+   "parts": [
+    {
+     "name": "top-left",
+     "rect": [0, 0, 64, 64]
+    },
+    {
+     "name": "top",
+     "rect": [64, 0, 64, 64]
+    },
+    {
+     "name": "top-right",
+     "rect": [128, 0, 64, 64]
+    },
+    {
+     "name": "left",
+     "rect": [0, 64, 64, 64]
+    },
+    {
+     "name": "center",
+     "rect": [64, 64, 64, 64]
+    },
+    {
+     "name": "right",
+     "rect": [128, 64, 64, 64]
+    },
+    {
+     "name": "bottom-left",
+     "rect": [0, 128, 64, 64]
+    },
+    {
+     "name": "bottom",
+     "rect": [64, 128, 64, 64]
+    },
+    {
+     "name": "bottom-right",
+     "rect": [128, 128, 64, 64]
+    }
+   ],
+   "variants": {
+    "pressed": "ui/buttons/red-9slice-pressed.png"
+   }
+  },
+  {
+   "id": "ui/carved",
+   "file": "ui/banners/carved.png",
+   "category": "ui",
+   "name": "Carved",
+   "size": [64, 64],
+   "title": "Різьблена дошка",
+   "about": "Різьблена дошка: тло для тексту чи слоту.",
+   "tags": ["panel", "wood", "carved"],
+   "roles": ["ui-panel"],
+   "bounds": [3, 1, 57, 61],
+   "anchor": [32, 62]
+  },
+  {
+   "id": "ui/carved-3slice",
+   "file": "ui/banners/carved-3slice.png",
+   "category": "ui",
+   "name": "Carved 3slice",
+   "size": [192, 64],
+   "title": "Різьблена дошка на 3 частини",
+   "about": "Різьблена дошка на 3 частини: тло для тексту чи слоту.",
+   "tags": ["panel", "wood", "carved"],
+   "roles": ["ui-panel"],
+   "bounds": [3, 1, 185, 62],
+   "anchor": [96, 63],
+   "parts": [
+    {
+     "name": "left",
+     "rect": [0, 0, 64, 64]
+    },
+    {
+     "name": "center",
+     "rect": [64, 0, 64, 64]
+    },
+    {
+     "name": "right",
+     "rect": [128, 0, 64, 64]
+    }
+   ]
+  },
+  {
+   "id": "ui/carved-9slice",
+   "file": "ui/banners/carved-9slice.png",
+   "category": "ui",
+   "name": "Carved 9slice",
+   "size": [192, 192],
+   "title": "Різьблена панель на 9 частин",
+   "about": "Різьблена панель на 9 частин: тло для тексту чи слоту.",
+   "tags": ["panel", "wood", "carved"],
+   "roles": ["ui-panel"],
+   "bounds": [2, 1, 189, 190],
+   "anchor": [96, 191],
+   "parts": [
+    {
+     "name": "top-left",
+     "rect": [0, 0, 64, 64]
+    },
+    {
+     "name": "top",
+     "rect": [64, 0, 64, 64]
+    },
+    {
+     "name": "top-right",
+     "rect": [128, 0, 64, 64]
+    },
+    {
+     "name": "left",
+     "rect": [0, 64, 64, 64]
+    },
+    {
+     "name": "center",
+     "rect": [64, 64, 64, 64]
+    },
+    {
+     "name": "right",
+     "rect": [128, 64, 64, 64]
+    },
+    {
+     "name": "bottom-left",
+     "rect": [0, 128, 64, 64]
+    },
+    {
+     "name": "bottom",
+     "rect": [64, 128, 64, 64]
+    },
+    {
+     "name": "bottom-right",
+     "rect": [128, 128, 64, 64]
+    }
+   ]
+  },
+  {
+   "id": "ui/icon-close",
+   "file": "ui/icons/close.png",
+   "category": "ui",
+   "name": "Icon close",
+   "size": [64, 64],
+   "title": "Закрити",
+   "about": "Іконка «закрити» для кнопки; є стани `pressed` і `disabled`.",
+   "tags": ["icon", "close", "x", "cancel"],
+   "roles": ["ui-icon"],
+   "bounds": [17, 10, 30, 29],
+   "anchor": [32, 39],
+   "variants": {
+    "pressed": "ui/icons/close-pressed.png",
+    "disabled": "ui/icons/close-disabled.png"
+   }
+  },
+  {
+   "id": "ui/icon-lock",
+   "file": "ui/icons/lock.png",
+   "category": "ui",
+   "name": "Icon lock",
+   "size": [64, 64],
+   "title": "Замок",
+   "about": "Іконка «замок» для кнопки; є стани `pressed` і `disabled`.",
+   "tags": ["icon", "lock", "locked"],
+   "roles": ["ui-icon"],
+   "bounds": [19, 10, 26, 29],
+   "anchor": [32, 39],
+   "variants": {
+    "pressed": "ui/icons/lock-pressed.png",
+    "disabled": "ui/icons/lock-disabled.png"
+   }
+  },
+  {
+   "id": "ui/icon-minus",
+   "file": "ui/icons/minus.png",
+   "category": "ui",
+   "name": "Icon minus",
+   "size": [64, 64],
+   "title": "Мінус",
+   "about": "Іконка «мінус» для кнопки; є стани `pressed` і `disabled`.",
+   "tags": ["icon", "minus", "remove"],
+   "roles": ["ui-icon"],
+   "bounds": [17, 20, 30, 9],
+   "anchor": [32, 29],
+   "variants": {
+    "pressed": "ui/icons/minus-pressed.png",
+    "disabled": "ui/icons/minus-disabled.png"
+   }
+  },
+  {
+   "id": "ui/icon-one",
+   "file": "ui/icons/one.png",
+   "category": "ui",
+   "name": "Icon one",
+   "size": [64, 64],
+   "title": "Цифра 1",
+   "about": "Іконка «цифра 1» для кнопки; є стани `pressed` і `disabled`.",
+   "tags": ["icon", "number", "1"],
+   "roles": ["ui-icon"],
+   "bounds": [24, 11, 14, 26],
+   "anchor": [31, 37],
+   "variants": {
+    "pressed": "ui/icons/one-pressed.png",
+    "disabled": "ui/icons/one-disabled.png"
+   }
+  },
+  {
+   "id": "ui/icon-plus",
+   "file": "ui/icons/plus.png",
+   "category": "ui",
+   "name": "Icon plus",
+   "size": [64, 64],
+   "title": "Плюс",
+   "about": "Іконка «плюс» для кнопки; є стани `pressed` і `disabled`.",
+   "tags": ["icon", "plus", "add"],
+   "roles": ["ui-icon"],
+   "bounds": [17, 10, 30, 29],
+   "anchor": [32, 39],
+   "variants": {
+    "pressed": "ui/icons/plus-pressed.png",
+    "disabled": "ui/icons/plus-disabled.png"
+   }
+  },
+  {
+   "id": "ui/icon-settings",
+   "file": "ui/icons/settings.png",
+   "category": "ui",
+   "name": "Icon settings",
+   "size": [64, 64],
+   "title": "Налаштування",
+   "about": "Іконка «налаштування» для кнопки; є стани `pressed` і `disabled`.",
+   "tags": ["icon", "settings", "gear"],
+   "roles": ["ui-icon"],
+   "bounds": [17, 10, 30, 29],
+   "anchor": [32, 39],
+   "variants": {
+    "pressed": "ui/icons/settings-pressed.png",
+    "disabled": "ui/icons/settings-disabled.png"
+   }
+  },
+  {
+   "id": "ui/icon-shop",
+   "file": "ui/icons/shop.png",
+   "category": "ui",
+   "name": "Icon shop",
+   "size": [64, 64],
+   "title": "Крамниця",
+   "about": "Іконка «крамниця» для кнопки; є стани `pressed` і `disabled`.",
+   "tags": ["icon", "shop", "cart", "store"],
+   "roles": ["ui-icon"],
+   "bounds": [17, 10, 27, 29],
+   "anchor": [30, 39],
+   "variants": {
+    "pressed": "ui/icons/shop-pressed.png",
+    "disabled": "ui/icons/shop-disabled.png"
+   }
+  },
+  {
+   "id": "ui/icon-sound-off",
+   "file": "ui/icons/sound-off.png",
+   "category": "ui",
+   "name": "Icon sound-off",
+   "size": [64, 64],
+   "title": "Звук вимкнено",
+   "about": "Іконка «звук вимкнено» для кнопки; є стани `pressed` і `disabled`.",
+   "tags": ["icon", "sound", "mute", "audio"],
+   "roles": ["ui-icon"],
+   "bounds": [17, 11, 29, 27],
+   "anchor": [32, 38],
+   "variants": {
+    "pressed": "ui/icons/sound-off-pressed.png",
+    "disabled": "ui/icons/sound-off-disabled.png"
+   }
+  },
+  {
+   "id": "ui/icon-three",
+   "file": "ui/icons/three.png",
+   "category": "ui",
+   "name": "Icon three",
+   "size": [64, 64],
+   "title": "Цифра 3",
+   "about": "Іконка «цифра 3» для кнопки; є стани `pressed` і `disabled`.",
+   "tags": ["icon", "number", "3"],
+   "roles": ["ui-icon"],
+   "bounds": [21, 11, 21, 27],
+   "anchor": [32, 38],
+   "variants": {
+    "pressed": "ui/icons/three-pressed.png",
+    "disabled": "ui/icons/three-disabled.png"
+   }
+  },
+  {
+   "id": "ui/icon-two",
+   "file": "ui/icons/two.png",
+   "category": "ui",
+   "name": "Icon two",
+   "size": [64, 64],
+   "title": "Цифра 2",
+   "about": "Іконка «цифра 2» для кнопки; є стани `pressed` і `disabled`.",
+   "tags": ["icon", "number", "2"],
+   "roles": ["ui-icon"],
+   "bounds": [21, 11, 21, 27],
+   "anchor": [32, 38],
+   "variants": {
+    "pressed": "ui/icons/two-pressed.png",
+    "disabled": "ui/icons/two-disabled.png"
+   }
+  },
+  {
+   "id": "ui/pointer-arrow",
+   "file": "ui/pointers/arrow.png",
+   "category": "ui",
+   "name": "Pointer arrow",
+   "size": [64, 64],
+   "title": "Курсор-стрілка",
+   "about": "Курсор-стрілка: показує клітинку чи вибраний об'єкт.",
+   "tags": ["pointer", "cursor", "select"],
+   "roles": ["cursor"],
+   "bounds": [22, 17, 22, 30],
+   "anchor": [33, 47]
+  },
+  {
+   "id": "ui/pointer-corner-bottom-left",
+   "file": "ui/pointers/corner-bottom-left.png",
+   "category": "ui",
+   "name": "Pointer corner-bottom-left",
+   "size": [64, 64],
+   "title": "Кут рамки зліва внизу",
+   "about": "Кут рамки зліва внизу: показує клітинку чи вибраний об'єкт.",
+   "tags": ["pointer", "cursor", "select"],
+   "roles": ["cursor"],
+   "bounds": [22, 19, 21, 25],
+   "anchor": [32, 44]
+  },
+  {
+   "id": "ui/pointer-corner-bottom-right",
+   "file": "ui/pointers/corner-bottom-right.png",
+   "category": "ui",
+   "name": "Pointer corner-bottom-right",
+   "size": [64, 64],
+   "title": "Кут рамки справа внизу",
+   "about": "Кут рамки справа внизу: показує клітинку чи вибраний об'єкт.",
+   "tags": ["pointer", "cursor", "select"],
+   "roles": ["cursor"],
+   "bounds": [22, 19, 21, 25],
+   "anchor": [32, 44]
+  },
+  {
+   "id": "ui/pointer-corner-top-left",
+   "file": "ui/pointers/corner-top-left.png",
+   "category": "ui",
+   "name": "Pointer corner-top-left",
+   "size": [64, 64],
+   "title": "Кут рамки зліва вгорі",
+   "about": "Кут рамки зліва вгорі: показує клітинку чи вибраний об'єкт.",
+   "tags": ["pointer", "cursor", "select"],
+   "roles": ["cursor"],
+   "bounds": [22, 19, 21, 25],
+   "anchor": [32, 44]
+  },
+  {
+   "id": "ui/pointer-corner-top-right",
+   "file": "ui/pointers/corner-top-right.png",
+   "category": "ui",
+   "name": "Pointer corner-top-right",
+   "size": [64, 64],
+   "title": "Кут рамки справа вгорі",
+   "about": "Кут рамки справа вгорі: показує клітинку чи вибраний об'єкт.",
+   "tags": ["pointer", "cursor", "select"],
+   "roles": ["cursor"],
+   "bounds": [22, 19, 21, 25],
+   "anchor": [32, 44]
+  },
+  {
+   "id": "ui/pointer-select",
+   "file": "ui/pointers/select.png",
+   "category": "ui",
+   "name": "Pointer select",
+   "size": [64, 64],
+   "title": "Рамка вибору з чотирьох кутів",
+   "about": "Рамка вибору з чотирьох кутів: показує клітинку чи вибраний об'єкт.",
+   "tags": ["pointer", "cursor", "select"],
+   "roles": ["cursor"],
+   "bounds": [3, 3, 58, 58],
+   "anchor": [32, 61]
+  },
+  {
+   "id": "ui/ribbon-blue",
+   "file": "ui/ribbons/blue.png",
+   "category": "ui",
+   "name": "Ribbon blue",
+   "size": [192, 64],
+   "title": "Стрічка синя",
+   "about": "Стрічка-заголовок, синя: ліва, середня, права частини (`parts`).",
+   "tags": ["ribbon", "title", "header", "blue"],
+   "roles": ["ui-panel"],
+   "bounds": [3, 0, 186, 61],
+   "anchor": [96, 61],
+   "parts": [
+    {
+     "name": "left",
+     "rect": [0, 0, 64, 64]
+    },
+    {
+     "name": "center",
+     "rect": [64, 0, 64, 64]
+    },
+    {
+     "name": "right",
+     "rect": [128, 0, 64, 64]
+    }
+   ]
+  },
+  {
+   "id": "ui/ribbon-blue-down",
+   "file": "ui/ribbons/blue-down.png",
+   "category": "ui",
+   "name": "Ribbon blue down",
+   "size": [64, 64],
+   "title": "Стрічка синя: кінчик униз",
+   "about": "Кінчик стрічки, що показує униз: вкладка або стрілка.",
+   "tags": ["ribbon", "tab", "arrow", "blue"],
+   "roles": ["ui-button"],
+   "bounds": [7, 0, 50, 58],
+   "anchor": [32, 58],
+   "variants": {
+    "pressed": "ui/ribbons/blue-down-pressed.png"
+   }
+  },
+  {
+   "id": "ui/ribbon-blue-left",
+   "file": "ui/ribbons/blue-left.png",
+   "category": "ui",
+   "name": "Ribbon blue left",
+   "size": [64, 64],
+   "title": "Стрічка синя: кінчик ліворуч",
+   "about": "Кінчик стрічки, що показує ліворуч: вкладка або стрілка.",
+   "tags": ["ribbon", "tab", "arrow", "blue"],
+   "roles": ["ui-button"],
+   "bounds": [4, 2, 59, 48],
+   "anchor": [34, 50],
+   "variants": {
+    "pressed": "ui/ribbons/blue-left-pressed.png"
+   }
+  },
+  {
+   "id": "ui/ribbon-blue-right",
+   "file": "ui/ribbons/blue-right.png",
+   "category": "ui",
+   "name": "Ribbon blue right",
+   "size": [64, 64],
+   "title": "Стрічка синя: кінчик праворуч",
+   "about": "Кінчик стрічки, що показує праворуч: вкладка або стрілка.",
+   "tags": ["ribbon", "tab", "arrow", "blue"],
+   "roles": ["ui-button"],
+   "bounds": [1, 2, 59, 48],
+   "anchor": [30, 50],
+   "variants": {
+    "pressed": "ui/ribbons/blue-right-pressed.png"
+   }
+  },
+  {
+   "id": "ui/ribbon-blue-up",
+   "file": "ui/ribbons/blue-up.png",
+   "category": "ui",
+   "name": "Ribbon blue up",
+   "size": [64, 64],
+   "title": "Стрічка синя: кінчик угору",
+   "about": "Кінчик стрічки, що показує угору: вкладка або стрілка.",
+   "tags": ["ribbon", "tab", "arrow", "blue"],
+   "roles": ["ui-button"],
+   "bounds": [7, 6, 50, 58],
+   "anchor": [32, 64],
+   "variants": {
+    "pressed": "ui/ribbons/blue-up-pressed.png"
+   }
+  },
+  {
+   "id": "ui/ribbon-red",
+   "file": "ui/ribbons/red.png",
+   "category": "ui",
+   "name": "Ribbon red",
+   "size": [192, 64],
+   "title": "Стрічка червона",
+   "about": "Стрічка-заголовок, червона: ліва, середня, права частини (`parts`).",
+   "tags": ["ribbon", "title", "header", "red"],
+   "roles": ["ui-panel"],
+   "bounds": [3, 0, 186, 61],
+   "anchor": [96, 61],
+   "parts": [
+    {
+     "name": "left",
+     "rect": [0, 0, 64, 64]
+    },
+    {
+     "name": "center",
+     "rect": [64, 0, 64, 64]
+    },
+    {
+     "name": "right",
+     "rect": [128, 0, 64, 64]
+    }
+   ]
+  },
+  {
+   "id": "ui/ribbon-red-down",
+   "file": "ui/ribbons/red-down.png",
+   "category": "ui",
+   "name": "Ribbon red down",
+   "size": [64, 64],
+   "title": "Стрічка червона: кінчик униз",
+   "about": "Кінчик стрічки, що показує униз: вкладка або стрілка.",
+   "tags": ["ribbon", "tab", "arrow", "red"],
+   "roles": ["ui-button"],
+   "bounds": [7, 0, 50, 58],
+   "anchor": [32, 58],
+   "variants": {
+    "pressed": "ui/ribbons/red-down-pressed.png"
+   }
+  },
+  {
+   "id": "ui/ribbon-red-left",
+   "file": "ui/ribbons/red-left.png",
+   "category": "ui",
+   "name": "Ribbon red left",
+   "size": [64, 64],
+   "title": "Стрічка червона: кінчик ліворуч",
+   "about": "Кінчик стрічки, що показує ліворуч: вкладка або стрілка.",
+   "tags": ["ribbon", "tab", "arrow", "red"],
+   "roles": ["ui-button"],
+   "bounds": [4, 2, 59, 48],
+   "anchor": [34, 50],
+   "variants": {
+    "pressed": "ui/ribbons/red-left-pressed.png"
+   }
+  },
+  {
+   "id": "ui/ribbon-red-right",
+   "file": "ui/ribbons/red-right.png",
+   "category": "ui",
+   "name": "Ribbon red right",
+   "size": [64, 64],
+   "title": "Стрічка червона: кінчик праворуч",
+   "about": "Кінчик стрічки, що показує праворуч: вкладка або стрілка.",
+   "tags": ["ribbon", "tab", "arrow", "red"],
+   "roles": ["ui-button"],
+   "bounds": [1, 2, 59, 48],
+   "anchor": [30, 50],
+   "variants": {
+    "pressed": "ui/ribbons/red-right-pressed.png"
+   }
+  },
+  {
+   "id": "ui/ribbon-red-up",
+   "file": "ui/ribbons/red-up.png",
+   "category": "ui",
+   "name": "Ribbon red up",
+   "size": [64, 64],
+   "title": "Стрічка червона: кінчик угору",
+   "about": "Кінчик стрічки, що показує угору: вкладка або стрілка.",
+   "tags": ["ribbon", "tab", "arrow", "red"],
+   "roles": ["ui-button"],
+   "bounds": [7, 6, 50, 58],
+   "anchor": [32, 64],
+   "variants": {
+    "pressed": "ui/ribbons/red-up-pressed.png"
+   }
+  },
+  {
+   "id": "ui/ribbon-yellow",
+   "file": "ui/ribbons/yellow.png",
+   "category": "ui",
+   "name": "Ribbon yellow",
+   "size": [192, 64],
+   "title": "Стрічка жовта",
+   "about": "Стрічка-заголовок, жовта: ліва, середня, права частини (`parts`).",
+   "tags": ["ribbon", "title", "header", "yellow"],
+   "roles": ["ui-panel"],
+   "bounds": [3, 0, 186, 61],
+   "anchor": [96, 61],
+   "parts": [
+    {
+     "name": "left",
+     "rect": [0, 0, 64, 64]
+    },
+    {
+     "name": "center",
+     "rect": [64, 0, 64, 64]
+    },
+    {
+     "name": "right",
+     "rect": [128, 0, 64, 64]
+    }
+   ]
+  },
+  {
+   "id": "ui/ribbon-yellow-down",
+   "file": "ui/ribbons/yellow-down.png",
+   "category": "ui",
+   "name": "Ribbon yellow down",
+   "size": [64, 64],
+   "title": "Стрічка жовта: кінчик униз",
+   "about": "Кінчик стрічки, що показує униз: вкладка або стрілка.",
+   "tags": ["ribbon", "tab", "arrow", "yellow"],
+   "roles": ["ui-button"],
+   "bounds": [7, 0, 50, 58],
+   "anchor": [32, 58],
+   "variants": {
+    "pressed": "ui/ribbons/yellow-down-pressed.png"
+   }
+  },
+  {
+   "id": "ui/ribbon-yellow-left",
+   "file": "ui/ribbons/yellow-left.png",
+   "category": "ui",
+   "name": "Ribbon yellow left",
+   "size": [64, 64],
+   "title": "Стрічка жовта: кінчик ліворуч",
+   "about": "Кінчик стрічки, що показує ліворуч: вкладка або стрілка.",
+   "tags": ["ribbon", "tab", "arrow", "yellow"],
+   "roles": ["ui-button"],
+   "bounds": [4, 2, 59, 48],
+   "anchor": [34, 50],
+   "variants": {
+    "pressed": "ui/ribbons/yellow-left-pressed.png"
+   }
+  },
+  {
+   "id": "ui/ribbon-yellow-right",
+   "file": "ui/ribbons/yellow-right.png",
+   "category": "ui",
+   "name": "Ribbon yellow right",
+   "size": [64, 64],
+   "title": "Стрічка жовта: кінчик праворуч",
+   "about": "Кінчик стрічки, що показує праворуч: вкладка або стрілка.",
+   "tags": ["ribbon", "tab", "arrow", "yellow"],
+   "roles": ["ui-button"],
+   "bounds": [1, 2, 59, 48],
+   "anchor": [30, 50],
+   "variants": {
+    "pressed": "ui/ribbons/yellow-right-pressed.png"
+   }
+  },
+  {
+   "id": "ui/ribbon-yellow-up",
+   "file": "ui/ribbons/yellow-up.png",
+   "category": "ui",
+   "name": "Ribbon yellow up",
+   "size": [64, 64],
+   "title": "Стрічка жовта: кінчик угору",
+   "about": "Кінчик стрічки, що показує угору: вкладка або стрілка.",
+   "tags": ["ribbon", "tab", "arrow", "yellow"],
+   "roles": ["ui-button"],
+   "bounds": [7, 6, 50, 58],
+   "anchor": [32, 64],
+   "variants": {
+    "pressed": "ui/ribbons/yellow-up-pressed.png"
+   }
+  },
+  {
+   "id": "weapon/arrow",
+   "file": "units/arrow.png",
+   "category": "weapon",
+   "name": "Arrow",
+   "size": [64, 128],
+   "title": "Стріла",
+   "about": "Стріла лучника: перший кадр летить праворуч, другий застрягла (коротша). Обертати за напрямком польоту.",
+   "tags": ["arrow", "projectile"],
+   "roles": ["projectile"],
+   "frame": [64, 64],
+   "frameCount": 2,
+   "layout": "grid",
+   "faces": "right",
+   "bounds": [1, 28, 63, 14],
+   "anchor": [32, 42]
+  },
+  {
+   "id": "weapon/dynamite",
+   "file": "units/dynamite.png",
+   "category": "weapon",
+   "name": "Dynamite",
+   "size": [384, 64],
+   "title": "Динаміт",
+   "about": "Шашка динаміту з ґнотом, що горить; кидає гоблін-підривник.",
+   "tags": ["dynamite", "tnt", "projectile", "explosive"],
+   "roles": ["projectile"],
+   "frame": [64, 64],
+   "frameCount": 6,
+   "bounds": [20, 1, 28, 52],
+   "anchor": [34, 53],
+   "clips": {
+    "play": {
+     "frames": [0, 1, 2, 3, 4, 5],
+     "fps": 12,
+     "loop": true,
+     "about": "ґніт горить, шашка крутиться"
+    }
+   }
+  }
+ ]
+}
