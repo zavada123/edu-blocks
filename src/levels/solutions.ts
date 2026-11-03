@@ -75,6 +75,33 @@ export const solutions: Readonly<Record<string, ReadonlyArray<Step>>> = {
   "b-define": ["call", "call", "call", "call"],
   "l-mill": [{ until: "atFinish", body: [{ if: { or: ["wallAhead", "trapAhead"] }, then: ["turnRight"], else: ["move"] }] }],
   "l-fish": ["move", { until: { not: "onCrystal" }, body: ["collect", "move"] }, "turnRight", { until: "atFinish", body: ["move"] }],
+  "s-woodshed": ["move", "move", "collect", "move", "move", "collect", "move", "store"],
+  "s-two-hands": [
+    { repeat: 2, body: ["move", "collect"] },
+    "turnRight", "turnRight", { repeat: 3, body: ["move"] }, "store",
+    "turnRight", "turnRight", { repeat: 4, body: ["move"] }, "collect",
+    "turnRight", "turnRight", { repeat: 4, body: ["move"] }, "store"
+  ],
+  "s-trips": [
+    {
+      forever: [
+        { until: "handsFull", body: ["move", { if: "onCrystal", then: ["collect"] }] },
+        "turnRight", "turnRight",
+        { until: "atStorehouse", body: ["move"] },
+        "store", "turnRight", "turnRight"
+      ]
+    }
+  ],
+  "s-last-trip": [
+    {
+      forever: [
+        { until: { or: ["handsFull", "wallAhead"] }, body: ["move", { if: "onCrystal", then: ["collect"] }] },
+        "turnRight", "turnRight",
+        { until: "atStorehouse", body: ["move"] },
+        "store", "turnRight", "turnRight"
+      ]
+    }
+  ],
   "l-drift": [
     {
       until: "atFinish",

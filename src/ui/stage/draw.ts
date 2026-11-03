@@ -303,6 +303,25 @@ const finishLook = (ctx: Ctx, scene: Scene, x: number, y: number, now: number, s
   ctx.restore()
 }
 
+/** Things a storehouse shows at most: a pile, not every log. */
+const STOREHOUSE_PILE = 3
+
+/** The storehouse: a marked cell with a pile of what was put down there. */
+const storehouseLook = (ctx: Ctx, scene: Scene, x: number, y: number, stored: number) => {
+  const cx = x * CELL + CELL / 2
+  const pointer = art(POINTER_ART)
+  if (pointer !== null) {
+    ctx.save()
+    ctx.globalAlpha = 0.8
+    drawFigure(ctx, pointer, { cx, bottom: (y + 1) * CELL, now: 0 })
+    ctx.restore()
+  }
+  const look = ITEM_ART[scene.item ?? "crystal"]
+  for (let i = 0; i < Math.min(stored, STOREHOUSE_PILE); i++) {
+    stand(ctx, look, cx + (i - 1) * 4, cellBottom(y) - (i % 2) * 2, 0, { scale: 0.75 })
+  }
+}
+
 /** What lies on a cell: its own item from `itemsAt`, or the level's item. */
 const itemAt = (scene: Scene, x: number, y: number): { readonly kind: ItemKind; readonly own: boolean } => {
   const at = scene.itemsAt?.find((i) => i.x === Math.round(x) && i.y === Math.round(y))
@@ -511,6 +530,14 @@ const hud = (ctx: Ctx, { pose, scenery, counter }: ActorsInput) => {
     plate(ctx, `кроків: ${world.energy}`, x, y)
     y += HEART + 4
   }
+  if (world.capacity !== null) {
+    plate(ctx, `у руках: ${world.carrying}/${world.capacity}`, x, y)
+    y += HEART + 4
+  }
+  if (world.storehouse !== null) {
+    plate(ctx, `на складі: ${world.stored}`, x, y)
+    y += HEART + 4
+  }
   if (counter !== undefined) plate(ctx, `лічильник: ${counter}`, x, y)
 }
 
@@ -529,6 +556,7 @@ export const drawActors = (ctx: Ctx, input: ActorsInput) => {
     trap(ctx, tx * CELL + CELL / 2, ty * CELL + CELL / 2, season.icy, world.fell && Math.round(pose.hero.x) === tx && Math.round(pose.hero.y) === ty)
   }
   if (world.finish !== null) finishLook(ctx, scene, world.finish.x, world.finish.y, now, still)
+  if (world.storehouse !== null) storehouseLook(ctx, scene, world.storehouse.x, world.storehouse.y, world.stored)
   for (const { x, y } of input.items) {
     const taken = !world.crystals.has(cellKey(x, y))
     if (taken && itemAt(scene, x, y).kind !== "campfire") continue

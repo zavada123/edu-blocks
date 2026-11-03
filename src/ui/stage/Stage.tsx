@@ -38,6 +38,8 @@ const describe = (world: World): string => {
   if (world.totalCrystals > 0) parts.push(`Залишилось узяти: ${world.crystals.size}.`)
   if (world.enemies.length > 0) parts.push(`Сердечок: ${world.hearts} з ${world.maxHearts}.`)
   if (world.energy !== null) parts.push(`Кроків залишилось: ${world.energy}.`)
+  if (world.capacity !== null) parts.push(`У руках: ${world.carrying} з ${world.capacity}.`)
+  if (world.storehouse !== null) parts.push(`На складі: ${world.stored}.`)
   return `Поле гри. ${parts.join(" ")}`
 }
 

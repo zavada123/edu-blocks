@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
 import { goalMet, type Level, startWorld } from "./level.ts"
-import { type Action, applyAction, atFinish, cellKey, enemiesLeft, type EnemySpec, enemyAhead, onCrystal, parseMap, trapAhead, wallAhead, type World } from "./world.ts"
+import { type Action, applyAction, atFinish, atStorehouse, cellKey, enemiesLeft, type EnemySpec, enemyAhead, handsFull, onCrystal, parseMap, trapAhead, wallAhead, type World } from "./world.ts"
 
 describe("parseMap", () => {
   test("reads walls, crystals, start and finish", () => {
@@ -180,5 +180,49 @@ describe("traps and steps", () => {
     expect(tired.outcome).toBe("tired")
     expect(tired.world.hero).toEqual(once.hero)
     expect(parseMap(level.map).energy).toBeNull()
+  })
+})
+
+describe("the storehouse", () => {
+  const start = (capacity: number | null) => ({ ...parseMap(["#######", "#HSccc#", "#######"]), capacity })
+  const run = (world: ReturnType<typeof start>, actions: ReadonlyArray<Action>) =>
+    actions.reduce<{ world: typeof world; outcomes: Array<string> }>(
+      (acc, a) => {
+        const done = applyAction(acc.world, a)
+        return { world: done.world, outcomes: [...acc.outcomes, done.outcome] }
+      },
+      { world, outcomes: [] }
+    )
+
+  test("finds the storehouse on the map and starts with empty hands", () => {
+    const world = start(null)
+    expect(world.storehouse).toEqual({ x: 1, y: 1 })
+    expect(world.carrying).toBe(0)
+    expect(world.stored).toBe(0)
+  })
+
+  test("a take with full hands leaves the thing where it lies", () => {
+    const { world, outcomes } = run(start(2), ["move", "collect", "move", "collect", "move", "collect"])
+    expect(outcomes.at(-1)).toBe("handsFull")
+    expect(world.carrying).toBe(2)
+    expect(world.crystals.size).toBe(1)
+    expect(handsFull(world)).toBe(true)
+  })
+
+  test("without a limit the hands are never full", () => {
+    const { world } = run(start(null), ["move", "collect", "move", "collect", "move", "collect"])
+    expect(world.carrying).toBe(3)
+    expect(handsFull(world)).toBe(false)
+  })
+
+  test("puts down everything on the storehouse and nothing elsewhere", () => {
+    const away = run(start(2), ["move", "collect", "store"])
+    expect(away.outcomes.at(-1)).toBe("notStorehouse")
+    expect(away.world.carrying).toBe(1)
+    const back = run(away.world, ["turnRight", "turnRight", "move", "move", "store"])
+    expect(atStorehouse(back.world)).toBe(true)
+    expect(back.outcomes.at(-1)).toBe("stored")
+    expect(back.world).toMatchObject({ carrying: 0, stored: 1 })
+    expect(run(back.world, ["store"]).outcomes).toEqual(["nothingToStore"])
   })
 })

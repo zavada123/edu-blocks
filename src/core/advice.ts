@@ -115,7 +115,7 @@ const crashAdvice = (level: Level, result: RunResult, has: (b: BlockName) => boo
 
 const itemAdvice = (level: Level, result: RunResult, has: (b: BlockName) => boolean): ReadonlyArray<string> => {
   const left = result.world.crystals
-  if (!level.goals.some((g) => g.type === "crystals") || left.size === 0) return []
+  if (!level.goals.some((g) => g.type === "crystals" || g.type === "store") || left.size === 0) return []
   const item = level.scene?.item ?? "crystal"
   const noun = NOUNS[item]
   const verb = item === "campfire" ? "запалив" : "взяв"
@@ -133,6 +133,15 @@ const itemAdvice = (level: Level, result: RunResult, has: (b: BlockName) => bool
   else if (missed > 0) tips.push(`${passed} Постав «${block}» одразу після кроку, яким він туди стає.`)
   if (unreached > 0) tips.push(`Ще ${unreached} — там, куди герой не дійшов: потрібно більше кроків або повторень.`)
   return tips
+}
+
+/** The storehouse goal: things still in the hero's hands at the end. */
+const storeAdvice = (level: Level, result: RunResult, has: (b: BlockName) => boolean): ReadonlyArray<string> => {
+  if (!level.goals.some((g) => g.type === "store")) return []
+  const carrying = result.world.carrying
+  if (carrying === 0) return []
+  const tip = `Наприкінці герой ще тримав у руках: ${carrying}. Віднеси це на склад.`
+  return [has("store") ? tip : `${tip} У програмі немає блока «віднести на склад».`]
 }
 
 const finishAdvice = (level: Level, result: RunResult): ReadonlyArray<string> => {
@@ -190,6 +199,15 @@ const extraAdvice = (level: Level, frames: ReadonlyArray<Frame>): ReadonlyArray<
     tips.push(
       `«${Block}» ${empty} ${times(empty)} спрацював на порожній клітинці. ${canAsk ? `Прибери зайвий «${block}» або сховай його в «якщо тут щось є?».` : `Прибери зайвий «${block}».`}`
     )
+  const full = frames.filter((f) => f.outcome === "handsFull").length
+  if (full > 0)
+    tips.push(
+      `${full} ${times(full)} герой хотів узяти ще, а руки вже були повні.${level.blocks.includes("handsFull") ? " Спитай «руки повні?» і віднеси все на склад." : " Спершу віднеси те, що несеш, на склад."}`
+    )
+  const away = frames.filter((f) => f.outcome === "notStorehouse").length
+  if (away > 0) tips.push(`«Віднести на склад» ${away} ${times(away)} спрацював не на складі. Спершу дійди до складу.`)
+  const emptyHands = frames.filter((f) => f.outcome === "nothingToStore").length
+  if (emptyHands > 0) tips.push(`«Віднести на склад» ${emptyHands} ${times(emptyHands)} спрацював з порожніми руками.`)
   const missed = frames.filter((f) => f.outcome === "swingMissed").length
   if (missed > 0) tips.push(`«Вдарити» ${missed} ${times(missed)} влучив у порожнечу: попереду не було ворога.`)
   const turns = wastedTurns(frames)
@@ -218,7 +236,7 @@ export const adviseRun = (level: Level, program: Program, result: RunResult): Re
     case "defeated":
       return [...defeatAdvice(level, result), ...extraAdvice(level, result.frames)].slice(0, MAX_ADVICE)
     case "goalsNotMet":
-      return [...itemAdvice(level, result, has), ...enemyGoalAdvice(level, result), ...finishAdvice(level, result), ...extraAdvice(level, result.frames)].slice(
+      return [...itemAdvice(level, result, has), ...storeAdvice(level, result, has), ...enemyGoalAdvice(level, result), ...finishAdvice(level, result), ...extraAdvice(level, result.frames)].slice(
         0,
         MAX_ADVICE
       )

@@ -9,11 +9,15 @@ export type BlockName =
   | "turnRight"
   | "collect"
   | "attack"
+  /** «віднести на склад»: puts down on the storehouse what the hero carries. */
+  | "store"
   | "wallAhead"
   | "enemyAhead"
   | "trapAhead"
   | "onCrystal"
   | "atFinish"
+  | "handsFull"
+  | "atStorehouse"
   | "repeat"
   | "forever"
   | "repeatUntil"
@@ -28,7 +32,12 @@ export type BlockName =
   | "procedure"
 
 /** What the hero must achieve. All goals of a level are checked together. */
-export type Goal = { readonly type: "crystals" } | { readonly type: "finish" } | { readonly type: "enemies" }
+export type Goal =
+  | { readonly type: "crystals" }
+  | { readonly type: "finish" }
+  | { readonly type: "enemies" }
+  /** Every item taken and put down in the storehouse (`H`). */
+  | { readonly type: "store" }
 
 /** What lies on the `c` cells and what `collect` takes. A campfire is not taken but lit. */
 export type ItemKind = "crystal" | "wood" | "apple" | "fish" | "key" | "campfire" | "carrot" | "egg"
@@ -182,6 +191,8 @@ export interface Level {
   readonly hearts?: number
   /** Steps («крок уперед») the hero may take. No limit when left out. */
   readonly maxSteps?: number
+  /** How many things the hero can carry at once («руки повні?»). No limit when left out. */
+  readonly capacity?: number
   /** The name of the custom block when the palette has «procedure». «мій блок» when left out. */
   readonly procedure?: string
   /** Summer, crystals and a flag when left out. */
@@ -226,7 +237,8 @@ export const startWorld = (level: Level): World => {
   const world = parseMap(level.map, level.dir)
   const hearts = Math.max(1, Math.round(level.hearts ?? world.hearts))
   const energy = level.maxSteps === undefined ? null : Math.max(0, Math.round(level.maxSteps))
-  return { ...world, enemies: (level.enemies ?? []).map(enemyOf), hearts, maxHearts: hearts, energy }
+  const capacity = level.capacity === undefined ? null : Math.max(1, Math.round(level.capacity))
+  return { ...world, enemies: (level.enemies ?? []).map(enemyOf), hearts, maxHearts: hearts, energy, capacity }
 }
 
 export const goalMet = (world: World, goal: Goal): boolean => {
@@ -237,6 +249,8 @@ export const goalMet = (world: World, goal: Goal): boolean => {
       return atFinish(world)
     case "enemies":
       return enemiesLeft(world) === 0
+    case "store":
+      return world.crystals.size === 0 && world.carrying === 0
   }
 }
 
@@ -287,6 +301,8 @@ export const describeGoal = (goal: Goal, world: World, scene: Scene = {}): strin
       return FINISH_GOALS[scene.finish ?? "flag"]
     case "enemies":
       return enemiesGoal(world)
+    case "store":
+      return `Віднеси все на склад (${world.totalCrystals})`
   }
 }
 

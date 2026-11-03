@@ -12,7 +12,8 @@ export interface Cell {
 
 /**
  * Map rows, top to bottom. `#` wall, `.` floor, `S` start, `c` crystal, `F` finish, `x` trap (thin ice or a pit:
- * the hero can step on it, and the run ends there).
+ * the hero can step on it, and the run ends there), `H` storehouse (floor where «віднести на склад» puts down what the
+ * hero carries).
  * A space or a cell outside the rows is a wall too.
  */
 export type MapRows = ReadonlyArray<string>
@@ -39,6 +40,14 @@ export interface World {
   /** Hearts the hero has left. At 0 the run stops. */
   readonly hearts: number
   readonly maxHearts: number
+  /** The storehouse cell (`H`), or null when the map has none. */
+  readonly storehouse: Cell | null
+  /** Things the hero took and carries now. */
+  readonly carrying: number
+  /** How many things the hero can carry at once, or null when the level has no limit. */
+  readonly capacity: number | null
+  /** Things put down in the storehouse. */
+  readonly stored: number
 }
 
 /** Monsters from the pack. Which one only changes the picture. */
@@ -125,6 +134,7 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
   const traps = new Set<string>()
   let start: Cell | null = null
   let finish: Cell | null = null
+  let storehouse: Cell | null = null
   const width = Math.max(0, ...rows.map((r) => r.length))
   rows.forEach((row, y) => {
     for (let x = 0; x < width; x++) {
@@ -134,6 +144,7 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
       else if (ch === "x") traps.add(cellKey(x, y))
       else if (ch === "S") start = { x, y }
       else if (ch === "F") finish = { x, y }
+      else if (ch === "H") storehouse = { x, y }
       else if (ch !== ".") throw new Error(`Невідомий знак «${ch}» на мапі, рядок ${y + 1}`)
     }
   })
@@ -153,7 +164,11 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
     energy: null,
     enemies: [],
     hearts: DEFAULT_HEARTS,
-    maxHearts: DEFAULT_HEARTS
+    maxHearts: DEFAULT_HEARTS,
+    storehouse,
+    carrying: 0,
+    capacity: null,
+    stored: 0
   }
 }
 
@@ -188,7 +203,14 @@ export const onCrystal = (world: World): boolean => world.crystals.has(cellKey(w
 export const atFinish = (world: World): boolean =>
   world.finish !== null && world.hero.x === world.finish.x && world.hero.y === world.finish.y
 
-export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack"
+/** The hero stands on the storehouse. */
+export const atStorehouse = (world: World): boolean =>
+  world.storehouse !== null && world.hero.x === world.storehouse.x && world.hero.y === world.storehouse.y
+
+/** The hero carries as much as it can: «взяти» would take nothing now. Never true on a level without a limit. */
+export const handsFull = (world: World): boolean => world.capacity !== null && world.carrying >= world.capacity
+
+export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store"
 
 /** What one action did, for the animation and the error message. */
 export type Outcome =
@@ -202,6 +224,14 @@ export type Outcome =
   | "enemyHit"
   | "enemyDown"
   | "swingMissed"
+  /** «взяти» with full hands: the thing stays where it lies. */
+  | "handsFull"
+  /** «віднести на склад» on the storehouse: what the hero carried is in the storehouse now. */
+  | "stored"
+  /** «віднести на склад» away from the storehouse. */
+  | "notStorehouse"
+  /** «віднести на склад» on the storehouse with empty hands. */
+  | "nothingToStore"
 
 /**
  * What happened in the world, in the order it happened: the hero's action first, then each enemy's turn.
@@ -217,6 +247,12 @@ export type GameEvent =
   | { readonly type: "heroTired" }
   | { readonly type: "itemTaken"; readonly at: Cell }
   | { readonly type: "nothingToTake"; readonly at: Cell }
+  /** «взяти» with full hands. */
+  | { readonly type: "handsFull"; readonly at: Cell }
+  /** The hero put down what it carried in the storehouse. */
+  | { readonly type: "itemsStored"; readonly at: Cell; readonly count: number }
+  /** «віднести на склад» where there is no storehouse, or with empty hands. */
+  | { readonly type: "nothingToStore"; readonly at: Cell }
   /** The hero swung at the cell ahead, with or without an enemy there. */
   | { readonly type: "heroSwung"; readonly at: Cell }
   | { readonly type: "enemyHit"; readonly id: number; readonly hp: number }
@@ -267,11 +303,25 @@ const heroAction = (world: World, action: Action): ActionResult => {
       events: [swing, down ? { type: "enemyDown", id: target.id } : { type: "enemyHit", id: target.id, hp: target.hp - 1 }]
     }
   }
+  if (action === "store") return store(world)
   const key = cellKey(world.hero.x, world.hero.y)
   if (!world.crystals.has(key)) return { world, outcome: "nothingToCollect", events: [{ type: "nothingToTake", at: here }] }
+  if (handsFull(world)) return { world, outcome: "handsFull", events: [{ type: "handsFull", at: here }] }
   const crystals = new Set(world.crystals)
   crystals.delete(key)
-  return { world: { ...world, crystals }, outcome: "collected", events: [{ type: "itemTaken", at: here }] }
+  return { world: { ...world, crystals, carrying: world.carrying + 1 }, outcome: "collected", events: [{ type: "itemTaken", at: here }] }
+}
+
+/** «віднести на склад»: on the storehouse the hero puts down everything it carries. */
+const store = (world: World): ActionResult => {
+  const here = at(world.hero)
+  if (!atStorehouse(world)) return { world, outcome: "notStorehouse", events: [{ type: "nothingToStore", at: here }] }
+  if (world.carrying === 0) return { world, outcome: "nothingToStore", events: [{ type: "nothingToStore", at: here }] }
+  return {
+    world: { ...world, stored: world.stored + world.carrying, carrying: 0 },
+    outcome: "stored",
+    events: [{ type: "itemsStored", at: here, count: world.carrying }]
+  }
 }
 
 const distance = (a: Cell, b: Cell): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y)

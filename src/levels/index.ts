@@ -387,6 +387,71 @@ export const levels: ReadonlyArray<Level> = [
     ]
   },
   {
+    id: "s-woodshed",
+    tier: "intro",
+    title: "Дрова в дровітню",
+    task: [
+      "Узимку дрова мокнуть під снігом. Їх треба занести в дровітню.",
+      "Візьми обидва поліна, дійди до дровітні й віднеси їх на склад."
+    ],
+    map: ["########", "#S.c.cH#", "########"],
+    blocks: ["move", "collect", "store"],
+    goals: [{ type: "store" }],
+    stars: { three: 8, two: 10 },
+    hint: "«Віднести на склад» працює лише тоді, коли герой стоїть на складі, тобто на останній клітинці.",
+    scene: { theme: "winter", item: "wood", props: [{ kind: "woodshed", x: 5.5, y: -1 }] }
+  },
+  {
+    id: "s-two-hands",
+    tier: "practice",
+    title: "Лише дві руки",
+    task: [
+      "Під парканом три поліна, а ніндзя може нести лише два за раз.",
+      "Принеси два, віднеси їх на склад, тоді повернись по третє."
+    ],
+    map: ["#######", "#HSccc#", "#######"],
+    capacity: 2,
+    blocks: ["move", "turnRight", "collect", "store", "repeat"],
+    goals: [{ type: "store" }],
+    stars: { three: 18, two: 23 },
+    hint: "Дві ходки. Розвернутися назад — це два повороти праворуч. Порахуй кроки до складу: склад ліворуч від старту.",
+    scene: { theme: "winter", item: "wood", props: [{ kind: "woodshed", x: 0.5, y: -1 }] }
+  },
+  {
+    id: "s-trips",
+    tier: "practice",
+    title: "Ходки до складу",
+    task: [
+      "Сусідам теж треба занести дрова, а в кожного їх різна кількість.",
+      "Одна програма для обох дворів: іди, поки руки не повні, вертайся на склад, віднеси і йди знову."
+    ],
+    map: ["########", "#HScccc#", "########"],
+    capacity: 2,
+    blocks: ["move", "turnRight", "collect", "store", "forever", "repeatUntil", "if", "onCrystal", "handsFull", "atStorehouse"],
+    goals: [{ type: "store" }],
+    stars: { three: 15, two: 19 },
+    hint: "«Завжди»: повторюй до «руки повні?» крок і «якщо тут щось є? — взяти». Потім розвернись, іди до складу, віднеси й розвернись знову.",
+    scene: { theme: "winter", item: "wood", props: [{ kind: "woodshed", x: 0.5, y: -1 }] },
+    fields: [{ map: ["###########", "#HS.cccccc#", "###########"] }]
+  },
+  {
+    id: "s-last-trip",
+    tier: "challenge",
+    title: "Остання ходка",
+    task: [
+      "Ціла купа хмизу вздовж стежки, а несеш ти лише по два.",
+      "Але останньої ходки руки можуть і не наповнитися: тоді вертайся, коли стежка скінчилася."
+    ],
+    map: ["##########", "#HS.ccccc#", "##########"],
+    capacity: 2,
+    blocks: ["move", "turnRight", "collect", "store", "forever", "repeatUntil", "if", "or", "onCrystal", "handsFull", "atStorehouse", "wallAhead"],
+    goals: [{ type: "store" }],
+    stars: { three: 17, two: 21 },
+    hint: "Повертайся на склад, коли руки повні АБО попереду стіна: «повторити до ‹руки повні?› або ‹попереду стіна?›».",
+    scene: { theme: "winter", item: "wood", props: [{ kind: "woodshed", x: 0.5, y: -1 }] },
+    fields: [{ map: ["#######", "#HSccc#", "#######"] }, { map: ["##########", "#HSc.c.cc#", "##########"] }]
+  },
+  {
     id: "p-thin-ice",
     tier: "intro",
     title: "Тонкий лід",

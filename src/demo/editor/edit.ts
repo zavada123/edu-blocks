@@ -133,7 +133,8 @@ const TILE_NAMES: Readonly<Record<MapTile, string>> = {
   start: "старт",
   item: "предмет",
   finish: "мета",
-  trap: "пастка"
+  trap: "пастка",
+  storehouse: "склад"
 }
 
 /** Cells of the level that pictures cover, for a quick look in tests and the tooltip. */

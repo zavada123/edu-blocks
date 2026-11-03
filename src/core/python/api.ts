@@ -27,11 +27,14 @@ export const PYTHON_METHODS: ReadonlyArray<PythonMethod> = [
   { name: "turn_right", signature: "turn_right()", doc: "Поворот праворуч.", block: "turnRight", action: "turnRight" },
   { name: "collect", signature: "collect()", doc: "Взяти те, що лежить тут: на інших рівнях — розпалити вогнище чи зловити рибу.", block: "collect", action: "collect" },
   { name: "attack", signature: "attack()", doc: "Вдарити ворога попереду.", block: "attack", action: "attack" },
+  { name: "store", signature: "store()", doc: "Віднести на склад усе, що несеш: герой має стояти на складі.", block: "store", action: "store" },
   { name: "wall_ahead", signature: "wall_ahead()", doc: "True, якщо попереду стіна.", block: "wallAhead", sensor: "wallAhead" },
   { name: "item_here", signature: "item_here()", doc: "True, якщо тут щось лежить.", block: "onCrystal", sensor: "onCrystal" },
   { name: "at_finish", signature: "at_finish()", doc: "True, якщо герой дійшов до мети.", block: "atFinish", sensor: "atFinish" },
   { name: "enemy_ahead", signature: "enemy_ahead()", doc: "True, якщо попереду ворог.", block: "enemyAhead", sensor: "enemyAhead" },
-  { name: "trap_ahead", signature: "trap_ahead()", doc: "True, якщо попереду пастка.", block: "trapAhead", sensor: "trapAhead" }
+  { name: "trap_ahead", signature: "trap_ahead()", doc: "True, якщо попереду пастка.", block: "trapAhead", sensor: "trapAhead" },
+  { name: "hands_full", signature: "hands_full()", doc: "True, якщо руки повні й більше не взяти.", block: "handsFull", sensor: "handsFull" },
+  { name: "at_storehouse", signature: "at_storehouse()", doc: "True, якщо герой стоїть на складі.", block: "atStorehouse", sensor: "atStorehouse" }
 ]
 
 /** The methods a level opens, in palette order. */

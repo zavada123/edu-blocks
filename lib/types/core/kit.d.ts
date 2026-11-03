@@ -6,9 +6,10 @@ import { type MapRows } from "./world.ts";
  * Change a map cell by cell, check that the level can be played, find a plain route for the hero and write the
  * level as code for `src/levels/index.ts`.
  *
- * Map signs: `#` wall (trees, bushes or water under a bridge), `.` floor, `S` start, `c` item, `F` finish, `x` trap.
+ * Map signs: `#` wall (trees, bushes or water under a bridge), `.` floor, `S` start, `c` item, `F` finish, `x` trap,
+ * `H` storehouse.
  */
-export type MapTile = "wall" | "floor" | "start" | "item" | "finish" | "trap";
+export type MapTile = "wall" | "floor" | "start" | "item" | "finish" | "trap" | "storehouse";
 /** The smallest and the largest map a level can have, walls around it included. */
 export declare const MAP_LIMITS: {
     readonly min: 3;

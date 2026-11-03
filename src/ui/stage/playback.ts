@@ -148,7 +148,7 @@ const heroActionPose = (before: World, after: World, events: ReadonlyArray<GameE
     }
   }
   if (has(events, "heroSwung")) return { ...base, act: hp > 0 && hp < 1 ? "attack" : "idle", progress: hp }
-  if (has(events, "itemTaken")) return { ...base, act: hp > 0.15 && hp < 0.95 ? "take" : "idle", progress: hp }
+  if (has(events, "itemTaken") || has(events, "itemsStored")) return { ...base, act: hp > 0.15 && hp < 0.95 ? "take" : "idle", progress: hp }
   return { ...base, crashed: after.crashed && hp > 0.35 }
 }
 
@@ -200,7 +200,7 @@ const effectsOf = (before: World, events: ReadonlyArray<GameEvent>, p: number): 
       const lift = after(0.1, 0.9)
       if (lift > 0 && lift < 1) out.push({ kind: "lift", x: ev.at.x, y: ev.at.y, progress: lift })
     }
-    if (ev.type === "nothingToTake") {
+    if (ev.type === "nothingToTake" || ev.type === "handsFull" || ev.type === "nothingToStore") {
       const q = after(0.1, 0.9)
       if (q > 0 && q < 1) out.push({ kind: "question", x: ev.at.x, y: ev.at.y, progress: q })
     }
@@ -234,6 +234,8 @@ export const poseAt = (start: World, frames: ReadonlyArray<Frame>, t: number): S
     ...before,
     crystals: hpart > 0.5 ? after.crystals : before.crystals,
     energy: hpart > 0.3 ? after.energy : before.energy,
+    carrying: hpart > 0.5 ? after.carrying : before.carrying,
+    stored: hpart > 0.5 ? after.stored : before.stored,
     hearts: epart > 0.5 ? after.hearts : before.hearts,
     fell: hero.fallen > 0.5 ? after.fell : before.fell
   }

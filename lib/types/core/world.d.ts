@@ -9,7 +9,8 @@ export interface Cell {
 }
 /**
  * Map rows, top to bottom. `#` wall, `.` floor, `S` start, `c` crystal, `F` finish, `x` trap (thin ice or a pit:
- * the hero can step on it, and the run ends there).
+ * the hero can step on it, and the run ends there), `H` storehouse (floor where «віднести на склад» puts down what the
+ * hero carries).
  * A space or a cell outside the rows is a wall too.
  */
 export type MapRows = ReadonlyArray<string>;
@@ -37,6 +38,14 @@ export interface World {
     /** Hearts the hero has left. At 0 the run stops. */
     readonly hearts: number;
     readonly maxHearts: number;
+    /** The storehouse cell (`H`), or null when the map has none. */
+    readonly storehouse: Cell | null;
+    /** Things the hero took and carries now. */
+    readonly carrying: number;
+    /** How many things the hero can carry at once, or null when the level has no limit. */
+    readonly capacity: number | null;
+    /** Things put down in the storehouse. */
+    readonly stored: number;
 }
 /** Monsters from the pack. Which one only changes the picture. */
 export type EnemyKind = "slime" | "spirit" | "goblin" | "skull" | "flame" | "bear" | "toad";
@@ -90,9 +99,21 @@ export declare const enemyAhead: (world: World) => boolean;
 export declare const trapAhead: (world: World) => boolean;
 export declare const onCrystal: (world: World) => boolean;
 export declare const atFinish: (world: World) => boolean;
-export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack";
+/** The hero stands on the storehouse. */
+export declare const atStorehouse: (world: World) => boolean;
+/** The hero carries as much as it can: «взяти» would take nothing now. Never true on a level without a limit. */
+export declare const handsFull: (world: World) => boolean;
+export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store";
 /** What one action did, for the animation and the error message. */
-export type Outcome = "moved" | "crashed" | "fell" | "tired" | "turned" | "collected" | "nothingToCollect" | "enemyHit" | "enemyDown" | "swingMissed";
+export type Outcome = "moved" | "crashed" | "fell" | "tired" | "turned" | "collected" | "nothingToCollect" | "enemyHit" | "enemyDown" | "swingMissed"
+/** «взяти» with full hands: the thing stays where it lies. */
+ | "handsFull"
+/** «віднести на склад» on the storehouse: what the hero carried is in the storehouse now. */
+ | "stored"
+/** «віднести на склад» away from the storehouse. */
+ | "notStorehouse"
+/** «віднести на склад» on the storehouse with empty hands. */
+ | "nothingToStore";
 /**
  * What happened in the world, in the order it happened: the hero's action first, then each enemy's turn.
  * A frame keeps the events, so an animation shows what was done, not only where everybody stands now.
@@ -122,6 +143,22 @@ export type GameEvent = {
     readonly at: Cell;
 } | {
     readonly type: "nothingToTake";
+    readonly at: Cell;
+}
+/** «взяти» with full hands. */
+ | {
+    readonly type: "handsFull";
+    readonly at: Cell;
+}
+/** The hero put down what it carried in the storehouse. */
+ | {
+    readonly type: "itemsStored";
+    readonly at: Cell;
+    readonly count: number;
+}
+/** «віднести на склад» where there is no storehouse, or with empty hands. */
+ | {
+    readonly type: "nothingToStore";
     readonly at: Cell;
 }
 /** The hero swung at the cell ahead, with or without an enemy there. */

@@ -48,6 +48,7 @@ The student-facing interface is in Ukrainian. It was built for [EduProstir](http
 - **Хутір, the hero's estate** (`estateDay`): the student writes a morning routine once, and every new day checks it on a new map: other apples are ripe, the end of the yard is snowed in, the hens lay or not. Days come from passed levels, the harvest pays coins, and upgrades for coins (more trees, a carrot bed, a hen house) make a routine learned by heart stop working.
 - **Python code, as in Tynker or CodeCombat** (`edu-blocks/python`): the same levels with a code editor instead of blocks. `hero.move()`, `while not hero.at_finish():`, functions, variables and lists; the line the hero acts on lights up, and every mistake is explained in Ukrainian with its line.
 - **«Продовжити звідси»:** when a program simply ends before the goals, the student can go on from where the hero stopped with a new piece instead of starting over. The pieces are joined into one program and judged from the start, so the server checks the same program. More than one piece gives at most 2 stars (not in the first chapter), and on the estate it is work by hand: no bonus of a full day.
+- **Storehouse and trips** (`H` on the map, `capacity`, the goal `store`): the hero carries at most `capacity` things, puts them down with «віднести на склад» on the storehouse, and asks «руки повні?» and «тут склад?». One program must make as many trips as each field needs.
 - **Broken robot levels** (`broken`): the level opens with a program that has a mistake, and the student finds and fixes it.
 - **«Правда чи ні»:** a chapter where a condition is built from parts with «і», «або» and «не».
 - **«Як це в Python»** under the blocks: the student's blocks as Python code, updated with each block.
@@ -90,9 +91,10 @@ const level: Level = {
 }
 ```
 
-- **Goals** (`goals`): `crystals` (take every item on a `c` cell), `finish` (stand on the `F` cell).
+- **Goals** (`goals`): `crystals` (take every item on a `c` cell), `finish` (stand on the `F` cell), `enemies` (beat every enemy), `store` (take every item and put it down on the storehouse `H`).
+- **Hands** (`capacity`, optional): how many things the hero carries at once. «взяти» with full hands takes nothing.
 - **Scene** (`scene`, optional): `theme` (`summer`, `winter`), `ground` (`path`, `ice`, `bridge`), `item` (`crystal`, `wood`, `apple`, `fish`, `key`, `campfire`), `finish` (`flag`, `well`, `grandma`, `home`) `props` (`house`, `woodshed` with `x`, `y` in cells), and pictures from the asset packs (`sprites`, `itemLook`, `finishLook`; see [Pictures from asset packs](#pictures-from-asset-packs)). It changes only the looks and the goal text, never the rules.
-- **Blocks** (`blocks`): `move`, `turnLeft`, `turnRight`, `collect`, `wallAhead`, `onCrystal`, `atFinish`, `repeat`, `forever`, `repeatUntil`, `if`, `ifElse`, `not`, `and`, `or`.
+- **Blocks** (`blocks`): `move`, `turnLeft`, `turnRight`, `collect`, `store`, `wallAhead`, `onCrystal`, `atFinish`, `handsFull`, `atStorehouse`, `repeat`, `forever`, `repeatUntil`, `if`, `ifElse`, `not`, `and`, `or`.
 
 #### Several fields
 
