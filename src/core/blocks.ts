@@ -50,7 +50,7 @@ const COLLECT_TEXT: Readonly<Record<ItemKind, string>> = {
   wood: "взяти",
   apple: "взяти",
   key: "взяти",
-  fish: "зловити",
+  fish: "взяти",
   campfire: "розпалити",
   carrot: "взяти",
   egg: "взяти"
@@ -58,14 +58,14 @@ const COLLECT_TEXT: Readonly<Record<ItemKind, string>> = {
 
 /** Item kinds by name, as the drop-down of «тут ‹…›?» shows them. */
 export const ITEM_NAMES: Readonly<Record<ItemKind, string>> = {
-  crystal: "кристал",
+  crystal: "золото",
   wood: "дрова",
-  apple: "яблуко",
-  fish: "риба",
-  key: "ключ",
+  apple: "гриб",
+  fish: "м'ясо",
+  key: "стріла",
   campfire: "вогнище",
-  carrot: "морква",
-  egg: "яйце"
+  carrot: "гарбуз",
+  egg: "ягня"
 }
 
 const ITEM_KINDS = Object.keys(ITEM_NAMES) as ReadonlyArray<ItemKind>

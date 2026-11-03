@@ -51,7 +51,7 @@ const TILE_TOOLS: ReadonlyArray<{ readonly tool: MapTile; readonly name: string 
 const PROP_TOOLS: ReadonlyArray<{ readonly tool: PropKind; readonly name: string }> = [
   { tool: "house", name: "Хата" },
   { tool: "woodshed", name: "Дровітня" },
-  { tool: "appleTree", name: "Яблуня" }
+  { tool: "appleTree", name: "Ялинка" }
 ]
 
 const isPropTool = (tool: Tool): tool is PropKind => PROP_TOOLS.some((p) => p.tool === tool)
@@ -60,7 +60,7 @@ const PEOPLE: ReadonlyArray<{ readonly id: NpcKind; readonly name: string }> = [
   { id: "grandpa", name: "Дід" },
   { id: "boy", name: "Хлопчик" },
   { id: "girl", name: "Дівчинка" },
-  { id: "kid", name: "Малий у шубі" },
+  { id: "kid", name: "Малий" },
   { id: "villager", name: "Сусід" },
   { id: "hunter", name: "Мисливець" }
 ]
@@ -91,19 +91,19 @@ const SEASONS: ReadonlyArray<{ readonly id: Season; readonly name: string }> = [
 ]
 
 const ITEMS: ReadonlyArray<{ readonly id: ItemKind; readonly name: string }> = [
-  { id: "crystal", name: "Кристали" },
+  { id: "crystal", name: "Золото" },
   { id: "wood", name: "Дрова" },
-  { id: "apple", name: "Яблука" },
-  { id: "fish", name: "Риба" },
-  { id: "key", name: "Ключ" },
+  { id: "apple", name: "Гриби" },
+  { id: "fish", name: "М'ясо" },
+  { id: "key", name: "Стріла" },
   { id: "campfire", name: "Вогнища" },
-  { id: "carrot", name: "Морква" },
-  { id: "egg", name: "Яйця" }
+  { id: "carrot", name: "Гарбузи" },
+  { id: "egg", name: "Ягнята" }
 ]
 
 const FINISHES: ReadonlyArray<{ readonly id: FinishKind; readonly name: string }> = [
-  { id: "flag", name: "Прапорець" },
-  { id: "well", name: "Криниця" },
+  { id: "flag", name: "Вказівник" },
+  { id: "well", name: "Джерело" },
   { id: "grandma", name: "Бабуся" },
   { id: "home", name: "Дім" }
 ]

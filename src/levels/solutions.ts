@@ -139,7 +139,7 @@ export const solutions: Readonly<Record<string, ReadonlyArray<Step>>> = {
 /** The custom block of the solutions that call one, by level id. */
 export const definitions: Readonly<Record<string, Definition>> = {
   "f-stairs": { name: "сходинка", body: ["move", "turnLeft", "move", "turnRight"] },
-  "f-apples": { name: "по яблуко", body: ["turnLeft", "move", "collect", "turnRight", "turnRight", "move", "turnLeft"] },
+  "f-apples": { name: "по гриб", body: ["turnLeft", "move", "collect", "turnRight", "turnRight", "move", "turnLeft"] },
   "c-stones": { name: "обійти", body: BYPASS },
   "f-bushes": { name: "обійти", body: BYPASS },
   "c-rocks": { name: "обійти", body: BYPASS },

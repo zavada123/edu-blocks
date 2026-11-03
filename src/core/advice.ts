@@ -17,14 +17,14 @@ export const MAX_ADVICE = 3
 
 /** The item after «дійшов до …» and the word for it after «не взяв …», for one item and for several. */
 const NOUNS: Readonly<Record<ItemKind, { readonly to: readonly [string, string]; readonly it: readonly [string, string] }>> = {
-  crystal: { to: ["кристала", "кристалів"], it: ["його", "їх"] },
+  crystal: { to: ["золота", "золота"], it: ["його", "його"] },
   wood: { to: ["дров", "дров"], it: ["їх", "їх"] },
-  apple: { to: ["яблука", "яблук"], it: ["його", "їх"] },
-  fish: { to: ["риби", "риби"], it: ["її", "її"] },
-  key: { to: ["ключа", "ключів"], it: ["його", "їх"] },
+  apple: { to: ["гриба", "грибів"], it: ["його", "їх"] },
+  fish: { to: ["м'яса", "м'яса"], it: ["його", "його"] },
+  key: { to: ["стріли", "стріл"], it: ["її", "їх"] },
   campfire: { to: ["вогнища", "вогнищ"], it: ["його", "їх"] },
-  carrot: { to: ["моркви", "моркви"], it: ["її", "її"] },
-  egg: { to: ["яйця", "яєць"], it: ["його", "їх"] }
+  carrot: { to: ["гарбуза", "гарбузів"], it: ["його", "їх"] },
+  egg: { to: ["ягняти", "ягнят"], it: ["його", "їх"] }
 }
 
 const usedBlocks = (program: Program): ReadonlySet<string> => {

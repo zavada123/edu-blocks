@@ -52,7 +52,7 @@ export declare const harvestRewardOf: (harvest: Harvest, estate: EstateRun, firs
     readonly runCoins: number;
     readonly reward: Reward;
 };
-/** What the hero gathered, as a sentence part: «3 яблука, 2 морквини і 1 яйце». */
+/** What the hero gathered, as a sentence part: «3 гриби, 2 гарбузи і 1 ягня». */
 export declare const harvestText: (harvest: Harvest) => string;
 /** «монета», «монети» or «монет» for a number, as Ukrainian says it. */
 export declare const coinWord: (n: number) => string;

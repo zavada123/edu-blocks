@@ -109,7 +109,7 @@ export const harvestRewardOf = (
   }
 }
 
-/** «3 яблука», «1 морквина», «5 яєць». */
+/** «3 гриби», «1 гарбуз», «5 ягнят». */
 const countOf = (n: number, forms: readonly [string, string, string]): string => {
   const last = n % 10
   const tens = n % 100
@@ -117,12 +117,12 @@ const countOf = (n: number, forms: readonly [string, string, string]): string =>
   return `${n} ${form}`
 }
 
-/** What the hero gathered, as a sentence part: «3 яблука, 2 морквини і 1 яйце». */
+/** What the hero gathered, as a sentence part: «3 гриби, 2 гарбузи і 1 ягня». */
 export const harvestText = (harvest: Harvest): string => {
   const parts = [
-    harvest.apple > 0 ? countOf(harvest.apple, ["яблуко", "яблука", "яблук"]) : "",
-    harvest.carrot > 0 ? countOf(harvest.carrot, ["морквину", "морквини", "морквин"]) : "",
-    harvest.egg > 0 ? countOf(harvest.egg, ["яйце", "яйця", "яєць"]) : ""
+    harvest.apple > 0 ? countOf(harvest.apple, ["гриб", "гриби", "грибів"]) : "",
+    harvest.carrot > 0 ? countOf(harvest.carrot, ["гарбуз", "гарбузи", "гарбузів"]) : "",
+    harvest.egg > 0 ? countOf(harvest.egg, ["ягня", "ягняти", "ягнят"]) : ""
   ].filter((p) => p !== "")
   if (parts.length === 0) return "нічого"
   return parts.length === 1 ? (parts[0] ?? "") : `${parts.slice(0, -1).join(", ")} і ${parts.at(-1) ?? ""}`

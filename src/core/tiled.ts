@@ -98,7 +98,7 @@ const levelFields = (props: ReadonlyMap<string, unknown>, hasFinish: boolean, ha
   return {
     id: textOf(props.get("id")) ?? "tiled",
     title: textOf(props.get("title")) ?? "Карта з Tiled",
-    task: textOf(props.get("task"))?.split("\n") ?? ["Дійди до прапорця."],
+    task: textOf(props.get("task"))?.split("\n") ?? ["Дійди до вказівника."],
     blocks: (list("blocks") as ReadonlyArray<BlockName> | undefined) ?? DEFAULT_BLOCKS,
     goals
   }
