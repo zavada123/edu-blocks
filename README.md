@@ -183,7 +183,7 @@ canStartDay({ upgrades, day: n }, passedLevels.length)                    // one
 const coins = walletOf({ earned: levelCoins(levels, bestStars), income: sumOfDayBests, spent: heroesCost(owned) + upgradesCost(upgrades) })
 ```
 
-A day is a ring of paths: from the door along the orchard, down the far end of the yard, back along the carrot bed and up past the hen house. The harvest pays 2 coins for an apple, 3 for a carrot, 4 for an egg and 5 for a full day; a failed run pays for what the hero took (`estateHarvest`). `ESTATE_UPGRADES` lists the upgrades with their prices; `canBuyUpgrade`, `buyUpgrade` and `upgradesCost` do the shop. The same day number gives the same map on any computer.
+A day is a ring of paths: from the door along the orchard, down the far end of the yard, back along the carrot bed and up past the hen house. The harvest pays 2 coins for an apple, 3 for a carrot, 4 for an egg and 5 for a full day; a failed run pays for what the hero took (`estateHarvest`). `ESTATE_UPGRADES` lists the upgrades with their prices; `canBuyUpgrade`, `buyUpgrade` and `upgradesCost` do the shop. The same day number gives the same map on any computer. A day is drawn as a Sunnyside farm (`estateLook`): a tile map with path edges painted by the terrain brush, the farmhouse over the door, the orchard over the top path, a carrot bed that grows a stage a day, the hen house beside the nests, and a meadow with trees and a pond. The map has one look for every season, so winter and autumn lay a tint over it.
 
 ### «Продовжити звідси»
 

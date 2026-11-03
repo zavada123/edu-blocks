@@ -31,6 +31,8 @@ export interface Season {
     /** Obstacles drawn as swaying bushes instead of the still picture. */
     readonly swaying: Partial<Readonly<Record<Obstacle, Swaying>>>;
     readonly decor: Readonly<Record<Decor, string | null>>;
+    /** A colour laid over a hand-drawn tile map, whose tiles have one season: snow in winter, a warm haze in autumn. */
+    readonly tint?: string;
 }
 export declare const seasonOf: (scene: Scene) => Season;
 export declare const FLOORS: Readonly<Record<NonNullable<Scene["ground"]>, string>>;
