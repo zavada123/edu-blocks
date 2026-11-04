@@ -104,7 +104,11 @@
 
 /* The lesson of a level over the code: parchment, with an example on slate. */
 .eb-lesson {
-  flex: 0 0 auto;
+  /* The code keeps most of the column: a long lesson scrolls inside its own box. */
+  flex: 0 1 auto;
+  min-height: 40px;
+  max-height: 42%;
+  overflow-y: auto;
   border-bottom: var(--eb-px) solid var(--eb-edge);
   background: var(--eb-parch);
   color: var(--eb-ink);
@@ -117,6 +121,9 @@
   gap: 8px;
   min-height: 40px;
   padding: 6px 12px;
+  position: sticky;
+  top: 0;
+  background: var(--eb-parch);
   cursor: pointer;
   font-weight: 700;
   list-style: none;
@@ -148,8 +155,6 @@
 }
 
 .eb-lesson-body {
-  max-height: min(38vh, 300px);
-  overflow-y: auto;
   padding: 0 12px 10px;
 }
 
