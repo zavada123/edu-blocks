@@ -16,6 +16,8 @@ import {
   type PyFunction,
   type PyList,
   repr,
+  TEXT_METHODS,
+  type TextMethodName,
   toInt,
   truthy,
   typeName,
@@ -41,6 +43,8 @@ export interface PyHost {
   /** Whether the level opens this method. */
   readonly allows: (method: PythonMethod) => boolean
   readonly print: (text: string) => void
+  /** The next answer to `input()`, from the level. Throws a `PyError` when there is none. */
+  readonly input: (prompt: string, line: number) => string
 }
 
 /** The run stops with no error: the hero is done, or the program ran too long. */
@@ -62,6 +66,19 @@ interface Scope {
 const HERO: Value = { type: "hero" }
 const METHOD_NAMES = PYTHON_METHODS.map((m) => m.name)
 
+/** `"Привіт".upper()`: a text method gives a new text and leaves the old one as it was. */
+const textCall = (name: TextMethodName, text: string, args: ReadonlyArray<Value>, line: number): Value => {
+  if (args.length > 0) throw new PyError(`.${name}() нічого не приймає в дужках`, line)
+  switch (name) {
+    case "upper":
+      return text.toUpperCase()
+    case "lower":
+      return text.toLowerCase()
+    case "strip":
+      return text.trim()
+  }
+}
+
 export const execute = (program: Body, host: PyHost): void => new Interpreter(host).run(program)
 
 class Interpreter {
@@ -72,7 +89,7 @@ class Interpreter {
   private scope: Scope | null = null
 
   constructor(private readonly host: PyHost) {
-    this.builtins = makeBuiltins(host.print)
+    this.builtins = makeBuiltins({ print: host.print, input: host.input })
   }
 
   run(program: Body) {
@@ -261,6 +278,11 @@ class Interpreter {
 
   private attribute(object: Value, name: string, line: number): Value {
     if (isList(object) && (name === "append" || name === "pop")) return { type: "listMethod", name, list: object }
+    if (typeof object === "string") {
+      if ((TEXT_METHODS as ReadonlyArray<string>).includes(name)) return { type: "textMethod", name: name as TextMethodName, text: object }
+      const guess = closest(name, TEXT_METHODS)
+      throw new PyError(`У тексту немає методу .${name}()${guess === null ? `. Можна: ${TEXT_METHODS.map((m) => `.${m}()`).join(", ")}` : `: може, .${guess}()?`}`, line)
+    }
     if (typeof object !== "object" || object === null || object.type !== "hero") {
       throw new PyError(`У значення типу «${typeName(object)}» немає «.${name}»`, line)
     }
@@ -288,6 +310,8 @@ class Interpreter {
         return this.heroCall(fn.method, args, line)
       case "listMethod":
         return this.listCall(fn.name, fn.list, args, line)
+      case "textMethod":
+        return textCall(fn.name, fn.text, args, line)
     }
   }
 

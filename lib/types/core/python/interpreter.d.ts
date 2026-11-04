@@ -20,6 +20,8 @@ export interface PyHost {
     /** Whether the level opens this method. */
     readonly allows: (method: PythonMethod) => boolean;
     readonly print: (text: string) => void;
+    /** The next answer to `input()`, from the level. Throws a `PyError` when there is none. */
+    readonly input: (prompt: string, line: number) => string;
 }
 /** The run stops with no error: the hero is done, or the program ran too long. */
 export declare class Halt {

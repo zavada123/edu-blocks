@@ -11,17 +11,21 @@ export const MAX_FIELDS = 4
 
 /** A field as a level of its own: the same blocks, goals and stars on the field's map. */
 const fieldLevel = (level: Level, field: LevelField): Level => {
-  const { fields: _fields, enemies: _enemies, dir, maxSteps, scene, ...rest } = level
+  const { fields: _fields, enemies: _enemies, dir, maxSteps, scene, inputs, prints, ...rest } = level
   const fieldDir = field.dir ?? dir
   const fieldSteps = field.maxSteps ?? maxSteps
   const fieldScene = field.scene ?? scene
+  const fieldInputs = field.inputs ?? inputs
+  const fieldPrints = field.prints ?? prints
   return {
     ...rest,
     map: field.map,
     ...(fieldDir === undefined ? {} : { dir: fieldDir }),
     ...(fieldSteps === undefined ? {} : { maxSteps: fieldSteps }),
     ...(fieldScene === undefined ? {} : { scene: fieldScene }),
-    ...(field.enemies === undefined ? {} : { enemies: field.enemies })
+    ...(field.enemies === undefined ? {} : { enemies: field.enemies }),
+    ...(fieldInputs === undefined ? {} : { inputs: fieldInputs }),
+    ...(fieldPrints === undefined ? {} : { prints: fieldPrints })
   }
 }
 

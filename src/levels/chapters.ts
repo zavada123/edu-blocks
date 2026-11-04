@@ -1,11 +1,12 @@
 import type { Level } from "../core/level.ts"
 import { levels } from "./index.ts"
+import { pythonLevels } from "./python-start.ts"
 
 /**
  * The course in chapters by what a student learns, not by school grade: each chapter brings one new idea and
  * ends with a level that makes the student think. A student of any age starts with the first chapter.
  */
-export type ChapterId = "sequence" | "loops" | "conditions" | "while" | "logic" | "store" | "gates" | "pick" | "puzzles" | "enemies" | "guards" | "counter" | "functions"
+export type ChapterId = "pythonStart" | "sequence" | "loops" | "conditions" | "while" | "logic" | "store" | "gates" | "pick" | "puzzles" | "enemies" | "guards" | "counter" | "functions"
 
 export interface Chapter {
   readonly id: ChapterId
@@ -97,12 +98,30 @@ export const chapters: ReadonlyArray<Chapter> = [
   }
 ]
 
+/**
+ * «Python: перші кроки»: a chapter only for Python, before the course, for students who meet variables, `print` and
+ * `input()` for the first time. It is not in `chapters`, the course of blocks and Python alike; see `courseChapters`.
+ */
+export const pythonStartChapter: Chapter = {
+  id: "pythonStart",
+  title: "Python: перші кроки",
+  skill: "Зрозуміти, що таке метод, змінна й тип даних, надрукувати текст через print() і спитати відповідь через input().",
+  levels: pythonLevels.map((l) => l.id)
+}
+
+/** The chapters a student sees: the Python course starts with «Python: перші кроки». */
+export const courseChapters = (language: "blocks" | "python"): ReadonlyArray<Chapter> =>
+  language === "python" ? [pythonStartChapter, ...chapters] : chapters
+
+/** Every level of the course and of «Python: перші кроки». */
+const allLevels: ReadonlyArray<Level> = [...pythonLevels, ...levels]
+
 /** The chapter of a level, or undefined for a level outside the course (a teacher's task). */
-export const chapterOf = (levelId: string): Chapter | undefined => chapters.find((c) => c.levels.includes(levelId))
+export const chapterOf = (levelId: string): Chapter | undefined => courseChapters("python").find((c) => c.levels.includes(levelId))
 
 /** The levels of a chapter, in order. */
 export const chapterLevels = (chapter: Chapter): ReadonlyArray<Level> =>
-  chapter.levels.flatMap((id) => levels.find((l) => l.id === id) ?? [])
+  chapter.levels.flatMap((id) => allLevels.find((l) => l.id === id) ?? [])
 
 /** The first chapter has bigger blocks and a bigger field for the youngest. */
 export const isFirstChapter = (levelId: string): boolean => chapters[0]?.levels.includes(levelId) === true

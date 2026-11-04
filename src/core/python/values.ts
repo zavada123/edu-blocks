@@ -36,7 +36,17 @@ export interface PyListMethod {
   readonly list: PyList
 }
 
-export type Value = number | string | boolean | null | PyList | PyFunction | PyBuiltin | PyHero | PyHeroMethod | PyListMethod
+/** The methods of a text a course needs: `"Привіт".upper()`. */
+export const TEXT_METHODS = ["upper", "lower", "strip"] as const
+export type TextMethodName = (typeof TEXT_METHODS)[number]
+
+export interface PyTextMethod {
+  readonly type: "textMethod"
+  readonly name: TextMethodName
+  readonly text: string
+}
+
+export type Value = number | string | boolean | null | PyList | PyFunction | PyBuiltin | PyHero | PyHeroMethod | PyListMethod | PyTextMethod
 
 /** Items one list or text may hold, so a program cannot fill the memory. */
 export const MAX_ITEMS = 10_000
@@ -47,6 +57,21 @@ export const isList = (v: Value): v is PyList => typeof v === "object" && v !== 
 
 export const isCallable = (v: Value): boolean =>
   typeof v === "object" && v !== null && v.type !== "list" && v.type !== "hero"
+
+/** Built-in functions that are types in Python: `type(5)` gives `int`, and it prints as `<class 'int'>`. */
+export const TYPE_NAMES: ReadonlySet<string> = new Set(["int", "float", "str", "bool", "list", "NoneType", "function"])
+
+/** The Python type of a value, as `type()` names it. A whole number is an `int`, any other number a `float`. */
+export const pythonType = (v: Value): string => {
+  if (v === null) return "NoneType"
+  if (typeof v === "boolean") return "bool"
+  if (typeof v === "number") return Number.isInteger(v) ? "int" : "float"
+  if (typeof v === "string") return "str"
+  if (v.type === "list") return "list"
+  if (v.type === "hero") return "Hero"
+  if (v.type === "builtin" && TYPE_NAMES.has(v.name)) return "type"
+  return v.type === "function" ? "function" : "method"
+}
 
 /** What a value is, in the words of the messages. */
 export const typeName = (v: Value): string => {
@@ -89,12 +114,14 @@ export const repr = (v: Value): string => {
     case "function":
       return `<функція ${v.def.name}>`
     case "builtin":
-      return `<функція ${v.name}>`
+      return TYPE_NAMES.has(v.name) ? `<class '${v.name}'>` : `<функція ${v.name}>`
     case "hero":
       return "hero"
     case "heroMethod":
       return `<метод hero.${v.method.name}>`
     case "listMethod":
+      return `<метод ${v.name}>`
+    case "textMethod":
       return `<метод ${v.name}>`
   }
 }
@@ -102,10 +129,14 @@ export const repr = (v: Value): string => {
 /** A number for arithmetic: True and False count as 1 and 0, as in Python. */
 const asNumber = (v: Value): number | null => (typeof v === "number" ? v : typeof v === "boolean" ? (v ? 1 : 0) : null)
 
+/** A text that holds a whole number, like the answer of `input()`: "3" or " 12 ". */
+export const isNumberText = (v: Value): v is string => typeof v === "string" && /^\s*[-+]?\d+\s*$/.test(v)
+
 export const toInt = (v: Value, what: string, line: number): number => {
   const n = asNumber(v)
-  if (n === null || !Number.isInteger(n)) throw new PyError(`${what} має бути цілим числом, а тут ${typeName(v)} ${repr(v)}`, line)
-  return n
+  if (n !== null && Number.isInteger(n)) return n
+  const hint = isNumberText(v) ? `: у лапках це текст, а число з нього робить int(…), наприклад int(${repr(v)})` : ""
+  throw new PyError(`${what} має бути цілим числом, а тут ${typeName(v)} ${repr(v)}${hint}`, line)
 }
 
 const OP_WORDS: Readonly<Record<BinaryOp, string>> = {
@@ -137,7 +168,13 @@ export const binary = (op: BinaryOp, a: Value, b: Value, line: number): Value =>
       return list(Array.from({ length: n }, () => seq.items).flat())
     }
   }
-  const hint = op === "+" && (typeof a === "string" || typeof b === "string") ? ": число в текст перетворює str(…)" : ""
+  const textNumber = isNumberText(a) ? a : isNumberText(b) ? b : null
+  const hint =
+    textNumber !== null && (asNumber(a) !== null || asNumber(b) !== null)
+      ? `: ${repr(textNumber)} у лапках — це текст. Щоб рахувати, зроби з нього число: int(${repr(textNumber)}). Щоб склеїти текст, число перетворює str(…)`
+      : op === "+" && (typeof a === "string" || typeof b === "string")
+        ? ": число в текст перетворює str(…)"
+        : ""
   throw new PyError(`Не можна ${OP_WORDS[op]} ${typeName(a)} і ${typeName(b)}${hint}`, line)
 }
 

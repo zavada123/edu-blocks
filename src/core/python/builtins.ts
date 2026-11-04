@@ -1,7 +1,14 @@
 import { PyError } from "./errors.ts"
-import { isList, list, MAX_ITEMS, type PyBuiltin, repr, str, toInt, truthy, typeName, type Value } from "./values.ts"
+import { isList, list, MAX_ITEMS, type PyBuiltin, pythonType, repr, str, toInt, truthy, typeName, type Value } from "./values.ts"
 
-/** The built-in functions a program may call: `range`, `len`, `print` and a few for numbers. */
+/** The built-in functions a program may call: `range`, `len`, `print`, `input`, `type` and a few for numbers. */
+
+/** What the built-in functions reach outside the program. */
+export interface BuiltinIo {
+  readonly print: (text: string) => void
+  /** The next answer to `input()`; throws a `PyError` when the level has no more answers. */
+  readonly input: (prompt: string, line: number) => string
+}
 
 const arity = (name: string, args: ReadonlyArray<Value>, min: number, max: number, line: number) => {
   if (args.length >= min && args.length <= max) return
@@ -51,13 +58,42 @@ const toIntValue = (args: ReadonlyArray<Value>, line: number): Value => {
   const [v] = args
   if (typeof v === "string") {
     const n = Number(v.trim())
-    if (v.trim() === "" || !Number.isInteger(n)) throw new PyError(`int() не може зробити число з тексту ${repr(v)}`, line)
+    if (v.trim() === "" || !Number.isInteger(n)) {
+      const hint = Number.isNaN(n) ? "" : ": це дробове число, його робить float(…)"
+      throw new PyError(`int() не може зробити ціле число з тексту ${repr(v)}${hint}`, line)
+    }
     return n
   }
   return Math.trunc(number("int", v ?? null, line))
 }
 
-export const makeBuiltins = (print: (text: string) => void): ReadonlyMap<string, PyBuiltin> => {
+const toFloatValue = (args: ReadonlyArray<Value>, line: number): Value => {
+  arity("float", args, 1, 1, line)
+  const [v] = args
+  if (typeof v === "string") {
+    const n = Number(v.trim())
+    if (v.trim() === "" || Number.isNaN(n)) throw new PyError(`float() не може зробити число з тексту ${repr(v)}`, line)
+    return n
+  }
+  return number("float", v ?? null, line)
+}
+
+/** A type with no function of its own in the course, such as `list`: `type([])` gives it, but it cannot be called. */
+const bareType = (name: string): PyBuiltin => ({
+  type: "builtin",
+  name,
+  call: (_args, line) => {
+    throw new PyError(`${name}() у цьому курсі не викликають: це лише назва типу`, line)
+  }
+})
+
+export const makeBuiltins = ({ print, input }: BuiltinIo): ReadonlyMap<string, PyBuiltin> => {
+  const types = new Map<string, PyBuiltin>()
+  const typeOf = (args: ReadonlyArray<Value>, line: number): Value => {
+    arity("type", args, 1, 1, line)
+    const name = pythonType(args[0] ?? null)
+    return builtins.get(name) ?? types.get(name) ?? types.set(name, bareType(name)).get(name) ?? null
+  }
   const entries: ReadonlyArray<[string, PyBuiltin["call"]]> = [
     ["range", range],
     ["len", len],
@@ -76,11 +112,22 @@ export const makeBuiltins = (print: (text: string) => void): ReadonlyMap<string,
       arity("str", args, 1, 1, line)
       return str(args[0] ?? null)
     }],
+    ["input", (args, line) => {
+      arity("input", args, 0, 1, line)
+      const prompt = args.length === 0 ? "" : str(args[0] ?? null)
+      const answer = input(prompt, line)
+      // As in a terminal: the question and the answer typed after it stay on one line.
+      print(`${prompt}${answer}`)
+      return answer
+    }],
+    ["type", typeOf],
     ["int", toIntValue],
+    ["float", toFloatValue],
     ["bool", (args, line) => {
       arity("bool", args, 1, 1, line)
       return truthy(args[0] ?? null)
     }]
   ]
-  return new Map(entries.map(([name, call]) => [name, { type: "builtin", name, call }]))
+  const builtins: ReadonlyMap<string, PyBuiltin> = new Map(entries.map(([name, call]) => [name, { type: "builtin", name, call }]))
+  return builtins
 }

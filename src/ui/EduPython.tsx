@@ -9,6 +9,7 @@ import type { FailReason, RunResult } from "../core/program.ts"
 import { HERO_NAME, type PythonMethod, pythonMethodsOf } from "../core/python/api.ts"
 import { judgePythonFields } from "../core/python/judge.ts"
 import { CodeEditor, type CodeEditorApi } from "./code/CodeEditor.tsx"
+import { Lesson } from "./Lesson.tsx"
 import { useFields } from "./fields.ts"
 import { useFullScreen } from "./fullscreen.ts"
 import { type GameNavigation, GameScreen } from "./GameScreen.tsx"
@@ -91,7 +92,13 @@ const snippetsOf = (level: Level, methods: ReadonlyArray<PythonMethod>): Readonl
     { block: "counter", code: `${COUNTER_NAME} = 0`, doc: "Змінна-лічильник." },
     { block: "procedure", code: `def ${name}():`, doc: `Своя функція: її команди зсунуті нижче, виклик — ${name}().` }
   ]
-  return all.filter((s) => level.blocks.includes(s.block))
+  const ideas = level.uses ?? []
+  const pythonOnly: ReadonlyArray<{ readonly shown: boolean; readonly code: string; readonly doc: string }> = [
+    { shown: ideas.includes("print") || level.prints !== undefined, code: 'print("Привіт!")', doc: "Надрукувати текст під кодом." },
+    { shown: ideas.includes("input") && !ideas.includes("float"), code: 'int(input("Скільки?"))', doc: "Спитати й зробити з відповіді ціле число." },
+    { shown: ideas.includes("float"), code: 'float(input("Скільки?"))', doc: "Спитати й зробити з відповіді дробове число." }
+  ]
+  return [...all.filter((s) => level.blocks.includes(s.block)), ...pythonOnly.filter((s) => s.shown)]
 }
 
 type Phase =
@@ -121,7 +128,8 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
   const { rootRef, full, toggleFull } = useFullScreen()
   const failedRef = useRef(0)
   const editorRef = useRef<{ readonly api: CodeEditorApi; readonly read: () => string } | null>(null)
-  const initial = useRef(source ?? brokenSource(level) ?? starterSource())
+  const initial = useRef(source ?? level.starter ?? brokenSource(level) ?? starterSource())
+  const [lessonOpen, setLessonOpen] = useState(true)
   // «Продовжити звідси»: the pieces run so far. While there are any, the editor holds only the new piece.
   const { done, ref: doneRef, setDone } = usePieces<string>(level)
   const offset = done === null ? 0 : linesBefore(done.pieces)
@@ -140,6 +148,7 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
     if (editor === null) return
     reset()
     setPhase({ kind: "running" })
+    setLessonOpen(false)
     const piece = editor.read()
     const before = doneRef.current
     // After «Продовжити звідси» the pieces run as one program from the start; the screen plays only the new frames.
@@ -280,6 +289,7 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
         )
       }
     >
+      {level.lesson !== undefined && <Lesson lesson={level.lesson} open={lessonOpen} onToggle={setLessonOpen} />}
       <div className="eb-palette" role="toolbar" aria-label="Команди рівня: натисни, щоб додати в код">
         {methods.map((m) => (
           <button key={m.name} type="button" className={m.sensor === undefined ? "eb-chip eb-chip-hero" : "eb-chip eb-chip-sense"} title={m.doc} onClick={() => editorRef.current?.api.insert(`${HERO_NAME}.${m.name}()`)}>

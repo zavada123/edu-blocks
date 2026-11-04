@@ -178,3 +178,34 @@ describe("size for the stars", () => {
     expect(programSize(parse(source))).toBe(size)
   })
 })
+
+describe("types, texts and input()", () => {
+  test("type() names the type of a value and is the same as the built-in", () => {
+    expect(printed('print(type(5))\nprint(type(2.5))\nprint(type("5"))\nprint(type(True))\nprint(type([1]))\nprint(type(None))')).toEqual([
+      "<class 'int'>", "<class 'float'>", "<class 'str'>", "<class 'bool'>", "<class 'list'>", "<class 'NoneType'>"
+    ])
+    expect(printed("print(type(5) == int, type('a') == str, type(1) == str)")).toEqual(["True True False"])
+  })
+
+  test("float() makes a number of a text", () => {
+    expect(printed('print(float("12.5") * 3)\nprint(float(2))')).toEqual(["37.5", "2"])
+    expect(error('x = float("abc")').text).toContain("float()")
+    expect(error('x = int("12.5")').text).toContain("float(")
+  })
+
+  test("a text has upper(), lower() and strip()", () => {
+    expect(printed('print("ура".upper(), "ОЛЯ".lower(), "  так ".strip())')).toEqual(["УРА оля так"])
+    expect(error('x = "a".uper()').text).toContain(".upper()")
+  })
+
+  test("a number in quotes added to a number says to use int()", () => {
+    expect(error('x = "3" + 1').text).toContain("int('3')")
+  })
+
+  test("input() gets the answers of the level in order and prints the question with the answer", () => {
+    const asks: Level = { ...level, inputs: ["Оля", "12"] }
+    const r = judgePython(asks, 'name = input("Ім\'я? ")\nage = int(input())\nprint(name, age + 1)')
+    expect(r.output).toEqual(["Ім'я? Оля", "12", "Оля 13"])
+    expect(error("x = input()").text).toContain("ніхто не відповідає")
+  })
+})
