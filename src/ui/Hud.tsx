@@ -118,7 +118,7 @@ export const Hud = ({
         </button>
       )}
       <div className="eb-hud-chapter">
-        <p className="eb-hud-title">{chapter !== undefined ? `Глава ${number} · ${chapter.title}` : isEstateLevel(level.id) ? level.title : "Завдання"}</p>
+        <p className="eb-hud-title">{chapter !== undefined ? `${number === 0 ? "Вступ" : `Глава ${number}`} · ${chapter.title}` : isEstateLevel(level.id) ? level.title : "Завдання"}</p>
         {chapter !== undefined && <ChapterLevels ids={chapter.levels} current={level.id} progress={progress} />}
       </div>
       {xpTotal !== undefined && <HeroBadge skin={skin} total={xpTotal} coins={coinsTotal} onPickHero={onPickHero} />}

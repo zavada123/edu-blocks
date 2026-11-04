@@ -1,4 +1,4 @@
-import type { Level } from "../level.ts";
+import { type Level } from "../level.ts";
 import { type RunResult } from "../program.ts";
 /**
  * Runs a Python program on a level and grades it, as `judgeProgram` does for blocks. Pure and synchronous:

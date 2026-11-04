@@ -220,6 +220,35 @@ export interface Level {
    * See `brokenProgram` and `brokenSource`.
    */
   readonly broken?: BrokenProgram
+  /**
+   * A level only for Python code: its ideas (variables, `print`, `input()`) have no blocks. `<EduBlocks>` and the
+   * block course skip it. See `pythonLevels`.
+   */
+  readonly language?: "python"
+  /** A short lesson shown over the code before the student starts: what the new idea is, with an example. */
+  readonly lesson?: Lesson
+  /** The Python code the level opens with when the app gives no saved program. */
+  readonly starter?: string
+  /**
+   * The answers `input()` gets on this field, one for each call, in order: an old man tells the number of steps.
+   * Other fields give their own, so the program has to read the answer and cannot know it in advance.
+   */
+  readonly inputs?: ReadonlyArray<string>
+  /** Ideas a Python program must use to pass, not only reach the goals: a variable, `print`, `input()`. */
+  readonly uses?: ReadonlyArray<PythonIdea>
+  /** A line the Python program must print, exactly as written here. */
+  readonly prints?: string
+}
+
+/** What a Python level can ask the program to use (`Level.uses`). */
+export type PythonIdea = "variable" | "print" | "input" | "int" | "float"
+
+/** A lesson over the code of a level: a title, a few short paragraphs and an example to read. */
+export interface Lesson {
+  readonly title: string
+  readonly text: ReadonlyArray<string>
+  /** Python code that shows the idea, with comments. It is not the solution of the level. */
+  readonly example: string
 }
 
 /** A program with a mistake, written as steps (`buildProgram`), with the custom block when the level has one. */
@@ -239,6 +268,10 @@ export interface LevelField {
   readonly maxSteps?: number
   /** The look of this field when the houses and pictures of the level do not fit its map. */
   readonly scene?: Scene
+  /** The answers to `input()` on this field, instead of the level's. */
+  readonly inputs?: ReadonlyArray<string>
+  /** The line to print on this field, instead of the level's: it follows from the answers of this field. */
+  readonly prints?: string
 }
 
 /** The world at the start of a level: the map, the enemies and the hearts. */

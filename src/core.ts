@@ -12,6 +12,7 @@ export { checkProgram, MAX_ACTIONS, MAX_FRAMES, MAX_PROGRAM_BLOCKS } from "./cor
 export type { FailReason, Frame, Program, RunResult } from "./core/program.ts"
 export * from "./core/world.ts"
 export { levels } from "./levels/index.ts"
+export { pythonLevels, pythonSolutions } from "./levels/python-start.ts"
 export * from "./levels/chapters.ts"
 export { definitions, solutionProgram, solutions } from "./levels/solutions.ts"
 export * from "./core/xp.ts"

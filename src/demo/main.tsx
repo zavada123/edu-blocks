@@ -17,6 +17,7 @@ import {
 import { heroesCost, type HeroId } from "../core/heroes.ts"
 import type { Program } from "../core/program.ts"
 import { levels } from "../levels/index.ts"
+import { pythonLevels } from "../levels/python-start.ts"
 import { chapterOf, isFirstChapter } from "../levels/chapters.ts"
 import { solutionProgram } from "../levels/solutions.ts"
 import { type BlocksReport, EduBlocks } from "../ui/EduBlocks.tsx"
@@ -39,6 +40,7 @@ const ESTATE = "estate"
 /** Levels of the demo that are not in the course: the farm mockup, with the coop bought so that it shows. */
 const farmTiles = farmMockup.scene?.tilemap
 const extraLevels = [
+  ...pythonLevels,
   farmTiles === undefined ? farmMockup : { ...farmMockup, scene: { ...farmMockup.scene, tilemap: tilemapFor(farmTiles, new Set(["coop"])) } }
 ]
 
@@ -125,7 +127,8 @@ const Demo = () => {
   }
 
   // «Далі» opens the next level of the course; the last level has none.
-  const next = levels[levels.indexOf(level) + 1]
+  const course = [...pythonLevels, ...levels]
+  const next = course[course.indexOf(level) + 1]
   const onNext =
     day !== null
       ? canStartDay(estate, passed.length)
@@ -163,13 +166,13 @@ const Demo = () => {
         <label>
           <span className="demo-visually-hidden">Рівень</span>
           <select value={id} onChange={(e) => setId(e.target.value)}>
-            {levels.map((l) => (
+            {(language === "python" ? [...pythonLevels, ...levels] : levels).map((l) => (
               <option key={l.id} value={l.id}>
                 {chapterOf(l.id)?.title ?? ""} · {l.title} {"★".repeat(best[l.id]?.stars ?? 0)}
               </option>
             ))}
             <option value={ESTATE}>Хутір</option>
-            {extraLevels.map((l) => (
+            {extraLevels.filter((l) => l.language !== "python").map((l) => (
               <option key={l.id} value={l.id}>
                 Макети · {l.title}
               </option>
@@ -194,7 +197,7 @@ const Demo = () => {
         />
       )}
       <main className="demo-main">
-        {language === "python" ? (
+        {language === "python" || level.language === "python" ? (
           <EduPython
             key={level.id}
             level={level}

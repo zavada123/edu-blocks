@@ -101,3 +101,74 @@
     min-height: 36px;
   }
 }
+
+/* The lesson of a level over the code: parchment, with an example on slate. */
+.eb-lesson {
+  /* The code keeps most of the column: a long lesson scrolls inside its own box. */
+  flex: 0 1 auto;
+  min-height: 40px;
+  max-height: 42%;
+  overflow-y: auto;
+  border-bottom: var(--eb-px) solid var(--eb-edge);
+  background: var(--eb-parch);
+  color: var(--eb-ink);
+  font: 400 0.92rem/1.45 var(--eb-font-text);
+}
+
+.eb-lesson summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 6px 12px;
+  position: sticky;
+  top: 0;
+  background: var(--eb-parch);
+  cursor: pointer;
+  font-weight: 700;
+  list-style: none;
+}
+
+.eb-lesson summary::-webkit-details-marker {
+  display: none;
+}
+
+.eb-lesson summary::after {
+  content: "▾";
+  margin-left: auto;
+  color: var(--eb-ink-soft);
+}
+
+.eb-lesson:not([open]) summary::after {
+  content: "▸";
+}
+
+.eb-lesson-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  background: var(--eb-gold);
+  box-shadow: 0 0 0 2px var(--eb-edge);
+  color: var(--eb-edge);
+  font: 400 0.85rem/1 var(--eb-font-pixel);
+}
+
+.eb-lesson-body {
+  padding: 0 12px 10px;
+}
+
+.eb-lesson-body p {
+  margin: 0 0 6px;
+}
+
+.eb-lesson-example {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  overflow-x: auto;
+  background: var(--eb-code-bg);
+  box-shadow: 0 0 0 2px var(--eb-edge);
+  color: var(--eb-code-fg);
+  font: 0.85rem/1.5 var(--eb-font-code);
+  white-space: pre;
+}

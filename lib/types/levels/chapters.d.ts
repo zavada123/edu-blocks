@@ -3,7 +3,7 @@ import type { Level } from "../core/level.ts";
  * The course in chapters by what a student learns, not by school grade: each chapter brings one new idea and
  * ends with a level that makes the student think. A student of any age starts with the first chapter.
  */
-export type ChapterId = "sequence" | "loops" | "conditions" | "while" | "logic" | "store" | "gates" | "pick" | "puzzles" | "enemies" | "guards" | "counter" | "functions";
+export type ChapterId = "pythonStart" | "sequence" | "loops" | "conditions" | "while" | "logic" | "store" | "gates" | "pick" | "puzzles" | "enemies" | "guards" | "counter" | "functions";
 export interface Chapter {
     readonly id: ChapterId;
     readonly title: string;
@@ -13,6 +13,13 @@ export interface Chapter {
     readonly levels: ReadonlyArray<string>;
 }
 export declare const chapters: ReadonlyArray<Chapter>;
+/**
+ * «Python: перші кроки»: a chapter only for Python, before the course, for students who meet variables, `print` and
+ * `input()` for the first time. It is not in `chapters`, the course of blocks and Python alike; see `courseChapters`.
+ */
+export declare const pythonStartChapter: Chapter;
+/** The chapters a student sees: the Python course starts with «Python: перші кроки». */
+export declare const courseChapters: (language: "blocks" | "python") => ReadonlyArray<Chapter>;
 /** The chapter of a level, or undefined for a level outside the course (a teacher's task). */
 export declare const chapterOf: (levelId: string) => Chapter | undefined;
 /** The levels of a chapter, in order. */

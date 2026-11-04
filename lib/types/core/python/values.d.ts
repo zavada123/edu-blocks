@@ -29,12 +29,24 @@ export interface PyListMethod {
     readonly name: "append" | "pop";
     readonly list: PyList;
 }
-export type Value = number | string | boolean | null | PyList | PyFunction | PyBuiltin | PyHero | PyHeroMethod | PyListMethod;
+/** The methods of a text a course needs: `"Привіт".upper()`. */
+export declare const TEXT_METHODS: readonly ["upper", "lower", "strip"];
+export type TextMethodName = (typeof TEXT_METHODS)[number];
+export interface PyTextMethod {
+    readonly type: "textMethod";
+    readonly name: TextMethodName;
+    readonly text: string;
+}
+export type Value = number | string | boolean | null | PyList | PyFunction | PyBuiltin | PyHero | PyHeroMethod | PyListMethod | PyTextMethod;
 /** Items one list or text may hold, so a program cannot fill the memory. */
 export declare const MAX_ITEMS = 10000;
 export declare const list: (items: Array<Value>) => PyList;
 export declare const isList: (v: Value) => v is PyList;
 export declare const isCallable: (v: Value) => boolean;
+/** Built-in functions that are types in Python: `type(5)` gives `int`, and it prints as `<class 'int'>`. */
+export declare const TYPE_NAMES: ReadonlySet<string>;
+/** The Python type of a value, as `type()` names it. A whole number is an `int`, any other number a `float`. */
+export declare const pythonType: (v: Value) => string;
 /** What a value is, in the words of the messages. */
 export declare const typeName: (v: Value) => string;
 export declare const truthy: (v: Value) => boolean;
@@ -42,6 +54,8 @@ export declare const truthy: (v: Value) => boolean;
 export declare const str: (v: Value) => string;
 /** `repr(v)`: a text in quotes, as it shows inside a list. */
 export declare const repr: (v: Value) => string;
+/** A text that holds a whole number, like the answer of `input()`: "3" or " 12 ". */
+export declare const isNumberText: (v: Value) => v is string;
 export declare const toInt: (v: Value, what: string, line: number) => number;
 export declare const binary: (op: BinaryOp, a: Value, b: Value, line: number) => Value;
 export declare const equal: (a: Value, b: Value) => boolean;
