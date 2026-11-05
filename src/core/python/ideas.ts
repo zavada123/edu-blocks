@@ -92,16 +92,18 @@ const uses = (usage: Usage, idea: PythonIdea): boolean => {
     case "input":
     case "int":
     case "float":
+    case "str":
       return usage.called.has(idea)
   }
 }
 
 const MISSING: Readonly<Record<PythonIdea, string>> = {
-  variable: "Герой дійшов, але без змінної. Поклади число в змінну, наприклад steps = 3, і пиши steps замість числа.",
-  print: "Герой дійшов, але нічого не сказав. Додай print(\"…\"): так програма друкує текст.",
+  variable: "Герой дійшов, але без змінної-скриньки. Поклади число в скриньку, наприклад steps = 3, і пиши steps замість числа.",
+  print: "Герой дійшов, але нічого не сказав. Додай print(…): так герой каже слова вголос.",
   input: "Програма не спитала. Відповідь дає input(\"…\"): на іншому полі вона буде інша.",
   int: "Відповідь input() — це текст. Зроби з неї число: int(input(\"…\")).",
-  float: "Ціна дробова, тому зроби з відповіді дробове число: float(input(\"…\"))."
+  float: "Число з крапкою, тому зроби з відповіді таке число: float(input(\"…\")).",
+  str: "Тут треба зробити з числа слова: str(…)."
 }
 
 /** What the program still has to use, as a message for the student, or null when it uses every idea of the level. */

@@ -230,6 +230,31 @@ const ContinueButton = ({ onContinue }: { readonly onContinue: () => void }) => 
 
 const HINTED: ReadonlySet<FailReason> = new Set(["crashed", "trapped", "tired", "defeated", "goalsNotMet"])
 
+/**
+ * A ladder of hints (`Level.hints`): the student opens one more step at a time, from a nudge to a frame with gaps.
+ * The step lives in the app, so it stays open across runs of the same level.
+ */
+const HintLadder = ({ hints, step, onMore }: { readonly hints: ReadonlyArray<string>; readonly step: number; readonly onMore: () => void }) => (
+  <div className="eb-hint-ladder">
+    {hints.slice(0, step).map((hint, i) =>
+      hint.includes("\n") ? (
+        <pre key={hint} className="eb-hint eb-hint-code" aria-label={`Підказка ${i + 1}`}>
+          {hint}
+        </pre>
+      ) : (
+        <p key={hint} className="eb-hint">
+          Підказка {i + 1}: {hint}
+        </p>
+      )
+    )}
+    {step < hints.length && (
+      <button type="button" className="eb-btn eb-btn-small" onClick={onMore}>
+        {step === 0 ? "Підказка" : "Ще підказка"} ({step + 1} з {hints.length})
+      </button>
+    )}
+  </div>
+)
+
 /** The result over the field: stars and XP for a pass, what went wrong and a hint for a fail. */
 export const Verdict = ({
   level,
@@ -239,7 +264,9 @@ export const Verdict = ({
   language,
   onClose,
   onNext,
-  onContinue
+  onContinue,
+  hintStep = 0,
+  onHint
 }: {
   readonly level: Level
   readonly result: RunResult
@@ -251,6 +278,10 @@ export const Verdict = ({
   readonly onNext: (() => void) | undefined
   /** «Продовжити звідси»: the hero stays, and the student writes the next piece (`canContinue`). */
   readonly onContinue?: (() => void) | undefined
+  /** How many steps of `level.hints` are open. */
+  readonly hintStep?: number
+  /** Opens one more step of `level.hints`; without it the level's single `hint` is shown. */
+  readonly onHint?: (() => void) | undefined
 }) => {
   if (reward.harvest !== null)
     return <HarvestVerdict result={result} reward={reward} language={language} onClose={onClose} onNext={onNext} onContinue={onContinue} />
@@ -268,6 +299,11 @@ export const Verdict = ({
             </p>
           ) : (
             <Advice tips={advice} />
+          )}
+          {level.gift !== undefined && (
+            <p className="eb-gift">
+              Новий предмет: <strong>{level.gift.name}</strong>. {level.gift.skill}
+            </p>
           )}
           <XpLine reward={reward} />
           <CoinLine reward={reward} />
@@ -295,7 +331,11 @@ export const Verdict = ({
           {failText(result, language)}
         </p>
         <Advice tips={advice} />
-        {level.hint !== undefined && HINTED.has(reason) && <p className="eb-hint">Підказка: {level.hint}</p>}
+        {level.hints !== undefined && onHint !== undefined ? (
+          <HintLadder hints={level.hints} step={hintStep} onMore={onHint} />
+        ) : (
+          level.hint !== undefined && HINTED.has(reason) && <p className="eb-hint">Підказка: {level.hint}</p>
+        )}
         <div className="eb-verdict-actions">
           {onContinue !== undefined && <ContinueButton onContinue={onContinue} />}
           <button type="button" className="eb-btn eb-btn-gold" onClick={onClose} autoFocus>

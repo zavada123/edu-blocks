@@ -45,6 +45,8 @@ export interface PyHost {
   readonly print: (text: string) => void
   /** The next answer to `input()`, from the level. Throws a `PyError` when there is none. */
   readonly input: (prompt: string, line: number) => string
+  /** Called once when the program stops, for any reason, with its variables at that moment. */
+  readonly stopped?: (globals: ReadonlyMap<string, Value>) => void
 }
 
 /** The run stops with no error: the hero is done, or the program ran too long. */
@@ -99,6 +101,8 @@ class Interpreter {
       if (signal instanceof BreakSignal || signal instanceof ContinueSignal) throw new PyError("break і continue працюють тільки всередині циклу", 1)
       if (signal instanceof ReturnSignal) throw new PyError("return працює тільки всередині функції", 1)
       throw signal
+    } finally {
+      this.host.stopped?.(this.globals)
     }
   }
 
@@ -271,6 +275,8 @@ class Interpreter {
     if (lower === "true" || lower === "false" || lower === "none") return `Пиши ${lower[0]?.toUpperCase()}${lower.slice(1)} з великої літери`
     if (KEYWORDS.has(lower)) return `Python розрізняє великі й малі літери: пиши «${lower}»`
     const known = [...this.globals.keys(), ...(this.scope?.vars.keys() ?? []), ...this.builtins.keys()]
+    // A Ukrainian word without quotes is almost always words the student meant to print, not a name.
+    if (/[а-яіїєґ]/i.test(name)) return `Python не знає імені «${name}». Якщо це слова, візьми їх у лапки: "${name}"`
     const guess = closest(name, known)
     const tail = guess === null ? "задай її значення вище, перш ніж брати" : `може, ${guess}?`
     return `Python не знає імені «${name}»: ${tail}`

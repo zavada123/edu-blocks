@@ -1,3 +1,4 @@
+import type { Box } from "./python/boxes.ts";
 import { type Level } from "./level.ts";
 import { type Session } from "./program.ts";
 import { type Action, type ItemKind, type World } from "./world.ts";
@@ -26,6 +27,8 @@ export interface ActionSource {
     readonly line?: number;
     /** The counter at this moment, on a level with «лічильник». */
     readonly counter?: string;
+    /** The variables of a Python program at this moment («Скриньки»). */
+    readonly boxes?: ReadonlyArray<Box>;
 }
 /**
  * The hero does one action, the enemies take their turn, and the frame is written down. Returns true when the run

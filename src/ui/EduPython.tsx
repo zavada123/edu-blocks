@@ -14,6 +14,7 @@ import { useFields } from "./fields.ts"
 import { useFullScreen } from "./fullscreen.ts"
 import { type GameNavigation, GameScreen } from "./GameScreen.tsx"
 import { frameIndexAt } from "./stage/playback.ts"
+import { Boxes } from "./Boxes.tsx"
 import type { Skin } from "./stage/Stage.tsx"
 import { gradePieces, JOIN_TIP, PiecesBar, usePieces } from "./pieces.tsx"
 import { usePlayer } from "./Timeline.tsx"
@@ -130,6 +131,8 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
   const editorRef = useRef<{ readonly api: CodeEditorApi; readonly read: () => string } | null>(null)
   const initial = useRef(source ?? level.starter ?? brokenSource(level) ?? starterSource())
   const [lessonOpen, setLessonOpen] = useState(true)
+  /** How many steps of the level's ladder of hints the student has opened. */
+  const [hintStep, setHintStep] = useState(0)
   // «Продовжити звідси»: the pieces run so far. While there are any, the editor holds only the new piece.
   const { done, ref: doneRef, setDone } = usePieces<string>(level)
   const offset = done === null ? 0 : linesBefore(done.pieces)
@@ -233,6 +236,8 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
   const runLine = result === null || atEnd ? null : pieceLine(result.frames[frameIndexAt(result.frames, player.time)]?.line, offset)
   const errorLine = atEnd && result?.reason === "badProgram" ? (result.line ?? null) : null
   const output = phase.kind === "done" ? (phase.result.output ?? []) : []
+  // «Скриньки» follow the run: the variables after the frame on screen, and after the whole program at its end.
+  const boxes = result === null ? [] : atEnd ? (result.boxes ?? result.frames.at(-1)?.boxes ?? []) : (result.frames[frameIndexAt(result.frames, player.time)]?.boxes ?? [])
 
   const onReady = useCallback((api: CodeEditorApi, read: () => string) => {
     editorRef.current = { api, read }
@@ -285,6 +290,8 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
             onClose={() => setVerdictOpen(false)}
             onNext={onNext}
             onContinue={phase.canGoOn ? goOn : undefined}
+            hintStep={hintStep}
+            onHint={() => setHintStep((n) => n + 1)}
           />
         )
       }
@@ -304,6 +311,7 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
       </div>
       <PiecesBar done={done} unit={["команда", "команди", "команд"]} onJoin={joinPieces} onRestart={dropPieces} />
       <CodeEditor initial={initial.current} methods={methods} large={large} runLine={runLine} errorLine={errorLine} onChange={onChange} onReady={onReady} />
+      <Boxes boxes={boxes} />
       {output.length > 0 && (
         <pre className="eb-output" aria-label="Що надрукувала програма">
           {output.join("\n")}

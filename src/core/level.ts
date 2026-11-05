@@ -194,6 +194,16 @@ export interface Level {
   readonly stars?: { readonly three: number; readonly two: number }
   /** Shown after a failed run. */
   readonly hint?: string
+  /**
+   * A ladder of hints, shown one more after each failed run: a nudge, then the idea, then a frame with gaps (`_`).
+   * When given, it replaces `hint` in the game; `hint` stays the short answer for the teacher.
+   */
+  readonly hints?: ReadonlyArray<string>
+  /**
+   * A thing the hero gets for passing the level the first time, with the new command it stands for: boots for
+   * `hero.move()`, a horn for `print`. Shown in the verdict, as CodeCombat gives a new method with new gear.
+   */
+  readonly gift?: { readonly name: string; readonly skill: string }
   /** Enemies on floor cells. They act after each hero action: see `applyAction`. */
   readonly enemies?: ReadonlyArray<EnemySpec>
   /** Hearts of the hero. 3 by default; they matter only where there are enemies. */
@@ -241,7 +251,7 @@ export interface Level {
 }
 
 /** What a Python level can ask the program to use (`Level.uses`). */
-export type PythonIdea = "variable" | "print" | "input" | "int" | "float"
+export type PythonIdea = "variable" | "print" | "input" | "int" | "float" | "str"
 
 /** A lesson over the code of a level: a title, a few short paragraphs and an example to read. */
 export interface Lesson {

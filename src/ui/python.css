@@ -172,3 +172,93 @@
   font: 0.85rem/1.5 var(--eb-font-code);
   white-space: pre;
 }
+
+/* «Скриньки»: the variables of the program as boxes; the kind gives the look. */
+.eb-boxes {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 12px;
+  overflow-x: auto;
+  border-top: var(--eb-px) solid var(--eb-edge);
+  background: #20262c;
+}
+
+.eb-boxes-title {
+  color: #c9b48a;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.eb-boxes-list {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.eb-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 56px;
+  padding: 2px 8px 4px;
+  border: 2px solid #8a5a2b;
+  border-radius: 6px;
+  background: #5b3a1d;
+}
+
+.eb-box-name {
+  color: #f3e3c0;
+  font: 0.75rem/1.3 var(--eb-font-code);
+}
+
+.eb-box-kind {
+  color: #d8c7a3;
+  font-size: 0.65rem;
+  white-space: nowrap;
+}
+
+.eb-box-value {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #f3c969;
+  color: #2b1d0e;
+  font: 700 0.95rem/1.3 var(--eb-font-code);
+  white-space: nowrap;
+  animation: eb-box-in 0.35s ease-out;
+}
+
+/* Words lie on a paper with their quotes; True/False is a green or red tag. */
+.eb-box-str .eb-box-value {
+  background: #fbf6e9;
+  color: #6b3d12;
+}
+
+.eb-box-float .eb-box-value {
+  background: #9fd3f0;
+}
+
+.eb-box-bool .eb-box-value {
+  background: #9be08f;
+}
+
+.eb-box-list .eb-box-value {
+  background: #d9c2f0;
+}
+
+@keyframes eb-box-in {
+  from {
+    transform: translateY(-8px) scale(1.2);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eb-box-value {
+    animation: none;
+  }
+}

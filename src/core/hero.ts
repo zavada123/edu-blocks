@@ -1,3 +1,4 @@
+import type { Box } from "./python/boxes.ts"
 import { opcodeOf } from "./blocks.ts"
 import { allGoalsMet, goalStatus, type Level, startWorld } from "./level.ts"
 import { fatalReason, MAX_ACTIONS, type Session } from "./program.ts"
@@ -50,6 +51,8 @@ export interface ActionSource {
   readonly line?: number
   /** The counter at this moment, on a level with «лічильник». */
   readonly counter?: string
+  /** The variables of a Python program at this moment («Скриньки»). */
+  readonly boxes?: ReadonlyArray<Box>
 }
 
 /**
@@ -69,7 +72,8 @@ export const heroAct = (level: Level, session: Session, action: Action, source: 
     goals: goalStatus(level, world),
     world,
     ...(source.line === undefined ? {} : { line: source.line }),
-    ...(source.counter === undefined ? {} : { counter: source.counter })
+    ...(source.counter === undefined ? {} : { counter: source.counter }),
+    ...(source.boxes === undefined ? {} : { boxes: source.boxes })
   })
   const fatal = fatalReason(outcome)
   if (fatal !== null) return end(session, fatal)

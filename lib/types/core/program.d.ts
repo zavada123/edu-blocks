@@ -1,3 +1,4 @@
+import type { Box } from "./python/boxes.ts";
 import { type Level } from "./level.ts";
 import type { Action, GameEvent, Outcome, World } from "./world.ts";
 /**
@@ -33,6 +34,8 @@ export interface Frame {
     readonly counter?: string;
     /** The line of the Python program that made the move, to highlight it in the code editor. */
     readonly line?: number;
+    /** The variables of a Python program after the move («Скриньки»). */
+    readonly boxes?: ReadonlyArray<Box>;
 }
 export interface RunResult {
     readonly levelId: string;
@@ -50,6 +53,8 @@ export interface RunResult {
     readonly line?: number;
     /** What a Python program printed with `print`. */
     readonly output?: ReadonlyArray<string>;
+    /** The variables of a Python program when it stopped («Скриньки»). */
+    readonly boxes?: ReadonlyArray<Box>;
     readonly frames: ReadonlyArray<Frame>;
     readonly world: World;
     /** On a level with more than one field: the field these frames are from, counted from 0 (see `combineFields`). */

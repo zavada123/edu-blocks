@@ -1,12 +1,12 @@
 import type { Level } from "../core/level.ts"
 import { levels } from "./index.ts"
-import { pythonLevels } from "./python-start.ts"
+import { pythonLevelGroups, pythonLevels } from "./python-start.ts"
 
 /**
  * The course in chapters by what a student learns, not by school grade: each chapter brings one new idea and
  * ends with a level that makes the student think. A student of any age starts with the first chapter.
  */
-export type ChapterId = "pythonStart" | "sequence" | "loops" | "conditions" | "while" | "logic" | "store" | "gates" | "pick" | "puzzles" | "enemies" | "guards" | "counter" | "functions"
+export type ChapterId = keyof typeof pythonLevelGroups | "sequence" | "loops" | "conditions" | "while" | "logic" | "store" | "gates" | "pick" | "puzzles" | "enemies" | "guards" | "counter" | "functions"
 
 export interface Chapter {
   readonly id: ChapterId
@@ -98,20 +98,37 @@ export const chapters: ReadonlyArray<Chapter> = [
   }
 ]
 
-/**
- * «Python: перші кроки»: a chapter only for Python, before the course, for students who meet variables, `print` and
- * `input()` for the first time. It is not in `chapters`, the course of blocks and Python alike; see `courseChapters`.
- */
-export const pythonStartChapter: Chapter = {
-  id: "pythonStart",
-  title: "Python: перші кроки",
-  skill: "Зрозуміти, що таке метод, змінна й тип даних, надрукувати текст через print() і спитати відповідь через input().",
-  levels: pythonLevels.map((l) => l.id)
+/** What each chapter of «Python: перші кроки» is called and teaches. */
+const pythonStartTitles: Readonly<Record<keyof typeof pythonLevelGroups, { readonly title: string; readonly skill: string }>> = {
+  pyHero: { title: "Команди героя", skill: "Писати героєві команди: крок, кілька кроків, поворот, взяти, сказати. І читати помилки." },
+  pyBoxes: { title: "Скринька для числа", skill: "Зрозуміти, що змінна — це скринька з назвою, і класти в неї числа." },
+  pyMath: { title: "Рахуємо", skill: "Додавати, віднімати й множити числа зі скриньок і класти результат у скриньку." },
+  pyTypes: { title: "Що лежить у скриньці", skill: "Класти в скриньку ціле число, число з крапкою, слова в лапках і True або False." },
+  pyAsk: { title: "Питаємо", skill: "Спитати через input() і покласти відповідь у скриньку." },
+  pyConvert: { title: "Слова чи число", skill: "Робити зі слів число через int() і float(), а з числа слова через str(), і розв'язувати задачки." }
 }
 
-/** The chapters a student sees: the Python course starts with «Python: перші кроки». */
+/**
+ * «Python: перші кроки»: six small chapters only for Python, before the course, for students who meet variables,
+ * `print` and `input()` for the first time. They are not in `chapters`, the course of blocks and Python alike; see
+ * `courseChapters`.
+ */
+export const pythonStartChapters: ReadonlyArray<Chapter> = (Object.keys(pythonLevelGroups) as Array<keyof typeof pythonLevelGroups>).map((id) => ({
+  id,
+  ...pythonStartTitles[id],
+  levels: pythonLevelGroups[id].map((l) => l.id)
+}))
+
+/** Whether a chapter is one of «Python: перші кроки», the chapters before the course. */
+export const isPythonStartChapter = (chapter: Chapter): boolean => pythonStartChapters.includes(chapter)
+
+/** The words before a chapter's title: «Вступ 1»…«Вступ 6» for «Python: перші кроки», «Глава N» for the course. */
+export const chapterLabel = (chapter: Chapter): string =>
+  isPythonStartChapter(chapter) ? `Вступ ${pythonStartChapters.indexOf(chapter) + 1}` : `Глава ${chapters.indexOf(chapter) + 1}`
+
+/** The chapters a student sees: the Python course starts with the chapters of «Python: перші кроки». */
 export const courseChapters = (language: "blocks" | "python"): ReadonlyArray<Chapter> =>
-  language === "python" ? [pythonStartChapter, ...chapters] : chapters
+  language === "python" ? [...pythonStartChapters, ...chapters] : chapters
 
 /** Every level of the course and of «Python: перші кроки». */
 const allLevels: ReadonlyArray<Level> = [...pythonLevels, ...levels]
