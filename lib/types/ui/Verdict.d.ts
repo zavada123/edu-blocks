@@ -57,7 +57,7 @@ export declare const harvestText: (harvest: Harvest) => string;
 /** «монета», «монети» or «монет» for a number, as Ukrainian says it. */
 export declare const coinWord: (n: number) => string;
 /** The result over the field: stars and XP for a pass, what went wrong and a hint for a fail. */
-export declare const Verdict: ({ level, result, reward, advice, language, onClose, onNext, onContinue }: {
+export declare const Verdict: ({ level, result, reward, advice, language, onClose, onNext, onContinue, hintStep, onHint }: {
     readonly level: Level;
     readonly result: RunResult;
     readonly reward: Reward;
@@ -68,4 +68,8 @@ export declare const Verdict: ({ level, result, reward, advice, language, onClos
     readonly onNext: (() => void) | undefined;
     /** «Продовжити звідси»: the hero stays, and the student writes the next piece (`canContinue`). */
     readonly onContinue?: (() => void) | undefined;
+    /** How many steps of `level.hints` are open. */
+    readonly hintStep?: number;
+    /** Opens one more step of `level.hints`; without it the level's single `hint` is shown. */
+    readonly onHint?: (() => void) | undefined;
 }) => import("react").JSX.Element;

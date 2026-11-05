@@ -5,6 +5,7 @@ import { allGoalsMet, type Level } from "../level.ts"
 import { resultOf, type RunResult } from "../program.ts"
 import type { Body } from "./ast.ts"
 import { PyError } from "./errors.ts"
+import { type Box, boxesOf } from "./boxes.ts"
 import { missingIdea, missingPrint } from "./ideas.ts"
 import { execute, Halt, type PyHost } from "./interpreter.ts"
 import { parse } from "./parser.ts"
@@ -35,13 +36,16 @@ export const judgePythonField = (level: Level, source: string): RunResult => {
   const output: Array<string> = []
   const answers = level.inputs ?? []
   let asked = 0
+  let boxes: ReadonlyArray<Box> = []
+  // «Скриньки» show the variables of the levels only for Python, where a student meets them for the first time.
+  const keepBoxes = level.language === "python"
   const counted = level.blocks.includes("counter")
   // On a level that asks to print, the program goes on after the hero meets the goals, so the print at its end runs.
   const printsAtEnd = level.prints !== undefined || (level.uses ?? []).includes("print")
   const host: PyHost = {
     act: (action, line, globals) => {
       const counter = counted ? { counter: str(globals.get(COUNTER_NAME) ?? 0) } : {}
-      if (!heroAct(level, session, action, { blockId: null, line, ...counter })) return
+      if (!heroAct(level, session, action, { blockId: null, line, ...(keepBoxes ? { boxes: boxesOf(globals) } : {}), ...counter })) return
       if (printsAtEnd && session.reason === null) return
       throw new Halt(false)
     },
@@ -49,6 +53,9 @@ export const judgePythonField = (level: Level, source: string): RunResult => {
     allows: (method) => level.blocks.includes(method.block),
     print: (text) => {
       if (output.length < MAX_OUTPUT_LINES) output.push(text)
+    },
+    stopped: (globals) => {
+      if (keepBoxes) boxes = boxesOf(globals)
     },
     input: (prompt, line) => {
       const answer = answers[asked]
@@ -60,7 +67,7 @@ export const judgePythonField = (level: Level, source: string): RunResult => {
       return answer
     }
   }
-  const printed = () => (output.length === 0 ? {} : { output })
+  const printed = () => ({ ...(output.length === 0 ? {} : { output }), ...(boxes.length === 0 ? {} : { boxes }) })
 
   try {
     execute(program, host)

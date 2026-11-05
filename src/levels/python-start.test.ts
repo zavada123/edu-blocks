@@ -13,9 +13,10 @@ const level = (id: string) => {
 
 describe("«Python: перші кроки»", () => {
   test("opens the Python course in six chapters and is not in the course of blocks", () => {
-    expect(pythonStartChapters.map((c) => c.id)).toEqual(["pyBoxes", "pyTypes", "pyHero", "pyAsk", "pyConvert", "pyMath"])
+    expect(pythonStartChapters.map((c) => c.id)).toEqual(["pyHero", "pyBoxes", "pyMath", "pyTypes", "pyAsk", "pyConvert"])
     expect(courseChapters("python").slice(0, 6)).toEqual(pythonStartChapters)
     expect(courseChapters("blocks")).toBe(chapters)
+    expect(chapterOf("py-methods")?.id).toBe("pyHero")
     expect(chapterOf("py-box-first")?.id).toBe("pyBoxes")
     expect(chapterOf("py-input")?.id).toBe("pyConvert")
     expect(pythonStartChapters.flatMap((c) => c.levels)).toEqual(pythonLevels.map((l) => l.id))
@@ -25,9 +26,43 @@ describe("«Python: перші кроки»", () => {
     expect(chapters[0] === undefined ? "" : chapterLabel(chapters[0])).toBe("Глава 1")
   })
 
-  test("every level has a solution, and the first chapter needs no command of the hero", () => {
+  test("every level has a solution, and the first levels of boxes have the hero's commands written", () => {
     expect(Object.keys(pythonSolutions).sort()).toEqual(pythonLevels.map((l) => l.id).sort())
-    for (const id of pythonStartChapters[0]?.levels ?? []) expect(level(id).starter).toContain("hero.move(")
+    for (const id of ["py-box-first", "py-box-twice", "py-box-new", "py-box-two"]) expect(level(id).starter).toContain("hero.move(")
+  })
+
+  test("a ladder of hints goes from a nudge to a frame with gaps", () => {
+    for (const l of pythonLevels) {
+      expect(l.hints?.length).toBe(3)
+      expect(l.hints?.[2]).toContain("_")
+    }
+  })
+
+  test("the robot's program of «Виправ робота» stops at each of its three mistakes", () => {
+    const l = level("py-fix")
+    const lines = (l.starter ?? "").split("\n")
+    const fixed = ["hero.move()", "hero.move(2)", "print(\"Привіт\")"]
+    for (let i = 0; i < 3; i += 1) {
+      const source = [...fixed.slice(0, i), ...lines.slice(i)].join("\n")
+      expect(judgePython(l, source).line).toBe(i + 1)
+    }
+  })
+
+  test("«Скриньки» show the variables as the run goes, with their kind", () => {
+    const run = judgePython(level("py-box-new"), pythonSolutions["py-box-new"] ?? "")
+    expect(run.frames[0]?.boxes).toEqual([{ name: "steps", value: "2", kind: "int" }])
+    expect(run.frames.at(-1)?.boxes).toEqual([{ name: "steps", value: "4", kind: "int" }])
+    const broken = judgePython(level("py-types"), level("py-types").starter ?? "")
+    expect(broken.boxes).toEqual([{ name: "steps", value: "\"5\"", kind: "str" }])
+    expect(judgePython(level("py-bool"), pythonSolutions["py-bool"] ?? "").boxes).toEqual([{ name: "door_open", value: "True", kind: "bool" }])
+  })
+
+  test("3 + 4 = 34: answers of input() glue together until int()", () => {
+    const l = level("py-sum-bug")
+    const result = judgePython(l, l.starter ?? "")
+    expect(result.passed).toBe(false)
+    expect(result.output).toContain("Разом: 34")
+    expect(result.detail).toContain("int(")
   })
 
   test("a lesson is short: at most three paragraphs of at most 30 words", () => {

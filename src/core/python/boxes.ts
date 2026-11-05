@@ -1,0 +1,26 @@
+import { isList, pythonType, repr, type Value } from "./values.ts"
+
+/**
+ * «Скриньки»: the variables of a Python program as the student sees them under the field. Each box has a name, what
+ * lies in it, and its kind, so «5» and «"5"» look different before they cause a mistake.
+ */
+export interface Box {
+  readonly name: string
+  /** What lies in the box, as Python writes it: `5`, `2.5`, `"Іван"`, `True`, `[1, 2]`. */
+  readonly value: string
+  readonly kind: "int" | "float" | "str" | "bool" | "list"
+}
+
+const kindOf = (v: Value): Box["kind"] | null => {
+  const type = pythonType(v)
+  return type === "int" || type === "float" || type === "str" || type === "bool" || type === "list" ? type : null
+}
+
+/** The boxes of a program now: its variables that hold data, in the order they were made. The hero is not a box. */
+export const boxesOf = (globals: ReadonlyMap<string, Value>): ReadonlyArray<Box> =>
+  [...globals].flatMap(([name, v]) => {
+    const kind = kindOf(v)
+    if (kind === null || name.startsWith("_")) return []
+    const value = typeof v === "string" ? `"${v}"` : isList(v) || typeof v !== "object" ? repr(v) : ""
+    return [{ name, value, kind }]
+  })

@@ -22,6 +22,8 @@ export interface PyHost {
     readonly print: (text: string) => void;
     /** The next answer to `input()`, from the level. Throws a `PyError` when there is none. */
     readonly input: (prompt: string, line: number) => string;
+    /** Called once when the program stops, for any reason, with its variables at that moment. */
+    readonly stopped?: (globals: ReadonlyMap<string, Value>) => void;
 }
 /** The run stops with no error: the hero is done, or the program ran too long. */
 export declare class Halt {

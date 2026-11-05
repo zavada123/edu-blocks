@@ -474,6 +474,30 @@
   font-size: 14px;
 }
 
+.eb-gift {
+  margin: 0;
+  padding: 6px 10px;
+  border: 2px dashed var(--eb-gold, #c99a2e);
+  font-size: 14px;
+}
+
+.eb-hint-ladder {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+}
+
+.eb-hint-ladder .eb-hint {
+  justify-self: stretch;
+  margin: 0;
+  text-align: left;
+}
+
+.eb-hint-code {
+  font-family: var(--eb-mono, ui-monospace, monospace);
+  white-space: pre-wrap;
+}
+
 .eb-advice {
   display: grid;
   gap: 4px;
