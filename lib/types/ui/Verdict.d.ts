@@ -1,5 +1,5 @@
 import { type EstateDay, type Harvest } from "../core/estate.ts";
-import type { Level } from "../core/level.ts";
+import { type Level } from "../core/level.ts";
 import type { RunResult } from "../core/program.ts";
 /** The result of a run for the student: stars, XP, what went wrong and what to try. Shared by blocks and Python. */
 /** How the student programs the level: the words of the result depend on it. */

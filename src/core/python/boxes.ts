@@ -1,4 +1,5 @@
 import { isList, pythonType, repr, type Value } from "./values.ts"
+import { COUNTER_NAME } from "../blocks.ts"
 
 /**
  * «Скриньки»: the variables of a Python program as the student sees them under the field. Each box has a name, what
@@ -24,3 +25,14 @@ export const boxesOf = (globals: ReadonlyMap<string, Value>): ReadonlyArray<Box>
     const value = typeof v === "string" ? `"${v}"` : isList(v) || typeof v !== "object" ? repr(v) : ""
     return [{ name, value, kind }]
   })
+
+/**
+ * «Скриньки» of a block program: its one variable, «лічильник», as Scratch keeps it (`Frame.counter`). A number is a
+ * whole number or a number with a dot; anything else the student typed into «задати лічильник» is words.
+ */
+export const counterBoxes = (counter: string | undefined): ReadonlyArray<Box> => {
+  if (counter === undefined) return []
+  if (/^-?\d+$/.test(counter)) return [{ name: COUNTER_NAME, value: counter, kind: "int" }]
+  if (/^-?\d*\.\d+$/.test(counter)) return [{ name: COUNTER_NAME, value: counter, kind: "float" }]
+  return [{ name: COUNTER_NAME, value: `"${counter}"`, kind: "str" }]
+}

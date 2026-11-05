@@ -170,12 +170,14 @@ export interface Level {
     readonly hint?: string;
     /**
      * A ladder of hints, shown one more after each failed run: a nudge, then the idea, then a frame with gaps (`_`).
-     * When given, it replaces `hint` in the game; `hint` stays the short answer for the teacher.
+     * When given, it replaces `hint` in the game; `hint` stays the short answer for the teacher. A course level speaks
+     * of blocks and an intro level of Python, so the ladder shows only where the level is played that way: `speaksTo`.
      */
     readonly hints?: ReadonlyArray<string>;
     /**
      * A thing the hero gets for passing the level the first time, with the new command it stands for: boots for
-     * `hero.move()`, a horn for `print`. Shown in the verdict, as CodeCombat gives a new method with new gear.
+     * `hero.move()`, a horn for `print`, a compass for «поворот». Shown in the verdict, as CodeCombat gives a new method
+     * with new gear; like `hints`, only where the level is played the way it speaks of (`speaksTo`).
      */
     readonly gift?: {
         readonly name: string;
@@ -264,3 +266,8 @@ export declare const allGoalsMet: (level: Level, world: World) => boolean;
 export declare const goalStatus: (level: Level, world: World) => ReadonlyArray<boolean>;
 export declare const describeGoal: (goal: Goal, world: World, scene?: Scene) => string;
 export declare const starsFor: (level: Level, blocks: number) => 1 | 2 | 3;
+/**
+ * Whether a level's `hints` and `gift` are written for the way it is played now. A level of «Python: перші кроки»
+ * (`language: "python"`) speaks of Python code; a course level speaks of blocks, so in Python it keeps its `hint`.
+ */
+export declare const speaksTo: (level: Level, language: "blocks" | "python") => boolean;

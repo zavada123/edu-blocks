@@ -1,6 +1,6 @@
 import { coinGain, coinsFor } from "../core/coins.ts"
 import { type EstateDay, FULL_DAY_COINS, type Harvest } from "../core/estate.ts"
-import type { Level } from "../core/level.ts"
+import { type Level, speaksTo } from "../core/level.ts"
 import type { FailReason, RunResult } from "../core/program.ts"
 import { heroLevelOf, xpFor, xpGain } from "../core/xp.ts"
 import { Coin } from "./Coin.tsx"
@@ -285,6 +285,8 @@ export const Verdict = ({
 }) => {
   if (reward.harvest !== null)
     return <HarvestVerdict result={result} reward={reward} language={language} onClose={onClose} onNext={onNext} onContinue={onContinue} />
+  // A course level speaks of blocks: in Python it shows neither its ladder nor its gift.
+  const own = speaksTo(level, language)
   if (result.passed) {
     const size = language === "python" ? `Розмір програми: ${result.blocks}.` : `Блоків: ${result.blocks}.`
     return (
@@ -300,7 +302,7 @@ export const Verdict = ({
           ) : (
             <Advice tips={advice} />
           )}
-          {level.gift !== undefined && (
+          {own && level.gift !== undefined && (
             <p className="eb-gift">
               Новий предмет: <strong>{level.gift.name}</strong>. {level.gift.skill}
             </p>
@@ -331,7 +333,7 @@ export const Verdict = ({
           {failText(result, language)}
         </p>
         <Advice tips={advice} />
-        {level.hints !== undefined && onHint !== undefined ? (
+        {own && level.hints !== undefined && onHint !== undefined ? (
           <HintLadder hints={level.hints} step={hintStep} onMore={onHint} />
         ) : (
           level.hint !== undefined && HINTED.has(reason) && <p className="eb-hint">Підказка: {level.hint}</p>
