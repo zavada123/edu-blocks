@@ -46,4 +46,4 @@ export interface EduPythonProps extends GameNavigation {
 }
 /** The code a level opens with when there is no saved program. */
 export declare const starterSource: () => string;
-export declare const EduPython: ({ level, skin, large, source, speed, xp, estate, onComplete, onSourceChange, onMap, onNext, progress, onSkinChange, coins, ownedHeroes, onBuyHero }: EduPythonProps) => import("react").JSX.Element;
+export declare const EduPython: ({ level, skin, large, source, speed, xp, estate, onComplete, onSourceChange, onMap, onNext, onLevel, progress, onSkinChange, coins, ownedHeroes, onBuyHero }: EduPythonProps) => import("react").JSX.Element;
