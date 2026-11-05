@@ -110,9 +110,8 @@ describe("«Python: перші кроки»", () => {
     const l = level("py-types")
     const result = judgePython(l, l.starter ?? "")
     expect(result.passed).toBe(false)
-    expect(result.line).toBe(3)
+    expect(result.line).toBe(2)
     expect(result.detail).toContain("int(")
-    expect(result.output).toEqual(["<class 'str'>"])
   })
 
   test("a level about a variable does not pass with numbers alone", () => {

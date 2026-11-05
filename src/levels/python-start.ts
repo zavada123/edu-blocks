@@ -708,13 +708,13 @@ const typeLevels: ReadonlyArray<Level> = [
       text: [
         "5 без лапок — це число. Герой може пройти 5 кроків.",
         '"5" у лапках — це вже слова, як напис на табличці. Ходити написом герой не вміє.',
-        "Що лежить у скриньці, показує type(). int означає ціле число, а str — слова в лапках.",
+        "Подивись на скриньку steps під кодом: там видно, що в ній лежить, число чи слова.",
       ],
       example:
-        'print(5 + 5)       # 10: числа додаються\nprint("5" + "5")   # 55: слова склеюються\nprint(type(5))     # <class \'int\'>\nprint(type("5"))   # <class \'str\'>\n',
+        'print(5 + 5)       # 10: числа додаються\nprint("5" + "5")   # 55: слова склеюються\n',
     },
     starter:
-      'steps = "5"\nprint(type(steps))\nhero.move(steps)\nhero.collect()\n',
+      'steps = "5"\nhero.move(steps)\nhero.collect()\n',
     map: straight(5),
     blocks: ["move", "collect"],
     goals: [{ type: "crystals" }],
@@ -725,7 +725,7 @@ const typeLevels: ReadonlyArray<Level> = [
       '"5" у лапках — це слова. Герой ходить числом без лапок.',
       "steps = _",
     ],
-    gift: { name: "Лупа", skill: "type(): видно, що лежить у скриньці." },
+    gift: { name: "Лупа", skill: "Тепер ти відрізняєш число від слів." },
     scene: { theme: "autumn", item: "apple", props: [HOME] },
   },
   {
@@ -741,9 +741,9 @@ const typeLevels: ReadonlyArray<Level> = [
       title: "Не всі числа цілі",
       text: [
         "Два з половиною в Python пишуть так: 2.5. Між цілою частиною і дробовою ставлять крапку, а не кому.",
-        "Таке число теж кладуть без лапок. Його тип — float, дробове число.",
+        "Таке число теж кладуть без лапок. Його звуть дробовим."
       ],
-      example: "price = 12.5\nprint(type(price))   # <class 'float'>\n",
+      example: "price = 12.5   # дванадцять з половиною\n",
     },
     starter:
       'weight = 0\n# Нижче все готово.\nprint("Кошик важить", weight, "кг")\nhero.move(3)\nhero.collect()\n',
@@ -778,7 +778,7 @@ const typeLevels: ReadonlyArray<Level> = [
         "Тепер ти знаєш чотири речі, які лежать у скриньці: ціле число, число з крапкою, слова і True або False.",
       ],
       example:
-        "is_raining = False\nprint(type(is_raining))   # <class 'bool'>\n",
+        "is_raining = False   # дощу немає\n",
     },
     starter:
       'door_open = False\n# Нижче все готово.\nprint("Хвіртка відчинена:", door_open)\nhero.move(4)\n',
@@ -1233,7 +1233,7 @@ export const pythonSolutions: Readonly<Record<string, string>> = {
   "py-text-number":
     'name = "Тарас"\napples = 3\nprint(name, "приніс яблук:", apples)\nhero.move(4)\n',
   "py-types":
-    "steps = 5\nprint(type(steps))\nhero.move(steps)\nhero.collect()\n",
+    "steps = 5\nhero.move(steps)\nhero.collect()\n",
   "py-float-box":
     'weight = 2.5\nprint("Кошик важить", weight, "кг")\nhero.move(3)\nhero.collect()\n',
   "py-bool":

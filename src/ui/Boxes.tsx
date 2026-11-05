@@ -20,11 +20,12 @@ export const Boxes = ({ boxes }: { readonly boxes: ReadonlyArray<Box> }) =>
       </span>
       <ul className="eb-boxes-list">
         {boxes.map((b) => (
-          <li key={b.name} className={`eb-box eb-box-${b.kind}`} title={`${b.name}: ${KIND_WORDS[b.kind]}`}>
+          <li key={b.name} className={`eb-box eb-box-${b.kind}`}>
             <span className="eb-box-name">{b.name}</span>
             <span key={b.value} className="eb-box-value">
               {b.value}
             </span>
+            <span className="eb-box-kind">{KIND_WORDS[b.kind]}</span>
           </li>
         ))}
       </ul>

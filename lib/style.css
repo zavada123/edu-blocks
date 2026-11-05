@@ -1629,6 +1629,12 @@ html.eb-page-full {
   font: 0.75rem/1.3 var(--eb-font-code);
 }
 
+.eb-box-kind {
+  color: #d8c7a3;
+  font-size: 0.65rem;
+  white-space: nowrap;
+}
+
 .eb-box-value {
   padding: 1px 6px;
   border-radius: 4px;
