@@ -71,7 +71,7 @@ const boxLevels: ReadonlyArray<Level> = [
       ],
       example: "steps = 5   # у скриньці steps лежить 5\n"
     },
-    starter: "steps = 0\n# Нижче все готово: герой іде steps кроків і бере дрова.\nhero.move(steps)\nhero.collect()\n",
+    starter: "steps = 0\n# Нижче все готово.\nhero.move(steps)\nhero.collect()\n",
     map: straight(3),
     blocks: ["move", "collect"],
     goals: [{ type: "crystals" }],
