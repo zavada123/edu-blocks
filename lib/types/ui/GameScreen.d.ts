@@ -16,6 +16,11 @@ export interface GameNavigation {
     readonly onMap?: () => void;
     /** «Далі» in the result of a passed run. */
     readonly onNext?: () => void;
+    /**
+     * The student clicked another level of the chapter in the bar. With it the squares of the levels are buttons; the
+     * app opens that level (or not, when it keeps the level locked).
+     */
+    readonly onLevel?: (levelId: string) => void;
     /** Stars of the levels the student has passed, by level id, for the chapter's levels in the bar. */
     readonly progress?: Progress;
     /**
@@ -54,6 +59,7 @@ export declare const GameScreen: ({ rootRef, className, level, start, result, pl
     readonly coinsTotal: number | undefined;
     readonly navigation: {
         readonly onMap: (() => void) | undefined;
+        readonly onLevel: ((levelId: string) => void) | undefined;
         readonly progress: Progress | undefined;
         readonly onSkinChange: ((skin: Skin) => void) | undefined;
         readonly ownedHeroes: ReadonlyArray<HeroId> | undefined;

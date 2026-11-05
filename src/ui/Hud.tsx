@@ -11,17 +11,40 @@ import type { Skin } from "./stage/draw.ts"
 /** Stars of the levels the student has passed, by level id. The app knows them; the bar shows the chapter's. */
 export type Progress = Readonly<Record<string, number>>
 
-/** The levels of the chapter as squares: passed, this one, still ahead. */
-const ChapterLevels = ({ ids, current, progress }: { readonly ids: ReadonlyArray<string>; readonly current: string; readonly progress: Progress }) => {
+/**
+ * The levels of the chapter as squares: passed, this one, still ahead. When the app can open a level, the other
+ * squares are buttons that open it.
+ */
+const ChapterLevels = ({
+  ids,
+  current,
+  progress,
+  onLevel
+}: {
+  readonly ids: ReadonlyArray<string>
+  readonly current: string
+  readonly progress: Progress
+  readonly onLevel: ((levelId: string) => void) | undefined
+}) => {
   const place = ids.indexOf(current) + 1
   return (
     <ol className="eb-hud-levels" aria-label={`Рівень ${place} з ${ids.length}`}>
       {ids.map((id, i) => {
         const done = (progress[id] ?? 0) > 0
-        const kind = id === current ? "eb-hud-dot eb-hud-dot-now" : done ? "eb-hud-dot eb-hud-dot-done" : "eb-hud-dot"
+        const now = id === current
+        const kind = now ? "eb-hud-dot eb-hud-dot-now" : done ? "eb-hud-dot eb-hud-dot-done" : "eb-hud-dot"
+        if (onLevel === undefined || now) {
+          return (
+            <li key={id} className={kind} aria-hidden={onLevel === undefined ? true : undefined} aria-current={now ? "step" : undefined}>
+              {i + 1}
+            </li>
+          )
+        }
         return (
-          <li key={id} className={kind} aria-hidden="true">
-            {i + 1}
+          <li key={id}>
+            <button type="button" className={`${kind} eb-hud-dot-go`} onClick={() => onLevel(id)} aria-label={`Рівень ${i + 1}${done ? ", пройдено" : ""}`} title={`Рівень ${i + 1}`}>
+              {i + 1}
+            </button>
           </li>
         )
       })}
@@ -95,6 +118,7 @@ export const Hud = ({
   coinsTotal,
   progress,
   onMap,
+  onLevel,
   onPickHero
 }: {
   readonly level: Level
@@ -105,6 +129,8 @@ export const Hud = ({
   readonly coinsTotal: number | undefined
   readonly progress: Progress
   readonly onMap: (() => void) | undefined
+  /** Opens another level of the chapter; without it the squares of the levels are only a picture. */
+  readonly onLevel: ((levelId: string) => void) | undefined
   /** Opens the choice of the hero; without it the portrait is only a picture. */
   readonly onPickHero: (() => void) | undefined
 }) => {
@@ -118,7 +144,7 @@ export const Hud = ({
       )}
       <div className="eb-hud-chapter">
         <p className="eb-hud-title">{chapter !== undefined ? `${chapterLabel(chapter)} · ${chapter.title}` : isEstateLevel(level.id) ? level.title : "Завдання"}</p>
-        {chapter !== undefined && <ChapterLevels ids={chapter.levels} current={level.id} progress={progress} />}
+        {chapter !== undefined && <ChapterLevels ids={chapter.levels} current={level.id} progress={progress} onLevel={onLevel} />}
       </div>
       {xpTotal !== undefined && <HeroBadge skin={skin} total={xpTotal} coins={coinsTotal} onPickHero={onPickHero} />}
     </header>
