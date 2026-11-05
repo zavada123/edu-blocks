@@ -11,3 +11,8 @@ export interface Box {
 }
 /** The boxes of a program now: its variables that hold data, in the order they were made. The hero is not a box. */
 export declare const boxesOf: (globals: ReadonlyMap<string, Value>) => ReadonlyArray<Box>;
+/**
+ * «Скриньки» of a block program: its one variable, «лічильник», as Scratch keeps it (`Frame.counter`). A number is a
+ * whole number or a number with a dot; anything else the student typed into «задати лічильник» is words.
+ */
+export declare const counterBoxes: (counter: string | undefined) => ReadonlyArray<Box>;

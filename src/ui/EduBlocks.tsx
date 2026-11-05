@@ -24,6 +24,8 @@ import type { Skin } from "./stage/Stage.tsx"
 import { gradePieces, JOIN_TIP, PiecesBar, usePieces } from "./pieces.tsx"
 import { usePlayer } from "./Timeline.tsx"
 import { toolboxXml } from "./toolbox.ts"
+import { Boxes } from "./Boxes.tsx"
+import { counterBoxes } from "../core/python/boxes.ts"
 import { type EstateRun, harvestRewardOf, type HeroXp, type Reward, rewardOf, Verdict } from "./Verdict.tsx"
 
 /** What the trainer gives the app after each run. The server runs `program` again before it trusts `passed`. */
@@ -199,8 +201,11 @@ export const EduBlocks = ({
   const { rootRef, full, toggleFull } = useFullScreen()
   // Failed runs of this level since the editor opened: the first try bonus needs none.
   const failedRef = useRef(0)
+  /** How many steps of the level's ladder of hints the student has opened. */
+  const [hintStep, setHintStep] = useState(0)
   useEffect(() => {
     failedRef.current = 0
+    setHintStep(0)
   }, [level])
   // The first program only: a new `program` prop for the same level does not reset the student's work.
   const initialProgram = useRef(program)
@@ -309,6 +314,9 @@ export const EduBlocks = ({
   // After «Продовжити звідси» the frames name the blocks of the joined program: only the new piece is in the editor.
   const frameBlock = result === null || atEnd ? null : (result.frames[frameIndex]?.blockId ?? null)
   const glowId = done === null ? frameBlock : pieceBlockId(frameBlock, done.pieces.length)
+  // «Скриньки» on a level with «лічильник»: the counter after the frame on screen, and after the last one at the end.
+  const boxes =
+    result === null || !level.blocks.includes("counter") ? [] : counterBoxes((atEnd ? result.frames.at(-1) : result.frames[frameIndex])?.counter)
   useEffect(() => setGlow(glowId), [glowId, setGlow])
 
   const run = useCallback(() => {
@@ -468,12 +476,15 @@ export const EduBlocks = ({
             onClose={() => setVerdictOpen(false)}
             onNext={onNext}
             onContinue={phase.canGoOn ? goOn : undefined}
+            hintStep={hintStep}
+            onHint={() => setHintStep((n) => n + 1)}
           />
         )
       }
     >
       <PiecesBar done={done} unit={["блок", "блоки", "блоків"]} onJoin={joinPieces} onRestart={dropPieces} />
       <div className="eb-editor" ref={editorRef} />
+      <Boxes boxes={boxes} />
       <PythonPeek open={peek} source={peekSource} onToggle={togglePeek} />
     </GameScreen>
   )
