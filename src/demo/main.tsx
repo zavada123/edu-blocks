@@ -140,6 +140,8 @@ const Demo = () => {
   const navigation = {
     progress: stars,
     ...(onNext === undefined ? {} : { onNext }),
+    // The squares of the chapter in the bar open its levels.
+    onLevel: setId,
     // The hero's portrait in the bar opens the choice of the heroes the hero level has opened.
     onSkinChange: (s: Skin) => {
       setSkin(s)

@@ -390,6 +390,35 @@
   box-shadow: inset 0 -3px 0 var(--eb-gold-dark);
 }
 
+/* A square that opens its level: a button that looks like the other squares. */
+.eb-hud-dot-go {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  transition: transform 0.1s, filter 0.1s;
+}
+
+.eb-hud-dot-go:hover {
+  filter: brightness(1.2);
+  transform: translateY(-2px);
+}
+
+.eb-hud-dot-go:focus-visible {
+  outline: 2px solid var(--eb-gold);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eb-hud-dot-go {
+    transition: none;
+  }
+
+  .eb-hud-dot-go:hover {
+    transform: none;
+  }
+}
+
 .eb-hud-hero {
   display: flex;
   align-items: center;

@@ -20,7 +20,7 @@ const player: Player = {
   restart: idle
 }
 
-const screen = (): string => {
+const screen = (onLevel: ((levelId: string) => void) | undefined = undefined): string => {
   const level = levels[0]
   if (level === undefined) throw new Error("no levels")
   return renderToStaticMarkup(
@@ -37,7 +37,7 @@ const screen = (): string => {
       full: false,
       xpTotal: 0,
       coinsTotal: undefined,
-      navigation: { onMap: idle, progress: undefined, onSkinChange: idle, ownedHeroes: undefined, onBuyHero: undefined },
+      navigation: { onMap: idle, onLevel, progress: undefined, onSkinChange: idle, ownedHeroes: undefined, onBuyHero: undefined },
       editorTitle: "Блоки героя",
       fields: null,
       onRun: idle,
@@ -61,5 +61,20 @@ describe("GameScreen", () => {
     expect(html).toContain('role="group" aria-label="Поле"')
     expect(html).toContain('role="group" aria-label="Завдання"')
     expect(html).toContain('role="group" aria-label="Блоки героя"')
+  })
+
+  test("the squares of the chapter are only a picture when the app cannot open a level", () => {
+    const html = screen()
+    expect(html).not.toContain("eb-hud-dot-go")
+  })
+
+  test("the other squares of the chapter are buttons when the app can open a level", () => {
+    const html = screen(idle)
+    const buttons = html.match(/<button[^>]*eb-hud-dot-go[^>]*>/g) ?? []
+    const count = html.match(/<li[^>]*eb-hud-dot/g)?.length ?? 0
+    expect(buttons.length).toBeGreaterThan(0)
+    // The level on the screen stays a square, not a button.
+    expect(count).toBe(1)
+    expect(html).toContain('aria-current="step"')
   })
 })

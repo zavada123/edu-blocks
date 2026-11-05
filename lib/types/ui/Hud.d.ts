@@ -6,7 +6,7 @@ export type Progress = Readonly<Record<string, number>>;
  * The bar over the game: the way back to the map, the chapter with its levels, and the hero with the XP. A level
  * outside the course (a teacher's task) shows its title instead of the chapter.
  */
-export declare const Hud: ({ level, skin, xpTotal, coinsTotal, progress, onMap, onPickHero }: {
+export declare const Hud: ({ level, skin, xpTotal, coinsTotal, progress, onMap, onLevel, onPickHero }: {
     readonly level: Level;
     readonly skin: Skin;
     /** The hero's XP; without it the hero part is not shown. */
@@ -15,6 +15,8 @@ export declare const Hud: ({ level, skin, xpTotal, coinsTotal, progress, onMap, 
     readonly coinsTotal: number | undefined;
     readonly progress: Progress;
     readonly onMap: (() => void) | undefined;
+    /** Opens another level of the chapter; without it the squares of the levels are only a picture. */
+    readonly onLevel: ((levelId: string) => void) | undefined;
     /** Opens the choice of the hero; without it the portrait is only a picture. */
     readonly onPickHero: (() => void) | undefined;
 }) => import("react").JSX.Element;

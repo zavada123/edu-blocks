@@ -176,6 +176,7 @@ export const EduBlocks = ({
   onProgramChange,
   onMap,
   onNext,
+  onLevel,
   progress,
   onSkinChange,
   coins,
@@ -427,7 +428,7 @@ export const EduBlocks = ({
   }, [level])
 
   const running = phase.kind === "running"
-  const navigation = { onMap, progress, onSkinChange, ownedHeroes, onBuyHero }
+  const navigation = { onMap, onLevel, progress, onSkinChange, ownedHeroes, onBuyHero }
   const xpTotal = phase.kind === "done" && phase.reward.total !== null ? phase.reward.total : xp?.total
   // The app counts the coins: after a run it adds the gain, after a purchase it takes the price.
   const coinsTotal = coins?.total
