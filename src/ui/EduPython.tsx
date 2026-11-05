@@ -116,7 +116,7 @@ type Phase =
       readonly canGoOn: boolean
     }
 
-export const EduPython = ({ level, skin = "ninja", large = false, source, speed = 400, xp, estate, onComplete, onSourceChange, onMap, onNext, progress, onSkinChange, coins, ownedHeroes, onBuyHero }: EduPythonProps) => {
+export const EduPython = ({ level, skin = "ninja", large = false, source, speed = 400, xp, estate, onComplete, onSourceChange, onMap, onNext, onLevel, progress, onSkinChange, coins, ownedHeroes, onBuyHero }: EduPythonProps) => {
   const { fields, index: fieldIndex, setIndex: setFieldIndex, runs, setRuns, field, start } = useFields(level)
   const methods = useMemo(() => pythonMethodsOf(level.blocks), [level])
   const snippets = useMemo(() => snippetsOf(level, methods), [level, methods])
@@ -245,7 +245,7 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
     [onSourceChange, doneRef]
   )
 
-  const navigation = { onMap, progress, onSkinChange, ownedHeroes, onBuyHero }
+  const navigation = { onMap, onLevel, progress, onSkinChange, ownedHeroes, onBuyHero }
   const xpTotal = phase.kind === "done" && phase.reward.total !== null ? phase.reward.total : xp?.total
   // The app counts the coins: after a run it adds the gain, after a purchase it takes the price.
   const coinsTotal = coins?.total
