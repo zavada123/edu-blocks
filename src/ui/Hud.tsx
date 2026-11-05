@@ -1,7 +1,7 @@
 import { isEstateLevel } from "../core/estate.ts"
 import type { Level } from "../core/level.ts"
 import { heroLevelOf } from "../core/xp.ts"
-import { chapterOf, chapters } from "../levels/chapters.ts"
+import { chapterLabel, chapterOf } from "../levels/chapters.ts"
 import { HEROES } from "../core/heroes.ts"
 import { Coin } from "./Coin.tsx"
 import { ArtIcon } from "./ArtIcon.tsx"
@@ -109,7 +109,6 @@ export const Hud = ({
   readonly onPickHero: (() => void) | undefined
 }) => {
   const chapter = chapterOf(level.id)
-  const number = chapter === undefined ? 0 : chapters.indexOf(chapter) + 1
   return (
     <header className="eb-hud">
       {onMap !== undefined && (
@@ -118,7 +117,7 @@ export const Hud = ({
         </button>
       )}
       <div className="eb-hud-chapter">
-        <p className="eb-hud-title">{chapter !== undefined ? `${number === 0 ? "Вступ" : `Глава ${number}`} · ${chapter.title}` : isEstateLevel(level.id) ? level.title : "Завдання"}</p>
+        <p className="eb-hud-title">{chapter !== undefined ? `${chapterLabel(chapter)} · ${chapter.title}` : isEstateLevel(level.id) ? level.title : "Завдання"}</p>
         {chapter !== undefined && <ChapterLevels ids={chapter.levels} current={level.id} progress={progress} />}
       </div>
       {xpTotal !== undefined && <HeroBadge skin={skin} total={xpTotal} coins={coinsTotal} onPickHero={onPickHero} />}

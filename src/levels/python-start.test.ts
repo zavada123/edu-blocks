@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest"
 import { checkLevel } from "../core/kit.ts"
 import { levelFields } from "../core/fields.ts"
 import { judgePython } from "../core/python/judge.ts"
-import { chapterOf, chapters, courseChapters, pythonStartChapter } from "./chapters.ts"
+import { chapterLabel, chapterOf, chapters, courseChapters, isPythonStartChapter, pythonStartChapters } from "./chapters.ts"
 import { pythonLevels, pythonSolutions } from "./python-start.ts"
 
 const level = (id: string) => {
@@ -12,10 +12,45 @@ const level = (id: string) => {
 }
 
 describe("«Python: перші кроки»", () => {
-  test("opens the Python course and is not in the course of blocks", () => {
-    expect(courseChapters("python")[0]).toBe(pythonStartChapter)
+  test("opens the Python course in six chapters and is not in the course of blocks", () => {
+    expect(pythonStartChapters.map((c) => c.id)).toEqual(["pyBoxes", "pyTypes", "pyHero", "pyAsk", "pyConvert", "pyMath"])
+    expect(courseChapters("python").slice(0, 6)).toEqual(pythonStartChapters)
     expect(courseChapters("blocks")).toBe(chapters)
-    expect(chapterOf("py-input")?.id).toBe("pythonStart")
+    expect(chapterOf("py-box-first")?.id).toBe("pyBoxes")
+    expect(chapterOf("py-input")?.id).toBe("pyConvert")
+    expect(pythonStartChapters.flatMap((c) => c.levels)).toEqual(pythonLevels.map((l) => l.id))
+    expect(pythonStartChapters.every(isPythonStartChapter)).toBe(true)
+    expect(chapters.some(isPythonStartChapter)).toBe(false)
+    expect(pythonStartChapters.map(chapterLabel)).toEqual(["Вступ 1", "Вступ 2", "Вступ 3", "Вступ 4", "Вступ 5", "Вступ 6"])
+    expect(chapters[0] === undefined ? "" : chapterLabel(chapters[0])).toBe("Глава 1")
+  })
+
+  test("every level has a solution, and the first chapter needs no command of the hero", () => {
+    expect(Object.keys(pythonSolutions).sort()).toEqual(pythonLevels.map((l) => l.id).sort())
+    for (const id of pythonStartChapters[0]?.levels ?? []) expect(level(id).starter).toContain("hero.move(")
+  })
+
+  test("a lesson is short: at most three paragraphs of at most 30 words", () => {
+    for (const l of pythonLevels) {
+      expect(l.lesson?.text.length).toBeLessThanOrEqual(3)
+      for (const p of l.lesson?.text ?? []) expect(p.split(/\s+/).length, `${l.id}: ${p}`).toBeLessThanOrEqual(30)
+    }
+  })
+
+  test("a box gets its number: the starter of the first level does not reach the wood", () => {
+    const l = level("py-box-first")
+    expect(judgePython(l, l.starter ?? "").passed).toBe(false)
+  })
+
+  test("Steps and steps are two names", () => {
+    const l = level("py-box-case")
+    expect(judgePython(l, l.starter ?? "").detail).toContain("Steps")
+  })
+
+  test("words and a number do not add up without str()", () => {
+    const l = level("py-to-text")
+    expect(judgePython(l, l.starter ?? "").detail).toContain("str(")
+    expect(judgePython(l, "apples = 3\nprint(\"Яблук:\", apples)\nhero.move(2)\n").detail).toContain("str(")
   })
 
   test("every level is for Python, has a lesson and a starter", () => {
@@ -54,8 +89,8 @@ describe("«Python: перші кроки»", () => {
   })
 
   test("a level with print checks the printed line", () => {
-    expect(judgePython(level("py-print"), "hero.move(5)\n").detail).toContain("print")
-    expect(judgePython(level("py-print"), "print(\"Привіт\")\nhero.move(5)\n").detail).toContain("Добрий день!")
+    expect(judgePython(level("py-ask"), "hero.move(3)\nname = input()\nnames = name\n").detail).toContain("print")
+    expect(judgePython(level("py-print"), "greeting = \"Привіт\"\nprint(greeting)\nhero.move(5)\n").detail).toContain("Добрий день!")
     expect(judgePython(level("py-count"), pythonSolutions["py-count"]?.replace("mushrooms)", "2)") ?? "").passed).toBe(false)
   })
 

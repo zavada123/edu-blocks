@@ -214,7 +214,7 @@ export interface Level {
     readonly prints?: string;
 }
 /** What a Python level can ask the program to use (`Level.uses`). */
-export type PythonIdea = "variable" | "print" | "input" | "int" | "float";
+export type PythonIdea = "variable" | "print" | "input" | "int" | "float" | "str";
 /** A lesson over the code of a level: a title, a few short paragraphs and an example to read. */
 export interface Lesson {
     readonly title: string;
