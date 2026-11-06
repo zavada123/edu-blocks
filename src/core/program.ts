@@ -41,7 +41,7 @@ export interface Frame {
   readonly counter?: string
   /** The line of the Python program that made the move, to highlight it in the code editor. */
   readonly line?: number
-  /** The variables of a Python program after the move («Скриньки»). */
+  /** The variables of a Python program after the move («Змінні»). */
   readonly boxes?: ReadonlyArray<Box>
 }
 
@@ -61,7 +61,7 @@ export interface RunResult {
   readonly line?: number
   /** What a Python program printed with `print`. */
   readonly output?: ReadonlyArray<string>
-  /** The variables of a Python program when it stopped («Скриньки»). */
+  /** The variables of a Python program when it stopped («Змінні»). */
   readonly boxes?: ReadonlyArray<Box>
   readonly frames: ReadonlyArray<Frame>
   readonly world: World

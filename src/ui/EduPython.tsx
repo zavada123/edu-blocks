@@ -236,7 +236,7 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
   const runLine = result === null || atEnd ? null : pieceLine(result.frames[frameIndexAt(result.frames, player.time)]?.line, offset)
   const errorLine = atEnd && result?.reason === "badProgram" ? (result.line ?? null) : null
   const output = phase.kind === "done" ? (phase.result.output ?? []) : []
-  // «Скриньки» follow the run: the variables after the frame on screen, and after the whole program at its end.
+  // «Змінні» follow the run: the variables after the frame on screen, and after the whole program at its end.
   const boxes = result === null ? [] : atEnd ? (result.boxes ?? result.frames.at(-1)?.boxes ?? []) : (result.frames[frameIndexAt(result.frames, player.time)]?.boxes ?? [])
 
   const onReady = useCallback((api: CodeEditorApi, read: () => string) => {

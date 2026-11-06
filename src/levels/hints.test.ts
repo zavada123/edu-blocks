@@ -46,7 +46,7 @@ describe("hints and gifts in the course of blocks", () => {
   })
 })
 
-describe("«Скриньки» of a block program", () => {
+describe("«Змінні» of a block program", () => {
   test("show the counter as a box with its kind", () => {
     expect(counterBoxes(undefined)).toEqual([])
     expect(counterBoxes("3")).toEqual([{ name: "лічильник", value: "3", kind: "int" }])

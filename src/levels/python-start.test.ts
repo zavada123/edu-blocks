@@ -48,7 +48,7 @@ describe("«Python: перші кроки»", () => {
     }
   })
 
-  test("«Скриньки» show the variables as the run goes, with their kind", () => {
+  test("«Змінні» show the variables as the run goes, with their kind", () => {
     const run = judgePython(level("py-box-new"), pythonSolutions["py-box-new"] ?? "")
     expect(run.frames[0]?.boxes).toEqual([{ name: "steps", value: "2", kind: "int" }])
     expect(run.frames.at(-1)?.boxes).toEqual([{ name: "steps", value: "4", kind: "int" }])
