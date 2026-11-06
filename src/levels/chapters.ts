@@ -101,10 +101,10 @@ export const chapters: ReadonlyArray<Chapter> = [
 /** What each chapter of «Python: перші кроки» is called and teaches. */
 const pythonStartTitles: Readonly<Record<keyof typeof pythonLevelGroups, { readonly title: string; readonly skill: string }>> = {
   pyHero: { title: "Команди героя", skill: "Писати героєві команди: крок, кілька кроків, поворот, взяти, сказати. І читати помилки." },
-  pyBoxes: { title: "Скринька для числа", skill: "Зрозуміти, що змінна — це скринька з назвою, і класти в неї числа." },
-  pyMath: { title: "Рахуємо", skill: "Додавати, віднімати й множити числа зі скриньок і класти результат у скриньку." },
-  pyTypes: { title: "Що лежить у скриньці", skill: "Класти в скриньку ціле число, число з крапкою, слова в лапках і True або False." },
-  pyAsk: { title: "Питаємо", skill: "Спитати через input() і покласти відповідь у скриньку." },
+  pyBoxes: { title: "Змінна", skill: "Зрозуміти, що змінна — це ніби скринька з назвою, і класти в неї числа." },
+  pyMath: { title: "Рахуємо", skill: "Додавати, віднімати й множити числа зі змінних і класти результат у змінну." },
+  pyTypes: { title: "Що лежить у змінній", skill: "Класти в змінну ціле число, число з крапкою, слова в лапках і True або False." },
+  pyAsk: { title: "Питаємо", skill: "Спитати через input() і покласти відповідь у змінну." },
   pyConvert: { title: "Слова чи число", skill: "Робити зі слів число через int() і float(), а з числа слова через str(), і розв'язувати задачки." }
 }
 

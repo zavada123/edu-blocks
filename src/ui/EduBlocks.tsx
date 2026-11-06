@@ -314,7 +314,7 @@ export const EduBlocks = ({
   // After «Продовжити звідси» the frames name the blocks of the joined program: only the new piece is in the editor.
   const frameBlock = result === null || atEnd ? null : (result.frames[frameIndex]?.blockId ?? null)
   const glowId = done === null ? frameBlock : pieceBlockId(frameBlock, done.pieces.length)
-  // «Скриньки» on a level with «лічильник»: the counter after the frame on screen, and after the last one at the end.
+  // «Змінні» on a level with «лічильник»: the counter after the frame on screen, and after the last one at the end.
   const boxes =
     result === null || !level.blocks.includes("counter") ? [] : counterBoxes((atEnd ? result.frames.at(-1) : result.frames[frameIndex])?.counter)
   useEffect(() => setGlow(glowId), [glowId, setGlow])

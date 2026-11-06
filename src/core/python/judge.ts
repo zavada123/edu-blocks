@@ -37,7 +37,7 @@ export const judgePythonField = (level: Level, source: string): RunResult => {
   const answers = level.inputs ?? []
   let asked = 0
   let boxes: ReadonlyArray<Box> = []
-  // «Скриньки» show the variables of the levels only for Python, where a student meets them for the first time.
+  // «Змінні» show the variables of the levels only for Python, where a student meets them for the first time.
   const keepBoxes = level.language === "python"
   const counted = level.blocks.includes("counter")
   // On a level that asks to print, the program goes on after the hero meets the goals, so the print at its end runs.
