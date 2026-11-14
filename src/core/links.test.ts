@@ -84,3 +84,11 @@ describe("gates linked to their own levers", () => {
     expect(tips.join(" ")).toContain("Їх відчиняють важіль на (2, 1)")
   })
 })
+
+describe("villagers that speak", () => {
+  test("a line too long for the bubble is a warning", () => {
+    const say = "а".repeat(81)
+    const l: Level = { ...LINKED, scene: { npcs: [{ who: "grandpa", x: 1, y: 0, say }] } }
+    expect(checkLevel(l).map((i) => i.text)).toContain("Репліка людини на (1, 0) задовга: не більше 80 знаків")
+  })
+})

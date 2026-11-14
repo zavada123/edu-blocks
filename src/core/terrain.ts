@@ -102,6 +102,13 @@ const letterAt = (paint: TerrainPaint, x: number, y: number): string => paint.ro
 /** The level cell of the first cell of `rows`. */
 const originOf = (paint: TerrainPaint): { readonly x: number; readonly y: number } => ({ x: paint.x ?? 0, y: paint.y ?? 0 })
 
+/** The ground painted on a level cell (`"<tileset>#<terrain>"`), or null where the base lies. */
+export const groundAt = (paint: TerrainPaint, x: number, y: number): string | null => {
+  const origin = originOf(paint)
+  const letter = letterAt(paint, x - origin.x, y - origin.y)
+  return letter === EMPTY ? null : (paint.kinds[letter] ?? null)
+}
+
 /**
  * The tiles of one ground of a painting, in level coordinates. `tilesOf` gives the described tiles of a tileset by its
  * sprite reference (null while it loads). A cell with no fitting tile is left out.

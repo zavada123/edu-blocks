@@ -24,6 +24,8 @@ export type Brush =
   /** A ground painted by cells (`Scene.terrain`), as `"ninja-adventure:tileset/floor#path"`; edges come by themselves. */
   | { readonly kind: "ground"; readonly ground: string }
   | { readonly kind: "erase" }
+  /** The tool «Вибір»: a click opens the thing in the inspector, a drag moves it. */
+  | { readonly kind: "select" }
 
 const inside = (level: Level, x: number, y: number) => y >= 0 && x >= 0 && y < level.map.length && x < (level.map[y]?.length ?? 0)
 
@@ -75,6 +77,8 @@ const placeEnemy = (level: Level, brush: Extract<Brush, { kind: "enemy" }>, x: n
 /** The left button on a cell. Cells outside the map (the meadow) take only pictures, houses and people. */
 export const paint = (level: Level, brush: Brush, x: number, y: number): Level => {
   switch (brush.kind) {
+    case "select":
+      return level
     case "erase":
       return erase(level, x, y)
     case "tile":
@@ -110,8 +114,8 @@ export const paintGround = (level: Level, ground: string | null, x: number, y: n
 }
 
 /** The right button with a brush: a ground brush takes away only the ground, any other the topmost thing. */
-export const eraseWith = (level: Level, brush: Brush, x: number, y: number): Level =>
-  brush.kind === "ground" ? paintGround(level, null, x, y) : erase(level, x, y)
+export const eraseWith = (level: Level, brush: Brush, x: number, y: number, open: (layer: LayerId) => boolean = ANY_LAYER): Level =>
+  brush.kind === "ground" ? (open("terrain") ? paintGround(level, null, x, y) : level) : erase(level, x, y, open)
 
 /** The ground under the whole field (`TerrainPaint.base`), or the field's own grass (`null`). */
 export const setBaseGround = (level: Level, base: string | null): Level => {
@@ -139,22 +143,31 @@ const propCovers = (p: { readonly kind: PropKind; readonly x: number; readonly y
   return x >= Math.floor(p.x) && x < Math.ceil(p.x + width) && y >= Math.floor(p.y) && y < Math.ceil(p.y + height)
 }
 
+/** The layers of the editor (`layers.ts`): what lies where, so a locked layer keeps its things. */
+export type LayerId = "logic" | "terrain" | "decor" | "objects" | "above"
+
+/** The layer a picture lies on: flat tiles and pictures marked `ground` are decor, the rest stand up. */
+export const spriteLayer = (s: PlacedSprite): LayerId => ((s.layer ?? (s.tiles === undefined ? "object" : "ground")) === "ground" ? "decor" : "objects")
+
+const ANY_LAYER = () => true
+
 /**
  * The right button: takes away the topmost thing on the cell. An enemy first, then a villager, a picture (the last
- * placed first), a house. With nothing of these, an item, a trap or the goal turns back into path.
+ * placed first), a house. With nothing of these, an item, a trap or the goal turns back into path. Things on layers
+ * `open` refuses (locked ones) stay.
  */
-export const erase = (level: Level, x: number, y: number): Level => {
+export const erase = (level: Level, x: number, y: number, open: (layer: LayerId) => boolean = ANY_LAYER): Level => {
   const enemies = level.enemies ?? []
-  if (enemies.some((e) => e.x === x && e.y === y)) return { ...level, enemies: enemies.filter((e) => e.x !== x || e.y !== y) }
+  if (open("objects") && enemies.some((e) => e.x === x && e.y === y)) return { ...level, enemies: enemies.filter((e) => e.x !== x || e.y !== y) }
   const npcs = level.scene?.npcs ?? []
-  if (npcs.some((n) => n.x === x && n.y === y)) return withScene(level, { npcs: npcs.filter((n) => n.x !== x || n.y !== y) })
+  if (open("objects") && npcs.some((n) => n.x === x && n.y === y)) return withScene(level, { npcs: npcs.filter((n) => n.x !== x || n.y !== y) })
   const sprites = level.scene?.sprites ?? []
-  const top = sprites.findLastIndex((s) => covers(s, x, y))
+  const top = sprites.findLastIndex((s) => covers(s, x, y) && open(spriteLayer(s)))
   if (top >= 0) return withScene(level, { sprites: sprites.filter((_, i) => i !== top) })
   const props = level.scene?.props ?? []
-  const prop = props.findLastIndex((p) => propCovers(p, x, y))
+  const prop = open("objects") ? props.findLastIndex((p) => propCovers(p, x, y)) : -1
   if (prop >= 0) return withScene(level, { props: props.filter((_, i) => i !== prop) })
-  if (!inside(level, x, y)) return level
+  if (!inside(level, x, y) || !open("logic")) return level
   const tile = tileAt(level.map, x, y)
   return tile === "item" || tile === "trap" || tile === "finish" ? { ...level, map: setTile(level.map, x, y, "floor") } : level
 }
