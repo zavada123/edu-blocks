@@ -32,7 +32,7 @@ describe("harvest in the result", () => {
 describe("farm report in the result", () => {
   test("a working day gives no XP and no coins, only its report", () => {
     // Arrange
-    const report = { day: 2, stored: { wood: 4, pumpkin: 1 }, carried: { wood: 0, pumpkin: 0 }, byTurn: [], idle: 0, used: 120, turns: 120, stopped: null }
+    const report = { day: 2, stored: { wood: 4, pumpkin: 1, meat: 0, gold: 0 }, carried: { wood: 0, pumpkin: 0, meat: 0, gold: 0 }, byTurn: [], idle: 0, used: 120, turns: 120, goblins: 0, beaten: 0, stopped: null }
 
     // Act
     const run = farmRewardOf(report, true, { total: 50, best: 0 })

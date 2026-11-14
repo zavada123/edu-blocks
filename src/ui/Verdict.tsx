@@ -448,7 +448,7 @@ const FarmVerdict = ({
         <h3 id="eb-verdict-title">Звіт дня {report.day}</h3>
         {failed && <p>{report.detail === undefined ? FAIL_TEXT[report.stopped ?? "badProgram"] : report.line === undefined ? report.detail : `Рядок ${report.line}: ${report.detail}`}</p>}
         <dl className="eb-farm-tiles">
-          {RESOURCES.map((r) => (
+          {RESOURCES.filter((r) => r === "wood" || r === "pumpkin" || report.stored[r] > 0).map((r) => (
             <div key={r} className="eb-farm-tile">
               <dd>{report.stored[r]}</dd>
               <dt>{RESOURCE_NAMES[r]} у коморі</dt>
@@ -462,6 +462,14 @@ const FarmVerdict = ({
             <dd>{totalOf(report.carried)}</dd>
             <dt>лишилось у руках</dt>
           </div>
+          {report.goblins > 0 && (
+            <div className="eb-farm-tile">
+              <dd>
+                {report.beaten} з {report.goblins}
+              </dd>
+              <dt>гоблінів прогнано</dt>
+            </div>
+          )}
         </dl>
         {bars.length > 0 && (
           <figure className="eb-farm-chart">

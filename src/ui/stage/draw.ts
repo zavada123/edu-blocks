@@ -525,12 +525,36 @@ const slash = (ctx: Ctx, cx: number, cy: number, progress: number) => {
   ctx.restore()
 }
 
+/** An arrow on its way from (x0, y0) to (x1, y1), `progress` of the way: a shaft with a head along an arc. */
+const arrowFlight = (ctx: Ctx, x0: number, y0: number, x1: number, y1: number, progress: number) => {
+  const at = (t: number) => ({ x: x0 + (x1 - x0) * t, y: y0 + (y1 - y0) * t - Math.sin(Math.PI * t) * CELL * 0.6 })
+  const head = at(progress)
+  const tail = at(Math.max(0, progress - 0.12))
+  ctx.save()
+  ctx.lineCap = "round"
+  ctx.strokeStyle = "#5b3a1e"
+  ctx.lineWidth = 1.6
+  ctx.beginPath()
+  ctx.moveTo(tail.x, tail.y)
+  ctx.lineTo(head.x, head.y)
+  ctx.stroke()
+  ctx.fillStyle = "#e9e2cf"
+  ctx.beginPath()
+  ctx.arc(head.x, head.y, 1.6, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.restore()
+}
+
 const effect = (ctx: Ctx, fx: Effect, scene: Scene, now: number) => {
   const { kind: item, own: hasOwn } = itemAt(scene, fx.x, fx.y)
   const cx = fx.x * CELL + CELL / 2
   const cy = fx.y * CELL + CELL / 2
   if (fx.kind === "slash") {
     slash(ctx, cx, cy, fx.progress)
+    return
+  }
+  if (fx.kind === "arrow" && fx.from !== undefined) {
+    arrowFlight(ctx, fx.from.x * CELL + CELL / 2, fx.from.y * CELL - CELL / 2, cx, cy - 4, fx.progress)
     return
   }
   if (fx.kind === "smoke") {
@@ -623,7 +647,7 @@ const speech = (ctx: Ctx, npc: Cell, text: string) => {
   lines.forEach((line, i) => ctx.fillText(line, left + 3, bottom - h + 2 + (i + 1) * SPEECH_LINE - 1.5))
 }
 
-const hud = (ctx: Ctx, { pose, scenery, counter }: ActorsInput) => {
+const hud = (ctx: Ctx, { pose, scene, scenery, counter }: ActorsInput) => {
   const { world } = pose
   const x = scenery.view.x * CELL + 3
   let y = scenery.view.y * CELL + 3
@@ -641,7 +665,7 @@ const hud = (ctx: Ctx, { pose, scenery, counter }: ActorsInput) => {
     y += HEART + 4
   }
   if (world.storehouse !== null) {
-    plate(ctx, `на складі: ${world.stored}`, x, y)
+    plate(ctx, `${scene.storehouseName ?? "на складі"}: ${world.stored}`, x, y)
     y += HEART + 4
   }
   if (world.gates.size > 0) {

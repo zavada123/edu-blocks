@@ -4,7 +4,7 @@ import type { BlockName, ItemKind } from "./level.ts"
 export const HERO_EXTENSION_ID = "hero"
 export const HERO_COLOR = "#0FBD8C"
 
-export type HeroBlock = Extract<BlockName, "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "itemIs" | "bedEmpty">
+export type HeroBlock = Extract<BlockName, "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "feed" | "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "itemIs" | "bedEmpty" | "sheepHungry">
 
 /** Hero blocks in palette order. `boolean` blocks are the questions for «якщо» and «повторити до». */
 /**
@@ -30,6 +30,7 @@ export const HERO_BLOCKS: ReadonlyArray<HeroBlockInfo> = [
   { name: "wait", text: "зачекати ⏳", boolean: false },
   { name: "pull", text: "потягнути важіль", boolean: false },
   { name: "sow", text: "посіяти", boolean: false },
+  { name: "feed", text: "нагодувати", boolean: false },
   { name: "wallAhead", text: "попереду стіна?", boolean: true },
   { name: "onCrystal", text: "тут щось є?", boolean: true },
   { name: "atFinish", text: "дійшов до мети?", boolean: true },
@@ -40,6 +41,7 @@ export const HERO_BLOCKS: ReadonlyArray<HeroBlockInfo> = [
   { name: "onLever", text: "тут важіль?", boolean: true },
   { name: "leverOn", text: "важіль увімкнено?", boolean: true },
   { name: "bedEmpty", text: "тут порожня грядка?", boolean: true },
+  { name: "sheepHungry", text: "вівці голодні?", boolean: true },
   { name: "itemIs", text: "тут [ITEM]?", boolean: true }
 ]
 
@@ -55,7 +57,9 @@ const COLLECT_TEXT: Readonly<Record<ItemKind, string>> = {
   fish: "взяти",
   campfire: "розпалити",
   carrot: "взяти",
-  egg: "взяти"
+  egg: "взяти",
+  meat: "взяти",
+  gold: "взяти"
 }
 
 /** Item kinds by name, as the drop-down of «тут ‹…›?» shows them. */
@@ -67,7 +71,9 @@ export const ITEM_NAMES: Readonly<Record<ItemKind, string>> = {
   key: "стріла",
   campfire: "вогнище",
   carrot: "гарбуз",
-  egg: "ягня"
+  egg: "ягня",
+  meat: "м'ясо",
+  gold: "злиток"
 }
 
 const ITEM_KINDS = Object.keys(ITEM_NAMES) as ReadonlyArray<ItemKind>

@@ -1,5 +1,5 @@
 import type { Definition, Step } from "./build.ts"
-import { atFinish, type Cell, cellKey, type Direction, enemiesLeft, enemyOf, type EnemySpec, itemCount, type ItemKind, type MapRows, parseMap, type World } from "./world.ts"
+import { atFinish, type Cell, cellKey, type Direction, enemiesLeft, enemyOf, type EnemySpec, itemCount, type ItemKind, type MapRows, parseMap, type Tower, type World } from "./world.ts"
 import type { Tier } from "./xp.ts"
 
 /** Blocks a level can put into the palette. Hero blocks and the Scratch blocks with the same meaning. */
@@ -17,6 +17,8 @@ export type BlockName =
   | "pull"
   /** «посіяти»: sows the empty bed under the hero; the crop is ripe after `grow` turns. */
   | "sow"
+  /** «нагодувати»: gives the sheep at the trough under the hero a pumpkin it carries; meat lies there later. */
+  | "feed"
   | "wallAhead"
   | "enemyAhead"
   | "trapAhead"
@@ -30,6 +32,8 @@ export type BlockName =
   | "itemIs"
   /** «тут порожня грядка?»: the hero stands on a bed where nothing grows or lies. */
   | "bedEmpty"
+  /** «вівці голодні?»: the hero stands on a trough where the sheep neither eat nor left meat. */
+  | "sheepHungry"
   | "repeat"
   | "forever"
   | "repeatUntil"
@@ -202,6 +206,8 @@ export interface Scene {
    * its goal says «Збери врожай».
    */
   readonly itemsAt?: ReadonlyArray<ItemAt>
+  /** How the counter of the storehouse names it: «на складі» when left out, «у коморі» on the farm. */
+  readonly storehouseName?: string
   readonly finish?: FinishKind
   readonly props?: ReadonlyArray<Prop>
   readonly npcs?: ReadonlyArray<Npc>
@@ -245,6 +251,8 @@ export interface Level {
   readonly gift?: { readonly name: string; readonly skill: string }
   /** Enemies on floor cells. They act after each hero action: see `applyAction`. */
   readonly enemies?: ReadonlyArray<EnemySpec>
+  /** Watch towers on wall cells: each shoots one enemy within its range after the enemies' turn. */
+  readonly towers?: ReadonlyArray<Tower>
   /**
    * Which levers open which gate: the gate opens once its own levers are on, and the others do not matter to it. A
    * gate left out waits for every lever of the map, as on a map without links.
@@ -267,6 +275,10 @@ export interface Level {
   readonly regrow?: number
   /** Cells where a thing is growing at the start, and the turns until it lies there ripe: a tree that has no wood yet. */
   readonly growingAt?: ReadonlyArray<{ readonly x: number; readonly y: number; readonly turns: number }>
+  /** Cells that grow their thing again after their own turns, not `regrow`: the gold mine of the farm. */
+  readonly regrowAt?: ReadonlyArray<{ readonly x: number; readonly y: number; readonly turns: number }>
+  /** Turns the sheep eat a pumpkin until meat lies on the trough (`DEFAULT_FEED_TURNS` when left out). */
+  readonly feed?: number
   /** The name of the custom block when the palette has «procedure». «мій блок» when left out. */
   readonly procedure?: string
   /** Summer, crystals and a flag when left out. */
@@ -355,7 +367,10 @@ export const startWorld = (level: Level): World => {
       .filter((g) => !world.walls.has(cellKey(g.x, g.y)) && !world.crystals.has(cellKey(g.x, g.y)))
       .map((g): [string, number] => [cellKey(g.x, g.y), Math.max(1, Math.round(g.turns))])
   ])
-  return { ...world, enemies: (level.enemies ?? []).map(enemyOf), hearts, maxHearts: hearts, energy, capacity, itemKinds, gateLevers, growTurns, regrowTurns, growing }
+  const towers = (level.towers ?? []).map((t) => ({ x: t.x, y: t.y, range: Math.max(1, Math.round(t.range)) }))
+  const regrowAt = new Map((level.regrowAt ?? []).map((g): [string, number] => [cellKey(g.x, g.y), Math.max(1, Math.round(g.turns))]))
+  const feedTurns = level.feed === undefined ? world.feedTurns : Math.max(1, Math.round(level.feed))
+  return { ...world, enemies: (level.enemies ?? []).map(enemyOf), hearts, maxHearts: hearts, energy, capacity, itemKinds, gateLevers, growTurns, regrowTurns, regrowAt, feedTurns, growing, towers }
 }
 
 /** The levers of each linked gate: links to cells that are no gate or no lever are left out (`checkLevel` tells). */
@@ -372,10 +387,13 @@ const gateLeversOf = (world: World, links: ReadonlyArray<GateLink>): ReadonlyMap
 /** What lies on each `c` cell: its own kind from `itemsAt`, the level's `item` otherwise. */
 /** What grows on a bed when the level does not say: pumpkins in the pack. */
 export const BED_ITEM: ItemKind = "carrot"
+/** What the sheep leave on the trough after they ate. */
+export const TROUGH_ITEM: ItemKind = "meat"
 
 const itemKindsOf = (world: World, scene: Scene, growing: ReadonlyArray<string>): ReadonlyMap<string, ItemKind> => {
   const own = new Map((scene.itemsAt ?? []).map((i) => [cellKey(i.x, i.y), i.item]))
-  return new Map([...new Set([...world.crystals, ...world.beds, ...growing])].map((key) => [key, own.get(key) ?? (world.beds.has(key) ? BED_ITEM : (scene.item ?? "crystal"))]))
+  const kindOf = (key: string): ItemKind => own.get(key) ?? (world.beds.has(key) ? BED_ITEM : world.troughs.has(key) ? TROUGH_ITEM : (scene.item ?? "crystal"))
+  return new Map([...new Set([...world.crystals, ...world.beds, ...world.troughs, ...growing])].map((key) => [key, kindOf(key)]))
 }
 
 export const goalMet = (world: World, goal: Goal): boolean => {
@@ -408,7 +426,9 @@ const ITEM_GOALS: Readonly<Record<ItemKind, (count: number) => string>> = {
   key: (n) => (n === 1 ? "Візьми стрілу" : `Збери стріли (${n})`),
   campfire: (n) => `Розпали вогнища (${n})`,
   carrot: (n) => `Збери гарбузи (${n})`,
-  egg: (n) => (n === 1 ? "Забери ягня" : `Збери ягнят (${n})`)
+  egg: (n) => (n === 1 ? "Забери ягня" : `Збери ягнят (${n})`),
+  meat: (n) => `Збери м'ясо (${n})`,
+  gold: (n) => (n === 1 ? "Візьми злиток" : `Збери злитки (${n})`)
 }
 
 /** «Збери лише …»: the goal that takes one kind and leaves the others. */
@@ -420,7 +440,9 @@ const ITEM_PICKS: Readonly<Record<ItemKind, string>> = {
   key: "Збери лише стріли",
   campfire: "Розпали лише вогнища",
   carrot: "Збери лише гарбузи",
-  egg: "Забери лише ягнят"
+  egg: "Забери лише ягнят",
+  meat: "Збери лише м'ясо",
+  gold: "Збери лише злитки"
 }
 
 /** The kind the goal names: the one kind of `itemsAt` when there is one, the level's `item` otherwise. */

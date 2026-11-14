@@ -24,7 +24,9 @@ const NOUNS: Readonly<Record<ItemKind, { readonly to: readonly [string, string];
   key: { to: ["стріли", "стріл"], it: ["її", "їх"] },
   campfire: { to: ["вогнища", "вогнищ"], it: ["його", "їх"] },
   carrot: { to: ["гарбуза", "гарбузів"], it: ["його", "їх"] },
-  egg: { to: ["ягняти", "ягнят"], it: ["його", "їх"] }
+  egg: { to: ["ягняти", "ягнят"], it: ["його", "їх"] },
+  meat: { to: ["м'яса", "м'яса"], it: ["його", "його"] },
+  gold: { to: ["злитка", "злитків"], it: ["його", "їх"] }
 }
 
 const usedBlocks = (program: Program): ReadonlySet<string> => {
@@ -251,6 +253,9 @@ const extraAdvice = (level: Level, frames: ReadonlyArray<Frame>): ReadonlyArray<
   const noSow = frames.filter((f) => f.outcome === "cannotSow").length
   if (noSow > 0)
     tips.push(`«Посіяти» ${noSow} ${times(noSow)} спрацював не на порожній грядці.${level.blocks.includes("bedEmpty") ? " Спершу спитай «тут порожня грядка?»." : ""}`)
+  const noFeed = frames.filter((f) => f.outcome === "cannotFeed").length
+  if (noFeed > 0)
+    tips.push(`«Нагодувати» ${noFeed} ${times(noFeed)} спрацював даремно: треба стояти на годівниці з гарбузом у руках.${level.blocks.includes("sheepHungry") ? " Спершу спитай «вівці голодні?»." : ""}`)
   const missed = frames.filter((f) => f.outcome === "swingMissed").length
   if (missed > 0) tips.push(`«Вдарити» ${missed} ${times(missed)} влучив у порожнечу: попереду не було ворога.`)
   const turns = wastedTurns(frames)

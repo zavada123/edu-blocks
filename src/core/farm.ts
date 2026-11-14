@@ -1,10 +1,10 @@
-import { estateLook } from "./estate-map.ts"
+import { farmLook } from "./farm-map.ts"
 import { estateSeason, MAX_TREES, PALETTE_ORDER, randomOf, START_TREES } from "./estate.ts"
 import { judgeField } from "./judge.ts"
-import { BED_ITEM, type BlockName, type Level, type Scene } from "./level.ts"
+import { BED_ITEM, type BlockName, type ItemAt, type Level, type Scene, TROUGH_ITEM } from "./level.ts"
 import type { Program, RunResult } from "./program.ts"
 import { judgePythonField } from "./python/judge.ts"
-import { cellKey, type ItemKind, kindAt } from "./world.ts"
+import { type Cell, cellKey, type EnemySpec, type ItemKind, kindAt } from "./world.ts"
 
 /**
  * Хутір 2.0: a farm the student automates (analysis/hutir/plan.md). The farm stays from day to day: what was built,
@@ -17,21 +17,21 @@ import { cellKey, type ItemKind, kindAt } from "./world.ts"
  */
 
 /** What the farm makes and keeps in the barn. */
-export type Resource = "wood" | "pumpkin"
+export type Resource = "wood" | "pumpkin" | "meat" | "gold"
 
-export const RESOURCES: ReadonlyArray<Resource> = ["wood", "pumpkin"]
+export const RESOURCES: ReadonlyArray<Resource> = ["wood", "pumpkin", "meat", "gold"]
 
-export const RESOURCE_NAMES: Readonly<Record<Resource, string>> = { wood: "колоди", pumpkin: "гарбузи" }
+export const RESOURCE_NAMES: Readonly<Record<Resource, string>> = { wood: "колоди", pumpkin: "гарбузи", meat: "м'ясо", gold: "золото" }
 
 /** The item of the game that each resource is: what lies on the map and what the worker carries. */
-const ITEM_OF: Readonly<Record<Resource, ItemKind>> = { wood: "wood", pumpkin: BED_ITEM }
+const ITEM_OF: Readonly<Record<Resource, ItemKind>> = { wood: "wood", pumpkin: BED_ITEM, meat: TROUGH_ITEM, gold: "gold" }
 const resourceOf = (item: ItemKind): Resource | null => RESOURCES.find((r) => ITEM_OF[r] === item) ?? null
 
 export type Amounts = Readonly<Record<Resource, number>>
-export const NO_AMOUNTS: Amounts = { wood: 0, pumpkin: 0 }
+export const NO_AMOUNTS: Amounts = { wood: 0, pumpkin: 0, meat: 0, gold: 0 }
 
 /** What an order opens: a building or a tool that changes how the farm works. */
-export type FarmUnlock = "beds" | "basket" | "longDay" | "cart"
+export type FarmUnlock = "beds" | "basket" | "longDay" | "cart" | "tower" | "pen" | "mine"
 
 export interface FarmUnlockInfo {
   readonly id: FarmUnlock
@@ -43,7 +43,10 @@ export const FARM_UNLOCKS: ReadonlyArray<FarmUnlockInfo> = [
   { id: "beds", name: "Грядки", about: "Під кожним деревом грядка. «посіяти» і «тут порожня грядка?»: гарбуз достигає за кілька ходів." },
   { id: "basket", name: "Кошик", about: "Робітник несе 5 речей замість 3: менше ходок до комори." },
   { id: "longDay", name: "Ліхтар", about: "Робочий день довший: 160 ходів замість 120." },
-  { id: "cart", name: "Візок", about: "Робітник несе 8 речей." }
+  { id: "cart", name: "Візок", about: "Робітник несе 8 речей." },
+  { id: "tower", name: "Сторожова вежа", about: "Вежа над стежкою гоблінів: лучник стріляє в кожного, хто підійде ближче ніж на 3 клітинки." },
+  { id: "pen", name: "Вівчарня", about: "Годівниця на лівій стежці. «нагодувати» гарбузом, і за 12 ходів там лежить м'ясо. «вівці голодні?» підкаже, коли." },
+  { id: "mine", name: "Золота шахта", about: "Під нижньою стежкою. Золото біля входу з'являється раз на 20 ходів. Воно важке: його беруть лише з порожніми руками." }
 ]
 
 /** What the student keeps of the farm. */
@@ -71,6 +74,9 @@ export const CART = 8
 /** Turns until a tree has wood again after it was cut, and until a sown pumpkin is ripe. */
 export const WOOD_REGROW = 16
 export const PUMPKIN_GROW = 24
+/** Turns the sheep eat a pumpkin until the meat lies on the trough, and until the mine has gold again. */
+export const SHEEP_EAT = 12
+export const GOLD_REGROW = 20
 /** The share of trees with wood and of beds with a ripe pumpkin in the morning. */
 const WOOD_CHANCE = 0.7
 const RIPE_CHANCE = 0.4
@@ -102,18 +108,32 @@ const FARM_BASE: ReadonlyArray<BlockName> = [
   "repeatUntil",
   "if",
   "ifElse",
-  "not"
+  "not",
+  "and",
+  "or"
 ]
 
 /** The blocks of the farm: the base, what the student learned in the course, and the beds once they are built. */
 export const farmPalette = (state: FarmState, learned: ReadonlyArray<BlockName>): ReadonlyArray<BlockName> => {
   const have = new Set<BlockName>([...FARM_BASE, ...learned])
   if (has(state, "beds")) {
+    // Two kinds lie on the farm now: «тут ‹…›?» tells a pumpkin from a log.
+    have.add("itemIs")
     have.add("sow")
     have.add("bedEmpty")
   } else {
     have.delete("sow")
     have.delete("bedEmpty")
+  }
+  for (const [unlock, blocks] of [["pen", ["feed", "sheepHungry"]]] as const)
+    for (const b of blocks) {
+      if (has(state, unlock)) have.add(b)
+      else have.delete(b)
+    }
+  // Goblins come once the farm has a basket worth taking: the worker needs a way to meet them.
+  if (has(state, "basket")) {
+    have.add("attack")
+    have.add("enemyAhead")
   }
   return PALETTE_ORDER.filter((b) => have.has(b))
 }
@@ -132,19 +152,52 @@ const FIRST = 3
 /** The row of the forest path and of the bed path. */
 const TOP = 1
 const BOTTOM = 3
+/** The trough of the sheep pen on the left path, and the mouth of the gold mine on the bottom path. */
+const TROUGH = { x: 1, y: TOP + 1 } as const
+const MINE = { x: 2, y: BOTTOM } as const
+/** The chance that the mine has gold in the morning. */
+const GOLD_CHANCE = 0.5
+
+/** Goblins come every third day once the farm has a basket; an order can bring them on any day. */
+export const GOBLIN_EVERY = 3
+export const goblinDay = (state: FarmState, day: number): boolean => has(state, "basket") && Math.round(day) % GOBLIN_EVERY === 0
+
+/** How far the archer on the watch tower shoots, in steps. */
+export const TOWER_RANGE = 3
+
+/**
+ * Two goblins with torches walk round the ring against the worker's usual way (up the right side, back along the
+ * forest), one from the far corner and one from the middle of the bottom path. One hit beats a goblin; next to the
+ * worker a goblin swings first and hits the next turn.
+ */
+const goblinsOf = (right: number): ReadonlyArray<EnemySpec> => {
+  const corners: ReadonlyArray<Cell> = [
+    { x: right, y: TOP },
+    { x: 1, y: TOP },
+    { x: 1, y: BOTTOM },
+    { x: right, y: BOTTOM }
+  ]
+  const goblin = (x: number, y: number, route: ReadonlyArray<Cell>): EnemySpec => ({ kind: "goblin", x, y, hp: 1, sight: 1, walk: "patrol", route })
+  return [goblin(right, BOTTOM, corners), goblin(Math.ceil((1 + right) / 2), BOTTOM, [corners[3] as Cell, ...corners.slice(0, 3)])]
+}
 
 /**
  * The level of a working day. The farm is a ring of paths: the barn in the farmhouse at the top-left corner, the
  * worker next to it, the forest along the top path and the beds along the bottom path. The day number decides which
  * trees have wood and which pumpkins are ripe in the morning; a tree without wood grows it during the day.
  */
-export const farmDay = (state: FarmState, blocks: ReadonlyArray<BlockName>, day = state.day): Level => {
+export const farmDay = (state: FarmState, blocks: ReadonlyArray<BlockName>, day = state.day, goblins = goblinDay(state, day)): Level => {
   const trees = treesOf(state)
   const beds = has(state, "beds")
   const random = dayRandom(day)
   const wood = chances(trees, WOOD_CHANCE, random)
   const later = wood.map(() => 1 + Math.floor(random() * WOOD_REGROW))
   const ripe = beds ? chances(trees, RIPE_CHANCE, random) : []
+  const pen = has(state, "pen")
+  const mine = has(state, "mine")
+  // Drawn after the trees and the beds, so a day keeps its wood and pumpkins when the mine is built.
+  const goldReady = mine && random() < GOLD_CHANCE
+  const goldLater = 1 + Math.floor(random() * GOLD_REGROW)
   const right = FIRST + trees
   const width = right + 2
   const rows: Array<string> = []
@@ -158,24 +211,24 @@ export const farmDay = (state: FarmState, blocks: ReadonlyArray<BlockName>, day 
       else if (x === 2 && y === TOP) row += "S"
       else if (y === TOP && i >= 0 && i < trees) row += wood[i] === true ? "c" : "."
       else if (y === BOTTOM && beds && i >= 0 && i < trees) row += ripe[i] === true ? "R" : "b"
+      else if (pen && x === TROUGH.x && y === TROUGH.y) row += "t"
+      else if (mine && x === MINE.x && y === MINE.y) row += goldReady ? "c" : "."
       else row += "."
     }
     rows.push(row)
   }
-  const growingAt = wood.flatMap((w, i) => (w ? [] : [{ x: FIRST + i, y: TOP, turns: later[i] ?? WOOD_REGROW }]))
-  const look = estateLook({
-    rows,
-    trees,
-    right,
-    bottom: BOTTOM,
-    carrots: beds,
-    coop: false,
-    nests: 3,
-    carrotFrames: Array.from({ length: trees }, (_, i) => (ripe[i] === true ? 4 : 1)),
-    frame: { width: MAX_TREES + FIRST + 2, height: BOTTOM + 2 },
-    maxTrees: MAX_TREES
-  })
-  const scene: Scene = { theme: estateSeason(day), item: "wood", tilemap: look.tilemap, sprites: look.sprites }
+  const growingAt = [
+    ...wood.flatMap((w, i) => (w ? [] : [{ x: FIRST + i, y: TOP, turns: later[i] ?? WOOD_REGROW }])),
+    ...(mine && !goldReady ? [{ ...MINE, turns: goldLater }] : [])
+  ]
+  const tower = has(state, "tower") ? { x: right + 1, y: TOP + 1 } : null
+  const look = farmLook({ rows, first: FIRST, trees, right, top: TOP, bottom: BOTTOM, beds, goblins, tower, pen, mine })
+  // The beds hold pumpkins and the mine gold: the field draws each such cell as its own thing.
+  const itemsAt: ReadonlyArray<ItemAt> = [
+    ...(beds ? Array.from({ length: trees }, (_, i) => ({ x: FIRST + i, y: BOTTOM, item: BED_ITEM })) : []),
+    ...(mine ? [{ ...MINE, item: "gold" as const }] : [])
+  ]
+  const scene: Scene = { theme: estateSeason(day), item: "wood", itemsAt, storehouseName: "у коморі", tilemap: look.tilemap, sprites: look.sprites }
   const turns = farmTurns(state)
   return {
     id: `farm-${day}`,
@@ -183,7 +236,10 @@ export const farmDay = (state: FarmState, blocks: ReadonlyArray<BlockName>, day 
     task: [
       `Робочий день: ${turns} ходів. Усе, що робітник віднесе в комору, піде в запас.`,
       beds ? "На деревах знову виростають колоди, а посіяний гарбуз достигає за кілька ходів." : "На зрубаному дереві згодом знову виростає колода.",
-      `Робітник несе не більше ${farmCapacity(state)} речей: коли руки повні, неси в комору.`
+      `Робітник несе не більше ${farmCapacity(state)} речей: коли руки повні, неси в комору.`,
+      ...(pen ? ["Вівці на годівниці їдять гарбуз, а за кілька ходів там лежить м'ясо."] : []),
+      ...(mine ? ["Золото з шахти важке: його беруть лише з порожніми руками."] : []),
+      ...(goblins ? ["Сьогодні по стежках ходять гобліни з факелами. Ворог попереду? Бий, поки він не вдарив."] : [])
     ],
     map: rows,
     dir: "right",
@@ -193,7 +249,11 @@ export const farmDay = (state: FarmState, blocks: ReadonlyArray<BlockName>, day 
     turns,
     grow: PUMPKIN_GROW,
     regrow: WOOD_REGROW,
+    feed: SHEEP_EAT,
+    ...(mine ? { regrowAt: [{ ...MINE, turns: GOLD_REGROW }] } : {}),
     growingAt,
+    ...(goblins ? { enemies: goblinsOf(right) } : {}),
+    ...(tower === null ? {} : { towers: [{ ...tower, range: TOWER_RANGE }] }),
     procedure: "обійти ряд",
     scene
   }
@@ -213,9 +273,14 @@ export interface FarmReport {
   readonly byTurn: ReadonlyArray<Amounts>
   /** Turns spent on actions that did nothing: «взяти» on an empty cell, «посіяти» off an empty bed and the like. */
   readonly idle: number
+  /** Of them, «нагодувати» where the sheep were not hungry or without a pumpkin. */
+  readonly idleFeed?: number
   /** Turns the program used; fewer than the day when it stopped early. */
   readonly used: number
   readonly turns: number
+  /** Goblins that came this day, and how many of them the worker or the tower beat. */
+  readonly goblins: number
+  readonly beaten: number
   /** Why the day ended before its turns: the worker walked into a fence, or the program has a mistake. */
   readonly stopped: RunResult["reason"]
   /** The explanation of a mistake in the program, as the judge gives it. */
@@ -223,7 +288,7 @@ export interface FarmReport {
   readonly line?: number
 }
 
-const IDLE: ReadonlySet<string> = new Set(["nothingToCollect", "handsFull", "notStorehouse", "nothingToStore", "cannotSow", "waited", "noLever", "swingMissed"])
+const IDLE: ReadonlySet<string> = new Set(["nothingToCollect", "handsFull", "notStorehouse", "nothingToStore", "cannotSow", "waited", "noLever", "swingMissed", "cannotFeed"])
 
 const add = (a: Amounts, r: Resource, n = 1): Amounts => ({ ...a, [r]: a[r] + n })
 
@@ -238,6 +303,11 @@ export const farmReport = (level: Level, result: RunResult, day: number): FarmRe
       const kind = resourceOf(kindAt(frame.world, cellKey(frame.world.hero.x, frame.world.hero.y)))
       if (kind !== null) load = [...load, kind]
     }
+    if (frame.outcome === "fed") {
+      // The sheep ate one pumpkin of the load: it never reaches the barn.
+      const i = load.indexOf("pumpkin")
+      load = load.filter((_, j) => j !== i)
+    }
     if (frame.outcome === "stored") {
       stored = load.reduce((sum, r) => add(sum, r), stored)
       load = []
@@ -251,8 +321,11 @@ export const farmReport = (level: Level, result: RunResult, day: number): FarmRe
     carried,
     byTurn,
     idle: result.frames.filter((f) => IDLE.has(f.outcome)).length,
+    idleFeed: result.frames.filter((f) => f.outcome === "cannotFeed").length,
     used: result.frames.length,
     turns: level.turns ?? result.frames.length,
+    goblins: level.enemies?.length ?? 0,
+    beaten: result.frames.reduce((n, f) => n + f.events.filter((e) => e.type === "enemyDown").length, 0),
     stopped: result.reason === "goalsNotMet" ? null : result.reason,
     ...(result.detail === undefined ? {} : { detail: result.detail }),
     ...(result.line === undefined ? {} : { line: result.line })
@@ -260,8 +333,14 @@ export const farmReport = (level: Level, result: RunResult, day: number): FarmRe
 }
 
 /** Runs the worker's program through one day of the farm. */
-export const runFarmDay = (state: FarmState, code: FarmProgram, blocks: ReadonlyArray<BlockName>, day = state.day): { readonly level: Level; readonly result: RunResult; readonly report: FarmReport } => {
-  const level = farmDay(state, blocks, day)
+export const runFarmDay = (
+  state: FarmState,
+  code: FarmProgram,
+  blocks: ReadonlyArray<BlockName>,
+  day = state.day,
+  goblins = goblinDay(state, day)
+): { readonly level: Level; readonly result: RunResult; readonly report: FarmReport } => {
+  const level = farmDay(state, blocks, day, goblins)
   const result = code.language === "blocks" ? judgeField(level, code.program) : judgePythonField(level, code.source)
   return { level, result, report: farmReport(level, result, day) }
 }
@@ -285,6 +364,8 @@ export interface FarmOrder {
   /** The order that must be done first. */
   readonly after?: string
   readonly unlocks?: FarmUnlock
+  /** Goblins come on every checked day, not only on their own days. */
+  readonly goblins?: boolean
 }
 
 export const FARM_ORDERS: ReadonlyArray<FarmOrder> = [
@@ -314,12 +395,22 @@ export const FARM_ORDERS: ReadonlyArray<FarmOrder> = [
     unlocks: "basket"
   },
   {
+    id: "night-guests",
+    title: "Нічні гості",
+    text: "Староста Петро каже: по стежках ходять гобліни з факелами. Вісім колод за день, і щоб робітник не здався.",
+    needs: { wood: 8 },
+    fast: 100,
+    after: "pumpkin-3",
+    unlocks: "tower",
+    goblins: true
+  },
+  {
     id: "mixed-10-4",
     title: "Підвода для мірошника",
     text: "Мірошник лагодить млин: десять колод і чотири гарбузи за один день.",
     needs: { wood: 10, pumpkin: 4 },
     fast: 110,
-    after: "pumpkin-3",
+    after: "night-guests",
     unlocks: "longDay"
   },
   {
@@ -330,6 +421,40 @@ export const FARM_ORDERS: ReadonlyArray<FarmOrder> = [
     fast: 140,
     after: "mixed-10-4",
     unlocks: "cart"
+  },
+  {
+    id: "mowers",
+    title: "Обід для косарів",
+    text: "Косарі в полі до вечора: шість гарбузів за день.",
+    needs: { pumpkin: 6 },
+    fast: 110,
+    after: "wood-20",
+    unlocks: "pen"
+  },
+  {
+    id: "stew",
+    title: "Юшка на свято",
+    text: "Кухар Остап просить три шматки м'яса за день. Гарбуз з грядки неси не в комору, а вівцям.",
+    needs: { meat: 3 },
+    fast: 130,
+    after: "mowers",
+    unlocks: "mine"
+  },
+  {
+    id: "bridge",
+    title: "Новий міст",
+    text: "Громада будує міст: два злитки золота й вісім колод за день. Золото важке, тож по нього йди з порожніми руками.",
+    needs: { gold: 2, wood: 8 },
+    fast: 140,
+    after: "stew"
+  },
+  {
+    id: "fair",
+    title: "Віз на ярмарок",
+    text: "Усього потроху: вісім колод, чотири гарбузи, два шматки м'яса й злиток золота за один день.",
+    needs: { wood: 8, pumpkin: 4, meat: 2, gold: 1 },
+    fast: 150,
+    after: "bridge"
   }
 ]
 
@@ -362,7 +487,11 @@ export interface OrderCheck {
  * «Універсально» asks the same on five days of a farm with one more tree.
  */
 export const checkOrder = (state: FarmState, order: FarmOrder, code: FarmProgram, blocks: ReadonlyArray<BlockName>): OrderCheck => {
-  const days = (s: FarmState, n: number) => Array.from({ length: n }, (_, i) => runFarmDay(s, code, blocks, state.day + i).report)
+  const days = (s: FarmState, n: number) =>
+    Array.from({ length: n }, (_, i) => {
+      const day = state.day + i
+      return runFarmDay(s, code, blocks, day, order.goblins === true || goblinDay(s, day)).report
+    })
   const reports = days(state, ORDER_DAYS)
   const at = reports.map((r) => metAt(r, order.needs))
   if (at.some((t) => t === null)) return { grade: 0, reports }
@@ -383,7 +512,7 @@ export const recordOrder = (state: FarmState, order: FarmOrder, grade: number): 
 /** What one more tree costs: the price grows with the forest, so a better program pays more than more days. */
 export const treePrice = (state: FarmState): Amounts => {
   const n = treesOf(state) - START_TREES + 1
-  return { wood: 10 * n, pumpkin: has(state, "beds") ? 3 * n : 0 }
+  return { ...NO_AMOUNTS, wood: 10 * n, pumpkin: has(state, "beds") ? 3 * n : 0 }
 }
 
 export const canPlantTree = (state: FarmState): boolean =>
@@ -409,13 +538,21 @@ export const totalOf = (amounts: Amounts): number => RESOURCES.reduce((sum, r) =
 export const farmTips = (report: FarmReport, capacity: number, language: "blocks" | "python" = "blocks"): ReadonlyArray<string> => {
   const py = language === "python"
   const tips: Array<string> = []
-  if (report.stopped === "crashed")
-    tips.push(`Робітник урізався в паркан: перед кроком спитай ${py ? "hero.wall_ahead()" : "«попереду стіна?»"} і поверни.`)
+  if (report.stopped === "defeated")
+    tips.push(`Гобліни здолали робітника: ${py ? "if hero.enemy_ahead(): hero.attack()" : "«якщо попереду ворог? то вдарити»"} перед кожним кроком.`)
+  else if (report.stopped === "crashed")
+    tips.push(
+      `Робітник урізався в ${report.goblins > 0 ? "паркан або в гобліна" : "паркан"}: перед кроком спитай ${py ? "hero.wall_ahead()" : "«попереду стіна?»"}${report.goblins > 0 ? (py ? " і hero.enemy_ahead()" : " і «попереду ворог?»") : ""}.`
+    )
   else if (report.used < report.turns && report.stopped === null)
     tips.push(`Програма закінчилась на ході ${report.used} з ${report.turns}: ${py ? "загорни роботу в while True" : "загорни роботу в «завжди»"}, щоб робітник працював до вечора.`)
   const left = totalOf(report.carried)
   if (left > 0) tips.push(`Наприкінці дня в руках лишилось ${left}: це пропало. Неси в комору, щойно руки повні (${capacity}).`)
   if (report.idle > 0)
-    tips.push(`Ходів дарма: ${report.idle}. ${py ? "hero.collect()" : "«Взяти»"} на порожній клітинці теж забирає хід: спершу спитай ${py ? "hero.item_here()" : "«тут щось є?»"}.`)
+    tips.push(
+      (report.idleFeed ?? 0) > 0
+        ? `Ходів дарма: ${report.idle}, з них ${report.idleFeed} ${py ? "hero.feed()" : "«нагодувати»"} без гарбуза в руках або коли вівці ще їли. Годуй, лише коли ${py ? "hero.sheep_hungry()" : "«вівці голодні?»"} і в руках є гарбуз.`
+        : `Ходів дарма: ${report.idle}. ${py ? "hero.collect()" : "«Взяти»"} на порожній клітинці теж забирає хід: спершу спитай ${py ? "hero.item_here()" : "«тут щось є?»"}.`
+    )
   return tips.slice(0, 3)
 }

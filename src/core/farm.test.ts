@@ -12,6 +12,7 @@ import {
   farmDay,
   farmPalette,
   farmTips,
+  goblinDay,
   finishDay,
   isFarmLevel,
   LONG_DAY_TURNS,
@@ -29,17 +30,17 @@ import { heroAct, newSession } from "./hero.ts"
 import { judgeField } from "./judge.ts"
 import { runProgram } from "./run.ts"
 import type { BlockName, Level } from "./level.ts"
-import { bedEmpty, cellKey } from "./world.ts"
+import { bedEmpty, cellKey, sheepHungry } from "./world.ts"
 
 const ALL: ReadonlyArray<BlockName> = [
-  "move", "turnLeft", "turnRight", "collect", "store", "sow", "wallAhead", "onCrystal", "handsFull", "atStorehouse", "bedEmpty", "itemIs",
+  "move", "turnLeft", "turnRight", "collect", "store", "sow", "wallAhead", "onCrystal", "handsFull", "atStorehouse", "bedEmpty", "itemIs", "attack", "enemyAhead", "feed", "sheepHungry",
   "repeat", "forever", "repeatUntil", "if", "ifElse", "not", "and", "or", "procedure"
 ]
 
 const python = (source: string): FarmProgram => ({ language: "python", source })
 
 /** Around the ring: take what lies here while the hands have room, sow empty beds, unload in the barn. */
-const RING = python(`while True:
+const BARE_RING = python(`while True:
     if hero.item_here() and not hero.hands_full():
         hero.collect()
     if hero.bed_empty():
@@ -52,6 +53,22 @@ const RING = python(`while True:
         hero.move()
 `)
 
+/** The same ring that beats a goblin in its way. */
+const RING = python(`while True:
+    if hero.item_here() and not hero.hands_full():
+        hero.collect()
+    if hero.bed_empty():
+        hero.sow()
+    if hero.at_storehouse():
+        hero.store()
+    if hero.enemy_ahead():
+        hero.attack()
+    elif hero.wall_ahead():
+        hero.turn_right()
+    else:
+        hero.move()
+`)
+
 /** The same ring in blocks. */
 const RING_STEPS: ReadonlyArray<Step> = [
   {
@@ -59,7 +76,7 @@ const RING_STEPS: ReadonlyArray<Step> = [
       { if: { and: ["onCrystal", { not: "handsFull" }] }, then: ["collect"] },
       { if: "bedEmpty", then: ["sow"] },
       { if: "atStorehouse", then: ["store"] },
-      { if: "wallAhead", then: ["turnRight"], else: ["move"] }
+      { if: "enemyAhead", then: ["attack"], else: [{ if: "wallAhead", then: ["turnRight"], else: ["move"] }] }
     ]
   }
 ]
@@ -69,14 +86,20 @@ const SHUTTLE = python(`def turn_back():
     hero.turn_right()
     hero.turn_right()
 
+def step():
+    if hero.enemy_ahead():
+        hero.attack()
+    else:
+        hero.move()
+
 while True:
     while not hero.wall_ahead():
-        hero.move()
+        step()
         if hero.item_here():
             hero.collect()
     turn_back()
     while not hero.at_storehouse():
-        hero.move()
+        step()
     hero.store()
     turn_back()
 `)
@@ -87,6 +110,70 @@ const PUMPKINS = python(`while True:
         hero.collect()
     if hero.bed_empty():
         hero.sow()
+    if hero.at_storehouse():
+        hero.store()
+    if hero.wall_ahead():
+        hero.turn_right()
+    else:
+        hero.move()
+`)
+
+/** The ring that feeds the sheep: it takes pumpkins and meat, never wood, and gives a pumpkin at a hungry trough. */
+const SHEPHERD = python(`while True:
+    if hero.item_here() and not hero.hands_full() and not hero.item_is("wood"):
+        hero.collect()
+    if hero.sheep_hungry():
+        hero.feed()
+    if hero.bed_empty():
+        hero.sow()
+    if hero.at_storehouse():
+        hero.store()
+    if hero.enemy_ahead():
+        hero.attack()
+    elif hero.wall_ahead():
+        hero.turn_right()
+    else:
+        hero.move()
+`)
+
+/**
+ * The ring with a lap for gold: on the laps the condition names it goes the other way round, past the mine right after
+ * the barn, with empty hands, and takes only gold. A variable counts what the hands hold.
+ */
+const goldLaps = (condition: string): FarmProgram => python(`laps = 0
+carry = 0
+while True:
+    gold_lap = ${condition}
+    if hero.item_is("gold"):
+        if carry == 0 and gold_lap:
+            hero.collect()
+            carry = 99
+    elif hero.item_here() and not hero.hands_full() and not gold_lap:
+        hero.collect()
+        carry = carry + 1
+    if hero.sheep_hungry():
+        hero.feed()
+    if hero.bed_empty():
+        hero.sow()
+    if hero.at_storehouse() and carry > 0:
+        hero.store()
+        carry = 0
+        laps = laps + 1
+    if hero.enemy_ahead():
+        hero.attack()
+    elif hero.wall_ahead():
+        if gold_lap:
+            hero.turn_left()
+        else:
+            hero.turn_right()
+    else:
+        hero.move()
+`)
+
+/** The first ring of a new farm: only the blocks the farm gives before anything is built. */
+const WOOD_RING = python(`while True:
+    if hero.item_here() and not hero.hands_full():
+        hero.collect()
     if hero.at_storehouse():
         hero.store()
     if hero.wall_ahead():
@@ -189,9 +276,11 @@ describe("the day of the farm", () => {
       "if",
       "ifElse",
       "not",
+      "and",
+      "or",
       "procedure"
     ])
-    expect(farmPalette(withUnlocks("beds"), [])).toContain("bedEmpty")
+    expect(farmPalette(withUnlocks("beds"), [])).toEqual(expect.arrayContaining(["bedEmpty", "sow", "itemIs"]))
   })
 })
 
@@ -215,7 +304,7 @@ describe("the report of a day", () => {
   })
 
   test("the Scratch VM plays the day as the judge does", async () => {
-    const level = farmDay(withUnlocks("beds", "basket"), ALL, 2)
+    const level = farmDay(withUnlocks("beds", "basket"), ALL, 3)
     const program = buildProgram(RING_STEPS)
     const vm = await runProgram(level, program)
     const judged = judgeField(level, program)
@@ -279,11 +368,14 @@ describe("orders", () => {
   test("every order can be done with the tools the orders before it open", () => {
     let state = NEW_FARM
     for (const o of FARM_ORDERS) {
-      const best = Math.max(...[RING, SHUTTLE, PUMPKINS].map((p) => checkOrder(state, o, p, ALL).grade))
+      const programs = [WOOD_RING, RING, SHUTTLE, PUMPKINS, SHEPHERD, goldLaps("laps == 1 or laps == 2"), goldLaps("laps == 1")]
+      // Only the blocks the farm itself gives: a student who skipped the course can do every order.
+      const palette = farmPalette(state, [])
+      const best = Math.max(...programs.map((p) => checkOrder(state, o, p, palette).grade))
       expect(best, o.id).toBeGreaterThan(0)
       state = recordOrder(state, o, best)
     }
-    expect(state.unlocked).toEqual(["beds", "basket", "longDay", "cart"])
+    expect(state.unlocked).toEqual(["beds", "basket", "tower", "longDay", "cart", "pen", "mine"])
   })
 
   test("a lower grade later does not take back a better one", () => {
@@ -302,12 +394,12 @@ describe("orders", () => {
 
 describe("planting trees", () => {
   test("costs more for each tree and is paid from the barn", () => {
-    const rich: FarmState = { ...withUnlocks("beds"), stock: { wood: 100, pumpkin: 100 } }
-    expect(treePrice(rich)).toEqual({ wood: 10, pumpkin: 3 })
+    const rich: FarmState = { ...withUnlocks("beds"), stock: { wood: 100, pumpkin: 100, meat: 0, gold: 0 } }
+    expect(treePrice(rich)).toEqual({ wood: 10, pumpkin: 3, meat: 0, gold: 0 })
     const one = plantTree(rich)
     expect(one.trees).toBe(4)
-    expect(one.stock).toEqual({ wood: 90, pumpkin: 97 })
-    expect(treePrice(one)).toEqual({ wood: 20, pumpkin: 6 })
+    expect(one.stock).toEqual({ wood: 90, pumpkin: 97, meat: 0, gold: 0 })
+    expect(treePrice(one)).toEqual({ wood: 20, pumpkin: 6, meat: 0, gold: 0 })
   })
 
   test("is not possible without enough in the barn", () => {
@@ -353,5 +445,177 @@ describe("tips after a working day", () => {
     const { report } = runFarmDay(NEW_FARM, SHUTTLE, ALL)
     expect(report.idle).toBe(0)
     expect(farmTips(report, 3).every((t) => t.startsWith("Наприкінці дня"))).toBe(true)
+  })
+})
+
+describe("goblins and the watch tower", () => {
+  test("goblins come every third day once the farm has a basket", () => {
+    // Arrange
+    const basket = withUnlocks("beds", "basket")
+
+    // Act
+    const days = [1, 2, 3, 4, 5, 6].filter((d) => goblinDay(basket, d))
+
+    // Assert
+    expect(days).toEqual([3, 6])
+    expect(goblinDay(withUnlocks("beds"), 3)).toBe(false)
+    expect(farmDay(basket, ALL, 3).enemies).toHaveLength(2)
+    expect(farmDay(basket, ALL, 2).enemies).toBeUndefined()
+  })
+
+  test("the palette gets «вдарити» and «попереду ворог?» with the basket", () => {
+    expect(farmPalette(withUnlocks("beds"), [])).not.toContain("attack")
+    expect(farmPalette(withUnlocks("beds", "basket"), [])).toEqual(expect.arrayContaining(["attack", "enemyAhead"]))
+  })
+
+  test("a ring that does not look for goblins walks into one; a ring that beats them works till the evening", () => {
+    // Arrange
+    const state = withUnlocks("beds", "basket")
+
+    // Act
+    const bare = runFarmDay(state, BARE_RING, ALL, 3).report
+    const guarded = runFarmDay(state, RING, ALL, 3).report
+
+    // Assert
+    expect(bare.stopped).toBe("crashed")
+    expect(bare.goblins).toBe(2)
+    expect(guarded.stopped).toBeNull()
+    expect(guarded.beaten).toBe(2)
+    expect(farmTips(bare, 5, "python")[0]).toContain("hero.enemy_ahead()")
+  })
+
+  test("«Нічні гості» brings goblins on every checked day and opens the tower", () => {
+    const state = recordOrder(withUnlocks("beds", "basket"), order("pumpkin-3"), 1)
+    expect(openOrders(state).map((o) => o.id)).toContain("night-guests")
+    expect(checkOrder(state, order("night-guests"), BARE_RING, ALL).grade).toBe(0)
+    const done = recordOrder(state, order("night-guests"), checkOrder(state, order("night-guests"), RING, ALL).grade)
+    expect(done.unlocked).toContain("tower")
+  })
+
+  test("the archer on the tower beats the goblins even for a ring that does not look for them", () => {
+    // Arrange
+    const state = withUnlocks("beds", "basket", "tower")
+    const level = farmDay(state, ALL, 3)
+
+    // Act
+    const { report } = runFarmDay(state, BARE_RING, ALL, 3)
+
+    // Assert
+    expect(level.towers).toHaveLength(1)
+    expect(report.stopped).toBeNull()
+    expect(report.beaten).toBe(2)
+  })
+
+  test("blocks and Python meet the goblins the same way", () => {
+    const state = withUnlocks("beds", "basket", "tower")
+    const blocks = runFarmDay(state, { language: "blocks", program: buildProgram(RING_STEPS) }, ALL, 6, true).report
+    const code = runFarmDay(state, RING, ALL, 6, true).report
+    expect(blocks).toEqual(code)
+  })
+})
+
+describe("the sheep pen and the gold mine", () => {
+  const pen: Level = { id: "p", title: "p", task: [], map: ["######", "#Sct.#", "######"], blocks: ["move", "collect", "feed", "sheepHungry"], goals: [], capacity: 3, feed: 2, turns: 50, scene: { itemsAt: [{ x: 2, y: 1, item: "carrot" }] } }
+
+  test("«нагодувати» gives the sheep a pumpkin from the hands, and meat lies on the trough after their turns", () => {
+    // Arrange
+    const session = newSession(pen)
+    heroAct(pen, session, "move", { blockId: null })
+    heroAct(pen, session, "collect", { blockId: null })
+    heroAct(pen, session, "move", { blockId: null })
+
+    // Act
+    const hungry = sheepHungry(session.world)
+    heroAct(pen, session, "feed", { blockId: null })
+
+    // Assert
+    expect(hungry).toBe(true)
+    expect(session.frames.at(-1)?.outcome).toBe("fed")
+    expect(session.world.load).toEqual([])
+    expect(sheepHungry(session.world)).toBe(false)
+    heroAct(pen, session, "feed", { blockId: null })
+    expect(session.frames.at(-1)?.outcome).toBe("cannotFeed")
+    expect(session.world.crystals.has(cellKey(3, 1))).toBe(true)
+    expect(session.world.itemKinds.get(cellKey(3, 1))).toBe("meat")
+  })
+
+  test("«нагодувати» without a pumpkin does nothing", () => {
+    const session = newSession(pen)
+    heroAct(pen, session, "move", { blockId: null })
+    heroAct(pen, session, "move", { blockId: null })
+    heroAct(pen, session, "feed", { blockId: null })
+    expect(session.frames.at(-1)?.outcome).toBe("cannotFeed")
+  })
+
+  test("gold is taken only with empty hands, and then nothing else", () => {
+    // Arrange
+    const mine: Level = { id: "m", title: "m", task: [], map: ["######", "#Sccc#", "######"], blocks: ["move", "collect"], goals: [], capacity: 5, turns: 50, scene: { item: "wood", itemsAt: [{ x: 2, y: 1, item: "wood" }, { x: 3, y: 1, item: "gold" }, { x: 4, y: 1, item: "wood" }] } }
+    const session = newSession(mine)
+
+    // Act
+    heroAct(mine, session, "move", { blockId: null })
+    heroAct(mine, session, "collect", { blockId: null })
+    heroAct(mine, session, "move", { blockId: null })
+    heroAct(mine, session, "collect", { blockId: null })
+    const withWood = session.frames.at(-1)?.outcome
+
+    // Assert
+    expect(withWood).toBe("handsFull")
+    const empty = newSession(mine)
+    heroAct(mine, empty, "move", { blockId: null })
+    heroAct(mine, empty, "move", { blockId: null })
+    heroAct(mine, empty, "collect", { blockId: null })
+    expect(empty.world.load).toEqual(["gold"])
+    heroAct(mine, empty, "move", { blockId: null })
+    heroAct(mine, empty, "collect", { blockId: null })
+    expect(empty.frames.at(-1)?.outcome).toBe("handsFull")
+  })
+
+  test("the farm gets a trough and a mine once they are built, and their blocks with them", () => {
+    // Arrange
+    const built = withUnlocks("beds", "basket", "pen", "mine")
+
+    // Act
+    const level = farmDay(built, ALL, 4)
+
+    // Assert
+    expect(level.map[2]?.[1]).toBe("t")
+    expect(level.regrowAt).toEqual([{ x: 2, y: 3, turns: 20 }])
+    expect(farmPalette(built, [])).toEqual(expect.arrayContaining(["feed", "sheepHungry"]))
+    expect(farmPalette(withUnlocks("beds"), [])).not.toContain("feed")
+    expect(farmDay(withUnlocks("beds"), ALL, 4).map[2]?.[1]).toBe(".")
+  })
+
+  test("a fed pumpkin does not reach the barn, the meat does", () => {
+    const { report } = runFarmDay(withUnlocks("beds", "basket", "pen"), SHEPHERD, ALL, 2)
+    expect(report.stored.meat).toBeGreaterThan(0)
+    expect(report.stored.wood).toBe(0)
+    expect(report.stopped).toBeNull()
+  })
+
+  test("blocks, Python and the Scratch VM feed the sheep the same way", async () => {
+    // Arrange
+    const steps: ReadonlyArray<Step> = [
+      {
+        forever: [
+          { if: { and: ["onCrystal", { and: [{ not: "handsFull" }, { not: { itemIs: "wood" } }] }] }, then: ["collect"] },
+          { if: "sheepHungry", then: ["feed"] },
+          { if: "bedEmpty", then: ["sow"] },
+          { if: "atStorehouse", then: ["store"] },
+          { if: "enemyAhead", then: ["attack"], else: [{ if: "wallAhead", then: ["turnRight"], else: ["move"] }] }
+        ]
+      }
+    ]
+    const state = withUnlocks("beds", "basket", "pen", "mine")
+
+    // Act
+    const blocks = runFarmDay(state, { language: "blocks", program: buildProgram(steps) }, ALL, 2).report
+    const code = runFarmDay(state, SHEPHERD, ALL, 2).report
+
+    // Assert
+    expect(blocks).toEqual(code)
+    const level = farmDay(state, ALL, 2)
+    const vm = await runProgram(level, buildProgram(steps))
+    expect(vm.frames.map((f) => f.outcome)).toEqual(judgeField(level, buildProgram(steps)).frames.map((f) => f.outcome))
   })
 })

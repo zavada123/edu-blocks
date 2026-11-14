@@ -1,5 +1,5 @@
 import type { Definition, Step } from "./build.ts";
-import { type Cell, type Direction, type EnemySpec, type ItemKind, type MapRows, type World } from "./world.ts";
+import { type Cell, type Direction, type EnemySpec, type ItemKind, type MapRows, type Tower, type World } from "./world.ts";
 import type { Tier } from "./xp.ts";
 /** Blocks a level can put into the palette. Hero blocks and the Scratch blocks with the same meaning. */
 export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "attack"
@@ -10,11 +10,15 @@ export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "attack"
 /** «потягнути важіль»: switches the lever under the hero; the gates open when every lever is on. */
  | "pull"
 /** «посіяти»: sows the empty bed under the hero; the crop is ripe after `grow` turns. */
- | "sow" | "wallAhead" | "enemyAhead" | "trapAhead" | "onCrystal" | "atFinish" | "handsFull" | "atStorehouse" | "onLever" | "leverOn"
+ | "sow"
+/** «нагодувати»: gives the sheep at the trough under the hero a pumpkin it carries; meat lies there later. */
+ | "feed" | "wallAhead" | "enemyAhead" | "trapAhead" | "onCrystal" | "atFinish" | "handsFull" | "atStorehouse" | "onLever" | "leverOn"
 /** «тут ‹морква›?»: a question with a choice of the item kind in the block. */
  | "itemIs"
 /** «тут порожня грядка?»: the hero stands on a bed where nothing grows or lies. */
- | "bedEmpty" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or"
+ | "bedEmpty"
+/** «вівці голодні?»: the hero stands on a trough where the sheep neither eat nor left meat. */
+ | "sheepHungry" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or"
 /** «задати / змінити лічильник» and the (лічильник) reporter: one variable, as «Змінні» in Scratch. */
  | "counter"
 /** A custom block of the level: its «визначити» hat and the call, as «Мої блоки» in Scratch. */
@@ -171,6 +175,8 @@ export interface Scene {
      * its goal says «Збери врожай».
      */
     readonly itemsAt?: ReadonlyArray<ItemAt>;
+    /** How the counter of the storehouse names it: «на складі» when left out, «у коморі» on the farm. */
+    readonly storehouseName?: string;
     readonly finish?: FinishKind;
     readonly props?: ReadonlyArray<Prop>;
     readonly npcs?: ReadonlyArray<Npc>;
@@ -219,6 +225,8 @@ export interface Level {
     };
     /** Enemies on floor cells. They act after each hero action: see `applyAction`. */
     readonly enemies?: ReadonlyArray<EnemySpec>;
+    /** Watch towers on wall cells: each shoots one enemy within its range after the enemies' turn. */
+    readonly towers?: ReadonlyArray<Tower>;
     /**
      * Which levers open which gate: the gate opens once its own levers are on, and the others do not matter to it. A
      * gate left out waits for every lever of the map, as on a map without links.
@@ -245,6 +253,14 @@ export interface Level {
         readonly y: number;
         readonly turns: number;
     }>;
+    /** Cells that grow their thing again after their own turns, not `regrow`: the gold mine of the farm. */
+    readonly regrowAt?: ReadonlyArray<{
+        readonly x: number;
+        readonly y: number;
+        readonly turns: number;
+    }>;
+    /** Turns the sheep eat a pumpkin until meat lies on the trough (`DEFAULT_FEED_TURNS` when left out). */
+    readonly feed?: number;
     /** The name of the custom block when the palette has «procedure». «мій блок» when left out. */
     readonly procedure?: string;
     /** Summer, crystals and a flag when left out. */
@@ -317,6 +333,8 @@ export declare const startWorld: (level: Level) => World;
 /** What lies on each `c` cell: its own kind from `itemsAt`, the level's `item` otherwise. */
 /** What grows on a bed when the level does not say: pumpkins in the pack. */
 export declare const BED_ITEM: ItemKind;
+/** What the sheep leave on the trough after they ate. */
+export declare const TROUGH_ITEM: ItemKind;
 export declare const goalMet: (world: World, goal: Goal) => boolean;
 export declare const allGoalsMet: (level: Level, world: World) => boolean;
 /** Which goals of the level are met now, in the order of `level.goals`: the live goal list of the game. */

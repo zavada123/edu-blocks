@@ -43,7 +43,7 @@ export interface EnemyPose {
   readonly lunge: number
 }
 
-export type EffectKind = "slash" | "smoke" | "lift" | "question" | "tired" | "alert"
+export type EffectKind = "slash" | "smoke" | "lift" | "question" | "tired" | "alert" | "arrow"
 
 export interface Effect {
   readonly kind: EffectKind
@@ -51,6 +51,8 @@ export interface Effect {
   readonly y: number
   /** 0…1 through the effect. */
   readonly progress: number
+  /** Where an arrow flies from: the tower. */
+  readonly from?: { readonly x: number; readonly y: number }
 }
 
 export interface StagePose {
@@ -165,7 +167,7 @@ const enemyPoses = (before: World, after: World, events: ReadonlyArray<GameEvent
     const old = before.enemies.find((b) => b.id === e.id) ?? e
     const moved = events.find((ev) => ev.type === "enemyMoved" && ev.id === e.id)
     const down = events.some((ev) => ev.type === "enemyDown" && ev.id === e.id)
-    const hit = events.some((ev) => ev.type === "enemyHit" && ev.id === e.id)
+    const hit = events.some((ev) => (ev.type === "enemyHit" || ev.type === "towerShot") && ev.id === e.id)
     const hits = events.some((ev) => ev.type === "heroHurt" && ev.by === e.id)
     const pos = moved?.type === "enemyMoved" ? ease(ep) : 1
     const x = moved?.type === "enemyMoved" ? lerp(moved.from.x, moved.to.x, pos) : e.x
@@ -202,11 +204,21 @@ const effectsOf = (before: World, events: ReadonlyArray<GameEvent>, p: number): 
       const smoke = after(0.55, 0.45)
       if (ev.type === "enemyDown" && smoke > 0 && smoke < 1) out.push({ kind: "smoke", x: enemy.x, y: enemy.y, progress: smoke })
     }
+    if (ev.type === "towerShot") {
+      // The arrow flies from the top of the tower to the enemy.
+      const enemy = before.enemies.find((e) => e.id === ev.id)
+      const fly = after(0.05, 0.4)
+      if (enemy !== undefined && fly > 0 && fly < 1) out.push({ kind: "arrow", x: enemy.x, y: enemy.y, from: ev.from, progress: fly })
+      if (enemy !== undefined && ev.hp <= 0) {
+        const smoke = after(0.55, 0.45)
+        if (smoke > 0 && smoke < 1) out.push({ kind: "smoke", x: enemy.x, y: enemy.y, progress: smoke })
+      }
+    }
     if (ev.type === "itemTaken") {
       const lift = after(0.1, 0.9)
       if (lift > 0 && lift < 1) out.push({ kind: "lift", x: ev.at.x, y: ev.at.y, progress: lift })
     }
-    if (ev.type === "nothingToTake" || ev.type === "handsFull" || ev.type === "nothingToStore" || ev.type === "noLever" || ev.type === "cannotSow") {
+    if (ev.type === "nothingToTake" || ev.type === "handsFull" || ev.type === "nothingToStore" || ev.type === "noLever" || ev.type === "cannotSow" || ev.type === "cannotFeed") {
       const q = after(0.1, 0.9)
       if (q > 0 && q < 1) out.push({ kind: "question", x: ev.at.x, y: ev.at.y, progress: q })
     }

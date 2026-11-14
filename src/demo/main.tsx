@@ -11,10 +11,13 @@ import {
   estatePalette,
   type EstateState,
   NEW_ESTATE,
+  PALETTE_ORDER,
   upgradeCount,
   upgradesCost
 } from "../core/estate.ts"
+import { FARM_UNLOCKS, farmCapacity, farmDay, farmPalette, type FarmState, NEW_FARM } from "../core/farm.ts"
 import { heroesCost, type HeroId } from "../core/heroes.ts"
+import type { Level } from "../core/level.ts"
 import type { Program } from "../core/program.ts"
 import { levels } from "../levels/index.ts"
 import { pythonLevels } from "../levels/python-start.ts"
@@ -36,6 +39,19 @@ type Language = "blocks" | "python"
 
 /** The value of the level choice that opens the estate instead of a level. `?level=estate` opens it. */
 const ESTATE = "estate"
+
+/**
+ * `?farm=beds,basket&day=3&trees=6` opens a working day of the farm with those unlocks, for a look at the field and
+ * the report; nothing of it is kept.
+ */
+const farmOfParams = (params: URLSearchParams): { readonly level: Level; readonly run: { readonly day: number; readonly capacity: number } } | null => {
+  const raw = params.get("farm")
+  if (raw === null) return null
+  const unlocked = FARM_UNLOCKS.map((u) => u.id).filter((u) => raw.split(",").includes(u))
+  const state: FarmState = { ...NEW_FARM, unlocked, day: Number(params.get("day") ?? 1) || 1, trees: Number(params.get("trees") ?? NEW_FARM.trees) || NEW_FARM.trees }
+  return { level: farmDay(state, farmPalette(state, PALETTE_ORDER)), run: { day: state.day, capacity: farmCapacity(state) } }
+}
+const FARM_DEMO = farmOfParams(new URLSearchParams(location.search))
 
 /** Levels of the demo that are not in the course: the farm mockup, with the coop bought so that it shows. */
 const farmTiles = farmMockup.scene?.tilemap
@@ -86,7 +102,8 @@ const Demo = () => {
   const palette = estatePalette(passed)
   const paletteKey = palette.join(" ")
   const day = useMemo(() => (id === ESTATE ? estateDay(estate, palette) : null), [id, estate, paletteKey])
-  const level = day?.level ?? [...levels, ...extraLevels].find((l) => l.id === id) ?? firstLevel
+  const level = FARM_DEMO?.level ?? day?.level ?? [...levels, ...extraLevels].find((l) => l.id === id) ?? firstLevel
+  const farmProps = FARM_DEMO === null ? {} : { farm: FARM_DEMO.run }
 
   const total = Object.values(best).reduce((sum, b) => sum + b.xp, 0)
   // Coins come from the best stars of each level, less the heroes bought: nothing to store but the purchases.
@@ -211,6 +228,7 @@ const Demo = () => {
             {...navigation}
             {...(sources[day === null ? level.id : ESTATE] === undefined ? {} : { source: sources[day === null ? level.id : ESTATE] })}
             {...(day === null ? {} : { estate: { day, best: harvests[String(estate.day)] ?? 0 } })}
+            {...farmProps}
           />
         ) : (
           <EduBlocks
@@ -221,6 +239,7 @@ const Demo = () => {
             xp={{ total, best: best[level.id]?.xp ?? 0 }}
             onComplete={onComplete}
             {...navigation}
+            {...farmProps}
             {...(day === null
               ? showSolution
                 ? { program: solutionProgram(level.id) }
