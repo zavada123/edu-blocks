@@ -95,6 +95,12 @@ export interface TileInfo {
   readonly edges?: string
   /** The same as bits, N 1, E 2, S 4, W 8: the tile for a cell is the one whose mask matches its neighbours. */
   readonly mask?: number
+  /** Inner corners, from `NE`, `SE`, `SW`, `NW`: both sides go on, but the diagonal neighbour is another ground. */
+  readonly corners?: string
+  /** The same as bits, NE 1, SE 2, SW 4, NW 8. See `core/terrain.ts`. */
+  readonly cornerMask?: number
+  /** The ground this tile's edges open onto, as `grass` under a path. */
+  readonly over?: string
   readonly verify?: boolean
 }
 
@@ -277,6 +283,7 @@ export const assetRef = (pack: string, id: string): string => `${pack}:${id}`
 /** Every asset reference of a level: its sprites, the looks of its items, goal, villagers and enemies. */
 export const assetRefsOf = (level: {
   readonly scene?: {
+    readonly terrain?: { readonly base?: string; readonly kinds: Readonly<Record<string, string>> }
     readonly sprites?: ReadonlyArray<{ readonly asset: string }>
     readonly npcs?: ReadonlyArray<{ readonly look?: string }>
     readonly itemLook?: string
@@ -290,7 +297,9 @@ export const assetRefsOf = (level: {
     ...(scene.npcs ?? []).map((n) => n.look),
     ...(level.enemies ?? []).map((e) => e.look),
     scene.itemLook,
-    scene.finishLook
+    scene.finishLook,
+    // A ground of a painting is `sprite#terrain`: its sprite is the tileset.
+    ...[scene.terrain?.base, ...Object.values(scene.terrain?.kinds ?? {})].map((ref) => (ref === undefined || !ref.includes("#") ? undefined : ref.slice(0, ref.lastIndexOf("#"))))
   ]
   return [...new Set(refs.filter((r): r is string => r !== undefined))]
 }

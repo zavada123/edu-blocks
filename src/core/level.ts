@@ -153,6 +153,26 @@ export interface TileMap {
   readonly layers: ReadonlyArray<TileLayer>
 }
 
+/**
+ * Ground painted by cells, as LDtk and Tiled paint terrain: each letter of `rows` names a ground of `kinds`, and the
+ * field picks every cell's tile from its neighbours (`core/terrain.ts`), so edges and corners come by themselves. Only
+ * looks, like `TileMap`: where the hero can go is still the `map`.
+ */
+export interface TerrainPaint {
+  /** The level cell of the first cell of `rows`: 0, 0 when the painting starts where the level starts. */
+  readonly x?: number
+  readonly y?: number
+  /**
+   * The ground under every cell of the field, as `"ninja-adventure:tileset/floor#grass"`. Without it the field's own
+   * grass lies under the painting.
+   */
+  readonly base?: string
+  /** What each letter paints: `{ p: "ninja-adventure:tileset/floor#path" }`. Drawn in this order. */
+  readonly kinds: Readonly<Record<string, string>>
+  /** Row by row, a letter of `kinds` per cell, or `.` for the base. Short rows end in the base. */
+  readonly rows: ReadonlyArray<string>
+}
+
 export type Season = "spring" | "summer" | "autumn" | "winter"
 
 /** How the level looks: the season, the floor, the things on the map. The rules of the game stay the same. */
@@ -178,6 +198,8 @@ export interface Scene {
   readonly finishLook?: AssetRef
   /** A hand-drawn map of tiles: the field then shows it and adds no meadow, trees or bushes of its own. */
   readonly tilemap?: TileMap
+  /** Ground painted by cells, with edges picked by themselves: paths, water, sand. Drawn over the field's ground. */
+  readonly terrain?: TerrainPaint
 }
 
 export interface Level {
