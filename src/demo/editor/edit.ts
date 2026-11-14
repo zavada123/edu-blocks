@@ -1,5 +1,6 @@
 import { setTile, tileAt, type MapTile } from "../../core/kit.ts"
-import type { AssetRef, Level, Npc, NpcKind, PlacedSprite, PropKind } from "../../core/level.ts"
+import type { AssetRef, Level, Npc, NpcKind, PlacedSprite, PropKind, TerrainPaint } from "../../core/level.ts"
+import { dropUnused, EMPTY, letterFor, paintCell } from "../../core/terrain.ts"
 import { cellKey, type EnemyKind } from "../../core/world.ts"
 import { PROPS } from "../../ui/look.ts"
 
@@ -20,6 +21,8 @@ export type Brush =
       readonly tiles?: PlacedSprite["tiles"]
       readonly layer?: PlacedSprite["layer"]
     }
+  /** A ground painted by cells (`Scene.terrain`), as `"ninja-adventure:tileset/floor#path"`; edges come by themselves. */
+  | { readonly kind: "ground"; readonly ground: string }
   | { readonly kind: "erase" }
 
 const inside = (level: Level, x: number, y: number) => y >= 0 && x >= 0 && y < level.map.length && x < (level.map[y]?.length ?? 0)
@@ -27,6 +30,7 @@ const inside = (level: Level, x: number, y: number) => y >= 0 && x >= 0 && y < l
 /** Whether dragging the mouse keeps painting: tiles and small ground pictures, not figures and houses. */
 export const dragPaints = (brush: Brush): boolean =>
   brush.kind === "erase" ||
+  brush.kind === "ground" ||
   (brush.kind === "tile" && brush.tile !== "start" && brush.tile !== "finish") ||
   (brush.kind === "sprite" && brush.tiles !== undefined && brush.tiles[2] === 1 && brush.tiles[3] === 1)
 
@@ -86,7 +90,48 @@ export const paint = (level: Level, brush: Brush, x: number, y: number): Level =
       return placeEnemy(level, brush, x, y)
     case "sprite":
       return placeSprite(level, brush, x, y)
+    case "ground":
+      return paintGround(level, brush.ground, x, y)
   }
+}
+
+const NO_PAINT: TerrainPaint = { kinds: {}, rows: [] }
+
+/** Paints a ground on a cell, or takes it away (`null`), leaving the painting without grounds nothing paints. */
+export const paintGround = (level: Level, ground: string | null, x: number, y: number): Level => {
+  const before = level.scene?.terrain ?? NO_PAINT
+  const { paint, letter } = ground === null ? { paint: before, letter: EMPTY } : letterFor(before, ground)
+  const after = dropUnused(paintCell(paint, x, y, letter))
+  if (after.rows.length === 0 && after.base === undefined) {
+    const { terrain: _, ...scene } = level.scene ?? {}
+    return { ...level, scene }
+  }
+  return withScene(level, { terrain: after })
+}
+
+/** The right button with a brush: a ground brush takes away only the ground, any other the topmost thing. */
+export const eraseWith = (level: Level, brush: Brush, x: number, y: number): Level =>
+  brush.kind === "ground" ? paintGround(level, null, x, y) : erase(level, x, y)
+
+/** The ground under the whole field (`TerrainPaint.base`), or the field's own grass (`null`). */
+export const setBaseGround = (level: Level, base: string | null): Level => {
+  const { base: _, ...paint } = level.scene?.terrain ?? NO_PAINT
+  if (base !== null) return withScene(level, { terrain: { ...paint, base } })
+  if (paint.rows.length > 0) return withScene(level, { terrain: paint })
+  const { terrain: __, ...scene } = level.scene ?? {}
+  return { ...level, scene }
+}
+
+/**
+ * Lays a ground under every cell the hero can walk on, on a base: a new level looks finished at once. What was
+ * painted stays where the hero cannot walk.
+ */
+export const groundUnderPath = (level: Level, ground: string, base: string): Level => {
+  let next = setBaseGround(level, base)
+  level.map.forEach((row, y) => {
+    for (let x = 0; x < row.length; x++) next = paintGround(next, tileAt(level.map, x, y) === "wall" ? null : ground, x, y)
+  })
+  return next
 }
 
 const propCovers = (p: { readonly kind: PropKind; readonly x: number; readonly y: number }, x: number, y: number) => {

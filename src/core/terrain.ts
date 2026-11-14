@@ -147,6 +147,12 @@ export const baseTiles = (
   return out
 }
 
+/** The level cells a painting covers with a ground, as `x,y` keys: no tree or bush of the meadow grows there. */
+export const paintedCells = (paint: TerrainPaint): ReadonlyArray<string> => {
+  const { x: ox, y: oy } = originOf(paint)
+  return paint.rows.flatMap((row, y) => [...row].flatMap((c, x) => (c === EMPTY || paint.kinds[c] === undefined ? [] : [`${ox + x},${oy + y}`])))
+}
+
 /** The grounds of a painting in drawing order: the letters as `kinds` lists them. */
 export const paintLetters = (paint: TerrainPaint): ReadonlyArray<string> => Object.keys(paint.kinds).filter((k) => k !== EMPTY)
 
@@ -160,19 +166,54 @@ export const paintSprites = (paint: TerrainPaint): ReadonlyArray<string> => [
   )
 ]
 
-/** A painting with one cell changed; the rows grow to reach it. Cells left of or above row 0 are not painted. */
+/**
+ * A painting with one cell changed. The rows grow to reach the cell, to the left and up too (the origin moves), and
+ * shrink back when the cell was at their end.
+ */
 export const paintCell = (paint: TerrainPaint, x: number, y: number, letter: string): TerrainPaint => {
-  const { x: ox, y: oy } = originOf(paint)
+  if (letter.length !== 1) return paint
+  const origin = originOf(paint)
+  if (letter === EMPTY && letterAt(paint, x - origin.x, y - origin.y) === EMPTY) return paint
+  // Move the origin left or up when the cell lies before it.
+  const ox = Math.min(origin.x, x)
+  const oy = Math.min(origin.y, y)
+  const rows: Array<string> = [
+    ...Array.from({ length: origin.y - oy }, () => ""),
+    ...paint.rows.map((r) => (r === "" ? "" : EMPTY.repeat(origin.x - ox) + r))
+  ]
   const cx = x - ox
   const cy = y - oy
-  if (cx < 0 || cy < 0 || letter.length !== 1) return paint
-  const rows = [...paint.rows]
   while (rows.length <= cy) rows.push("")
   const row = (rows[cy] ?? "").padEnd(cx + 1, EMPTY)
-  if (row[cx] === letter) return paint
   rows[cy] = (row.slice(0, cx) + letter + row.slice(cx + 1)).replace(/\.+$/, "")
+  return trimmed({ ...paint, x: ox, y: oy, rows })
+}
+
+/** The same painting without empty rows around it and empty columns on its left: the origin moves instead. */
+const trimmed = (paint: TerrainPaint): TerrainPaint => {
+  const rows = [...paint.rows]
   while (rows.length > 0 && rows[rows.length - 1] === "") rows.pop()
-  return { ...paint, rows }
+  let top = 0
+  while (top < rows.length && rows[top] === "") top++
+  const kept = rows.slice(top)
+  const lead = Math.min(...kept.filter((r) => r !== "").map((r) => r.length - r.replace(/^\.+/, "").length))
+  const left = Number.isFinite(lead) ? lead : 0
+  const { x, y } = originOf(paint)
+  return { ...paint, x: x + left, y: y + top, rows: kept.map((r) => r.slice(left)) }
+}
+
+/** The letter that paints a ground in a painting: the one it already has, or the first free one. */
+export const letterFor = (paint: TerrainPaint, ref: string): { readonly paint: TerrainPaint; readonly letter: string } => {
+  const known = Object.entries(paint.kinds).find(([, r]) => r === ref)?.[0]
+  if (known !== undefined) return { paint, letter: known }
+  const letter = [..."abcdefghijklmnopqrstuvwxyz"].find((c) => paint.kinds[c] === undefined) ?? "z"
+  return { paint: { ...paint, kinds: { ...paint.kinds, [letter]: ref } }, letter }
+}
+
+/** Grounds no cell paints any more are left out of `kinds`. */
+export const dropUnused = (paint: TerrainPaint): TerrainPaint => {
+  const used = new Set(paint.rows.join(""))
+  return { ...paint, kinds: Object.fromEntries(Object.entries(paint.kinds).filter(([k]) => used.has(k))) }
 }
 
 /** What is wrong with the painted ground of a level, for `checkLevel`. Empty for a level without one. */

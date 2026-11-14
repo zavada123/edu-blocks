@@ -4,7 +4,7 @@ import { describe, expect, test } from "vitest"
 import { type AssetPack, assetRefsOf, type TileInfo } from "./assets.ts"
 import { checkLevel } from "./kit.ts"
 import type { Level, TerrainPaint } from "./level.ts"
-import { baseTiles, paintCell, paintSprites, paintTiles, parseTerrainRef, pickTile, shapeAt, terrainIssues } from "./terrain.ts"
+import { baseTiles, dropUnused, letterFor, paintCell, paintedCells, paintSprites, paintTiles, parseTerrainRef, pickTile, shapeAt, terrainIssues } from "./terrain.ts"
 
 const ninja = JSON.parse(readFileSync(fileURLToPath(new URL("../../assets/ninja-adventure/manifest.json", import.meta.url)), "utf8")) as AssetPack
 const tilesOf = (sprite: string): ReadonlyArray<TileInfo> | null => {
@@ -73,6 +73,10 @@ describe("paintTiles", () => {
     expect(tiles[2]?.tile).toBe(at(7, 7))
   })
 
+  test("tells which cells it covers", () => {
+    expect(paintedCells(paint)).toEqual(["1,2", "2,2", "3,2", "3,3"])
+  })
+
   test("draws nothing while the tileset is not there", () => {
     expect(paintTiles(paint, "p", () => null)).toEqual([])
   })
@@ -92,12 +96,24 @@ describe("paintCell", () => {
 
   test("grows the rows to reach a cell and trims them back", () => {
     const one = paintCell(paint, 2, 1, "p")
-    expect(one.rows).toEqual(["", "..p"])
+    expect(one).toMatchObject({ x: 2, y: 1, rows: ["p"] })
+    expect(paintCell(one, 4, 2, "p").rows).toEqual(["p", "..p"])
     expect(paintCell(one, 2, 1, ".").rows).toEqual([])
   })
 
-  test("leaves cells before the first row alone", () => {
-    expect(paintCell({ ...paint, x: 1 }, 0, 0, "p")).toEqual({ ...paint, x: 1 })
+  test("moves the origin to paint the meadow left of and above the level", () => {
+    const one = paintCell(paint, 1, 1, "p")
+    const two = paintCell(one, -1, 0, "p")
+    expect(two).toMatchObject({ x: -1, y: 0, rows: ["p", "..p"] })
+    expect(paintCell(two, -1, 0, ".")).toMatchObject({ x: 1, y: 1, rows: ["p"] })
+    expect(paintTiles(two, "p", tilesOf).map((t) => [t.x, t.y])).toEqual([[-1, 0], [1, 1]])
+  })
+
+  test("gives a ground a letter of its own and forgets grounds nothing paints", () => {
+    const { paint: withWater, letter } = letterFor(paint, "ninja-adventure:tileset/water#water")
+    expect(letter).toBe("a")
+    expect(letterFor(withWater, PATH).letter).toBe("p")
+    expect(dropUnused({ ...withWater, rows: ["a."] }).kinds).toEqual({ a: "ninja-adventure:tileset/water#water" })
   })
 })
 
