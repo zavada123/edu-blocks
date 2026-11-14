@@ -2,7 +2,7 @@ import type { HeroId } from "../../core/heroes.ts"
 import type { ItemKind, Npc, Prop, Scene, TerrainPaint, TileMap } from "../../core/level.ts"
 import { baseTiles, paintLetters, paintTiles, parseTerrainRef } from "../../core/terrain.ts"
 import { tilesOfKind } from "../../core/tilemap.ts"
-import { cellKey, gatesOpen, type World } from "../../core/world.ts"
+import { type Cell, cellKey, gateOpen, type World } from "../../core/world.ts"
 import {
   type Art,
   art,
@@ -580,6 +580,49 @@ const plate = (ctx: Ctx, text: string, x: number, y: number) => {
   ctx.fillText(text, x + 1, y + HEART - 1.5)
 }
 
+/** The hero stands on a cell next to the villager, sideways or across a corner. */
+const nextTo = (npc: Cell, hero: Cell): boolean => Math.abs(Math.round(hero.x) - npc.x) <= 1 && Math.abs(Math.round(hero.y) - npc.y) <= 1
+
+/** The widest line of a speech bubble, in field pixels. */
+const SPEECH_WIDTH = CELL * 5
+const SPEECH_LINE = 7
+
+/** Splits a line into lines no wider than the bubble. */
+const wrapText = (ctx: Ctx, text: string, width: number): ReadonlyArray<string> => {
+  const lines: Array<string> = []
+  let line = ""
+  for (const word of text.trim().split(/\s+/)) {
+    const next = line === "" ? word : `${line} ${word}`
+    if (line !== "" && ctx.measureText(next).width > width) {
+      lines.push(line)
+      line = word
+    } else line = next
+  }
+  if (line !== "") lines.push(line)
+  return lines
+}
+
+/** What a villager says, in a bubble over their head. */
+const speech = (ctx: Ctx, npc: Cell, text: string) => {
+  ctx.font = "600 6px system-ui, sans-serif"
+  const lines = wrapText(ctx, text, SPEECH_WIDTH)
+  const w = Math.ceil(Math.max(...lines.map((l) => ctx.measureText(l).width))) + 6
+  const h = lines.length * SPEECH_LINE + 4
+  const cx = npc.x * CELL + CELL / 2
+  const bottom = npc.y * CELL - CELL * 0.6
+  const left = Math.max(1, cx - w / 2)
+  roundRect(ctx, left, bottom - h, w, h, 3, "rgba(255, 255, 255, 0.95)")
+  ctx.beginPath()
+  ctx.moveTo(cx - 2.5, bottom)
+  ctx.lineTo(cx + 2.5, bottom)
+  ctx.lineTo(cx, bottom + 3)
+  ctx.closePath()
+  ctx.fill()
+  ctx.fillStyle = "#2b2118"
+  ctx.textAlign = "left"
+  lines.forEach((line, i) => ctx.fillText(line, left + 3, bottom - h + 2 + (i + 1) * SPEECH_LINE - 1.5))
+}
+
 const hud = (ctx: Ctx, { pose, scenery, counter }: ActorsInput) => {
   const { world } = pose
   const x = scenery.view.x * CELL + 3
@@ -624,10 +667,9 @@ export const drawActors = (ctx: Ctx, input: ActorsInput) => {
   }
   if (world.finish !== null) finishLook(ctx, scene, world.finish.x, world.finish.y, now, still)
   if (world.storehouse !== null) storehouseLook(ctx, scene, world.storehouse.x, world.storehouse.y, world.stored)
-  const open = gatesOpen(world)
   for (const key of world.gates) {
     const [gx = 0, gy = 0] = key.split(",").map(Number)
-    gateLook(ctx, gx, gy, open)
+    gateLook(ctx, gx, gy, gateOpen(world, key))
   }
   for (const key of world.levers) {
     const [lx = 0, ly = 0] = key.split(",").map(Number)
@@ -666,6 +708,7 @@ export const drawActors = (ctx: Ctx, input: ActorsInput) => {
   for (const f of figures.sort((a, b) => a.y - b.y)) f.draw()
   // Roofs and crowns of the tile map cover the hero who walks under them.
   if (map !== undefined && tileset !== null) for (const t of tilesOfKind(map, "above")) drawTile(ctx, tileset, t.tile, t.x, t.y)
+  for (const npc of scene.npcs ?? []) if (npc.say !== undefined && npc.say.trim() !== "" && nextTo(npc, pose.hero)) speech(ctx, npc, npc.say)
   for (const fx of pose.effects) effect(ctx, fx, scene, now)
   if (!still && season.weather !== null) drawWeather(ctx, season.weather, scenery.view, CELL, now)
   hud(ctx, input)

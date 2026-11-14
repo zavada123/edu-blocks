@@ -55,8 +55,13 @@ export interface World {
   readonly levers: ReadonlySet<string>
   /** The levers that are on now. */
   readonly leversOn: ReadonlySet<string>
-  /** Gate cells (`G`): a wall while any lever is off, floor once all of them are on. */
+  /** Gate cells (`G`): a wall while any of its levers is off, floor once all of them are on. */
   readonly gates: ReadonlySet<string>
+  /**
+   * The levers of a gate that has its own (`Level.links`): the gate opens once these are on. A gate missing here
+   * waits for every lever of the map.
+   */
+  readonly gateLevers: ReadonlyMap<string, ReadonlySet<string>>
   /** What lies on each `c` cell, taken or not: the level's items (`startWorld`). A crystal where it is left out. */
   readonly itemKinds: ReadonlyMap<string, ItemKind>
 }
@@ -215,6 +220,7 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
     levers,
     leversOn,
     gates,
+    gateLevers: new Map(),
     itemKinds: new Map()
   }
 }
@@ -238,11 +244,23 @@ export const itemCount = (world: World, kind: ItemKind): { readonly total: numbe
   }
 }
 
-/** Every lever is on, so the gates stand open. True on a map without levers. */
-export const gatesOpen = (world: World): boolean => world.leversOn.size === world.levers.size
+/** The levers that open a gate: its own ones, or every lever of the map. */
+export const leversOf = (world: World, gate: string): ReadonlySet<string> => world.gateLevers.get(gate) ?? world.levers
+
+/** A gate stands open once all of its levers are on. */
+export const gateOpen = (world: World, gate: string): boolean => [...leversOf(world, gate)].every((key) => world.leversOn.has(key))
+
+/** Every gate stands open. True on a map without gates. */
+export const gatesOpen = (world: World): boolean => [...world.gates].every((gate) => gateOpen(world, gate))
+
+/** How many gates stand open now. */
+const openGates = (world: World): number => [...world.gates].filter((gate) => gateOpen(world, gate)).length
 
 /** A gate that is shut now. */
-export const isClosedGate = (world: World, x: number, y: number): boolean => world.gates.has(cellKey(x, y)) && !gatesOpen(world)
+export const isClosedGate = (world: World, x: number, y: number): boolean => {
+  const key = cellKey(x, y)
+  return world.gates.has(key) && !gateOpen(world, key)
+}
 
 /** A wall, the edge of the map or a shut gate: nobody walks there now. */
 export const isWall = (world: World, x: number, y: number): boolean =>
@@ -433,10 +451,9 @@ const pull = (world: World): ActionResult => {
   if (on) leversOn.add(key)
   else leversOn.delete(key)
   const after = { ...world, leversOn }
-  const wasOpen = gatesOpen(world)
-  const isOpen = gatesOpen(after)
-  const gate: ReadonlyArray<GameEvent> =
-    world.gates.size === 0 || wasOpen === isOpen ? [] : [isOpen ? { type: "gatesOpened" } : { type: "gatesClosed" }]
+  const wasOpen = openGates(world)
+  const isOpen = openGates(after)
+  const gate: ReadonlyArray<GameEvent> = wasOpen === isOpen ? [] : [isOpen > wasOpen ? { type: "gatesOpened" } : { type: "gatesClosed" }]
   return { world: after, outcome: "pulled", events: [{ type: "leverPulled", at: here, on }, ...gate] }
 }
 

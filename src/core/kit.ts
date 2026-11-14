@@ -1,6 +1,6 @@
 import { buildProgram, type Step } from "./build.ts"
 import { judgeProgram } from "./judge.ts"
-import { allGoalsMet, type BlockName, type Goal, type Level, startWorld } from "./level.ts"
+import { allGoalsMet, type BlockName, type Goal, type Level, MAX_SAY, startWorld } from "./level.ts"
 import { checkProgram } from "./program.ts"
 import { terrainIssues } from "./terrain.ts"
 import { tilemapIssues } from "./tilemap.ts"
@@ -150,7 +150,8 @@ export const checkLevel = (level: Level): ReadonlyArray<Issue> => {
   if (wants("store") && world.storehouse === null) error("Мета — віднести на склад, а на мапі немає складу H")
   if (wants("store") && world.totalCrystals === 0) error("Мета — віднести на склад, а на мапі немає жодного c")
   if (wants("store") && (!has("collect") || !has("store"))) error("Щоб віднести на склад, у палітрі мають бути «взяти» і «віднести на склад»")
-  if (world.gates.size > 0 && !gatesOpen(world) && !has("pull")) error("Ворота зачинені, а в палітрі немає «потягнути важіль»")
+  for (const issue of linkIssues(level, world)) issues.push(issue)
+  if (world.gates.size > 0 && !gatesOpen(startWorld(level)) && !has("pull")) error("Ворота зачинені, а в палітрі немає «потягнути важіль»")
   if (world.gates.size > 0 && world.levers.size === 0) warning("На мапі є ворота, але немає важелів: ворота завжди відчинені")
   if (world.levers.size > 0 && world.gates.size === 0) warning("На мапі є важелі, але немає воріт G: важелі нічого не відчиняють")
   const pick = level.goals.find((g) => g.type === "pick")
@@ -196,6 +197,8 @@ export const checkLevel = (level: Level): ReadonlyArray<Issue> => {
 
   const onPath = (level.scene?.npcs ?? []).filter((n) => !world.walls.has(cellKey(n.x, n.y)) && n.x >= 0 && n.y >= 0 && n.x < world.width && n.y < world.height)
   if (onPath.length > 0) warning("Людина стоїть на стежці: герой пройде крізь неї. Краще постав її на стіну поруч")
+  for (const n of level.scene?.npcs ?? [])
+    if (n.say !== undefined && n.say.length > MAX_SAY) warning(`Репліка людини на (${n.x}, ${n.y}) задовга: не більше ${MAX_SAY} знаків`)
   if (level.stars !== undefined && level.stars.two < level.stars.three)
     error("Для двох зірок блоків має бути не менше, ніж для трьох")
   if (level.stars === undefined) warning("Без меж для зірок будь-який розв'язок отримає три зірки")
@@ -208,6 +211,29 @@ export const checkLevel = (level: Level): ReadonlyArray<Issue> => {
     const checked = checkProgram(level, broken)
     if ("error" in checked) error(`Зламана програма не підходить до рівня: ${checked.error}`)
     else if (judgeProgram(level, broken).passed) error("Зламана програма проходить рівень: у ній немає помилки")
+  }
+  return issues
+}
+
+/**
+ * What is wrong with the links of gates and levers (`Level.links`): a link from a cell that is no gate, to a cell
+ * that is no lever, a gate linked twice or to no lever at all.
+ */
+export const linkIssues = (level: Level, world: World): ReadonlyArray<Issue> => {
+  const issues: Array<Issue> = []
+  const seen = new Set<string>()
+  for (const link of level.links ?? []) {
+    const { x, y } = link.gate
+    const key = cellKey(x, y)
+    if (!world.gates.has(key)) {
+      issues.push({ level: "error", text: `Зв'язок воріт на (${x}, ${y}): там немає воріт G` })
+      continue
+    }
+    if (seen.has(key)) issues.push({ level: "error", text: `Ворота на (${x}, ${y}) мають два зв'язки: залиш один` })
+    seen.add(key)
+    const lost = link.levers.filter((c) => !world.levers.has(cellKey(c.x, c.y)))
+    for (const c of lost) issues.push({ level: "error", text: `Ворота на (${x}, ${y}) пов'язані з (${c.x}, ${c.y}), а там немає важеля` })
+    if (link.levers.length === lost.length) issues.push({ level: "warning", text: `Ворота на (${x}, ${y}) не пов'язані з жодним важелем: вони завжди відчинені` })
   }
   return issues
 }
