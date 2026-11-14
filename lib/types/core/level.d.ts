@@ -1,5 +1,5 @@
 import type { Definition, Step } from "./build.ts";
-import { type Direction, type EnemySpec, type ItemKind, type MapRows, type World } from "./world.ts";
+import { type Cell, type Direction, type EnemySpec, type ItemKind, type MapRows, type World } from "./world.ts";
 import type { Tier } from "./xp.ts";
 /** Blocks a level can put into the palette. Hero blocks and the Scratch blocks with the same meaning. */
 export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "attack"
@@ -8,13 +8,22 @@ export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "attack"
 /** «зачекати»: the hero stands one turn while the enemies move. */
  | "wait"
 /** «потягнути важіль»: switches the lever under the hero; the gates open when every lever is on. */
- | "pull" | "wallAhead" | "enemyAhead" | "trapAhead" | "onCrystal" | "atFinish" | "handsFull" | "atStorehouse" | "onLever" | "leverOn"
+ | "pull"
+/** «посіяти»: sows the empty bed under the hero; the crop is ripe after `grow` turns. */
+ | "sow" | "wallAhead" | "enemyAhead" | "trapAhead" | "onCrystal" | "atFinish" | "handsFull" | "atStorehouse" | "onLever" | "leverOn"
 /** «тут ‹морква›?»: a question with a choice of the item kind in the block. */
- | "itemIs" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or"
+ | "itemIs"
+/** «тут порожня грядка?»: the hero stands on a bed where nothing grows or lies. */
+ | "bedEmpty" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or"
 /** «задати / змінити лічильник» and the (лічильник) reporter: one variable, as «Змінні» in Scratch. */
  | "counter"
 /** A custom block of the level: its «визначити» hat and the call, as «Мої блоки» in Scratch. */
  | "procedure";
+/** A gate (`G`) and the levers (`L`, `l`) that open it. */
+export interface GateLink {
+    readonly gate: Cell;
+    readonly levers: ReadonlyArray<Cell>;
+}
 /** What the hero must achieve. All goals of a level are checked together. */
 export type Goal = {
     readonly type: "crystals";
@@ -58,7 +67,11 @@ export interface Npc {
     readonly y: number;
     /** A picture from an asset pack instead of the villager's own (`AssetRef`): any character or animal. */
     readonly look?: AssetRef;
+    /** What the villager says when the hero stands next to them: a hint or a line of the story. Only looks. */
+    readonly say?: string;
 }
+/** The longest line a villager says: it has to fit in a bubble over the field. */
+export declare const MAX_SAY = 80;
 /**
  * A picture from an asset pack: `"<pack>:<sprite id>"`, as `"ninja-adventure:animal/cat"`. See `assets/README.md`.
  * The pack is loaded by the field when a level needs it; until then the picture is not drawn.
@@ -126,6 +139,25 @@ export interface TileMap {
     /** Drawn in this order within their kind. */
     readonly layers: ReadonlyArray<TileLayer>;
 }
+/**
+ * Ground painted by cells, as LDtk and Tiled paint terrain: each letter of `rows` names a ground of `kinds`, and the
+ * field picks every cell's tile from its neighbours (`core/terrain.ts`), so edges and corners come by themselves. Only
+ * looks, like `TileMap`: where the hero can go is still the `map`.
+ */
+export interface TerrainPaint {
+    /** The level cell of the first cell of `rows`: 0, 0 when the painting starts where the level starts. */
+    readonly x?: number;
+    readonly y?: number;
+    /**
+     * The ground under every cell of the field, as `"ninja-adventure:tileset/floor#grass"`. Without it the field's own
+     * grass lies under the painting.
+     */
+    readonly base?: string;
+    /** What each letter paints: `{ p: "ninja-adventure:tileset/floor#path" }`. Drawn in this order. */
+    readonly kinds: Readonly<Record<string, string>>;
+    /** Row by row, a letter of `kinds` per cell, or `.` for the base. Short rows end in the base. */
+    readonly rows: ReadonlyArray<string>;
+}
 export type Season = "spring" | "summer" | "autumn" | "winter";
 /** How the level looks: the season, the floor, the things on the map. The rules of the game stay the same. */
 export interface Scene {
@@ -150,6 +182,8 @@ export interface Scene {
     readonly finishLook?: AssetRef;
     /** A hand-drawn map of tiles: the field then shows it and adds no meadow, trees or bushes of its own. */
     readonly tilemap?: TileMap;
+    /** Ground painted by cells, with edges picked by themselves: paths, water, sand. Drawn over the field's ground. */
+    readonly terrain?: TerrainPaint;
 }
 export interface Level {
     readonly id: string;
@@ -185,12 +219,32 @@ export interface Level {
     };
     /** Enemies on floor cells. They act after each hero action: see `applyAction`. */
     readonly enemies?: ReadonlyArray<EnemySpec>;
+    /**
+     * Which levers open which gate: the gate opens once its own levers are on, and the others do not matter to it. A
+     * gate left out waits for every lever of the map, as on a map without links.
+     */
+    readonly links?: ReadonlyArray<GateLink>;
     /** Hearts of the hero. 3 by default; they matter only where there are enemies. */
     readonly hearts?: number;
     /** Steps («крок уперед») the hero may take. No limit when left out. */
     readonly maxSteps?: number;
     /** How many things the hero can carry at once («руки повні?»). No limit when left out. */
     readonly capacity?: number;
+    /**
+     * A working day: the run lasts this many actions and then ends with no fault, and the goals are not checked on the
+     * way. Хутір (`farm.ts`) counts what the day brought; a program that loops for ever is the normal case there.
+     */
+    readonly turns?: number;
+    /** Turns a sown bed grows until its crop is ripe (`DEFAULT_GROW_TURNS` when left out). */
+    readonly grow?: number;
+    /** Turns until a thing taken off a cell that is not a bed grows there again, as wood on a tree. Never when left out. */
+    readonly regrow?: number;
+    /** Cells where a thing is growing at the start, and the turns until it lies there ripe: a tree that has no wood yet. */
+    readonly growingAt?: ReadonlyArray<{
+        readonly x: number;
+        readonly y: number;
+        readonly turns: number;
+    }>;
     /** The name of the custom block when the palette has «procedure». «мій блок» when left out. */
     readonly procedure?: string;
     /** Summer, crystals and a flag when left out. */
@@ -260,6 +314,9 @@ export interface LevelField {
 }
 /** The world at the start of a level: the map, the enemies and the hearts. */
 export declare const startWorld: (level: Level) => World;
+/** What lies on each `c` cell: its own kind from `itemsAt`, the level's `item` otherwise. */
+/** What grows on a bed when the level does not say: pumpkins in the pack. */
+export declare const BED_ITEM: ItemKind;
 export declare const goalMet: (world: World, goal: Goal) => boolean;
 export declare const allGoalsMet: (level: Level, world: World) => boolean;
 /** Which goals of the level are met now, in the order of `level.goals`: the live goal list of the game. */

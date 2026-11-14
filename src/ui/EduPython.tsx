@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef, useState } from "react"
 import { COUNTER_NAME, procedureName } from "../core/blocks.ts"
 import { brokenSource } from "../core/broken.ts"
 import { estateHarvest, type Harvest } from "../core/estate.ts"
+import { type FarmReport, farmReport } from "../core/farm.ts"
 import { combineFields } from "../core/fields.ts"
 import { joinSources, linesBefore } from "../core/pieces.ts"
 import type { BlockName, Level } from "../core/level.ts"
@@ -18,7 +19,7 @@ import { Boxes } from "./Boxes.tsx"
 import type { Skin } from "./stage/Stage.tsx"
 import { gradePieces, JOIN_TIP, PiecesBar, usePieces } from "./pieces.tsx"
 import { usePlayer } from "./Timeline.tsx"
-import { type EstateRun, harvestRewardOf, type HeroXp, type Reward, rewardOf, Verdict } from "./Verdict.tsx"
+import { type EstateRun, type FarmRun, farmRewardOf, harvestRewardOf, type HeroXp, type Reward, rewardOf, Verdict } from "./Verdict.tsx"
 import "./python.css"
 
 /**
@@ -44,6 +45,8 @@ export interface PythonReport {
   readonly coins: number
   /** On a day of the estate: what the run gathered (`estateHarvest`). */
   readonly harvest: Harvest | null
+  /** On a working day of the farm: the report of the day (`farmReport`). The app adds it to the barn on «Завершити день». */
+  readonly farm: FarmReport | null
 }
 
 export interface EduPythonProps extends GameNavigation {
@@ -58,6 +61,8 @@ export interface EduPythonProps extends GameNavigation {
   readonly xp?: HeroXp
   /** A day of the estate: `level` is its level, and the result shows the harvest instead of stars and XP. */
   readonly estate?: EstateRun
+  /** A working day of the farm: `level` is its level (`farmDay`), and the result shows the report of the day. */
+  readonly farm?: FarmRun
   readonly onComplete?: (report: PythonReport) => void
   /** After each change of the code. */
   readonly onSourceChange?: (source: string) => void
@@ -117,7 +122,7 @@ type Phase =
       readonly canGoOn: boolean
     }
 
-export const EduPython = ({ level, skin = "ninja", large = false, source, speed = 400, xp, estate, onComplete, onSourceChange, onMap, onNext, onLevel, progress, onSkinChange, coins, ownedHeroes, onBuyHero }: EduPythonProps) => {
+export const EduPython = ({ level, skin = "ninja", large = false, source, speed = 400, xp, estate, farm, onComplete, onSourceChange, onMap, onNext, onLevel, progress, onSkinChange, coins, ownedHeroes, onBuyHero }: EduPythonProps) => {
   const { fields, index: fieldIndex, setIndex: setFieldIndex, runs, setRuns, field, start } = useFields(level)
   const methods = useMemo(() => pythonMethodsOf(level.blocks), [level])
   const snippets = useMemo(() => snippetsOf(level, methods), [level, methods])
@@ -168,8 +173,14 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
     const firstTry = failedRef.current === 0 && graded.pieces === 1
     if (!result.passed) failedRef.current += 1
     const harvest = estate === undefined ? null : estateHarvest(estate.day, result, graded.pieces)
+    const firstRun = fieldRuns[0]
+    const dayReport = farm === undefined || firstRun === undefined ? null : farmReport(level, firstRun, farm.day)
     const { runXp, runCoins, reward } =
-      harvest === null || estate === undefined ? rewardOf(level, result, firstTry, xp, coins) : harvestRewardOf(harvest, estate, firstTry, xp, coins)
+      dayReport !== null
+        ? farmRewardOf(dayReport, firstTry, xp)
+        : harvest === null || estate === undefined
+          ? rewardOf(level, result, firstTry, xp, coins)
+          : harvestRewardOf(harvest, estate, firstTry, xp, coins)
     onEndRef.current = () => {
       setPhase({ kind: "done", result: shown, reward, advice: graded.capped ? [JOIN_TIP] : [], full: result, piece, canGoOn: graded.canGoOn })
       setVerdictOpen(true)
@@ -184,14 +195,15 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
         firstTry,
         xp: runXp,
         coins: runCoins,
-        harvest
+        harvest,
+        farm: dayReport
       })
     }
     setRuns(fieldRuns)
     setFieldIndex(result.field ?? 0)
     setResult(shown)
     restart(shown.frames.length)
-  }, [level, large, onComplete, reset, restart, setFieldIndex, setRuns, xp, coins, estate, doneRef])
+  }, [level, large, onComplete, reset, restart, setFieldIndex, setRuns, xp, coins, estate, farm, doneRef])
 
   // «Продовжити звідси»: the hero stays where the run ended, the editor gets an empty piece.
   const goOn = useCallback(() => {
@@ -292,6 +304,7 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
             onContinue={phase.canGoOn ? goOn : undefined}
             hintStep={hintStep}
             onHint={() => setHintStep((n) => n + 1)}
+            farmCapacity={farm?.capacity ?? 0}
           />
         )
       }

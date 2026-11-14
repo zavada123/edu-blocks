@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
 import { estateDay, NEW_ESTATE } from "../core/estate.ts"
-import { harvestRewardOf, harvestText } from "./Verdict.tsx"
+import { farmRewardOf, harvestRewardOf, harvestText } from "./Verdict.tsx"
 
 const harvest = (apple: number, carrot: number, egg: number, full = false) => ({ apple, carrot, egg, full, coins: apple * 2 + carrot * 3 + egg * 4 + (full ? 5 : 0) })
 
@@ -26,5 +26,22 @@ describe("harvest in the result", () => {
     expect(better.reward.coins).toEqual({ gain: 5, total: 45 })
     expect(better.reward.total).toBe(100)
     expect(worse.reward.coins).toEqual({ gain: 0, total: 0 })
+  })
+})
+
+describe("farm report in the result", () => {
+  test("a working day gives no XP and no coins, only its report", () => {
+    // Arrange
+    const report = { day: 2, stored: { wood: 4, pumpkin: 1 }, carried: { wood: 0, pumpkin: 0 }, byTurn: [], idle: 0, used: 120, turns: 120, stopped: null }
+
+    // Act
+    const run = farmRewardOf(report, true, { total: 50, best: 0 })
+
+    // Assert
+    expect(run.runXp).toBe(0)
+    expect(run.runCoins).toBe(0)
+    expect(run.reward.farm).toBe(report)
+    expect(run.reward.coins).toBeNull()
+    expect(run.reward.total).toBe(50)
   })
 })

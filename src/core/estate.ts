@@ -121,7 +121,7 @@ const SEASON_DAYS = 7
 const SEASONS: ReadonlyArray<Season> = ["autumn", "winter", "spring", "summer"]
 
 /** The same numbers for the same day on any computer (mulberry32). */
-const randomOf = (seed: number): (() => number) => {
+export const randomOf = (seed: number): (() => number) => {
   let a = seed >>> 0
   return () => {
     a = (a + 0x6d2b79f5) >>> 0
@@ -143,7 +143,7 @@ const pick = (random: () => number, count: number, chance: number, atLeastOne: b
 export const estateSeason = (day: number): Season => SEASONS[Math.floor((Math.max(1, day) - 1) / SEASON_DAYS) % SEASONS.length] ?? "autumn"
 
 /** Blocks in the order of the palette. */
-const BLOCK_ORDER: ReadonlyArray<BlockName> = [
+export const PALETTE_ORDER: ReadonlyArray<BlockName> = [
   "move",
   "turnLeft",
   "turnRight",
@@ -152,6 +152,7 @@ const BLOCK_ORDER: ReadonlyArray<BlockName> = [
   "store",
   "wait",
   "pull",
+  "sow",
   "wallAhead",
   "enemyAhead",
   "trapAhead",
@@ -162,6 +163,7 @@ const BLOCK_ORDER: ReadonlyArray<BlockName> = [
   "onLever",
   "leverOn",
   "itemIs",
+  "bedEmpty",
   "repeat",
   "forever",
   "repeatUntil",
@@ -177,7 +179,7 @@ const BLOCK_ORDER: ReadonlyArray<BlockName> = [
 /** The blocks of the estate: those of every level the student passed, and always the hero's walk and «взяти». */
 export const estatePalette = (passed: ReadonlyArray<Level>): ReadonlyArray<BlockName> => {
   const have = new Set<BlockName>(["move", "turnLeft", "turnRight", "collect", ...passed.flatMap((l) => l.blocks)])
-  return BLOCK_ORDER.filter((b) => have.has(b))
+  return PALETTE_ORDER.filter((b) => have.has(b))
 }
 
 /** What the student bought for looks: flowers in the middle of the yard (x from 2 to trees + 2 is a wall every day), a cat and a dog. */

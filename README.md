@@ -45,6 +45,7 @@ The student-facing interface is in Ukrainian. It was built for [EduProstir](http
 - **Mobile-first layout:** field on top, blocks below, a palette without the category column, drag blocks with a finger.
 - **Large mode** for grade 3.
 - **Coins and a hero shop:** a run gives coins for the level tier and each star (only above the best earlier run). Four heroes open with the hero level (ninja, robot, rover, bee), and six more are sold for 60–250 coins (knight, eskimo, forest girl, traveller, samurai, gold knight). Your app keeps the coins and the purchases.
+- **Хутір 2.0, a farm to automate** (`farmDay`, `runFarmDay`, `checkOrder`): a farm that stays from day to day. A working day is a run of a fixed number of turns (`turns`): the worker does the student's program, usually a loop for ever, wood grows again on the cut trees (`regrow`) and a sown pumpkin ripens on its bed (`grow`, «посіяти», «тут порожня грядка?», `hero.sow()`, `hero.bed_empty()`). What reaches the barn is the yield (`farmReport`, by kind and by turn). Orders of the village ask for a yield in one day on three different days; «Ефективно» asks for it sooner and «Універсально» on a bigger farm, so a better algorithm, not more days, opens the beds, the basket, the long day and the cart. See «Farm» below.
 - **Хутір, the hero's estate** (`estateDay`): the student writes a morning routine once, and every new day checks it on a new map: other apples are ripe, the end of the yard is snowed in, the hens lay or not. Days come from passed levels, the harvest pays coins, and upgrades for coins (more trees, a carrot bed, a hen house) make a routine learned by heart stop working.
 - **Python code, as in Tynker or CodeCombat** (`edu-blocks/python`): the same levels with a code editor instead of blocks. `hero.move()`, `while not hero.at_finish():`, functions, variables and lists; the line the hero acts on lights up, and every mistake is explained in Ukrainian with its line.
 - **«Python: перші кроки»** (`pythonLevels`, `pythonStartChapters`, `courseChapters("python")`, `chapterLabel`): six small chapters only for Python, before the course, for students who have never written code: «Команди героя» (the hero moves from the first line, `print` is one more command, and «Виправ робота» has the three usual mistakes), «Змінна» (a variable, explained once as a box with a name; the first levels have the commands already written), «Рахуємо», «Що лежить у змінній» (words, whole numbers, numbers with a dot, True/False), «Питаємо» (`input()` with answers in words) and «Слова чи число» (`3 + 4 = 34?`, `int`, `float`, `str`, small problems). Each level brings one idea in a lesson of two or three short sentences (`lesson`) and its own starter code (`starter`); a word such as «змінна» or «метод» comes only after the student has seen the thing. Each level has a ladder of hints (`hints`: a nudge, the idea, a frame with gaps), opened one step at a time in the verdict, and a level that brings a new command gives the hero a thing (`gift`). Under the code, «Змінні» show the variables of the program as the run plays (`Frame.boxes`, `RunResult.boxes`, `boxesOf`): `5` and `"5"` look different. `input()` gets its answers from the level (`inputs`, per field), so with fields of other answers the answer cannot be written in by hand. `uses` makes a level pass only when the program uses a variable, `print`, `input`, `int`, `float` or `str`, and `prints` asks for a printed line. Reference solutions are in `pythonSolutions`.
@@ -334,6 +335,26 @@ A run is limited to 200,000 interpreter steps, 100 nested calls and 1,000 hero a
 statement, a call, a variable and an operator are one each, numbers and texts are free, and `while not …:` is one
 «повторити до». The tests check that every level's solution and hundreds of random programs, written as blocks and
 as Python, play the same frames and earn the same stars.
+
+### Farm
+
+`edu-blocks/core` keeps the farm as pure functions; your app stores a `FarmState` (`NEW_FARM` to start).
+
+```ts
+import { checkOrder, farmPalette, finishDay, NEW_FARM, openOrders, recordOrder, runFarmDay } from "edu-blocks/core"
+
+const blocks = farmPalette(farm, learnedBlocks)
+// A trial run: show result.frames on the field, report under it. The farm does not change.
+const { level, result, report } = runFarmDay(farm, { language: "python", source }, blocks)
+// A working day: the yield goes to the barn and the next day comes.
+farm = finishDay(farm, report)
+// An order: 0 not done, 1 «Виконано», 2 «Ефективно», 3 «Універсально».
+const order = openOrders(farm)[0]
+const { grade } = checkOrder(farm, order, { language: "python", source }, blocks)
+farm = recordOrder(farm, order, grade)
+```
+
+The farm is a ring of paths: the barn in the farmhouse at the top-left corner, the forest along the top path and, once built, a bed under each tree on the bottom path. The map letters are the usual ones and `b` (an empty bed), `B` (a sown bed) and `R` (a ripe pumpkin on a bed); `growingAt` lists the cells where a thing is still growing in the morning. The orders (`FARM_ORDERS`) are checked by tests with reference programs: the ring of the whole farm, a shuttle along the forest row that brings more wood, and a ring that takes only pumpkins. Blocks, Python and the Scratch VM give the same day.
 
 ### Counter and custom blocks
 

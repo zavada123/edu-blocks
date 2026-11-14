@@ -15,6 +15,8 @@ export type BlockName =
   | "wait"
   /** «потягнути важіль»: switches the lever under the hero; the gates open when every lever is on. */
   | "pull"
+  /** «посіяти»: sows the empty bed under the hero; the crop is ripe after `grow` turns. */
+  | "sow"
   | "wallAhead"
   | "enemyAhead"
   | "trapAhead"
@@ -26,6 +28,8 @@ export type BlockName =
   | "leverOn"
   /** «тут ‹морква›?»: a question with a choice of the item kind in the block. */
   | "itemIs"
+  /** «тут порожня грядка?»: the hero stands on a bed where nothing grows or lies. */
+  | "bedEmpty"
   | "repeat"
   | "forever"
   | "repeatUntil"
@@ -252,6 +256,17 @@ export interface Level {
   readonly maxSteps?: number
   /** How many things the hero can carry at once («руки повні?»). No limit when left out. */
   readonly capacity?: number
+  /**
+   * A working day: the run lasts this many actions and then ends with no fault, and the goals are not checked on the
+   * way. Хутір (`farm.ts`) counts what the day brought; a program that loops for ever is the normal case there.
+   */
+  readonly turns?: number
+  /** Turns a sown bed grows until its crop is ripe (`DEFAULT_GROW_TURNS` when left out). */
+  readonly grow?: number
+  /** Turns until a thing taken off a cell that is not a bed grows there again, as wood on a tree. Never when left out. */
+  readonly regrow?: number
+  /** Cells where a thing is growing at the start, and the turns until it lies there ripe: a tree that has no wood yet. */
+  readonly growingAt?: ReadonlyArray<{ readonly x: number; readonly y: number; readonly turns: number }>
   /** The name of the custom block when the palette has «procedure». «мій блок» when left out. */
   readonly procedure?: string
   /** Summer, crystals and a flag when left out. */
@@ -330,9 +345,17 @@ export const startWorld = (level: Level): World => {
   const hearts = Math.max(1, Math.round(level.hearts ?? world.hearts))
   const energy = level.maxSteps === undefined ? null : Math.max(0, Math.round(level.maxSteps))
   const capacity = level.capacity === undefined ? null : Math.max(1, Math.round(level.capacity))
-  const itemKinds = itemKindsOf(world, level.scene ?? {})
+  const itemKinds = itemKindsOf(world, level.scene ?? {}, (level.growingAt ?? []).map((g) => cellKey(g.x, g.y)))
   const gateLevers = gateLeversOf(world, level.links ?? [])
-  return { ...world, enemies: (level.enemies ?? []).map(enemyOf), hearts, maxHearts: hearts, energy, capacity, itemKinds, gateLevers }
+  const growTurns = level.grow === undefined ? world.growTurns : Math.max(1, Math.round(level.grow))
+  const regrowTurns = level.regrow === undefined ? null : Math.max(1, Math.round(level.regrow))
+  const growing = new Map([
+    ...[...world.growing.keys()].map((key): [string, number] => [key, growTurns]),
+    ...(level.growingAt ?? [])
+      .filter((g) => !world.walls.has(cellKey(g.x, g.y)) && !world.crystals.has(cellKey(g.x, g.y)))
+      .map((g): [string, number] => [cellKey(g.x, g.y), Math.max(1, Math.round(g.turns))])
+  ])
+  return { ...world, enemies: (level.enemies ?? []).map(enemyOf), hearts, maxHearts: hearts, energy, capacity, itemKinds, gateLevers, growTurns, regrowTurns, growing }
 }
 
 /** The levers of each linked gate: links to cells that are no gate or no lever are left out (`checkLevel` tells). */
@@ -347,9 +370,12 @@ const gateLeversOf = (world: World, links: ReadonlyArray<GateLink>): ReadonlyMap
   )
 
 /** What lies on each `c` cell: its own kind from `itemsAt`, the level's `item` otherwise. */
-const itemKindsOf = (world: World, scene: Scene): ReadonlyMap<string, ItemKind> => {
+/** What grows on a bed when the level does not say: pumpkins in the pack. */
+export const BED_ITEM: ItemKind = "carrot"
+
+const itemKindsOf = (world: World, scene: Scene, growing: ReadonlyArray<string>): ReadonlyMap<string, ItemKind> => {
   const own = new Map((scene.itemsAt ?? []).map((i) => [cellKey(i.x, i.y), i.item]))
-  return new Map([...world.crystals].map((key) => [key, own.get(key) ?? scene.item ?? "crystal"]))
+  return new Map([...new Set([...world.crystals, ...world.beds, ...growing])].map((key) => [key, own.get(key) ?? (world.beds.has(key) ? BED_ITEM : (scene.item ?? "crystal"))]))
 }
 
 export const goalMet = (world: World, goal: Goal): boolean => {

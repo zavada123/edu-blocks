@@ -1,5 +1,6 @@
 import { coinGain, coinsFor } from "../core/coins.ts"
 import { type EstateDay, FULL_DAY_COINS, type Harvest } from "../core/estate.ts"
+import { type FarmReport, farmTips, RESOURCE_NAMES, RESOURCES, totalOf } from "../core/farm.ts"
 import { type Level, speaksTo } from "../core/level.ts"
 import type { FailReason, RunResult } from "../core/program.ts"
 import { heroLevelOf, xpFor, xpGain } from "../core/xp.ts"
@@ -42,6 +43,14 @@ export interface Reward {
   readonly coins: { readonly gain: number; readonly total: number } | null
   /** On a day of the estate: what the run gathered. The result then shows it instead of stars and XP. */
   readonly harvest: Harvest | null
+  /** On a working day of the farm: its report. The result then shows it instead of stars and XP. */
+  readonly farm: FarmReport | null
+}
+
+/** A working day of the farm, from the app: which day it is (`farmDay`) and how much the worker carries. */
+export interface FarmRun {
+  readonly day: number
+  readonly capacity: number
 }
 
 /** A day of the estate, from the app: the day (`estateDay`) and the coins of its best run so far. */
@@ -88,7 +97,8 @@ export const rewardOf = (
       firstTry,
       total: xp === undefined ? null : xp.total + gain,
       coins: coins === undefined ? null : { gain: coinsGained, total: coins.total + coinsGained },
-      harvest: null
+      harvest: null,
+      farm: null
     }
   }
 }
@@ -105,9 +115,16 @@ export const harvestRewardOf = (
   return {
     runXp: 0,
     runCoins: harvest.coins,
-    reward: { gain: 0, firstTry, total: xp?.total ?? null, coins: { gain, total: (coins?.total ?? 0) + gain }, harvest }
+    reward: { gain: 0, firstTry, total: xp?.total ?? null, coins: { gain, total: (coins?.total ?? 0) + gain }, harvest, farm: null }
   }
 }
+
+/** The reward of a working day of the farm: no XP and no coins, its yield goes to the barn when the app ends the day. */
+export const farmRewardOf = (report: FarmReport, firstTry: boolean, xp: HeroXp | undefined): { readonly runXp: number; readonly runCoins: number; readonly reward: Reward } => ({
+  runXp: 0,
+  runCoins: 0,
+  reward: { gain: 0, firstTry, total: xp?.total ?? null, coins: null, harvest: null, farm: report }
+})
 
 /** «3 гриби», «1 гарбуз», «5 ягнят». */
 const countOf = (n: number, forms: readonly [string, string, string]): string => {
@@ -266,7 +283,8 @@ export const Verdict = ({
   onNext,
   onContinue,
   hintStep = 0,
-  onHint
+  onHint,
+  farmCapacity = 0
 }: {
   readonly level: Level
   readonly result: RunResult
@@ -282,7 +300,11 @@ export const Verdict = ({
   readonly hintStep?: number
   /** Opens one more step of `level.hints`; without it the level's single `hint` is shown. */
   readonly onHint?: (() => void) | undefined
+  /** On a working day of the farm: what the worker carries at once, for the tips of the report. */
+  readonly farmCapacity?: number
 }) => {
+  if (reward.farm !== null)
+    return <FarmVerdict report={reward.farm} capacity={farmCapacity} language={language} onClose={onClose} onNext={onNext} />
   if (reward.harvest !== null)
     return <HarvestVerdict result={result} reward={reward} language={language} onClose={onClose} onNext={onNext} onContinue={onContinue} />
   // A course level speaks of blocks: in Python it shows neither its ladder nor its gift.
@@ -390,3 +412,85 @@ const HarvestVerdict = ({
     </div>
   </div>
 )
+
+/** The bars of the chart: what the barn held, sampled so that the chart has at most this many bars. */
+const CHART_BARS = 24
+
+const chartOf = (report: FarmReport): ReadonlyArray<number> => {
+  const totals = report.byTurn.map(totalOf)
+  if (totals.length === 0) return []
+  const step = Math.max(1, Math.ceil(totals.length / CHART_BARS))
+  return Array.from({ length: Math.ceil(totals.length / step) }, (_, i) => totals[Math.min(totals.length - 1, (i + 1) * step - 1)] ?? 0)
+}
+
+/** The report of a working day: what went to the barn, the turns spent for nothing, the chart and what to improve. */
+const FarmVerdict = ({
+  report,
+  capacity,
+  language,
+  onClose,
+  onNext
+}: {
+  readonly report: FarmReport
+  readonly capacity: number
+  readonly language: Language
+  readonly onClose: () => void
+  /** «Завершити день»: the app puts the yield in the barn and starts the next day. */
+  readonly onNext: (() => void) | undefined
+}) => {
+  const bars = chartOf(report)
+  const top = Math.max(1, ...bars)
+  const tips = farmTips(report, capacity, language)
+  const failed = report.stopped === "badProgram" || report.stopped === "noStart" || report.stopped === "tooLong"
+  return (
+    <div className="eb-verdict-layer">
+      <div className="eb-verdict eb-verdict-ok eb-farm-report eb-frame eb-parchment" role="dialog" aria-modal="false" aria-labelledby="eb-verdict-title">
+        <h3 id="eb-verdict-title">Звіт дня {report.day}</h3>
+        {failed && <p>{report.detail === undefined ? FAIL_TEXT[report.stopped ?? "badProgram"] : report.line === undefined ? report.detail : `Рядок ${report.line}: ${report.detail}`}</p>}
+        <dl className="eb-farm-tiles">
+          {RESOURCES.map((r) => (
+            <div key={r} className="eb-farm-tile">
+              <dd>{report.stored[r]}</dd>
+              <dt>{RESOURCE_NAMES[r]} у коморі</dt>
+            </div>
+          ))}
+          <div className="eb-farm-tile">
+            <dd>{report.idle}</dd>
+            <dt>ходів дарма</dt>
+          </div>
+          <div className="eb-farm-tile">
+            <dd>{totalOf(report.carried)}</dd>
+            <dt>лишилось у руках</dt>
+          </div>
+        </dl>
+        {bars.length > 0 && (
+          <figure className="eb-farm-chart">
+            <div className="eb-farm-bars" aria-hidden="true">
+              {bars.map((b, i) => (
+                <span key={i} style={{ height: `${Math.round((b / top) * 100)}%` }} />
+              ))}
+            </div>
+            <figcaption>
+              Усе в коморі за день: {totalOf(report.stored)} за {report.used} з {report.turns} ходів.
+            </figcaption>
+          </figure>
+        )}
+        {tips.map((t) => (
+          <p key={t} className="eb-hint">
+            {t}
+          </p>
+        ))}
+        <div className="eb-verdict-actions">
+          <button type="button" className={onNext === undefined ? "eb-btn eb-btn-gold" : "eb-btn"} onClick={onClose} autoFocus={onNext === undefined}>
+            Змінити програму
+          </button>
+          {onNext !== undefined && (
+            <button type="button" className="eb-btn eb-btn-go" onClick={onNext} autoFocus>
+              Завершити день →
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}

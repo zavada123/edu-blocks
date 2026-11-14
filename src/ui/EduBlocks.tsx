@@ -9,6 +9,7 @@ import { combineFields } from "../core/fields.ts"
 import type { Level, Scene } from "../core/level.ts"
 import { adviseRun } from "../core/advice.ts"
 import { estateHarvest, type Harvest } from "../core/estate.ts"
+import { type FarmReport, farmReport } from "../core/farm.ts"
 import { judgeFields } from "../core/judge.ts"
 import { isPiece, joinPrograms, pieceBlockId, scriptCount } from "../core/pieces.ts"
 import type { FailReason, Program, RunResult } from "../core/program.ts"
@@ -26,7 +27,7 @@ import { usePlayer } from "./Timeline.tsx"
 import { toolboxXml } from "./toolbox.ts"
 import { Boxes } from "./Boxes.tsx"
 import { counterBoxes } from "../core/python/boxes.ts"
-import { type EstateRun, harvestRewardOf, type HeroXp, type Reward, rewardOf, Verdict } from "./Verdict.tsx"
+import { type EstateRun, type FarmRun, farmRewardOf, harvestRewardOf, type HeroXp, type Reward, rewardOf, Verdict } from "./Verdict.tsx"
 
 /** What the trainer gives the app after each run. The server runs `program` again before it trusts `passed`. */
 export interface BlocksReport {
@@ -47,6 +48,8 @@ export interface BlocksReport {
   readonly coins: number
   /** On a day of the estate: what the run gathered (`estateHarvest`). */
   readonly harvest: Harvest | null
+  /** On a working day of the farm: the report of the day (`farmReport`). The app adds it to the barn on «Завершити день». */
+  readonly farm: FarmReport | null
 }
 
 export type { HeroXp } from "./Verdict.tsx"
@@ -65,6 +68,8 @@ export interface EduBlocksProps extends GameNavigation {
   readonly xp?: HeroXp
   /** A day of the estate: `level` is its level, and the result shows the harvest instead of stars and XP. */
   readonly estate?: EstateRun
+  /** A working day of the farm: `level` is its level (`farmDay`), and the result shows the report of the day. */
+  readonly farm?: FarmRun
   readonly onComplete?: (report: BlocksReport) => void
   /** After each change of the blocks, with the program as it is now. An app that has its own check button sends it. */
   readonly onProgramChange?: (program: Program) => void
@@ -174,6 +179,7 @@ export const EduBlocks = ({
   speed = 400,
   xp,
   estate,
+  farm,
   onComplete,
   onProgramChange,
   onMap,
@@ -340,8 +346,14 @@ export const EduBlocks = ({
     const firstTry = failedRef.current === 0 && graded.pieces === 1
     if (!result.passed) failedRef.current += 1
     const harvest = estate === undefined ? null : estateHarvest(estate.day, result, graded.pieces)
+    const firstRun = fieldRuns[0]
+    const dayReport = farm === undefined || firstRun === undefined ? null : farmReport(level, firstRun, farm.day)
     const { runXp, runCoins, reward } =
-      harvest === null || estate === undefined ? rewardOf(level, result, firstTry, xp, coins) : harvestRewardOf(harvest, estate, firstTry, xp, coins)
+      dayReport !== null
+        ? farmRewardOf(dayReport, firstTry, xp)
+        : harvest === null || estate === undefined
+          ? rewardOf(level, result, firstTry, xp, coins)
+          : harvestRewardOf(harvest, estate, firstTry, xp, coins)
     const advice = adviseRun(fields[shown] ?? level, prog, result)
     const finish = () => {
       setPhase({
@@ -365,7 +377,8 @@ export const EduBlocks = ({
         firstTry,
         xp: runXp,
         coins: runCoins,
-        harvest
+        harvest,
+        farm: dayReport
       })
     }
     onEndRef.current = finish
@@ -373,7 +386,7 @@ export const EduBlocks = ({
     setFieldIndex(shown)
     setResult(graded.shown)
     restart(graded.shown.frames.length)
-  }, [level, fields, large, onComplete, reset, restart, setFieldIndex, setRuns, xp, coins, estate, doneRef])
+  }, [level, fields, large, onComplete, reset, restart, setFieldIndex, setRuns, xp, coins, estate, farm, doneRef])
 
   /** Puts a program into the editor, as the student would have built it. */
   const loadProgram = useCallback(
@@ -478,6 +491,7 @@ export const EduBlocks = ({
             onContinue={phase.canGoOn ? goOn : undefined}
             hintStep={hintStep}
             onHint={() => setHintStep((n) => n + 1)}
+            farmCapacity={farm?.capacity ?? 0}
           />
         )
       }

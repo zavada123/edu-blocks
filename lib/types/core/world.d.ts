@@ -10,7 +10,8 @@ export interface Cell {
 /**
  * Map rows, top to bottom. `#` wall, `.` floor, `S` start, `c` crystal, `F` finish, `x` trap (thin ice or a pit:
  * the hero can step on it, and the run ends there), `H` storehouse (floor where «віднести на склад» puts down what the
- * hero carries), `L` a lever that is off, `l` a lever that is on, `G` a gate (shut like a wall until every lever is on).
+ * hero carries), `L` a lever that is off, `l` a lever that is on, `G` a gate (shut like a wall until every lever is on),
+ * `b` an empty bed (floor where «посіяти» sows), `B` a sown bed (the crop grows there), `R` a bed with a ripe crop.
  * A space or a cell outside the rows is a wall too.
  */
 export type MapRows = ReadonlyArray<string>;
@@ -52,11 +53,26 @@ export interface World {
     readonly levers: ReadonlySet<string>;
     /** The levers that are on now. */
     readonly leversOn: ReadonlySet<string>;
-    /** Gate cells (`G`): a wall while any lever is off, floor once all of them are on. */
+    /** Gate cells (`G`): a wall while any of its levers is off, floor once all of them are on. */
     readonly gates: ReadonlySet<string>;
+    /**
+     * The levers of a gate that has its own (`Level.links`): the gate opens once these are on. A gate missing here
+     * waits for every lever of the map.
+     */
+    readonly gateLevers: ReadonlyMap<string, ReadonlySet<string>>;
     /** What lies on each `c` cell, taken or not: the level's items (`startWorld`). A crystal where it is left out. */
     readonly itemKinds: ReadonlyMap<string, ItemKind>;
+    /** Bed cells (`b`, `B`, `R`): «посіяти» sows there, and a crop taken there leaves an empty bed. */
+    readonly beds: ReadonlySet<string>;
+    /** Cells where a thing grows now, and the turns until it lies there ripe: sown beds and trees that grow again. */
+    readonly growing: ReadonlyMap<string, number>;
+    /** Turns a sown bed grows until its crop is ripe. */
+    readonly growTurns: number;
+    /** Turns until a thing taken off a cell that is not a bed grows there again (a tree), or null when it never does. */
+    readonly regrowTurns: number | null;
 }
+/** Turns a bed grows from sowing to a ripe crop, when the level does not say. */
+export declare const DEFAULT_GROW_TURNS = 20;
 /** Monsters from the pack. Which one only changes the picture. */
 export type EnemyKind = "slime" | "spirit" | "goblin" | "skull" | "flame" | "bear" | "toad";
 /**
@@ -130,7 +146,11 @@ export declare const itemCount: (world: World, kind: ItemKind) => {
     readonly total: number;
     readonly left: number;
 };
-/** Every lever is on, so the gates stand open. True on a map without levers. */
+/** The levers that open a gate: its own ones, or every lever of the map. */
+export declare const leversOf: (world: World, gate: string) => ReadonlySet<string>;
+/** A gate stands open once all of its levers are on. */
+export declare const gateOpen: (world: World, gate: string) => boolean;
+/** Every gate stands open. True on a map without gates. */
 export declare const gatesOpen: (world: World) => boolean;
 /** A gate that is shut now. */
 export declare const isClosedGate: (world: World, x: number, y: number) => boolean;
@@ -151,7 +171,9 @@ export declare const handsFull: (world: World) => boolean;
 export declare const onLever: (world: World) => boolean;
 /** The hero stands on a lever that is on. */
 export declare const leverOn: (world: World) => boolean;
-export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull";
+/** The hero stands on a bed where nothing grows: «посіяти» would sow there. */
+export declare const bedEmpty: (world: World) => boolean;
+export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow";
 /** What one action did, for the animation and the error message. */
 export type Outcome = "moved" | "crashed" | "fell" | "tired" | "turned" | "collected" | "nothingToCollect" | "enemyHit" | "enemyDown" | "swingMissed"
 /** «взяти» with full hands: the thing stays where it lies. */
@@ -167,7 +189,11 @@ export type Outcome = "moved" | "crashed" | "fell" | "tired" | "turned" | "colle
 /** «потягнути важіль» on a lever: it is switched. */
  | "pulled"
 /** «потягнути важіль» where there is no lever. */
- | "noLever";
+ | "noLever"
+/** «посіяти» on an empty bed: the crop grows there now. */
+ | "sown"
+/** «посіяти» off a bed, or on a bed where something grows or lies. */
+ | "cannotSow";
 /**
  * What happened in the world, in the order it happened: the hero's action first, then each enemy's turn.
  * A frame keeps the events, so an animation shows what was done, not only where everybody stands now.
@@ -268,6 +294,21 @@ export type GameEvent = {
 /** A lever went off: the gates shut. */
  | {
     readonly type: "gatesClosed";
+}
+/** The hero sowed the bed under it. */
+ | {
+    readonly type: "seedSown";
+    readonly at: Cell;
+}
+/** «посіяти» where the hero could not sow. */
+ | {
+    readonly type: "cannotSow";
+    readonly at: Cell;
+}
+/** A crop got ripe or a tree grew a thing again: it lies on the cell now. */
+ | {
+    readonly type: "itemGrew";
+    readonly at: Cell;
 };
 export interface ActionResult {
     readonly world: World;

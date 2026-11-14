@@ -2,7 +2,7 @@ import type { Box } from "./python/boxes.ts"
 import { opcodeOf } from "./blocks.ts"
 import { allGoalsMet, goalStatus, type Level, startWorld } from "./level.ts"
 import { fatalReason, MAX_ACTIONS, type Session } from "./program.ts"
-import { type Action, applyAction, atFinish, atStorehouse, enemyAhead, handsFull, itemIs, type ItemKind, leverOn, onCrystal, onLever, trapAhead, wallAhead, type World } from "./world.ts"
+import { type Action, applyAction, atFinish, atStorehouse, bedEmpty, enemyAhead, handsFull, itemIs, type ItemKind, leverOn, onCrystal, onLever, trapAhead, wallAhead, type World } from "./world.ts"
 
 /**
  * The hero API: what a program may tell the hero to do and ask the hero about. Every way of programming calls
@@ -11,10 +11,10 @@ import { type Action, applyAction, atFinish, atStorehouse, enemyAhead, handsFull
  */
 
 /** The questions a program may ask, for «якщо» and «повторити до». */
-export type Sensor = "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn"
+export type Sensor = "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "bedEmpty"
 
 /** The hero's actions, in palette order. */
-export const HERO_ACTIONS: ReadonlyArray<Action> = ["move", "turnLeft", "turnRight", "collect", "attack", "store", "wait", "pull"]
+export const HERO_ACTIONS: ReadonlyArray<Action> = ["move", "turnLeft", "turnRight", "collect", "attack", "store", "wait", "pull", "sow"]
 
 /** Each question and how the world answers it. */
 export const HERO_SENSORS: Readonly<Record<Sensor, (world: World) => boolean>> = {
@@ -26,7 +26,8 @@ export const HERO_SENSORS: Readonly<Record<Sensor, (world: World) => boolean>> =
   handsFull,
   atStorehouse,
   onLever,
-  leverOn
+  leverOn,
+  bedEmpty
 }
 
 const SENSOR_NAMES = Object.keys(HERO_SENSORS) as ReadonlyArray<Sensor>
@@ -77,7 +78,10 @@ export const heroAct = (level: Level, session: Session, action: Action, source: 
   })
   const fatal = fatalReason(outcome)
   if (fatal !== null) return end(session, fatal)
-  if (allGoalsMet(level, world)) return end(session, null)
+  // A working day ends when its turns are spent, however the goals stand.
+  if (level.turns !== undefined) {
+    if (session.frames.length >= level.turns) return end(session, null)
+  } else if (allGoalsMet(level, world)) return end(session, null)
   if (world.hearts === 0) return end(session, "defeated")
   if (session.frames.length >= MAX_ACTIONS) return end(session, "tooLong")
   return false

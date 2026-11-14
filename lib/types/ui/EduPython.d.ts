@@ -1,9 +1,10 @@
 import { type Harvest } from "../core/estate.ts";
+import { type FarmReport } from "../core/farm.ts";
 import type { Level } from "../core/level.ts";
 import type { FailReason } from "../core/program.ts";
 import { type GameNavigation } from "./GameScreen.tsx";
 import type { Skin } from "./stage/Stage.tsx";
-import { type EstateRun, type HeroXp } from "./Verdict.tsx";
+import { type EstateRun, type FarmRun, type HeroXp } from "./Verdict.tsx";
 import "./python.css";
 /**
  * The game with Python code instead of blocks, as in Tynker or CodeCombat: the field on one side, the code on the
@@ -27,6 +28,8 @@ export interface PythonReport {
     readonly coins: number;
     /** On a day of the estate: what the run gathered (`estateHarvest`). */
     readonly harvest: Harvest | null;
+    /** On a working day of the farm: the report of the day (`farmReport`). The app adds it to the barn on «Завершити день». */
+    readonly farm: FarmReport | null;
 }
 export interface EduPythonProps extends GameNavigation {
     readonly level: Level;
@@ -40,10 +43,12 @@ export interface EduPythonProps extends GameNavigation {
     readonly xp?: HeroXp;
     /** A day of the estate: `level` is its level, and the result shows the harvest instead of stars and XP. */
     readonly estate?: EstateRun;
+    /** A working day of the farm: `level` is its level (`farmDay`), and the result shows the report of the day. */
+    readonly farm?: FarmRun;
     readonly onComplete?: (report: PythonReport) => void;
     /** After each change of the code. */
     readonly onSourceChange?: (source: string) => void;
 }
 /** The code a level opens with when there is no saved program. */
 export declare const starterSource: () => string;
-export declare const EduPython: ({ level, skin, large, source, speed, xp, estate, onComplete, onSourceChange, onMap, onNext, onLevel, progress, onSkinChange, coins, ownedHeroes, onBuyHero }: EduPythonProps) => import("react").JSX.Element;
+export declare const EduPython: ({ level, skin, large, source, speed, xp, estate, farm, onComplete, onSourceChange, onMap, onNext, onLevel, progress, onSkinChange, coins, ownedHeroes, onBuyHero }: EduPythonProps) => import("react").JSX.Element;

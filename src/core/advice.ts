@@ -248,6 +248,9 @@ const extraAdvice = (level: Level, frames: ReadonlyArray<Frame>): ReadonlyArray<
   if (emptyHands > 0) tips.push(`«Віднести на склад» ${emptyHands} ${times(emptyHands)} спрацював з порожніми руками.`)
   const noLever = frames.filter((f) => f.outcome === "noLever").length
   if (noLever > 0) tips.push(`«Потягнути важіль» ${noLever} ${times(noLever)} спрацював там, де важеля немає.`)
+  const noSow = frames.filter((f) => f.outcome === "cannotSow").length
+  if (noSow > 0)
+    tips.push(`«Посіяти» ${noSow} ${times(noSow)} спрацював не на порожній грядці.${level.blocks.includes("bedEmpty") ? " Спершу спитай «тут порожня грядка?»." : ""}`)
   const missed = frames.filter((f) => f.outcome === "swingMissed").length
   if (missed > 0) tips.push(`«Вдарити» ${missed} ${times(missed)} влучив у порожнечу: попереду не було ворога.`)
   const turns = wastedTurns(frames)

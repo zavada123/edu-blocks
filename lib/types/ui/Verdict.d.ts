@@ -1,4 +1,5 @@
 import { type EstateDay, type Harvest } from "../core/estate.ts";
+import { type FarmReport } from "../core/farm.ts";
 import { type Level } from "../core/level.ts";
 import type { RunResult } from "../core/program.ts";
 /** The result of a run for the student: stars, XP, what went wrong and what to try. Shared by blocks and Python. */
@@ -19,6 +20,13 @@ export interface Reward {
     } | null;
     /** On a day of the estate: what the run gathered. The result then shows it instead of stars and XP. */
     readonly harvest: Harvest | null;
+    /** On a working day of the farm: its report. The result then shows it instead of stars and XP. */
+    readonly farm: FarmReport | null;
+}
+/** A working day of the farm, from the app: which day it is (`farmDay`) and how much the worker carries. */
+export interface FarmRun {
+    readonly day: number;
+    readonly capacity: number;
 }
 /** A day of the estate, from the app: the day (`estateDay`) and the coins of its best run so far. */
 export interface EstateRun {
@@ -52,12 +60,18 @@ export declare const harvestRewardOf: (harvest: Harvest, estate: EstateRun, firs
     readonly runCoins: number;
     readonly reward: Reward;
 };
+/** The reward of a working day of the farm: no XP and no coins, its yield goes to the barn when the app ends the day. */
+export declare const farmRewardOf: (report: FarmReport, firstTry: boolean, xp: HeroXp | undefined) => {
+    readonly runXp: number;
+    readonly runCoins: number;
+    readonly reward: Reward;
+};
 /** What the hero gathered, as a sentence part: «3 гриби, 2 гарбузи і 1 ягня». */
 export declare const harvestText: (harvest: Harvest) => string;
 /** «монета», «монети» or «монет» for a number, as Ukrainian says it. */
 export declare const coinWord: (n: number) => string;
 /** The result over the field: stars and XP for a pass, what went wrong and a hint for a fail. */
-export declare const Verdict: ({ level, result, reward, advice, language, onClose, onNext, onContinue, hintStep, onHint }: {
+export declare const Verdict: ({ level, result, reward, advice, language, onClose, onNext, onContinue, hintStep, onHint, farmCapacity }: {
     readonly level: Level;
     readonly result: RunResult;
     readonly reward: Reward;
@@ -72,4 +86,6 @@ export declare const Verdict: ({ level, result, reward, advice, language, onClos
     readonly hintStep?: number;
     /** Opens one more step of `level.hints`; without it the level's single `hint` is shown. */
     readonly onHint?: (() => void) | undefined;
+    /** On a working day of the farm: what the worker carries at once, for the tips of the report. */
+    readonly farmCapacity?: number;
 }) => import("react").JSX.Element;

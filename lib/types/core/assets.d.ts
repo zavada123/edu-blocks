@@ -48,6 +48,12 @@ export interface TileInfo {
     readonly edges?: string;
     /** The same as bits, N 1, E 2, S 4, W 8: the tile for a cell is the one whose mask matches its neighbours. */
     readonly mask?: number;
+    /** Inner corners, from `NE`, `SE`, `SW`, `NW`: both sides go on, but the diagonal neighbour is another ground. */
+    readonly corners?: string;
+    /** The same as bits, NE 1, SE 2, SW 4, NW 8. See `core/terrain.ts`. */
+    readonly cornerMask?: number;
+    /** The ground this tile's edges open onto, as `grass` under a path. */
+    readonly over?: string;
     readonly verify?: boolean;
 }
 /** A piece of a UI picture, for 3- and 9-slice scaling: `top-left`, `center`, `left`, `r0c2`… */
@@ -165,6 +171,10 @@ export declare const assetRef: (pack: string, id: string) => string;
 /** Every asset reference of a level: its sprites, the looks of its items, goal, villagers and enemies. */
 export declare const assetRefsOf: (level: {
     readonly scene?: {
+        readonly terrain?: {
+            readonly base?: string;
+            readonly kinds: Readonly<Record<string, string>>;
+        };
         readonly sprites?: ReadonlyArray<{
             readonly asset: string;
         }>;
