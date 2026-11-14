@@ -16,7 +16,7 @@ export declare const RESOURCE_NAMES: Readonly<Record<Resource, string>>;
 export type Amounts = Readonly<Record<Resource, number>>;
 export declare const NO_AMOUNTS: Amounts;
 /** What an order opens: a building or a tool that changes how the farm works. */
-export type FarmUnlock = "beds" | "basket" | "longDay" | "cart";
+export type FarmUnlock = "beds" | "basket" | "longDay" | "cart" | "tower";
 export interface FarmUnlockInfo {
     readonly id: FarmUnlock;
     readonly name: string;
@@ -51,12 +51,17 @@ export declare const farmTurns: (state: FarmState) => number;
 export declare const farmCapacity: (state: FarmState) => number;
 /** The blocks of the farm: the base, what the student learned in the course, and the beds once they are built. */
 export declare const farmPalette: (state: FarmState, learned: ReadonlyArray<BlockName>) => ReadonlyArray<BlockName>;
+/** Goblins come every third day once the farm has a basket; an order can bring them on any day. */
+export declare const GOBLIN_EVERY = 3;
+export declare const goblinDay: (state: FarmState, day: number) => boolean;
+/** How far the archer on the watch tower shoots, in steps. */
+export declare const TOWER_RANGE = 3;
 /**
  * The level of a working day. The farm is a ring of paths: the barn in the farmhouse at the top-left corner, the
  * worker next to it, the forest along the top path and the beds along the bottom path. The day number decides which
  * trees have wood and which pumpkins are ripe in the morning; a tree without wood grows it during the day.
  */
-export declare const farmDay: (state: FarmState, blocks: ReadonlyArray<BlockName>, day?: number) => Level;
+export declare const farmDay: (state: FarmState, blocks: ReadonlyArray<BlockName>, day?: number, goblins?: boolean) => Level;
 /** The student's program for the worker, in blocks or in Python. */
 export type FarmProgram = {
     readonly language: "blocks";
@@ -79,6 +84,9 @@ export interface FarmReport {
     /** Turns the program used; fewer than the day when it stopped early. */
     readonly used: number;
     readonly turns: number;
+    /** Goblins that came this day, and how many of them the worker or the tower beat. */
+    readonly goblins: number;
+    readonly beaten: number;
     /** Why the day ended before its turns: the worker walked into a fence, or the program has a mistake. */
     readonly stopped: RunResult["reason"];
     /** The explanation of a mistake in the program, as the judge gives it. */
@@ -88,7 +96,7 @@ export interface FarmReport {
 /** Reads the yield of a day from the frames: what each «взяти» took, and what each «віднести на склад» put down. */
 export declare const farmReport: (level: Level, result: RunResult, day: number) => FarmReport;
 /** Runs the worker's program through one day of the farm. */
-export declare const runFarmDay: (state: FarmState, code: FarmProgram, blocks: ReadonlyArray<BlockName>, day?: number) => {
+export declare const runFarmDay: (state: FarmState, code: FarmProgram, blocks: ReadonlyArray<BlockName>, day?: number, goblins?: boolean) => {
     readonly level: Level;
     readonly result: RunResult;
     readonly report: FarmReport;
@@ -107,6 +115,8 @@ export interface FarmOrder {
     /** The order that must be done first. */
     readonly after?: string;
     readonly unlocks?: FarmUnlock;
+    /** Goblins come on every checked day, not only on their own days. */
+    readonly goblins?: boolean;
 }
 export declare const FARM_ORDERS: ReadonlyArray<FarmOrder>;
 /** The orders the student can take now: not done yet, and the one before them is done. */

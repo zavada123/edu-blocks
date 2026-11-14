@@ -1,5 +1,5 @@
 import type { Definition, Step } from "./build.ts";
-import { type Cell, type Direction, type EnemySpec, type ItemKind, type MapRows, type World } from "./world.ts";
+import { type Cell, type Direction, type EnemySpec, type ItemKind, type MapRows, type Tower, type World } from "./world.ts";
 import type { Tier } from "./xp.ts";
 /** Blocks a level can put into the palette. Hero blocks and the Scratch blocks with the same meaning. */
 export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "attack"
@@ -171,6 +171,8 @@ export interface Scene {
      * its goal says «Збери врожай».
      */
     readonly itemsAt?: ReadonlyArray<ItemAt>;
+    /** How the counter of the storehouse names it: «на складі» when left out, «у коморі» on the farm. */
+    readonly storehouseName?: string;
     readonly finish?: FinishKind;
     readonly props?: ReadonlyArray<Prop>;
     readonly npcs?: ReadonlyArray<Npc>;
@@ -219,6 +221,8 @@ export interface Level {
     };
     /** Enemies on floor cells. They act after each hero action: see `applyAction`. */
     readonly enemies?: ReadonlyArray<EnemySpec>;
+    /** Watch towers on wall cells: each shoots one enemy within its range after the enemies' turn. */
+    readonly towers?: ReadonlyArray<Tower>;
     /**
      * Which levers open which gate: the gate opens once its own levers are on, and the others do not matter to it. A
      * gate left out waits for every lever of the map, as on a map without links.

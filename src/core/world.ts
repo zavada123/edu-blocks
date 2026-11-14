@@ -73,6 +73,15 @@ export interface World {
   readonly growTurns: number
   /** Turns until a thing taken off a cell that is not a bed grows there again (a tree), or null when it never does. */
   readonly regrowTurns: number | null
+  /** Watch towers: after the enemies' turn each shoots one enemy within its range. */
+  readonly towers: ReadonlyArray<Tower>
+}
+
+/** A watch tower with an archer: it stands on a wall cell and shoots an enemy `range` steps away or closer. */
+export interface Tower {
+  readonly x: number
+  readonly y: number
+  readonly range: number
 }
 
 /** Turns a bed grows from sowing to a ripe crop, when the level does not say. */
@@ -244,7 +253,8 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
     beds,
     growing: new Map([...sown].map((key) => [key, DEFAULT_GROW_TURNS])),
     growTurns: DEFAULT_GROW_TURNS,
-    regrowTurns: null
+    regrowTurns: null,
+    towers: []
   }
 }
 
@@ -415,6 +425,8 @@ export type GameEvent =
   | { readonly type: "cannotSow"; readonly at: Cell }
   /** A crop got ripe or a tree grew a thing again: it lies on the cell now. */
   | { readonly type: "itemGrew"; readonly at: Cell }
+  /** The archer of a tower shot an enemy: `hp` left, 0 when it is down. */
+  | { readonly type: "towerShot"; readonly from: Cell; readonly id: number; readonly hp: number }
 
 export interface ActionResult {
   readonly world: World
@@ -646,6 +658,27 @@ const enemiesTurn = (world: World): { readonly world: World; readonly events: Re
   return { world: { ...world, enemies, hearts }, events }
 }
 
+/**
+ * After the enemies, each tower shoots the nearest enemy that is up and within its range, the first of them on a tie.
+ * The towers shoot in order, so two towers can take the same enemy down in one turn.
+ */
+const towersTurn = (world: World): { readonly world: World; readonly events: ReadonlyArray<GameEvent> } => {
+  if (world.towers.length === 0 || !world.enemies.some(isAlive)) return { world, events: [] }
+  let enemies = world.enemies
+  const events: Array<GameEvent> = []
+  for (const tower of world.towers) {
+    const target = enemies
+      .filter((e) => isAlive(e) && distance(e, tower) <= tower.range)
+      .reduce<Enemy | null>((best, e) => (best === null || distance(e, tower) < distance(best, tower) ? e : best), null)
+    if (target === null) continue
+    const hp = target.hp - 1
+    enemies = enemies.map((e) => (e.id === target.id ? { ...e, hp, swinging: false } : e))
+    events.push({ type: "towerShot", from: at(tower), id: target.id, hp })
+    if (hp <= 0) events.push({ type: "enemyDown", id: target.id })
+  }
+  return { world: { ...world, enemies }, events }
+}
+
 /** Outcomes that end the run at once: the enemies do not move after them. */
 export const isFatal = (outcome: Outcome): boolean => outcome === "crashed" || outcome === "fell" || outcome === "tired"
 
@@ -654,6 +687,7 @@ export const applyAction = (world: World, action: Action): ActionResult => {
   const done = heroAction(world, action)
   if (isFatal(done.outcome)) return done
   const turn = enemiesTurn(done.world)
-  const grown = growTurn(turn.world)
-  return { world: grown.world, outcome: done.outcome, events: [...done.events, ...turn.events, ...grown.events] }
+  const shot = towersTurn(turn.world)
+  const grown = growTurn(shot.world)
+  return { world: grown.world, outcome: done.outcome, events: [...done.events, ...turn.events, ...shot.events, ...grown.events] }
 }

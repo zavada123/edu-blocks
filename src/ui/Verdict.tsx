@@ -462,6 +462,14 @@ const FarmVerdict = ({
             <dd>{totalOf(report.carried)}</dd>
             <dt>лишилось у руках</dt>
           </div>
+          {report.goblins > 0 && (
+            <div className="eb-farm-tile">
+              <dd>
+                {report.beaten} з {report.goblins}
+              </dd>
+              <dt>гоблінів прогнано</dt>
+            </div>
+          )}
         </dl>
         {bars.length > 0 && (
           <figure className="eb-farm-chart">

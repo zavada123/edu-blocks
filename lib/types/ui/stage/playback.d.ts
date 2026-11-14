@@ -37,13 +37,18 @@ export interface EnemyPose {
     /** Lunges toward the hero when it hits: 0…1. */
     readonly lunge: number;
 }
-export type EffectKind = "slash" | "smoke" | "lift" | "question" | "tired" | "alert";
+export type EffectKind = "slash" | "smoke" | "lift" | "question" | "tired" | "alert" | "arrow";
 export interface Effect {
     readonly kind: EffectKind;
     readonly x: number;
     readonly y: number;
     /** 0…1 through the effect. */
     readonly progress: number;
+    /** Where an arrow flies from: the tower. */
+    readonly from?: {
+        readonly x: number;
+        readonly y: number;
+    };
 }
 export interface StagePose {
     /** The world for the things that only switch: items, hearts, steps, broken ice. */

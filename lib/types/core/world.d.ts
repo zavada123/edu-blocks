@@ -70,6 +70,14 @@ export interface World {
     readonly growTurns: number;
     /** Turns until a thing taken off a cell that is not a bed grows there again (a tree), or null when it never does. */
     readonly regrowTurns: number | null;
+    /** Watch towers: after the enemies' turn each shoots one enemy within its range. */
+    readonly towers: ReadonlyArray<Tower>;
+}
+/** A watch tower with an archer: it stands on a wall cell and shoots an enemy `range` steps away or closer. */
+export interface Tower {
+    readonly x: number;
+    readonly y: number;
+    readonly range: number;
 }
 /** Turns a bed grows from sowing to a ripe crop, when the level does not say. */
 export declare const DEFAULT_GROW_TURNS = 20;
@@ -309,6 +317,13 @@ export type GameEvent = {
  | {
     readonly type: "itemGrew";
     readonly at: Cell;
+}
+/** The archer of a tower shot an enemy: `hp` left, 0 when it is down. */
+ | {
+    readonly type: "towerShot";
+    readonly from: Cell;
+    readonly id: number;
+    readonly hp: number;
 };
 export interface ActionResult {
     readonly world: World;

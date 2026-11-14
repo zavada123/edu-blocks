@@ -12,6 +12,7 @@ import {
   farmDay,
   farmPalette,
   farmTips,
+  goblinDay,
   finishDay,
   isFarmLevel,
   LONG_DAY_TURNS,
@@ -32,14 +33,14 @@ import type { BlockName, Level } from "./level.ts"
 import { bedEmpty, cellKey } from "./world.ts"
 
 const ALL: ReadonlyArray<BlockName> = [
-  "move", "turnLeft", "turnRight", "collect", "store", "sow", "wallAhead", "onCrystal", "handsFull", "atStorehouse", "bedEmpty", "itemIs",
+  "move", "turnLeft", "turnRight", "collect", "store", "sow", "wallAhead", "onCrystal", "handsFull", "atStorehouse", "bedEmpty", "itemIs", "attack", "enemyAhead",
   "repeat", "forever", "repeatUntil", "if", "ifElse", "not", "and", "or", "procedure"
 ]
 
 const python = (source: string): FarmProgram => ({ language: "python", source })
 
 /** Around the ring: take what lies here while the hands have room, sow empty beds, unload in the barn. */
-const RING = python(`while True:
+const BARE_RING = python(`while True:
     if hero.item_here() and not hero.hands_full():
         hero.collect()
     if hero.bed_empty():
@@ -52,6 +53,22 @@ const RING = python(`while True:
         hero.move()
 `)
 
+/** The same ring that beats a goblin in its way. */
+const RING = python(`while True:
+    if hero.item_here() and not hero.hands_full():
+        hero.collect()
+    if hero.bed_empty():
+        hero.sow()
+    if hero.at_storehouse():
+        hero.store()
+    if hero.enemy_ahead():
+        hero.attack()
+    elif hero.wall_ahead():
+        hero.turn_right()
+    else:
+        hero.move()
+`)
+
 /** The same ring in blocks. */
 const RING_STEPS: ReadonlyArray<Step> = [
   {
@@ -59,7 +76,7 @@ const RING_STEPS: ReadonlyArray<Step> = [
       { if: { and: ["onCrystal", { not: "handsFull" }] }, then: ["collect"] },
       { if: "bedEmpty", then: ["sow"] },
       { if: "atStorehouse", then: ["store"] },
-      { if: "wallAhead", then: ["turnRight"], else: ["move"] }
+      { if: "enemyAhead", then: ["attack"], else: [{ if: "wallAhead", then: ["turnRight"], else: ["move"] }] }
     ]
   }
 ]
@@ -69,14 +86,20 @@ const SHUTTLE = python(`def turn_back():
     hero.turn_right()
     hero.turn_right()
 
+def step():
+    if hero.enemy_ahead():
+        hero.attack()
+    else:
+        hero.move()
+
 while True:
     while not hero.wall_ahead():
-        hero.move()
+        step()
         if hero.item_here():
             hero.collect()
     turn_back()
     while not hero.at_storehouse():
-        hero.move()
+        step()
     hero.store()
     turn_back()
 `)
@@ -215,7 +238,7 @@ describe("the report of a day", () => {
   })
 
   test("the Scratch VM plays the day as the judge does", async () => {
-    const level = farmDay(withUnlocks("beds", "basket"), ALL, 2)
+    const level = farmDay(withUnlocks("beds", "basket"), ALL, 3)
     const program = buildProgram(RING_STEPS)
     const vm = await runProgram(level, program)
     const judged = judgeField(level, program)
@@ -283,7 +306,7 @@ describe("orders", () => {
       expect(best, o.id).toBeGreaterThan(0)
       state = recordOrder(state, o, best)
     }
-    expect(state.unlocked).toEqual(["beds", "basket", "longDay", "cart"])
+    expect(state.unlocked).toEqual(["beds", "basket", "tower", "longDay", "cart"])
   })
 
   test("a lower grade later does not take back a better one", () => {
@@ -353,5 +376,71 @@ describe("tips after a working day", () => {
     const { report } = runFarmDay(NEW_FARM, SHUTTLE, ALL)
     expect(report.idle).toBe(0)
     expect(farmTips(report, 3).every((t) => t.startsWith("Наприкінці дня"))).toBe(true)
+  })
+})
+
+describe("goblins and the watch tower", () => {
+  test("goblins come every third day once the farm has a basket", () => {
+    // Arrange
+    const basket = withUnlocks("beds", "basket")
+
+    // Act
+    const days = [1, 2, 3, 4, 5, 6].filter((d) => goblinDay(basket, d))
+
+    // Assert
+    expect(days).toEqual([3, 6])
+    expect(goblinDay(withUnlocks("beds"), 3)).toBe(false)
+    expect(farmDay(basket, ALL, 3).enemies).toHaveLength(2)
+    expect(farmDay(basket, ALL, 2).enemies).toBeUndefined()
+  })
+
+  test("the palette gets «вдарити» and «попереду ворог?» with the basket", () => {
+    expect(farmPalette(withUnlocks("beds"), [])).not.toContain("attack")
+    expect(farmPalette(withUnlocks("beds", "basket"), [])).toEqual(expect.arrayContaining(["attack", "enemyAhead"]))
+  })
+
+  test("a ring that does not look for goblins walks into one; a ring that beats them works till the evening", () => {
+    // Arrange
+    const state = withUnlocks("beds", "basket")
+
+    // Act
+    const bare = runFarmDay(state, BARE_RING, ALL, 3).report
+    const guarded = runFarmDay(state, RING, ALL, 3).report
+
+    // Assert
+    expect(bare.stopped).toBe("crashed")
+    expect(bare.goblins).toBe(2)
+    expect(guarded.stopped).toBeNull()
+    expect(guarded.beaten).toBe(2)
+    expect(farmTips(bare, 5, "python")[0]).toContain("hero.enemy_ahead()")
+  })
+
+  test("«Нічні гості» brings goblins on every checked day and opens the tower", () => {
+    const state = recordOrder(withUnlocks("beds", "basket"), order("pumpkin-3"), 1)
+    expect(openOrders(state).map((o) => o.id)).toContain("night-guests")
+    expect(checkOrder(state, order("night-guests"), BARE_RING, ALL).grade).toBe(0)
+    const done = recordOrder(state, order("night-guests"), checkOrder(state, order("night-guests"), RING, ALL).grade)
+    expect(done.unlocked).toContain("tower")
+  })
+
+  test("the archer on the tower beats the goblins even for a ring that does not look for them", () => {
+    // Arrange
+    const state = withUnlocks("beds", "basket", "tower")
+    const level = farmDay(state, ALL, 3)
+
+    // Act
+    const { report } = runFarmDay(state, BARE_RING, ALL, 3)
+
+    // Assert
+    expect(level.towers).toHaveLength(1)
+    expect(report.stopped).toBeNull()
+    expect(report.beaten).toBe(2)
+  })
+
+  test("blocks and Python meet the goblins the same way", () => {
+    const state = withUnlocks("beds", "basket", "tower")
+    const blocks = runFarmDay(state, { language: "blocks", program: buildProgram(RING_STEPS) }, ALL, 6, true).report
+    const code = runFarmDay(state, RING, ALL, 6, true).report
+    expect(blocks).toEqual(code)
   })
 })
