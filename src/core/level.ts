@@ -1,5 +1,5 @@
 import type { Definition, Step } from "./build.ts"
-import { atFinish, cellKey, type Direction, enemiesLeft, enemyOf, type EnemySpec, itemCount, type ItemKind, type MapRows, parseMap, type World } from "./world.ts"
+import { atFinish, type Cell, cellKey, type Direction, enemiesLeft, enemyOf, type EnemySpec, itemCount, type ItemKind, type MapRows, parseMap, type World } from "./world.ts"
 import type { Tier } from "./xp.ts"
 
 /** Blocks a level can put into the palette. Hero blocks and the Scratch blocks with the same meaning. */
@@ -38,6 +38,12 @@ export type BlockName =
   | "counter"
   /** A custom block of the level: its «визначити» hat and the call, as «Мої блоки» in Scratch. */
   | "procedure"
+
+/** A gate (`G`) and the levers (`L`, `l`) that open it. */
+export interface GateLink {
+  readonly gate: Cell
+  readonly levers: ReadonlyArray<Cell>
+}
 
 /** What the hero must achieve. All goals of a level are checked together. */
 export type Goal =
@@ -79,7 +85,12 @@ export interface Npc {
   readonly y: number
   /** A picture from an asset pack instead of the villager's own (`AssetRef`): any character or animal. */
   readonly look?: AssetRef
+  /** What the villager says when the hero stands next to them: a hint or a line of the story. Only looks. */
+  readonly say?: string
 }
+
+/** The longest line a villager says: it has to fit in a bubble over the field. */
+export const MAX_SAY = 80
 
 /**
  * A picture from an asset pack: `"<pack>:<sprite id>"`, as `"ninja-adventure:animal/cat"`. See `assets/README.md`.
@@ -230,6 +241,11 @@ export interface Level {
   readonly gift?: { readonly name: string; readonly skill: string }
   /** Enemies on floor cells. They act after each hero action: see `applyAction`. */
   readonly enemies?: ReadonlyArray<EnemySpec>
+  /**
+   * Which levers open which gate: the gate opens once its own levers are on, and the others do not matter to it. A
+   * gate left out waits for every lever of the map, as on a map without links.
+   */
+  readonly links?: ReadonlyArray<GateLink>
   /** Hearts of the hero. 3 by default; they matter only where there are enemies. */
   readonly hearts?: number
   /** Steps («крок уперед») the hero may take. No limit when left out. */
@@ -315,8 +331,20 @@ export const startWorld = (level: Level): World => {
   const energy = level.maxSteps === undefined ? null : Math.max(0, Math.round(level.maxSteps))
   const capacity = level.capacity === undefined ? null : Math.max(1, Math.round(level.capacity))
   const itemKinds = itemKindsOf(world, level.scene ?? {})
-  return { ...world, enemies: (level.enemies ?? []).map(enemyOf), hearts, maxHearts: hearts, energy, capacity, itemKinds }
+  const gateLevers = gateLeversOf(world, level.links ?? [])
+  return { ...world, enemies: (level.enemies ?? []).map(enemyOf), hearts, maxHearts: hearts, energy, capacity, itemKinds, gateLevers }
 }
+
+/** The levers of each linked gate: links to cells that are no gate or no lever are left out (`checkLevel` tells). */
+const gateLeversOf = (world: World, links: ReadonlyArray<GateLink>): ReadonlyMap<string, ReadonlySet<string>> =>
+  new Map(
+    links
+      .filter((link) => world.gates.has(cellKey(link.gate.x, link.gate.y)))
+      .map((link) => [
+        cellKey(link.gate.x, link.gate.y),
+        new Set(link.levers.map((c) => cellKey(c.x, c.y)).filter((key) => world.levers.has(key)))
+      ])
+  )
 
 /** What lies on each `c` cell: its own kind from `itemsAt`, the level's `item` otherwise. */
 const itemKindsOf = (world: World, scene: Scene): ReadonlyMap<string, ItemKind> => {

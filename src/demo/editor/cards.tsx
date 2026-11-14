@@ -1,7 +1,8 @@
 import { useState } from "react"
 import { levelSource } from "../../core/kit.ts"
 import { type Level, startWorld } from "../../core/level.ts"
-import { BOSS_HP, DEFAULT_HEARTS, DEFAULT_SIGHT, type EnemyKind, type EnemySpec, type EnemyWalk, parseMap } from "../../core/world.ts"
+import { DEFAULT_HEARTS, type EnemySpec, parseMap } from "../../core/world.ts"
+import { clamp, MAX_HP, MONSTERS } from "./fields.ts"
 import { ArtIcon } from "../../ui/ArtIcon.tsx"
 import { ENEMY_ART } from "../../ui/art.ts"
 import { Thumb } from "./AssetBrowser.tsx"
@@ -9,27 +10,7 @@ import { findSprite, useLevelPacks } from "./SpritesCard.tsx"
 
 /** The cards of the editor about enemies and about getting the level out of it. */
 
-export const MONSTERS: ReadonlyArray<{ readonly id: EnemyKind; readonly name: string }> = [
-  { id: "slime", name: "Гоблін у бочці" },
-  { id: "spirit", name: "Гоблін-підривник" },
-  { id: "goblin", name: "Гоблін" },
-  { id: "skull", name: "Фіолетовий гоблін" },
-  { id: "flame", name: "Червоний підривник" },
-  { id: "bear", name: "Ватажок гоблінів" },
-  { id: "toad", name: "Фіолетова бочка" }
-]
-
-export const WALKS: ReadonlyArray<{ readonly id: EnemyWalk; readonly name: string }> = [
-  { id: "stand", name: "стоїть" },
-  { id: "across", name: "ходить ліворуч-праворуч" },
-  { id: "updown", name: "ходить вгору-вниз" }
-]
-
-/** The most hit points and sight the editor offers. */
-const MAX_HP = 9
-const MAX_SIGHT = 12
-
-export const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, Math.round(Number.isFinite(n) ? n : min)))
+export { clamp, MONSTERS } from "./fields.ts"
 
 /** Optional fields left empty are dropped, so the code reads as the levels in the library. */
 const tidy = (level: Level): Level => {
@@ -48,11 +29,18 @@ const EnemyIcon = ({ spec, packs }: { readonly spec: EnemySpec; readonly packs: 
   return <ArtIcon id={ENEMY_ART[spec.kind]} className="ed-icon" size={24} />
 }
 
-export const Enemies = ({ level, onChange }: { readonly level: Level; readonly onChange: (patch: Partial<Level>) => void }) => {
+/** The enemies on the map: the hero's hearts and a list; each one is set up in the inspector. */
+export const Enemies = ({
+  level,
+  onChange,
+  onSelect
+}: {
+  readonly level: Level
+  readonly onChange: (patch: Partial<Level>) => void
+  readonly onSelect: (index: number) => void
+}) => {
   const enemies = level.enemies ?? []
   const packs = useLevelPacks(level)
-  const set = (i: number, patch: Partial<EnemySpec>) =>
-    onChange({ enemies: enemies.map((e, j) => (j === i ? { ...e, ...patch } : e)) })
   return (
     <section className="ed-card">
       <h2>Вороги</h2>
@@ -70,72 +58,21 @@ export const Enemies = ({ level, onChange }: { readonly level: Level; readonly o
       <ol className="ed-enemies">
         {enemies.map((e, i) => (
           <li key={`${e.x},${e.y}`}>
-            <div className="ed-row">
+            <button type="button" className="ed-enemy-row" onClick={() => onSelect(i)}>
               <EnemyIcon spec={e} packs={packs} />
               <strong>
                 ({e.x}, {e.y})
               </strong>
-              <select aria-label="Хто" value={e.kind} onChange={(ev) => set(i, { kind: ev.target.value as EnemyKind })}>
-                {MONSTERS.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
-              <button type="button" onClick={() => onChange({ enemies: enemies.filter((_, j) => j !== i) })}>
-                Прибрати
-              </button>
-              {e.look !== undefined && (
-                <button
-                  type="button"
-                  title="Повернути звичайний вигляд ворога"
-                  onClick={() => onChange({ enemies: enemies.map((x, j) => (j === i ? (({ look: _, ...rest }) => rest)(x) : x)) })}
-                >
-                  Без картинки
-                </button>
-              )}
-            </div>
-            <div className="ed-row">
-              <label>
-                Поки героя не бачить
-                <select value={e.walk ?? "stand"} onChange={(ev) => set(i, { walk: ev.target.value as EnemyWalk })}>
-                  {WALKS.map((w) => (
-                    <option key={w.id} value={w.id}>
-                      {w.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label title="За скільки клітинок ворог помічає героя й іде до нього. 0 — не йде, б'є лише впритул.">
-                Бачить за X клітинок
-                <input
-                  type="number"
-                  min={0}
-                  max={MAX_SIGHT}
-                  value={e.sight ?? DEFAULT_SIGHT}
-                  onChange={(ev) => set(i, { sight: clamp(Number(ev.target.value), 0, MAX_SIGHT) })}
-                />
-              </label>
-              <label>
-                Ударів витримує
-                <input
-                  type="number"
-                  min={1}
-                  max={MAX_HP}
-                  value={e.hp ?? (e.boss === true ? BOSS_HP : 1)}
-                  onChange={(ev) => set(i, { hp: clamp(Number(ev.target.value), 1, MAX_HP) })}
-                />
-              </label>
-              <label className="ed-check">
-                <input type="checkbox" checked={e.boss === true} onChange={(ev) => set(i, { boss: ev.target.checked })} /> Бос
-              </label>
-            </div>
+              {MONSTERS.find((m) => m.id === e.kind)?.name ?? e.kind}
+              {e.boss === true && " · бос"}
+              {e.walk === "patrol" && ` · маршрут ${(e.route ?? []).length}`}
+            </button>
           </li>
         ))}
       </ol>
       <p className="ed-note">
-        Ворог ходить після кожної дії героя. Коли герой ближче ніж X клітинок, ворог іде до нього, а впритул замахується і
-        наступним ходом б'є: мінус сердечко. Бос більший, б'є навіть під ударами.
+        Клацни ворога в списку або інструментом «Вибір» на мапі: його властивості відкриються вгорі праворуч. Ворог ходить після
+        кожної дії героя; коли герой ближче ніж X клітинок, іде до нього, а впритул замахується і наступним ходом б'є.
       </p>
     </section>
   )

@@ -3,7 +3,7 @@ import type { Scene } from "../../core/level.ts"
 import type { Frame } from "../../core/program.ts"
 import { paintedCells } from "../../core/terrain.ts"
 import { tilemapView } from "../../core/tilemap.ts"
-import { cellKey, type World } from "../../core/world.ts"
+import { cellKey, gatesOpen, type World } from "../../core/world.ts"
 import { propCells, seasonOf } from "../look.ts"
 import { buildScenery } from "../scenery.ts"
 import { CELL, drawActors, drawGround, type Skin } from "./draw.ts"
@@ -41,7 +41,7 @@ const describe = (world: World): string => {
   if (world.energy !== null) parts.push(`Кроків залишилось: ${world.energy}.`)
   if (world.capacity !== null) parts.push(`У руках: ${world.carrying} з ${world.capacity}.`)
   if (world.storehouse !== null) parts.push(`На складі: ${world.stored}.`)
-  if (world.gates.size > 0) parts.push(`Увімкнено важелів: ${world.leversOn.size} з ${world.levers.size}. Ворота ${world.leversOn.size === world.levers.size ? "відчинені" : "зачинені"}.`)
+  if (world.gates.size > 0) parts.push(`Увімкнено важелів: ${world.leversOn.size} з ${world.levers.size}. Ворота ${gatesOpen(world) ? "відчинені" : "зачинені"}.`)
   return `Поле гри. ${parts.join(" ")}`
 }
 

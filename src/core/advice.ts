@@ -2,7 +2,7 @@ import { collectText, ITEM_NAMES, opcodeOf } from "./blocks.ts"
 import type { BlockName, ItemKind, Level } from "./level.ts"
 import type { Frame, Program, RunResult } from "./program.ts"
 import { startWorld } from "./level.ts"
-import { applyAction, type Cell, cellAhead, cellKey, enemiesLeft, enemyAt, isClosedGate, itemCount, wallAhead, type World } from "./world.ts"
+import { applyAction, type Cell, cellAhead, cellKey, enemiesLeft, enemyAt, isClosedGate, itemCount, leversOf, wallAhead, type World } from "./world.ts"
 
 /**
  * Advice after a run, made from what the hero did with this very program: what is missing («взяти», a turn,
@@ -93,9 +93,17 @@ const bumpAdvice = (level: Level, n: number): ReadonlyArray<string> => {
 }
 
 /** The hero walked into a shut gate: some lever is still off. */
-const gateAdvice = (level: Level, world: World): ReadonlyArray<string> => {
-  const off = world.levers.size - world.leversOn.size
-  const tips = [`Ворота зачинені: ще ${off} ${off === 1 ? "важіль вимкнено" : few(off) ? "важелі вимкнено" : "важелів вимкнено"}. Ворота відчиняться, коли всі важелі увімкнено.`]
+const gateAdvice = (level: Level, world: World, gate: Cell): ReadonlyArray<string> => {
+  const own = world.gateLevers.get(cellKey(gate.x, gate.y))
+  const levers = [...leversOf(world, cellKey(gate.x, gate.y))]
+  const off = levers.filter((key) => !world.leversOn.has(key)).length
+  const offText = `ще ${off} ${off === 1 ? "важіль вимкнено" : few(off) ? "важелі вимкнено" : "важелів вимкнено"}`
+  const which = levers.map((key) => `(${key.replace(",", ", ")})`).join(", ")
+  const tips = [
+    own === undefined
+      ? `Ворота зачинені: ${offText}. Ворота відчиняться, коли всі важелі увімкнено.`
+      : `Ці ворота зачинені: ${offText}. Їх відчиняють ${levers.length === 1 ? "важіль" : "важелі"} на ${which}.`
+  ]
   if (level.blocks.includes("leverOn"))
     tips.push("Важіль, який уже увімкнено, від «потягнути» вимкнеться. Спитай «важіль увімкнено?» і тягни лише той, що вимкнений.")
   return tips
@@ -106,7 +114,7 @@ const crashAdvice = (level: Level, result: RunResult, has: (b: BlockName) => boo
   const before = result.frames[n - 2]?.world ?? startWorld(level)
   const ahead = cellAhead(result.world)
   if (enemyAt(result.world, ahead.x, ahead.y) !== undefined) return bumpAdvice(level, n)
-  if (isClosedGate(result.world, ahead.x, ahead.y)) return gateAdvice(level, result.world)
+  if (isClosedGate(result.world, ahead.x, ahead.y)) return gateAdvice(level, result.world, ahead)
   const leftFree = !wallAhead(applyAction(before, "turnLeft").world)
   const rightFree = !wallAhead(applyAction(before, "turnRight").world)
   const where = `На ${n}-й дії герой урізався в перешкоду.`
