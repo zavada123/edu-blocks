@@ -14,6 +14,7 @@ import { type Aim, Inspector } from "./editor/Inspector.tsx"
 import { LayersCard } from "./editor/LayersCard.tsx"
 import { type LayerId, layerOfBrush, layerOfSelection, type LayerState, NO_LAYERS, visibleScene } from "./editor/layers.ts"
 import { addRoutePoint, cellOfSelection, dropRoutePoint, moveSelected, pick, removeSelected, type Selection, stillThere, tidyLinks, toggleLink } from "./editor/select.ts"
+import { copyPatch, type Patch, pastePatch, patchEmpty } from "./editor/stamp.ts"
 import { boxCells, fillCells, fillsArea, pickBrush, type Shape } from "./editor/tools.ts"
 import { fieldIssues, PEOPLE } from "./editor/fields.ts"
 import { clamp, Enemies, Export, MONSTERS } from "./editor/cards.tsx"
@@ -292,11 +293,14 @@ const Editor = () => {
   const [shape, setShape] = useState<Shape>("pen")
   const [layers, setLayers] = useState<LayerState>(NO_LAYERS)
   const [box, setBox] = useState<CellBox | null>(null)
+  /** The stamp: on or off, and the piece it lays (null until a frame is drawn). It stays when another level opens. */
+  const [stamp, setStamp] = useState<{ readonly on: boolean; readonly patch: Patch | null }>({ on: false, patch: null })
   /** What the press now under way does as the mouse moves on. */
   const press = useRef<
     | { readonly kind: "paint"; readonly drag: boolean }
     | { readonly kind: "move"; readonly selection: Selection; readonly base: Level; readonly from: Cell }
     | { readonly kind: "box" }
+    | { readonly kind: "copy" }
     | null
   >(null)
   const open = (layer: LayerId) => !layers.locked.has(layer)
@@ -333,6 +337,16 @@ const Editor = () => {
       if (!info.erase) history.set((l) => toggleLink(l, gate, cell))
       return
     }
+    if (stamp.on) {
+      if (info.erase) return setStamp({ on: true, patch: null })
+      if (stamp.patch === null) {
+        press.current = { kind: "copy" }
+        setBox({ x0: cell.x, y0: cell.y, x1: cell.x, y1: cell.y })
+        return
+      }
+      const patch = stamp.patch
+      return history.set((l) => tidyLinks(pastePatch(l, patch, cell.x, cell.y)))
+    }
     if (brush.kind === "select" && !info.erase) {
       const found = pickAt(cell)
       setSelection(found)
@@ -361,13 +375,19 @@ const Editor = () => {
     const p = press.current
     if (p === null) return
     if (p.kind === "move") history.amend(() => moveSelected(p.base, p.selection, cell, p.from))
-    else if (p.kind === "box") setBox((b) => (b === null ? b : { ...b, x1: cell.x, y1: cell.y }))
+    else if (p.kind === "box" || p.kind === "copy") setBox((b) => (b === null ? b : { ...b, x1: cell.x, y1: cell.y }))
     else if (p.drag) history.amend((l) => apply(l, cell, info.erase))
   }
 
   const onUp = (cell: Cell, info: PointerInfo) => {
     const p = press.current
     press.current = null
+    if (p?.kind === "copy" && box !== null) {
+      const patch = copyPatch(level, { ...box, x1: cell.x, y1: cell.y })
+      setBox(null)
+      setStamp({ on: true, patch: patchEmpty(patch) ? null : patch })
+      return
+    }
     if (p?.kind !== "box" || box === null) return
     const cells = boxCells({ ...box, x1: cell.x, y1: cell.y })
     setBox(null)
@@ -565,11 +585,30 @@ const Editor = () => {
                   className={shape === sh.id ? "ed-shape ed-shape-on" : "ed-shape"}
                   title={sh.hint}
                   disabled={!fillsArea(brush) && sh.id !== "pen"}
-                  onClick={() => setShape(sh.id)}
+                  onClick={() => {
+                    setShape(sh.id)
+                    setStamp((st) => ({ ...st, on: false }))
+                  }}
                 >
                   {sh.name}
                 </button>
               ))}
+              <button
+                type="button"
+                className={stamp.on ? "ed-shape ed-shape-on" : "ed-shape"}
+                aria-pressed={stamp.on}
+                title="Протягни рамку, щоб скопіювати ділянку; клік ставить копію; права кнопка бере нову ділянку"
+                onClick={() => setStamp((st) => ({ ...st, on: !st.on }))}
+              >
+                ⧉ Штамп
+              </button>
+              {stamp.on && (
+                <span className="ed-note">
+                  {stamp.patch === null
+                    ? "Протягни рамку по мапі, щоб скопіювати ділянку."
+                    : `Ділянка ${stamp.patch.width}×${stamp.patch.height}: клацни, куди поставити лівий верхній кут. Права кнопка бере нову, її можна ставити й на іншому рівні.`}
+                </span>
+              )}
               <span className="ed-note">Alt+клік — піпетка: бере пензель з клітинки.</span>
               {!brushOpen(brush) && <span className="ed-error">Шар цього пензля замкнено.</span>}
             </div>
