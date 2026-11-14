@@ -49,10 +49,7 @@ export declare const PUMPKIN_GROW = 24;
 export declare const has: (state: FarmState, unlock: FarmUnlock) => boolean;
 export declare const farmTurns: (state: FarmState) => number;
 export declare const farmCapacity: (state: FarmState) => number;
-/**
- * The blocks of the farm: what the student learned in the course, the worker's walk, «взяти» and the barn, and
- * the beds once they are built.
- */
+/** The blocks of the farm: the base, what the student learned in the course, and the beds once they are built. */
 export declare const farmPalette: (state: FarmState, learned: ReadonlyArray<BlockName>) => ReadonlyArray<BlockName>;
 /**
  * The level of a working day. The farm is a ring of paths: the barn in the farmhouse at the top-left corner, the

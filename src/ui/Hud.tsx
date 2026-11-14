@@ -1,4 +1,5 @@
 import { isEstateLevel } from "../core/estate.ts"
+import { isFarmLevel } from "../core/farm.ts"
 import type { Level } from "../core/level.ts"
 import { heroLevelOf } from "../core/xp.ts"
 import { chapterLabel, chapterOf } from "../levels/chapters.ts"
@@ -143,7 +144,7 @@ export const Hud = ({
         </button>
       )}
       <div className="eb-hud-chapter">
-        <p className="eb-hud-title">{chapter !== undefined ? `${chapterLabel(chapter)} · ${chapter.title}` : isEstateLevel(level.id) ? level.title : "Завдання"}</p>
+        <p className="eb-hud-title">{chapter !== undefined ? `${chapterLabel(chapter)} · ${chapter.title}` : isEstateLevel(level.id) || isFarmLevel(level.id) ? level.title : "Завдання"}</p>
         {chapter !== undefined && <ChapterLevels ids={chapter.levels} current={level.id} progress={progress} onLevel={onLevel} />}
       </div>
       {xpTotal !== undefined && <HeroBadge skin={skin} total={xpTotal} coins={coinsTotal} onPickHero={onPickHero} />}

@@ -173,7 +173,24 @@ describe("the day of the farm", () => {
   })
 
   test("the palette has the beds only once they are built", () => {
-    expect(farmPalette(NEW_FARM, ["repeat", "sow"])).toEqual(["move", "turnLeft", "turnRight", "collect", "store", "atStorehouse", "repeat"])
+    expect(farmPalette(NEW_FARM, ["procedure", "sow"])).toEqual([
+      "move",
+      "turnLeft",
+      "turnRight",
+      "collect",
+      "store",
+      "wallAhead",
+      "onCrystal",
+      "handsFull",
+      "atStorehouse",
+      "repeat",
+      "forever",
+      "repeatUntil",
+      "if",
+      "ifElse",
+      "not",
+      "procedure"
+    ])
     expect(farmPalette(withUnlocks("beds"), [])).toContain("bedEmpty")
   })
 })

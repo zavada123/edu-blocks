@@ -84,11 +84,30 @@ export const farmCapacity = (state: FarmState): number => (has(state, "cart") ? 
 const treesOf = (state: FarmState): number => Math.min(MAX_TREES, Math.max(START_TREES, Math.round(state.trees)))
 
 /**
- * The blocks of the farm: what the student learned in the course, the worker's walk, «взяти» and the barn, and
- * the beds once they are built.
+ * The blocks every farm has: the farm is a sandbox, so a loop, a branch and the questions about the road, the hands
+ * and the barn are there from the first day, even before the course reached them.
  */
+const FARM_BASE: ReadonlyArray<BlockName> = [
+  "move",
+  "turnLeft",
+  "turnRight",
+  "collect",
+  "store",
+  "wallAhead",
+  "onCrystal",
+  "handsFull",
+  "atStorehouse",
+  "repeat",
+  "forever",
+  "repeatUntil",
+  "if",
+  "ifElse",
+  "not"
+]
+
+/** The blocks of the farm: the base, what the student learned in the course, and the beds once they are built. */
 export const farmPalette = (state: FarmState, learned: ReadonlyArray<BlockName>): ReadonlyArray<BlockName> => {
-  const have = new Set<BlockName>(["move", "turnLeft", "turnRight", "collect", "store", "atStorehouse", ...learned])
+  const have = new Set<BlockName>([...FARM_BASE, ...learned])
   if (has(state, "beds")) {
     have.add("sow")
     have.add("bedEmpty")
