@@ -273,6 +273,8 @@ export interface FarmReport {
   readonly byTurn: ReadonlyArray<Amounts>
   /** Turns spent on actions that did nothing: «взяти» on an empty cell, «посіяти» off an empty bed and the like. */
   readonly idle: number
+  /** Of them, «нагодувати» where the sheep were not hungry or without a pumpkin. */
+  readonly idleFeed?: number
   /** Turns the program used; fewer than the day when it stopped early. */
   readonly used: number
   readonly turns: number
@@ -319,6 +321,7 @@ export const farmReport = (level: Level, result: RunResult, day: number): FarmRe
     carried,
     byTurn,
     idle: result.frames.filter((f) => IDLE.has(f.outcome)).length,
+    idleFeed: result.frames.filter((f) => f.outcome === "cannotFeed").length,
     used: result.frames.length,
     turns: level.turns ?? result.frames.length,
     goblins: level.enemies?.length ?? 0,
@@ -546,6 +549,10 @@ export const farmTips = (report: FarmReport, capacity: number, language: "blocks
   const left = totalOf(report.carried)
   if (left > 0) tips.push(`Наприкінці дня в руках лишилось ${left}: це пропало. Неси в комору, щойно руки повні (${capacity}).`)
   if (report.idle > 0)
-    tips.push(`Ходів дарма: ${report.idle}. Дія, яка нічого не зробила, теж забирає хід: ${py ? "hero.collect() на порожній клітинці, hero.feed() без гарбуза" : "«взяти» на порожній клітинці, «нагодувати» без гарбуза"}. Спершу спитай ${py ? "hero.item_here()" : "«тут щось є?»"}, а біля вівчарні ${py ? "hero.sheep_hungry()" : "«вівці голодні?»"}.`)
+    tips.push(
+      (report.idleFeed ?? 0) > 0
+        ? `Ходів дарма: ${report.idle}, з них ${report.idleFeed} ${py ? "hero.feed()" : "«нагодувати»"} без гарбуза в руках або коли вівці ще їли. Годуй, лише коли ${py ? "hero.sheep_hungry()" : "«вівці голодні?»"} і в руках є гарбуз.`
+        : `Ходів дарма: ${report.idle}. ${py ? "hero.collect()" : "«Взяти»"} на порожній клітинці теж забирає хід: спершу спитай ${py ? "hero.item_here()" : "«тут щось є?»"}.`
+    )
   return tips.slice(0, 3)
 }

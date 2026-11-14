@@ -84,6 +84,8 @@ export interface FarmReport {
     readonly byTurn: ReadonlyArray<Amounts>;
     /** Turns spent on actions that did nothing: «взяти» on an empty cell, «посіяти» off an empty bed and the like. */
     readonly idle: number;
+    /** Of them, «нагодувати» where the sheep were not hungry or without a pumpkin. */
+    readonly idleFeed?: number;
     /** Turns the program used; fewer than the day when it stopped early. */
     readonly used: number;
     readonly turns: number;
