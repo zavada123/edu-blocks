@@ -546,6 +546,6 @@ export const farmTips = (report: FarmReport, capacity: number, language: "blocks
   const left = totalOf(report.carried)
   if (left > 0) tips.push(`Наприкінці дня в руках лишилось ${left}: це пропало. Неси в комору, щойно руки повні (${capacity}).`)
   if (report.idle > 0)
-    tips.push(`Ходів дарма: ${report.idle}. ${py ? "hero.collect()" : "«Взяти»"} на порожній клітинці теж забирає хід: спершу спитай ${py ? "hero.item_here()" : "«тут щось є?»"}.`)
+    tips.push(`Ходів дарма: ${report.idle}. Дія, яка нічого не зробила, теж забирає хід: ${py ? "hero.collect() на порожній клітинці, hero.feed() без гарбуза" : "«взяти» на порожній клітинці, «нагодувати» без гарбуза"}. Спершу спитай ${py ? "hero.item_here()" : "«тут щось є?»"}, а біля вівчарні ${py ? "hero.sheep_hungry()" : "«вівці голодні?»"}.`)
   return tips.slice(0, 3)
 }
