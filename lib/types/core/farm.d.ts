@@ -10,13 +10,13 @@ import type { Program, RunResult } from "./program.ts";
  * Everything here is pure and the same in the browser and on a server, as the rest of the core.
  */
 /** What the farm makes and keeps in the barn. */
-export type Resource = "wood" | "pumpkin";
+export type Resource = "wood" | "pumpkin" | "meat" | "gold";
 export declare const RESOURCES: ReadonlyArray<Resource>;
 export declare const RESOURCE_NAMES: Readonly<Record<Resource, string>>;
 export type Amounts = Readonly<Record<Resource, number>>;
 export declare const NO_AMOUNTS: Amounts;
 /** What an order opens: a building or a tool that changes how the farm works. */
-export type FarmUnlock = "beds" | "basket" | "longDay" | "cart" | "tower";
+export type FarmUnlock = "beds" | "basket" | "longDay" | "cart" | "tower" | "pen" | "mine";
 export interface FarmUnlockInfo {
     readonly id: FarmUnlock;
     readonly name: string;
@@ -46,6 +46,9 @@ export declare const CART = 8;
 /** Turns until a tree has wood again after it was cut, and until a sown pumpkin is ripe. */
 export declare const WOOD_REGROW = 16;
 export declare const PUMPKIN_GROW = 24;
+/** Turns the sheep eat a pumpkin until the meat lies on the trough, and until the mine has gold again. */
+export declare const SHEEP_EAT = 12;
+export declare const GOLD_REGROW = 20;
 export declare const has: (state: FarmState, unlock: FarmUnlock) => boolean;
 export declare const farmTurns: (state: FarmState) => number;
 export declare const farmCapacity: (state: FarmState) => number;

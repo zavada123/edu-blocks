@@ -10,11 +10,15 @@ export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "attack"
 /** «потягнути важіль»: switches the lever under the hero; the gates open when every lever is on. */
  | "pull"
 /** «посіяти»: sows the empty bed under the hero; the crop is ripe after `grow` turns. */
- | "sow" | "wallAhead" | "enemyAhead" | "trapAhead" | "onCrystal" | "atFinish" | "handsFull" | "atStorehouse" | "onLever" | "leverOn"
+ | "sow"
+/** «нагодувати»: gives the sheep at the trough under the hero a pumpkin it carries; meat lies there later. */
+ | "feed" | "wallAhead" | "enemyAhead" | "trapAhead" | "onCrystal" | "atFinish" | "handsFull" | "atStorehouse" | "onLever" | "leverOn"
 /** «тут ‹морква›?»: a question with a choice of the item kind in the block. */
  | "itemIs"
 /** «тут порожня грядка?»: the hero stands on a bed where nothing grows or lies. */
- | "bedEmpty" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or"
+ | "bedEmpty"
+/** «вівці голодні?»: the hero stands on a trough where the sheep neither eat nor left meat. */
+ | "sheepHungry" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or"
 /** «задати / змінити лічильник» and the (лічильник) reporter: one variable, as «Змінні» in Scratch. */
  | "counter"
 /** A custom block of the level: its «визначити» hat and the call, as «Мої блоки» in Scratch. */
@@ -249,6 +253,14 @@ export interface Level {
         readonly y: number;
         readonly turns: number;
     }>;
+    /** Cells that grow their thing again after their own turns, not `regrow`: the gold mine of the farm. */
+    readonly regrowAt?: ReadonlyArray<{
+        readonly x: number;
+        readonly y: number;
+        readonly turns: number;
+    }>;
+    /** Turns the sheep eat a pumpkin until meat lies on the trough (`DEFAULT_FEED_TURNS` when left out). */
+    readonly feed?: number;
     /** The name of the custom block when the palette has «procedure». «мій блок» when left out. */
     readonly procedure?: string;
     /** Summer, crystals and a flag when left out. */
@@ -321,6 +333,8 @@ export declare const startWorld: (level: Level) => World;
 /** What lies on each `c` cell: its own kind from `itemsAt`, the level's `item` otherwise. */
 /** What grows on a bed when the level does not say: pumpkins in the pack. */
 export declare const BED_ITEM: ItemKind;
+/** What the sheep leave on the trough after they ate. */
+export declare const TROUGH_ITEM: ItemKind;
 export declare const goalMet: (world: World, goal: Goal) => boolean;
 export declare const allGoalsMet: (level: Level, world: World) => boolean;
 /** Which goals of the level are met now, in the order of `level.goals`: the live goal list of the game. */

@@ -11,12 +11,17 @@ export interface Cell {
  * Map rows, top to bottom. `#` wall, `.` floor, `S` start, `c` crystal, `F` finish, `x` trap (thin ice or a pit:
  * the hero can step on it, and the run ends there), `H` storehouse (floor where «віднести на склад» puts down what the
  * hero carries), `L` a lever that is off, `l` a lever that is on, `G` a gate (shut like a wall until every lever is on),
- * `b` an empty bed (floor where «посіяти» sows), `B` a sown bed (the crop grows there), `R` a bed with a ripe crop.
+ * `b` an empty bed (floor where «посіяти» sows), `B` a sown bed (the crop grows there), `R` a bed with a ripe crop,
+ * `t` the trough of a sheep pen (floor where «нагодувати» gives the sheep a pumpkin; meat lies there later).
  * A space or a cell outside the rows is a wall too.
  */
 export type MapRows = ReadonlyArray<string>;
 /** What lies on the `c` cells and what `collect` takes. A campfire is not taken but lit. */
-export type ItemKind = "crystal" | "wood" | "apple" | "fish" | "key" | "campfire" | "carrot" | "egg";
+export type ItemKind = "crystal" | "wood" | "apple" | "fish" | "key" | "campfire" | "carrot" | "egg" | "meat" | "gold";
+/** What the sheep eat: the pumpkin of the beds. */
+export declare const FEED_ITEM: ItemKind;
+/** Too heavy to carry with anything else: taken only with empty hands, and it fills them. */
+export declare const HEAVY_ITEM: ItemKind;
 export interface World {
     readonly width: number;
     readonly height: number;
@@ -70,6 +75,14 @@ export interface World {
     readonly growTurns: number;
     /** Turns until a thing taken off a cell that is not a bed grows there again (a tree), or null when it never does. */
     readonly regrowTurns: number | null;
+    /** Cells that grow their thing again after their own number of turns, not `regrowTurns`: the gold mine. */
+    readonly regrowAt: ReadonlyMap<string, number>;
+    /** What the hero carries, in the order it was taken: `carrying` is its length. */
+    readonly load: ReadonlyArray<ItemKind>;
+    /** Trough cells (`t`) of a sheep pen: «нагодувати» there, and meat lies there after `feedTurns`. */
+    readonly troughs: ReadonlySet<string>;
+    /** Turns the sheep eat a pumpkin until the meat lies on the trough. */
+    readonly feedTurns: number;
     /** Watch towers: after the enemies' turn each shoots one enemy within its range. */
     readonly towers: ReadonlyArray<Tower>;
 }
@@ -81,6 +94,8 @@ export interface Tower {
 }
 /** Turns a bed grows from sowing to a ripe crop, when the level does not say. */
 export declare const DEFAULT_GROW_TURNS = 20;
+/** Turns the sheep eat until the meat is there, when the level does not say. */
+export declare const DEFAULT_FEED_TURNS = 12;
 /** Monsters from the pack. Which one only changes the picture. */
 export type EnemyKind = "slime" | "spirit" | "goblin" | "skull" | "flame" | "bear" | "toad";
 /**
@@ -181,7 +196,9 @@ export declare const onLever: (world: World) => boolean;
 export declare const leverOn: (world: World) => boolean;
 /** The hero stands on a bed where nothing grows: «посіяти» would sow there. */
 export declare const bedEmpty: (world: World) => boolean;
-export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow";
+/** The hero stands on a trough where the sheep neither eat nor left meat: «нагодувати» would feed them there. */
+export declare const sheepHungry: (world: World) => boolean;
+export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "feed";
 /** What one action did, for the animation and the error message. */
 export type Outcome = "moved" | "crashed" | "fell" | "tired" | "turned" | "collected" | "nothingToCollect" | "enemyHit" | "enemyDown" | "swingMissed"
 /** «взяти» with full hands: the thing stays where it lies. */
@@ -201,7 +218,11 @@ export type Outcome = "moved" | "crashed" | "fell" | "tired" | "turned" | "colle
 /** «посіяти» on an empty bed: the crop grows there now. */
  | "sown"
 /** «посіяти» off a bed, or on a bed where something grows or lies. */
- | "cannotSow";
+ | "cannotSow"
+/** «нагодувати» on a hungry trough with a pumpkin in the hands: the sheep eat, and meat lies there later. */
+ | "fed"
+/** «нагодувати» off a trough, where the sheep are not hungry, or without a pumpkin. */
+ | "cannotFeed";
 /**
  * What happened in the world, in the order it happened: the hero's action first, then each enemy's turn.
  * A frame keeps the events, so an animation shows what was done, not only where everybody stands now.
@@ -311,6 +332,16 @@ export type GameEvent = {
 /** «посіяти» where the hero could not sow. */
  | {
     readonly type: "cannotSow";
+    readonly at: Cell;
+}
+/** The hero gave the sheep a pumpkin at the trough. */
+ | {
+    readonly type: "sheepFed";
+    readonly at: Cell;
+}
+/** «нагодувати» where the hero could not feed. */
+ | {
+    readonly type: "cannotFeed";
     readonly at: Cell;
 }
 /** A crop got ripe or a tree grew a thing again: it lies on the cell now. */

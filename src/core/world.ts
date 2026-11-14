@@ -14,13 +14,19 @@ export interface Cell {
  * Map rows, top to bottom. `#` wall, `.` floor, `S` start, `c` crystal, `F` finish, `x` trap (thin ice or a pit:
  * the hero can step on it, and the run ends there), `H` storehouse (floor where «віднести на склад» puts down what the
  * hero carries), `L` a lever that is off, `l` a lever that is on, `G` a gate (shut like a wall until every lever is on),
- * `b` an empty bed (floor where «посіяти» sows), `B` a sown bed (the crop grows there), `R` a bed with a ripe crop.
+ * `b` an empty bed (floor where «посіяти» sows), `B` a sown bed (the crop grows there), `R` a bed with a ripe crop,
+ * `t` the trough of a sheep pen (floor where «нагодувати» gives the sheep a pumpkin; meat lies there later).
  * A space or a cell outside the rows is a wall too.
  */
 export type MapRows = ReadonlyArray<string>
 
 /** What lies on the `c` cells and what `collect` takes. A campfire is not taken but lit. */
-export type ItemKind = "crystal" | "wood" | "apple" | "fish" | "key" | "campfire" | "carrot" | "egg"
+export type ItemKind = "crystal" | "wood" | "apple" | "fish" | "key" | "campfire" | "carrot" | "egg" | "meat" | "gold"
+
+/** What the sheep eat: the pumpkin of the beds. */
+export const FEED_ITEM: ItemKind = "carrot"
+/** Too heavy to carry with anything else: taken only with empty hands, and it fills them. */
+export const HEAVY_ITEM: ItemKind = "gold"
 
 export interface World {
   readonly width: number
@@ -73,6 +79,14 @@ export interface World {
   readonly growTurns: number
   /** Turns until a thing taken off a cell that is not a bed grows there again (a tree), or null when it never does. */
   readonly regrowTurns: number | null
+  /** Cells that grow their thing again after their own number of turns, not `regrowTurns`: the gold mine. */
+  readonly regrowAt: ReadonlyMap<string, number>
+  /** What the hero carries, in the order it was taken: `carrying` is its length. */
+  readonly load: ReadonlyArray<ItemKind>
+  /** Trough cells (`t`) of a sheep pen: «нагодувати» there, and meat lies there after `feedTurns`. */
+  readonly troughs: ReadonlySet<string>
+  /** Turns the sheep eat a pumpkin until the meat lies on the trough. */
+  readonly feedTurns: number
   /** Watch towers: after the enemies' turn each shoots one enemy within its range. */
   readonly towers: ReadonlyArray<Tower>
 }
@@ -86,6 +100,8 @@ export interface Tower {
 
 /** Turns a bed grows from sowing to a ripe crop, when the level does not say. */
 export const DEFAULT_GROW_TURNS = 20
+/** Turns the sheep eat until the meat is there, when the level does not say. */
+export const DEFAULT_FEED_TURNS = 12
 
 /** Monsters from the pack. Which one only changes the picture. */
 export type EnemyKind = "slime" | "spirit" | "goblin" | "skull" | "flame" | "bear" | "toad"
@@ -199,6 +215,7 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
   const gates = new Set<string>()
   const beds = new Set<string>()
   const sown = new Set<string>()
+  const troughs = new Set<string>()
   let start: Cell | null = null
   let finish: Cell | null = null
   let storehouse: Cell | null = null
@@ -221,6 +238,7 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
         if (ch === "B") sown.add(cellKey(x, y))
         if (ch === "R") crystals.add(cellKey(x, y))
       }
+      else if (ch === "t") troughs.add(cellKey(x, y))
       else if (ch !== ".") throw new Error(`Невідомий знак «${ch}» на мапі, рядок ${y + 1}`)
     }
   })
@@ -254,6 +272,10 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
     growing: new Map([...sown].map((key) => [key, DEFAULT_GROW_TURNS])),
     growTurns: DEFAULT_GROW_TURNS,
     regrowTurns: null,
+    regrowAt: new Map(),
+    load: [],
+    troughs,
+    feedTurns: DEFAULT_FEED_TURNS,
     towers: []
   }
 }
@@ -332,7 +354,8 @@ export const atStorehouse = (world: World): boolean =>
   world.storehouse !== null && world.hero.x === world.storehouse.x && world.hero.y === world.storehouse.y
 
 /** The hero carries as much as it can: «взяти» would take nothing now. Never true on a level without a limit. */
-export const handsFull = (world: World): boolean => world.capacity !== null && world.carrying >= world.capacity
+export const handsFull = (world: World): boolean =>
+  (world.capacity !== null && world.carrying >= world.capacity) || world.load.includes(HEAVY_ITEM)
 
 /** The hero stands on a lever. */
 export const onLever = (world: World): boolean => world.levers.has(cellKey(world.hero.x, world.hero.y))
@@ -346,7 +369,13 @@ export const bedEmpty = (world: World): boolean => {
   return world.beds.has(key) && !world.growing.has(key) && !world.crystals.has(key)
 }
 
-export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow"
+/** The hero stands on a trough where the sheep neither eat nor left meat: «нагодувати» would feed them there. */
+export const sheepHungry = (world: World): boolean => {
+  const key = cellKey(world.hero.x, world.hero.y)
+  return world.troughs.has(key) && !world.growing.has(key) && !world.crystals.has(key)
+}
+
+export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "feed"
 
 /** What one action did, for the animation and the error message. */
 export type Outcome =
@@ -378,6 +407,10 @@ export type Outcome =
   | "sown"
   /** «посіяти» off a bed, or on a bed where something grows or lies. */
   | "cannotSow"
+  /** «нагодувати» on a hungry trough with a pumpkin in the hands: the sheep eat, and meat lies there later. */
+  | "fed"
+  /** «нагодувати» off a trough, where the sheep are not hungry, or without a pumpkin. */
+  | "cannotFeed"
 
 /**
  * What happened in the world, in the order it happened: the hero's action first, then each enemy's turn.
@@ -423,6 +456,10 @@ export type GameEvent =
   | { readonly type: "seedSown"; readonly at: Cell }
   /** «посіяти» where the hero could not sow. */
   | { readonly type: "cannotSow"; readonly at: Cell }
+  /** The hero gave the sheep a pumpkin at the trough. */
+  | { readonly type: "sheepFed"; readonly at: Cell }
+  /** «нагодувати» where the hero could not feed. */
+  | { readonly type: "cannotFeed"; readonly at: Cell }
   /** A crop got ripe or a tree grew a thing again: it lies on the cell now. */
   | { readonly type: "itemGrew"; readonly at: Cell }
   /** The archer of a tower shot an enemy: `hp` left, 0 when it is down. */
@@ -473,15 +510,28 @@ const heroAction = (world: World, action: Action): ActionResult => {
   if (action === "wait") return { world, outcome: "waited", events: [{ type: "heroWaited" }] }
   if (action === "pull") return pull(world)
   if (action === "sow") return sow(world)
+  if (action === "feed") return feed(world)
   const key = cellKey(world.hero.x, world.hero.y)
   if (!world.crystals.has(key)) return { world, outcome: "nothingToCollect", events: [{ type: "nothingToTake", at: here }] }
-  if (handsFull(world)) return { world, outcome: "handsFull", events: [{ type: "handsFull", at: here }] }
+  const kind = kindAt(world, key)
+  if (handsFull(world) || (kind === HEAVY_ITEM && world.carrying > 0)) return { world, outcome: "handsFull", events: [{ type: "handsFull", at: here }] }
   const crystals = new Set(world.crystals)
   crystals.delete(key)
-  // A tree grows its thing again after a while; a bed stays empty until it is sown.
-  const regrows = world.regrowTurns !== null && !world.beds.has(key)
-  const growing = regrows ? new Map([...world.growing, [key, world.regrowTurns ?? 0]]) : world.growing
-  return { world: { ...world, crystals, growing, carrying: world.carrying + 1 }, outcome: "collected", events: [{ type: "itemTaken", at: here }] }
+  // A tree grows its thing again after a while, the mine after its own; a bed and a trough stay empty until worked.
+  const again = world.regrowAt.get(key) ?? (world.beds.has(key) || world.troughs.has(key) ? null : world.regrowTurns)
+  const growing = again === null ? world.growing : new Map([...world.growing, [key, again]])
+  const load = [...world.load, kind]
+  return { world: { ...world, crystals, growing, load, carrying: load.length }, outcome: "collected", events: [{ type: "itemTaken", at: here }] }
+}
+
+/** «нагодувати»: on a hungry trough the hero gives the sheep one pumpkin it carries; the meat lies there later. */
+const feed = (world: World): ActionResult => {
+  const here = at(world.hero)
+  const i = world.load.indexOf(FEED_ITEM)
+  if (!sheepHungry(world) || i < 0) return { world, outcome: "cannotFeed", events: [{ type: "cannotFeed", at: here }] }
+  const load = world.load.filter((_, j) => j !== i)
+  const growing = new Map([...world.growing, [cellKey(here.x, here.y), world.feedTurns]])
+  return { world: { ...world, growing, load, carrying: load.length }, outcome: "fed", events: [{ type: "sheepFed", at: here }] }
 }
 
 /** «посіяти»: on an empty bed the crop starts to grow. */
@@ -516,7 +566,7 @@ const store = (world: World): ActionResult => {
   if (!atStorehouse(world)) return { world, outcome: "notStorehouse", events: [{ type: "nothingToStore", at: here }] }
   if (world.carrying === 0) return { world, outcome: "nothingToStore", events: [{ type: "nothingToStore", at: here }] }
   return {
-    world: { ...world, stored: world.stored + world.carrying, carrying: 0 },
+    world: { ...world, stored: world.stored + world.carrying, carrying: 0, load: [] },
     outcome: "stored",
     events: [{ type: "itemsStored", at: here, count: world.carrying }]
   }

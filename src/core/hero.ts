@@ -2,7 +2,7 @@ import type { Box } from "./python/boxes.ts"
 import { opcodeOf } from "./blocks.ts"
 import { allGoalsMet, goalStatus, type Level, startWorld } from "./level.ts"
 import { fatalReason, MAX_ACTIONS, type Session } from "./program.ts"
-import { type Action, applyAction, atFinish, atStorehouse, bedEmpty, enemyAhead, handsFull, itemIs, type ItemKind, leverOn, onCrystal, onLever, trapAhead, wallAhead, type World } from "./world.ts"
+import { type Action, applyAction, atFinish, atStorehouse, bedEmpty, enemyAhead, handsFull, itemIs, type ItemKind, leverOn, onCrystal, onLever, sheepHungry, trapAhead, wallAhead, type World } from "./world.ts"
 
 /**
  * The hero API: what a program may tell the hero to do and ask the hero about. Every way of programming calls
@@ -11,10 +11,10 @@ import { type Action, applyAction, atFinish, atStorehouse, bedEmpty, enemyAhead,
  */
 
 /** The questions a program may ask, for «якщо» and «повторити до». */
-export type Sensor = "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "bedEmpty"
+export type Sensor = "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "bedEmpty" | "sheepHungry"
 
 /** The hero's actions, in palette order. */
-export const HERO_ACTIONS: ReadonlyArray<Action> = ["move", "turnLeft", "turnRight", "collect", "attack", "store", "wait", "pull", "sow"]
+export const HERO_ACTIONS: ReadonlyArray<Action> = ["move", "turnLeft", "turnRight", "collect", "attack", "store", "wait", "pull", "sow", "feed"]
 
 /** Each question and how the world answers it. */
 export const HERO_SENSORS: Readonly<Record<Sensor, (world: World) => boolean>> = {
@@ -27,7 +27,8 @@ export const HERO_SENSORS: Readonly<Record<Sensor, (world: World) => boolean>> =
   atStorehouse,
   onLever,
   leverOn,
-  bedEmpty
+  bedEmpty,
+  sheepHungry
 }
 
 const SENSOR_NAMES = Object.keys(HERO_SENSORS) as ReadonlyArray<Sensor>

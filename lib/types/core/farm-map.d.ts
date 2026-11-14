@@ -1,6 +1,8 @@
 import type { PlacedSprite, TileMap } from "./level.ts";
 export declare const GOBLIN_HUT_ART: string;
 export declare const WATCH_TOWER_ART: string;
+export declare const SHEEP_ART: string;
+export declare const GOLD_MINE_ART: string;
 export interface FarmLayout {
     /** The map of the day: `#` walls and the ring of paths. */
     readonly rows: ReadonlyArray<string>;
@@ -19,6 +21,10 @@ export interface FarmLayout {
         readonly x: number;
         readonly y: number;
     } | null;
+    /** The sheep pen: its sheep graze on the meadow left of the trough on the left path. */
+    readonly pen: boolean;
+    /** The gold mine under the bottom path, its mouth by the second cell of the path. */
+    readonly mine: boolean;
 }
 export declare const farmLook: (layout: FarmLayout) => {
     readonly tilemap: TileMap;

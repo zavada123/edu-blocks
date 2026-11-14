@@ -116,7 +116,9 @@ export const ITEM_ART: Readonly<Record<ItemKind, Look>> = {
   key: { id: "weapon/arrow", scale: 0.8 },
   campfire: { id: "item/wood" },
   carrot: { id: "decor/pumpkin-small", scale: 0.7 },
-  egg: { id: "animal/sheep", scale: 0.6 }
+  egg: { id: "animal/sheep", scale: 0.6 },
+  meat: { id: "item/meat" },
+  gold: { id: "item/gold" }
 }
 
 /** The goal of a level: a signpost, a spring (water with stones), grandma, or home, where the cell gets the corners of a pointer. */

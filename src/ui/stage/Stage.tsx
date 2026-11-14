@@ -92,10 +92,10 @@ export const Stage = ({ start, frames = NO_FRAMES, time = 0, skin, scene = NO_SC
   }, [width, height, walls, finish, props, npcs, sprites, ground, tilemap, terrain])
   // Every cell where a thing can lie during the run: what lies there at the start, what grows (a tree that grows its
   // wood again) and the beds, where a sown pumpkin ripens.
-  const items = useMemo(() => [...new Set([...start.crystals, ...start.growing.keys(), ...start.beds])].map((key) => {
+  const items = useMemo(() => [...new Set([...start.crystals, ...start.growing.keys(), ...start.beds, ...start.troughs])].map((key) => {
     const [x = 0, y = 0] = key.split(",").map(Number)
     return { x, y }
-  }), [start.crystals, start.growing, start.beds])
+  }), [start.crystals, start.growing, start.beds, start.troughs])
 
   // The latest props for the drawing loop, which runs outside React.
   const live = useRef({ start, frames, time, skin, scene, season, scenery, items, still })
