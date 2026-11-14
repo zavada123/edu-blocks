@@ -13,7 +13,8 @@ export interface Cell {
 /**
  * Map rows, top to bottom. `#` wall, `.` floor, `S` start, `c` crystal, `F` finish, `x` trap (thin ice or a pit:
  * the hero can step on it, and the run ends there), `H` storehouse (floor where «віднести на склад» puts down what the
- * hero carries), `L` a lever that is off, `l` a lever that is on, `G` a gate (shut like a wall until every lever is on).
+ * hero carries), `L` a lever that is off, `l` a lever that is on, `G` a gate (shut like a wall until every lever is on),
+ * `b` an empty bed (floor where «посіяти» sows), `B` a sown bed (the crop grows there), `R` a bed with a ripe crop.
  * A space or a cell outside the rows is a wall too.
  */
 export type MapRows = ReadonlyArray<string>
@@ -64,7 +65,18 @@ export interface World {
   readonly gateLevers: ReadonlyMap<string, ReadonlySet<string>>
   /** What lies on each `c` cell, taken or not: the level's items (`startWorld`). A crystal where it is left out. */
   readonly itemKinds: ReadonlyMap<string, ItemKind>
+  /** Bed cells (`b`, `B`, `R`): «посіяти» sows there, and a crop taken there leaves an empty bed. */
+  readonly beds: ReadonlySet<string>
+  /** Cells where a thing grows now, and the turns until it lies there ripe: sown beds and trees that grow again. */
+  readonly growing: ReadonlyMap<string, number>
+  /** Turns a sown bed grows until its crop is ripe. */
+  readonly growTurns: number
+  /** Turns until a thing taken off a cell that is not a bed grows there again (a tree), or null when it never does. */
+  readonly regrowTurns: number | null
 }
+
+/** Turns a bed grows from sowing to a ripe crop, when the level does not say. */
+export const DEFAULT_GROW_TURNS = 20
 
 /** Monsters from the pack. Which one only changes the picture. */
 export type EnemyKind = "slime" | "spirit" | "goblin" | "skull" | "flame" | "bear" | "toad"
@@ -176,6 +188,8 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
   const levers = new Set<string>()
   const leversOn = new Set<string>()
   const gates = new Set<string>()
+  const beds = new Set<string>()
+  const sown = new Set<string>()
   let start: Cell | null = null
   let finish: Cell | null = null
   let storehouse: Cell | null = null
@@ -193,6 +207,11 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
         levers.add(cellKey(x, y))
         if (ch === "l") leversOn.add(cellKey(x, y))
       } else if (ch === "G") gates.add(cellKey(x, y))
+      else if (ch === "b" || ch === "B" || ch === "R") {
+        beds.add(cellKey(x, y))
+        if (ch === "B") sown.add(cellKey(x, y))
+        if (ch === "R") crystals.add(cellKey(x, y))
+      }
       else if (ch !== ".") throw new Error(`Невідомий знак «${ch}» на мапі, рядок ${y + 1}`)
     }
   })
@@ -221,7 +240,11 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
     leversOn,
     gates,
     gateLevers: new Map(),
-    itemKinds: new Map()
+    itemKinds: new Map(),
+    beds,
+    growing: new Map([...sown].map((key) => [key, DEFAULT_GROW_TURNS])),
+    growTurns: DEFAULT_GROW_TURNS,
+    regrowTurns: null
   }
 }
 
@@ -307,7 +330,13 @@ export const onLever = (world: World): boolean => world.levers.has(cellKey(world
 /** The hero stands on a lever that is on. */
 export const leverOn = (world: World): boolean => world.leversOn.has(cellKey(world.hero.x, world.hero.y))
 
-export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull"
+/** The hero stands on a bed where nothing grows: «посіяти» would sow there. */
+export const bedEmpty = (world: World): boolean => {
+  const key = cellKey(world.hero.x, world.hero.y)
+  return world.beds.has(key) && !world.growing.has(key) && !world.crystals.has(key)
+}
+
+export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow"
 
 /** What one action did, for the animation and the error message. */
 export type Outcome =
@@ -335,6 +364,10 @@ export type Outcome =
   | "pulled"
   /** «потягнути важіль» where there is no lever. */
   | "noLever"
+  /** «посіяти» on an empty bed: the crop grows there now. */
+  | "sown"
+  /** «посіяти» off a bed, or on a bed where something grows or lies. */
+  | "cannotSow"
 
 /**
  * What happened in the world, in the order it happened: the hero's action first, then each enemy's turn.
@@ -376,6 +409,12 @@ export type GameEvent =
   | { readonly type: "gatesOpened" }
   /** A lever went off: the gates shut. */
   | { readonly type: "gatesClosed" }
+  /** The hero sowed the bed under it. */
+  | { readonly type: "seedSown"; readonly at: Cell }
+  /** «посіяти» where the hero could not sow. */
+  | { readonly type: "cannotSow"; readonly at: Cell }
+  /** A crop got ripe or a tree grew a thing again: it lies on the cell now. */
+  | { readonly type: "itemGrew"; readonly at: Cell }
 
 export interface ActionResult {
   readonly world: World
@@ -421,12 +460,42 @@ const heroAction = (world: World, action: Action): ActionResult => {
   if (action === "store") return store(world)
   if (action === "wait") return { world, outcome: "waited", events: [{ type: "heroWaited" }] }
   if (action === "pull") return pull(world)
+  if (action === "sow") return sow(world)
   const key = cellKey(world.hero.x, world.hero.y)
   if (!world.crystals.has(key)) return { world, outcome: "nothingToCollect", events: [{ type: "nothingToTake", at: here }] }
   if (handsFull(world)) return { world, outcome: "handsFull", events: [{ type: "handsFull", at: here }] }
   const crystals = new Set(world.crystals)
   crystals.delete(key)
-  return { world: { ...world, crystals, carrying: world.carrying + 1 }, outcome: "collected", events: [{ type: "itemTaken", at: here }] }
+  // A tree grows its thing again after a while; a bed stays empty until it is sown.
+  const regrows = world.regrowTurns !== null && !world.beds.has(key)
+  const growing = regrows ? new Map([...world.growing, [key, world.regrowTurns ?? 0]]) : world.growing
+  return { world: { ...world, crystals, growing, carrying: world.carrying + 1 }, outcome: "collected", events: [{ type: "itemTaken", at: here }] }
+}
+
+/** «посіяти»: on an empty bed the crop starts to grow. */
+const sow = (world: World): ActionResult => {
+  const here = at(world.hero)
+  if (!bedEmpty(world)) return { world, outcome: "cannotSow", events: [{ type: "cannotSow", at: here }] }
+  const growing = new Map([...world.growing, [cellKey(here.x, here.y), world.growTurns]])
+  return { world: { ...world, growing }, outcome: "sown", events: [{ type: "seedSown", at: here }] }
+}
+
+/** One turn passes for what grows: a crop or a thing that is ready lies on its cell now. */
+const growTurn = (world: World): { readonly world: World; readonly events: ReadonlyArray<GameEvent> } => {
+  if (world.growing.size === 0) return { world, events: [] }
+  const growing = new Map<string, number>()
+  const crystals = new Set(world.crystals)
+  const events: Array<GameEvent> = []
+  for (const [key, left] of world.growing) {
+    if (left > 1) {
+      growing.set(key, left - 1)
+      continue
+    }
+    crystals.add(key)
+    const [x, y] = key.split(",").map(Number)
+    events.push({ type: "itemGrew", at: { x: x ?? 0, y: y ?? 0 } })
+  }
+  return { world: { ...world, growing, crystals }, events }
 }
 
 /** «віднести на склад»: on the storehouse the hero puts down everything it carries. */
@@ -585,5 +654,6 @@ export const applyAction = (world: World, action: Action): ActionResult => {
   const done = heroAction(world, action)
   if (isFatal(done.outcome)) return done
   const turn = enemiesTurn(done.world)
-  return { world: turn.world, outcome: done.outcome, events: [...done.events, ...turn.events] }
+  const grown = growTurn(turn.world)
+  return { world: grown.world, outcome: done.outcome, events: [...done.events, ...turn.events, ...grown.events] }
 }

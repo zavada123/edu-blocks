@@ -36,3 +36,4 @@ export { estateLook } from "./core/estate-map.ts";
 export * from "./core/read.ts";
 export * from "./core/assets.ts";
 export { storyIssues } from "./core/story.ts";
+export * from "./core/farm.ts";

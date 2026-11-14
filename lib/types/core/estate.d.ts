@@ -67,8 +67,12 @@ export interface EstateDay {
 }
 /** The name of the custom block when the palette has «procedure». */
 export declare const ESTATE_PROCEDURE = "\u043E\u0431\u0456\u0439\u0442\u0438 \u0440\u044F\u0434";
+/** The same numbers for the same day on any computer (mulberry32). */
+export declare const randomOf: (seed: number) => (() => number);
 /** The season of a day: a week each, from autumn. */
 export declare const estateSeason: (day: number) => Season;
+/** Blocks in the order of the palette. */
+export declare const PALETTE_ORDER: ReadonlyArray<BlockName>;
 /** The blocks of the estate: those of every level the student passed, and always the hero's walk and «взяти». */
 export declare const estatePalette: (passed: ReadonlyArray<Level>) => ReadonlyArray<BlockName>;
 /**

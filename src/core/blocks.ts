@@ -4,7 +4,7 @@ import type { BlockName, ItemKind } from "./level.ts"
 export const HERO_EXTENSION_ID = "hero"
 export const HERO_COLOR = "#0FBD8C"
 
-export type HeroBlock = Extract<BlockName, "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "itemIs">
+export type HeroBlock = Extract<BlockName, "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "itemIs" | "bedEmpty">
 
 /** Hero blocks in palette order. `boolean` blocks are the questions for «якщо» and «повторити до». */
 /**
@@ -29,6 +29,7 @@ export const HERO_BLOCKS: ReadonlyArray<HeroBlockInfo> = [
   { name: "store", text: "віднести на склад", boolean: false },
   { name: "wait", text: "зачекати ⏳", boolean: false },
   { name: "pull", text: "потягнути важіль", boolean: false },
+  { name: "sow", text: "посіяти", boolean: false },
   { name: "wallAhead", text: "попереду стіна?", boolean: true },
   { name: "onCrystal", text: "тут щось є?", boolean: true },
   { name: "atFinish", text: "дійшов до мети?", boolean: true },
@@ -38,6 +39,7 @@ export const HERO_BLOCKS: ReadonlyArray<HeroBlockInfo> = [
   { name: "atStorehouse", text: "тут склад?", boolean: true },
   { name: "onLever", text: "тут важіль?", boolean: true },
   { name: "leverOn", text: "важіль увімкнено?", boolean: true },
+  { name: "bedEmpty", text: "тут порожня грядка?", boolean: true },
   { name: "itemIs", text: "тут [ITEM]?", boolean: true }
 ]
 

@@ -1,6 +1,6 @@
 import { type Step } from "./build.ts";
 import { type Level } from "./level.ts";
-import { type MapRows } from "./world.ts";
+import { type MapRows, type World } from "./world.ts";
 /**
  * Level kit: what a level editor (or a script) needs to make a level from the map signs and the scene pictures.
  * Change a map cell by cell, check that the level can be played, find a plain route for the hero and write the
@@ -32,6 +32,11 @@ export interface Issue {
 }
 /** What keeps a level from being played (errors) and what would make it better (warnings). */
 export declare const checkLevel: (level: Level) => ReadonlyArray<Issue>;
+/**
+ * What is wrong with the links of gates and levers (`Level.links`): a link from a cell that is no gate, to a cell
+ * that is no lever, a gate linked twice or to no lever at all.
+ */
+export declare const linkIssues: (level: Level, world: World) => ReadonlyArray<Issue>;
 /**
  * A plain route without loops: to the nearest item each time, then to the nearest enemy (struck until it falls)
  * when the goal asks for it, then to the finish. An enemy in the way is struck too. The route is played on the
