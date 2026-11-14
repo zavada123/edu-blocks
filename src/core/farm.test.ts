@@ -11,6 +11,7 @@ import {
   farmCapacity,
   farmDay,
   farmPalette,
+  farmTips,
   finishDay,
   isFarmLevel,
   LONG_DAY_TURNS,
@@ -295,5 +296,45 @@ describe("planting trees", () => {
   test("is not possible without enough in the barn", () => {
     expect(canPlantTree(NEW_FARM)).toBe(false)
     expect(plantTree(NEW_FARM)).toBe(NEW_FARM)
+  })
+})
+
+describe("tips after a working day", () => {
+  test("a program without a loop is told to work till the evening", () => {
+    // Arrange
+    const once = python("hero.move()\nhero.collect()")
+
+    // Act
+    const { report } = runFarmDay(NEW_FARM, once, ALL)
+
+    // Assert
+    expect(report.used).toBeLessThan(report.turns)
+    expect(farmTips(report, 3, "python")[0]).toContain("while True")
+    expect(farmTips(report, 3, "blocks")[0]).toContain("«завжди»")
+  })
+
+  test("names what was left in the hands and the turns spent for nothing", () => {
+    // Arrange: takes on every cell and never goes to the barn.
+    const greedy = python(`while True:
+    hero.collect()
+    if hero.wall_ahead():
+        hero.turn_right()
+    else:
+        hero.move()`)
+
+    // Act
+    const { report } = runFarmDay(NEW_FARM, greedy, ALL)
+    const tips = farmTips(report, 3, "blocks")
+
+    // Assert
+    expect(report.carried.wood).toBeGreaterThan(0)
+    expect(tips.some((t) => t.startsWith("Наприкінці дня в руках лишилось"))).toBe(true)
+    expect(tips.some((t) => t.startsWith("Ходів дарма") && t.includes("«тут щось є?»"))).toBe(true)
+  })
+
+  test("a program that works till the evening without idle turns is told at most about the last load", () => {
+    const { report } = runFarmDay(NEW_FARM, SHUTTLE, ALL)
+    expect(report.idle).toBe(0)
+    expect(farmTips(report, 3).every((t) => t.startsWith("Наприкінці дня"))).toBe(true)
   })
 })

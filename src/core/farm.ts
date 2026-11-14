@@ -379,3 +379,24 @@ export const plantTree = (state: FarmState): FarmState => {
 
 /** Whether a level is a day of the farm (its id). */
 export const isFarmLevel = (levelId: string): boolean => /^farm-\d+$/.test(levelId)
+
+/** All the barn held after a day, both resources together: the height of a bar in the chart of the report. */
+export const totalOf = (amounts: Amounts): number => RESOURCES.reduce((sum, r) => sum + amounts[r], 0)
+
+/**
+ * What to improve after a working day, in the words of the report: the turns spent for nothing, what was left in the
+ * hands, a program that stopped before the evening. At most three tips, the most useful first.
+ */
+export const farmTips = (report: FarmReport, capacity: number, language: "blocks" | "python" = "blocks"): ReadonlyArray<string> => {
+  const py = language === "python"
+  const tips: Array<string> = []
+  if (report.stopped === "crashed")
+    tips.push(`Робітник урізався в паркан: перед кроком спитай ${py ? "hero.wall_ahead()" : "«попереду стіна?»"} і поверни.`)
+  else if (report.used < report.turns && report.stopped === null)
+    tips.push(`Програма закінчилась на ході ${report.used} з ${report.turns}: ${py ? "загорни роботу в while True" : "загорни роботу в «завжди»"}, щоб робітник працював до вечора.`)
+  const left = totalOf(report.carried)
+  if (left > 0) tips.push(`Наприкінці дня в руках лишилось ${left}: це пропало. Неси в комору, щойно руки повні (${capacity}).`)
+  if (report.idle > 0)
+    tips.push(`Ходів дарма: ${report.idle}. ${py ? "hero.collect()" : "«Взяти»"} на порожній клітинці теж забирає хід: спершу спитай ${py ? "hero.item_here()" : "«тут щось є?»"}.`)
+  return tips.slice(0, 3)
+}

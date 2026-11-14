@@ -141,3 +141,10 @@ export declare const canPlantTree: (state: FarmState) => boolean;
 export declare const plantTree: (state: FarmState) => FarmState;
 /** Whether a level is a day of the farm (its id). */
 export declare const isFarmLevel: (levelId: string) => boolean;
+/** All the barn held after a day, both resources together: the height of a bar in the chart of the report. */
+export declare const totalOf: (amounts: Amounts) => number;
+/**
+ * What to improve after a working day, in the words of the report: the turns spent for nothing, what was left in the
+ * hands, a program that stopped before the evening. At most three tips, the most useful first.
+ */
+export declare const farmTips: (report: FarmReport, capacity: number, language?: "blocks" | "python") => ReadonlyArray<string>;
