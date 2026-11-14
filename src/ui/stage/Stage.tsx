@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import type { Scene } from "../../core/level.ts"
 import type { Frame } from "../../core/program.ts"
+import { paintedCells } from "../../core/terrain.ts"
 import { tilemapView } from "../../core/tilemap.ts"
 import { cellKey, type World } from "../../core/world.ts"
 import { propCells, seasonOf } from "../look.ts"
@@ -78,14 +79,17 @@ export const Stage = ({ start, frames = NO_FRAMES, time = 0, skin, scene = NO_SC
   const sprites = scene.sprites
   const ground = scene.ground ?? "path"
   const tilemap = scene.tilemap
+  const terrain = scene.terrain
   const scenery = useMemo(() => {
     // A hand-drawn map shows itself and nothing the field would add on its own.
     if (tilemap !== undefined) return { view: tilemapView(tilemap), trees: [], obstacles: [], decor: [] }
     const reserved = new Set(propCells(props ?? []))
     for (const n of npcs ?? []) reserved.add(cellKey(n.x, n.y))
     for (const s of sprites ?? []) for (const key of placedCells(s)) reserved.add(key)
+    // Water or a path painted on the meadow stays clear of trees and bushes.
+    for (const key of terrain === undefined ? [] : paintedCells(terrain)) reserved.add(key)
     return buildScenery({ width, height, walls, finish }, { reserved, bareWalls: ground === "bridge" })
-  }, [width, height, walls, finish, props, npcs, sprites, ground, tilemap])
+  }, [width, height, walls, finish, props, npcs, sprites, ground, tilemap, terrain])
   const items = useMemo(() => [...start.crystals].map((key) => {
     const [x = 0, y = 0] = key.split(",").map(Number)
     return { x, y }

@@ -1,5 +1,6 @@
 import type { HeroId } from "../../core/heroes.ts"
-import type { ItemKind, Npc, Prop, Scene, TileMap } from "../../core/level.ts"
+import type { ItemKind, Npc, Prop, Scene, TerrainPaint, TileMap } from "../../core/level.ts"
+import { baseTiles, paintLetters, paintTiles, parseTerrainRef } from "../../core/terrain.ts"
 import { tilesOfKind } from "../../core/tilemap.ts"
 import { cellKey, gatesOpen, type World } from "../../core/world.ts"
 import {
@@ -122,10 +123,36 @@ const tilemapGround = (ctx: Ctx, map: TileMap) => {
   for (const t of tilesOfKind(map, "ground")) drawTile(ctx, tileset, t.tile, t.x, t.y)
 }
 
+const describedTiles = (sprite: string) => spriteOf(sprite)?.sprite.tiles ?? null
+
+/** The tileset of a ground of a painting: null while its pack loads. */
+const tilesetOf = (ref: string | undefined) => {
+  const parsed = ref === undefined ? null : parseTerrainRef(ref)
+  return parsed === null ? null : spriteOf(parsed.sprite)
+}
+
+/** The base of a painted ground under the whole view. False while it loads or when the painting has none. */
+const paintedBase = (ctx: Ctx, paint: TerrainPaint, view: Scenery["view"]): boolean => {
+  const tileset = tilesetOf(paint.base)
+  if (tileset === null || paint.base === undefined) return false
+  for (const t of baseTiles(paint.base, view, describedTiles)) drawTile(ctx, tileset, t.tile, t.x, t.y)
+  return true
+}
+
+/** Paths, water and sand painted by cells, each tile fitted to its neighbours. */
+const paintedGround = (ctx: Ctx, paint: TerrainPaint) => {
+  for (const letter of paintLetters(paint)) {
+    const tileset = tilesetOf(paint.kinds[letter])
+    if (tileset === null) continue
+    for (const t of paintTiles(paint, letter, describedTiles)) drawTile(ctx, tileset, t.tile, t.x, t.y)
+  }
+}
+
 /** Grass, the ground or the ice under the path, flowers, bushes and stones; or the flat layers of a tile map. */
 export const drawGround = (ctx: Ctx, { world, scene, season, scenery }: GroundInput) => {
   if (scene.tilemap !== undefined) tilemapGround(ctx, scene.tilemap)
-  else naturalGround(ctx, { world, scene, season, scenery })
+  else if (scene.terrain === undefined || !paintedBase(ctx, scene.terrain, scenery.view)) naturalGround(ctx, { world, scene, season, scenery })
+  if (scene.terrain !== undefined) paintedGround(ctx, scene.terrain)
   if (season.tint !== undefined) {
     const { view } = scenery
     ctx.fillStyle = season.tint

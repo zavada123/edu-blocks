@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
 import type { Level } from "../../core/level.ts"
-import { dragPaints, erase, paint } from "./edit.ts"
+import { dragPaints, erase, eraseWith, groundUnderPath, paint, setBaseGround } from "./edit.ts"
 
 const level: Level = {
   id: "t",
@@ -74,4 +74,29 @@ test("dragging paints tiles and single ground tiles, not figures", () => {
   expect(dragPaints({ kind: "enemy", monster: "slime" })).toBe(false)
   expect(dragPaints({ kind: "sprite", asset: "p:t", tiles: [1, 1, 1, 1] })).toBe(true)
   expect(dragPaints({ kind: "sprite", asset: "p:t", tiles: [1, 1, 2, 1] })).toBe(false)
+})
+
+describe("ground", () => {
+  const PATH = "ninja-adventure:tileset/floor#path"
+  const GRASS = "ninja-adventure:tileset/floor#grass"
+  const brush = { kind: "ground", ground: PATH } as const
+
+  test("paints cells of the level and of the meadow, and drags", () => {
+    const one = paint(paint(level, brush, 1, 1), brush, -1, 1)
+    expect(one.scene?.terrain).toEqual({ x: -1, y: 1, kinds: { a: PATH }, rows: ["a.a"] })
+    expect(dragPaints(brush)).toBe(true)
+  })
+
+  test("the right button takes away only the ground, and the painting goes when it is empty", () => {
+    const one = paint(paint(level, { kind: "enemy", monster: "slime" }, 2, 1), brush, 2, 1)
+    const back = eraseWith(one, brush, 2, 1)
+    expect(back.enemies).toHaveLength(1)
+    expect(back.scene?.terrain).toBeUndefined()
+  })
+
+  test("lays a path under the walkable cells on a base of grass", () => {
+    const laid = groundUnderPath(level, PATH, GRASS)
+    expect(laid.scene?.terrain).toEqual({ x: 1, y: 1, base: GRASS, kinds: { a: PATH }, rows: ["aaaa"] })
+    expect(setBaseGround(laid, null).scene?.terrain?.base).toBeUndefined()
+  })
 })

@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from common import DIRECTIONS, Pack, clip, directional, gif_timing, guess_strip, size_of, slug, title, to_ogg
+from ninja_terrain import terrain_tiles
 
 META = {
     "id": "ninja-adventure",
@@ -220,8 +221,9 @@ def effects(pack: Pack, root: Path) -> None:
 
 def backgrounds(pack: Pack, root: Path) -> None:
     for path in sorted((root / "Backgrounds/Tilesets").rglob("*.png")):
-        pack.sprite(f"tileset/{slug(path.stem.replace('Tileset', '').replace('tileset_', '')) or 'tileset'}", path,
-                    slug_path(path, pack), "tileset", title(path.stem), frame=[16, 16], layout="grid")
+        sprite_id = f"tileset/{slug(path.stem.replace('Tileset', '').replace('tileset_', '')) or 'tileset'}"
+        pack.sprite(sprite_id, path, slug_path(path, pack), "tileset", title(path.stem), frame=[16, 16], layout="grid",
+                    tiles=terrain_tiles(sprite_id, size_of(path)[0] // 16))
     for path in sorted((root / "Backgrounds/Animated").rglob("*.png")):
         if _skip(path):
             continue

@@ -6,7 +6,8 @@ import { paletteIssues } from "../core/solve.ts"
 import { storyIssues } from "../core/story.ts"
 import { type BlockName, type FinishKind, type Goal, type ItemKind, type Level, type NpcKind, type PropKind, type Scene, type Season } from "../core/level.ts"
 import { AssetBrowser, Thumb } from "./editor/AssetBrowser.tsx"
-import { type Brush, paint, erase } from "./editor/edit.ts"
+import { type Brush, eraseWith, paint } from "./editor/edit.ts"
+import { GroundCard } from "./editor/GroundCard.tsx"
 import { useHistory } from "./editor/history.ts"
 import { MapCanvas } from "./editor/MapCanvas.tsx"
 import { clamp, Enemies, Export, MONSTERS } from "./editor/cards.tsx"
@@ -215,6 +216,7 @@ const toolOf = (brush: Brush): Tool | null => {
     case "erase":
       return "erase"
     case "sprite":
+    case "ground":
       return null
   }
 }
@@ -275,7 +277,7 @@ const Editor = () => {
   const update = (patch: Partial<Level>) => setLevel((l) => ({ ...l, ...patch }))
   const updateScene = (patch: Partial<Scene>) => setLevel((l) => ({ ...l, scene: { ...l.scene, ...patch } }))
 
-  const onCell = (x: number, y: number, erasing: boolean) => history.amend((l) => (erasing ? erase(l, x, y) : paint(l, brush, x, y)))
+  const onCell = (x: number, y: number, erasing: boolean) => history.amend((l) => (erasing ? eraseWith(l, brush, x, y) : paint(l, brush, x, y)))
 
   const toggle = <T,>(list: ReadonlyArray<T>, value: T, on: boolean): ReadonlyArray<T> =>
     on ? [...list.filter((v) => v !== value), value] : list.filter((v) => v !== value)
@@ -429,6 +431,7 @@ const Editor = () => {
             <AssetBrowser level={level} brush={brush} onBrush={setBrush} onLevel={setLevel} />
           </aside>
           <aside className="ed-side">
+            <GroundCard level={level} brush={brush} onBrush={setBrush} onChange={setLevel} />
             <section className="ed-card">
               <h2>Рівень</h2>
               <label>
