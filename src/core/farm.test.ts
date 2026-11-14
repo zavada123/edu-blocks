@@ -170,6 +170,18 @@ while True:
         hero.move()
 `)
 
+/** The first ring of a new farm: only the blocks the farm gives before anything is built. */
+const WOOD_RING = python(`while True:
+    if hero.item_here() and not hero.hands_full():
+        hero.collect()
+    if hero.at_storehouse():
+        hero.store()
+    if hero.wall_ahead():
+        hero.turn_right()
+    else:
+        hero.move()
+`)
+
 const withUnlocks = (...unlocked: FarmState["unlocked"]): FarmState => ({ ...NEW_FARM, unlocked })
 const order = (id: string): FarmOrder => FARM_ORDERS.find((o) => o.id === id) as FarmOrder
 
@@ -264,9 +276,11 @@ describe("the day of the farm", () => {
       "if",
       "ifElse",
       "not",
+      "and",
+      "or",
       "procedure"
     ])
-    expect(farmPalette(withUnlocks("beds"), [])).toContain("bedEmpty")
+    expect(farmPalette(withUnlocks("beds"), [])).toEqual(expect.arrayContaining(["bedEmpty", "sow", "itemIs"]))
   })
 })
 
@@ -354,8 +368,10 @@ describe("orders", () => {
   test("every order can be done with the tools the orders before it open", () => {
     let state = NEW_FARM
     for (const o of FARM_ORDERS) {
-      const programs = [RING, SHUTTLE, PUMPKINS, SHEPHERD, goldLaps("laps == 1 or laps == 2"), goldLaps("laps == 1")]
-      const best = Math.max(...programs.map((p) => checkOrder(state, o, p, ALL).grade))
+      const programs = [WOOD_RING, RING, SHUTTLE, PUMPKINS, SHEPHERD, goldLaps("laps == 1 or laps == 2"), goldLaps("laps == 1")]
+      // Only the blocks the farm itself gives: a student who skipped the course can do every order.
+      const palette = farmPalette(state, [])
+      const best = Math.max(...programs.map((p) => checkOrder(state, o, p, palette).grade))
       expect(best, o.id).toBeGreaterThan(0)
       state = recordOrder(state, o, best)
     }

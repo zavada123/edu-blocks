@@ -108,13 +108,17 @@ const FARM_BASE: ReadonlyArray<BlockName> = [
   "repeatUntil",
   "if",
   "ifElse",
-  "not"
+  "not",
+  "and",
+  "or"
 ]
 
 /** The blocks of the farm: the base, what the student learned in the course, and the beds once they are built. */
 export const farmPalette = (state: FarmState, learned: ReadonlyArray<BlockName>): ReadonlyArray<BlockName> => {
   const have = new Set<BlockName>([...FARM_BASE, ...learned])
   if (has(state, "beds")) {
+    // Two kinds lie on the farm now: «тут ‹…›?» tells a pumpkin from a log.
+    have.add("itemIs")
     have.add("sow")
     have.add("bedEmpty")
   } else {
