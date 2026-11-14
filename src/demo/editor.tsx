@@ -14,6 +14,7 @@ import { type Aim, Inspector } from "./editor/Inspector.tsx"
 import { LayersCard } from "./editor/LayersCard.tsx"
 import { type LayerId, layerOfBrush, layerOfSelection, type LayerState, NO_LAYERS, visibleScene } from "./editor/layers.ts"
 import { addRoutePoint, cellOfSelection, dropRoutePoint, moveSelected, pick, removeSelected, type Selection, stillThere, tidyLinks, toggleLink } from "./editor/select.ts"
+import { WorldMap } from "./editor/WorldMap.tsx"
 import { copyPatch, type Patch, pastePatch, patchEmpty } from "./editor/stamp.ts"
 import { boxCells, fillCells, fillsArea, pickBrush, type Shape } from "./editor/tools.ts"
 import { fieldIssues, PEOPLE } from "./editor/fields.ts"
@@ -270,6 +271,8 @@ const Editor = () => {
   const tool = toolOf(brush)
   const setTool = (next: Tool) => setBrush(brushOf(next, who, monster))
   const [playing, setPlaying] = useState(false)
+  /** The world map of the course in place of the level. */
+  const [world, setWorld] = useState(false)
   const [lastRun, setLastRun] = useState<BlocksReport | null>(null)
   const scene: Scene = level.scene ?? {}
   const width = level.map[0]?.length ?? 0
@@ -473,6 +476,9 @@ const Editor = () => {
         <button type="button" className="demo-skin" onClick={() => setLevel(blank())}>
           Новий
         </button>
+        <button type="button" className={world ? "demo-skin demo-skin-on" : "demo-skin"} aria-pressed={world} onClick={() => setWorld((w) => !w)} disabled={playing}>
+          {world ? "← До рівня" : "Мапа світу"}
+        </button>
         <button type="button" className="demo-skin" onClick={history.undo} disabled={!history.canUndo} title="Ctrl+Z">
           ↶ Назад
         </button>
@@ -488,7 +494,17 @@ const Editor = () => {
           {playing ? "← Редагувати" : "Спробувати ▶"}
         </button>
       </header>
-      {playing ? (
+      {world && !playing ? (
+        <main className="demo-main">
+          <WorldMap
+            current={level.id}
+            onOpen={(l) => {
+              setLevel(l)
+              setWorld(false)
+            }}
+          />
+        </main>
+      ) : playing ? (
         <main className="demo-main">
           {lastRun !== null && lastRun.passed && (
             <div className="ed-banner">

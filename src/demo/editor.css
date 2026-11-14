@@ -726,3 +726,86 @@
   font-size: 0.75rem;
   color: #0f766e;
 }
+
+/* World map: every chapter with its levels */
+.ed-world {
+  padding: 16px;
+}
+.ed-world-chapters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.ed-world-chapter {
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+.ed-world-chapter h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+.ed-world-chapter ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ed-world-level button {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 8px;
+  align-items: center;
+  width: 100%;
+  padding: 6px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  font: inherit;
+  text-align: left;
+  cursor: grab;
+}
+.ed-world-level button:hover {
+  border-color: #94a3b8;
+}
+.ed-world-mini {
+  grid-row: span 2;
+  max-width: 72px;
+  height: auto;
+  image-rendering: pixelated;
+}
+.ed-world-title {
+  font-weight: 600;
+}
+.ed-world-current button {
+  border-color: #f59e0b;
+}
+.ed-world-dragged {
+  opacity: 0.4;
+}
+.ed-world-end {
+  min-height: 18px;
+  border: 2px dashed transparent;
+  border-radius: 8px;
+  color: #64748b;
+  font-size: 0.85rem;
+  text-align: center;
+}
+.ed-world-end:not(:empty) {
+  border-color: #cbd5e1;
+}
+.ed-world-order {
+  margin: 0 0 12px;
+  padding: 10px;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+}
+.ed-world-order pre {
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
