@@ -195,6 +195,19 @@ export interface Scene {
     readonly tilemap?: TileMap;
     /** Ground painted by cells, with edges picked by themselves: paths, water, sand. Drawn over the field's ground. */
     readonly terrain?: TerrainPaint;
+    /**
+     * Ponds, rivers and the sea around the field, as on the islands of Tiny Swords: water with foam at its shores,
+     * where the grass and the path end in soft edges. Only cells the hero cannot enter become water. A spring goal
+     * (`finish: "well"`) gets a pond next to it by itself.
+     */
+    readonly water?: WaterPaint;
+}
+/** Water painted by cells: `~` is water, anything else is not. Cells may lie outside the level, in the meadow. */
+export interface WaterPaint {
+    /** The level cell of the first cell of `rows`: 0, 0 when the painting starts where the level starts. */
+    readonly x?: number;
+    readonly y?: number;
+    readonly rows: ReadonlyArray<string>;
 }
 export interface Level {
     readonly id: string;

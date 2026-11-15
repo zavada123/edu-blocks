@@ -22,6 +22,16 @@ export interface GroundInput {
 }
 /** Grass, the ground or the ice under the path, flowers, bushes and stones; or the flat layers of a tile map. */
 export declare const drawGround: (ctx: Ctx, { world, scene, season, scenery }: GroundInput) => void;
+export interface WaterInput {
+    readonly scenery: Scenery;
+    readonly now: number;
+    readonly still: boolean;
+}
+/**
+ * The water of ponds and the sea, under the ground layer: water tiles, then white foam centred on every cell of land
+ * that touches the water. The ground drawn over it covers the inner part of the foam, so only the surf shows.
+ */
+export declare const drawWater: (ctx: Ctx, { scenery, now, still }: WaterInput) => void;
 export interface ActorsInput {
     readonly pose: StagePose;
     readonly scene: Scene;
