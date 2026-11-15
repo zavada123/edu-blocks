@@ -6,6 +6,7 @@ import { type Cell, cellKey, gateOpen, type World } from "../../core/world.ts"
 import {
   type Art,
   art,
+  ART_PACK_FREE,
   attackClips,
   baseArt,
   BRIDGE_ART,
@@ -13,6 +14,7 @@ import {
   ENEMY_ART,
   fighterOf,
   FINISH_ART,
+  FOAM_ART,
   FIRE_ART,
   GROUND_ART,
   HERO_ART,
@@ -26,10 +28,13 @@ import {
   SPRING_ROCKS_ART,
   TAKE_CLIPS,
   TREE_ART,
+  TREES,
+  AUTUMN_BIRCH,
+  SWAYING_BUSHES,
   WATER_ART
 } from "../art.ts"
 import { PROPS, type Season } from "../look.ts"
-import { cellHash, type Scenery } from "../scenery.ts"
+import { cellHash, type Obstacle, type Scenery } from "../scenery.ts"
 import { spriteOf } from "./packs.ts"
 import { drawFigure, drawPlaced, drawTile, isAnimated, layerOf, placedDepth } from "./sprites.ts"
 import { walkClip } from "../../core/assets.ts"
@@ -54,6 +59,8 @@ const FEET = 3
 const BOSS_SCALE = 1.5
 /** A tree of the scenery takes 2×2 cells: smaller than the pack draws it, so its crown does not hide the path. */
 const TREE_SCALE = 0.8
+/** A bush of the Free Pack is drawn for two cells; one cell of the field holds it at this size. */
+const BUSH_SCALE = 0.85
 /** How tall a figure of the pack stands, in canvas units: where a bar over its head goes. */
 const HEAD = 20
 const HEART = 9
@@ -148,6 +155,91 @@ const paintedGround = (ctx: Ctx, paint: TerrainPaint) => {
   }
 }
 
+/** A bush of the Free Pack that sways, for a bush of the scenery; null for other obstacles or without the Free Pack. */
+const swayingBush = (kind: Obstacle, x: number, y: number): Art | null => {
+  if (kind !== "bush" && kind !== "bushRound") return null
+  const id = SWAYING_BUSHES[cellHash(x, y, 7) % SWAYING_BUSHES.length] ?? ""
+  return spriteOf(`${ART_PACK_FREE}:${id}`)
+}
+
+/** The tree that grows at a place: a fir or a birch, the same each time; the public fir without the Free Pack. */
+const treeAt = (x: number, y: number, theme: Scene["theme"]): { readonly art: Art; readonly autumnal: boolean } | null => {
+  const id = TREES[cellHash(x, y, 8) % TREES.length] ?? TREE_ART
+  const look = id === "decor/tree-3" && theme === "autumn" ? AUTUMN_BIRCH : id
+  const free = spriteOf(`${ART_PACK_FREE}:${look}`)
+  if (free !== null) return { art: free, autumnal: look === AUTUMN_BIRCH }
+  const fir = art(TREE_ART)
+  return fir === null ? null : { art: fir, autumnal: false }
+}
+
+const SHEEP_ART = "animal/sheep"
+/** One round of a sheep, in seconds: it grazes, walks a cell to the right, grazes, walks back. */
+const SHEEP_ROUND = 14
+const SHEEP_GRAZE = 5.5
+const SHEEP_WALK = 1.5
+
+interface SheepPose {
+  readonly x: number
+  readonly y: number
+  readonly walking: boolean
+  readonly left: boolean
+}
+
+/** Where a sheep of the meadow is now: each starts its round at its own moment. */
+const sheepAt = (home: { readonly x: number; readonly y: number }, now: number): SheepPose => {
+  const t = (now / 1000 + (cellHash(home.x, home.y, 15) % SHEEP_ROUND)) % SHEEP_ROUND
+  const there = SHEEP_GRAZE + SHEEP_WALK
+  if (t < SHEEP_GRAZE) return { x: home.x, y: home.y, walking: false, left: false }
+  if (t < there) return { x: home.x + (t - SHEEP_GRAZE) / SHEEP_WALK, y: home.y, walking: true, left: false }
+  if (t < there + SHEEP_GRAZE) return { x: home.x + 1, y: home.y, walking: false, left: true }
+  return { x: home.x + 1 - (t - there - SHEEP_GRAZE) / SHEEP_WALK, y: home.y, walking: true, left: true }
+}
+
+const sheepFigure = (ctx: Ctx, pose: SheepPose, now: number) => {
+  const sheep = art(SHEEP_ART)
+  if (sheep === null) return
+  const clip = pose.walking ? pickClip(sheep.sprite, ["run", "walk", "idle"]) : pickClip(sheep.sprite, ["graze", "idle"])
+  const cx = (pose.x + 0.5) * CELL
+  shadow(ctx, cx, (pose.y + 0.5) * CELL, 0.8)
+  drawFigure(ctx, sheep, { cx, bottom: cellBottom(pose.y), now, flip: pose.left, ...(clip === null ? {} : { clip }), scale: 0.85 })
+}
+
+/** Cliff walls by their neighbours in the row: a lone cell, the left end, the right end or the middle. */
+const PLATEAU_ART = "tileset/ground-3"
+const CLIFF_ROLES = { single: 3, left: 0, right: 2, middle: 1 } as const
+
+/**
+ * Plateaus in the meadow, as the Tiny Swords guide lays them: the shadow one cell down, the grass on top with its
+ * edges, and a stone wall under the bottom row. Only with the Free Pack, whose ground has plateaus and cliffs.
+ */
+const raisedGround = (ctx: Ctx, scenery: Scenery) => {
+  if (scenery.plateau.size === 0) return
+  // The plateau grass is greener than the meadow, as the pack advises, so the heights read apart.
+  const ground = spriteOf(`${ART_PACK_FREE}:${PLATEAU_ART}`) ?? spriteOf(`${ART_PACK_FREE}:${GROUND_ART}`)
+  if (ground === null || groundTile(ground.sprite, "plateau", 0) === null) return
+  const cells = (keys: ReadonlySet<string>) => [...keys].map((key) => key.split(",").map(Number) as [number, number])
+  const top = (x: number, y: number) => scenery.plateau.has(cellKey(x, y))
+  const shade = spriteOf(`${ART_PACK_FREE}:terrain/shadow`)
+  if (shade !== null) {
+    const { anchor } = shade.sprite
+    const drop = anchor === undefined ? 0 : ((anchor[1] - (shade.sprite.size[1] ?? 0) / 2) * CELL) / shade.pack.cell
+    for (const [x, y] of cells(scenery.plateau)) drawFigure(ctx, shade, { cx: (x + 0.5) * CELL, bottom: (y + 1.5) * CELL + drop, now: 0 })
+  }
+  for (const [x, y] of cells(scenery.plateau)) {
+    const mask = (top(x, y - 1) ? 0 : 1) | (top(x + 1, y) ? 0 : 2) | (top(x, y + 1) ? 0 : 4) | (top(x - 1, y) ? 0 : 8)
+    const tile = groundTile(ground.sprite, "plateau", mask)
+    if (tile !== null) drawTile(ctx, ground, tile, x, y)
+  }
+  const walls = (ground.sprite.tiles ?? []).filter((t) => t.terrain === "cliff" && t.role === "wall").sort((a, b) => a.col - b.col)
+  for (const [x, y] of cells(scenery.cliffs)) {
+    const left = scenery.cliffs.has(cellKey(x - 1, y))
+    const right = scenery.cliffs.has(cellKey(x + 1, y))
+    const role = !left && !right ? "single" : !left ? "left" : !right ? "right" : "middle"
+    const tile = walls[CLIFF_ROLES[role]]
+    if (tile !== undefined) drawTile(ctx, ground, tile.index, x, y)
+  }
+}
+
 /** Grass, the ground or the ice under the path, flowers, bushes and stones; or the flat layers of a tile map. */
 export const drawGround = (ctx: Ctx, { world, scene, season, scenery }: GroundInput) => {
   if (scene.tilemap !== undefined) tilemapGround(ctx, scene.tilemap)
@@ -170,7 +262,9 @@ export const drawGround = (ctx: Ctx, { world, scene, season, scenery }: GroundIn
       const look = x < 0 || y < 0 || x >= width || y >= height ? season.decor[kind] : null
       if (look !== null) stand(ctx, look, (x + 0.5) * CELL, cellBottom(y), 0)
     }
-    for (const { x, y, kind } of scenery.obstacles) stand(ctx, OBSTACLE_ART[kind], (x + 0.5) * CELL, cellBottom(y) + 1, 0)
+    for (const { x, y, kind } of scenery.obstacles) {
+      if (swayingBush(kind, x, y) === null) stand(ctx, OBSTACLE_ART[kind], (x + 0.5) * CELL, cellBottom(y) + 1, 0)
+    }
   })
 }
 
@@ -178,20 +272,35 @@ export const drawGround = (ctx: Ctx, { world, scene, season, scenery }: GroundIn
  * The field's own ground. Under everything lies sand (or water for ice and a bridge); grass covers every cell where
  * the hero does not walk, with soft edges toward the path, as the islands of Tiny Swords lie on the sand.
  */
+/**
+ * The grass of the meadow: the newer grass of the Free Pack when it is served, whose edges end in a light shore over
+ * water as in the pack's own maps; else the grass of the public pack.
+ */
+const meadowArt = (ground: Art): { readonly art: Art; readonly terrain: "grass" | "ground" } => {
+  const free = spriteOf(`${ART_PACK_FREE}:${GROUND_ART}`)
+  return free !== null && groundTile(free.sprite, "ground", 0) !== null ? { art: free, terrain: "ground" } : { art: ground, terrain: "grass" }
+}
+
 const naturalGround = (ctx: Ctx, { world, scene, scenery }: GroundInput) => {
   const ground = baseArt(GROUND_ART)
   const water = baseArt(WATER_ART)
   if (ground === null || water === null) return
   const { view } = scenery
   const kind = scene.ground ?? "path"
+  const meadow = meadowArt(ground)
   const { width, height, walls } = world
   const inside = (x: number, y: number) => x >= 0 && y >= 0 && x < width && y < height
   const open = (x: number, y: number) => inside(x, y) && !walls.has(cellKey(x, y))
   // Where there is no grass: the path or the ice, or the whole lake under a bridge.
-  const low = kind === "bridge" ? inside : open
-  const sand = groundTile(ground.sprite, "sand", 0)
+  // Ponds stay empty here: `drawWater` puts the water and its foam under this layer each frame.
+  const pond = (x: number, y: number) => scenery.water.has(cellKey(x, y))
+  const low = kind === "bridge" ? inside : (x: number, y: number) => open(x, y) || pond(x, y)
   for (let y = view.y; y < view.y + view.height; y++) {
     for (let x = view.x; x < view.x + view.width; x++) {
+      if (pond(x, y)) continue
+      // Sand ends at the water in a beach, as the grass does.
+      const shore = (pond(x, y - 1) ? 1 : 0) | (pond(x + 1, y) ? 2 : 0) | (pond(x, y + 1) ? 4 : 0) | (pond(x - 1, y) ? 8 : 0)
+      const sand = groundTile(ground.sprite, "sand", shore)
       if (kind === "path" && sand !== null) drawTile(ctx, ground, sand, x, y)
       else drawTile(ctx, water, 1, x, y)
     }
@@ -202,12 +311,13 @@ const naturalGround = (ctx: Ctx, { world, scene, scenery }: GroundInput) => {
   }
   for (let y = view.y; y < view.y + view.height; y++) {
     for (let x = view.x; x < view.x + view.width; x++) {
-      if (low(x, y)) continue
+      if (low(x, y) || pond(x, y)) continue
       const mask = (low(x, y - 1) ? 1 : 0) | (low(x + 1, y) ? 2 : 0) | (low(x, y + 1) ? 4 : 0) | (low(x - 1, y) ? 8 : 0)
-      const tile = groundTile(ground.sprite, "grass", mask)
-      if (tile !== null) drawTile(ctx, ground, tile, x, y)
+      const tile = groundTile(meadow.art.sprite, meadow.terrain, mask)
+      if (tile !== null) drawTile(ctx, meadow.art, tile, x, y)
     }
   }
+  raisedGround(ctx, scenery)
   if (kind === "path") {
     // Now and then a few pebbles on the path.
     const pebbles = ground.sprite.tiles?.find((t) => t.terrain === "sand" && t.role === "detail")?.index
@@ -232,6 +342,45 @@ const bridge = (ctx: Ctx, open: (x: number, y: number) => boolean, width: number
       // A crossing gets both, so the planks meet.
       if (across && along && upright !== null) drawTile(ctx, planks, upright, x, y)
     }
+  }
+}
+
+export interface WaterInput {
+  readonly scenery: Scenery
+  readonly now: number
+  readonly still: boolean
+}
+
+/** Each shore cell starts its waves at its own moment, as the pack advises: up to this many ms apart. */
+const FOAM_SPREAD_MS = 1600
+
+/**
+ * The water of ponds and the sea, under the ground layer: water tiles, then white foam centred on every cell of land
+ * that touches the water. The ground drawn over it covers the inner part of the foam, so only the surf shows.
+ */
+export const drawWater = (ctx: Ctx, { scenery, now, still }: WaterInput) => {
+  if (scenery.water.size === 0) return
+  const water = baseArt(WATER_ART)
+  const foam = art(FOAM_ART)
+  const cells = [...scenery.water].map((key) => key.split(",").map(Number) as [number, number])
+  if (water !== null) for (const [x, y] of cells) drawTile(ctx, water, 1, x, y)
+  if (foam === null) return
+  const shores = new Set<string>()
+  for (const [x, y] of cells) {
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        const key = cellKey(x + dx, y + dy)
+        if (!scenery.water.has(key)) shores.add(key)
+      }
+    }
+  }
+  // The foam frame is centred on its cell: from the middle of the frame down to the point it stands by.
+  const { frame, anchor } = foam.sprite
+  const drop = frame === undefined || anchor === undefined ? 0 : ((anchor[1] - frame[1] / 2) * CELL) / foam.pack.cell
+  for (const key of shores) {
+    const [x = 0, y = 0] = key.split(",").map(Number)
+    const phase = cellHash(x, y, 9) % FOAM_SPREAD_MS
+    drawFigure(ctx, foam, { cx: (x + 0.5) * CELL, bottom: (y + 0.5) * CELL + drop, clip: "play", now: still ? phase : now + phase })
   }
 }
 
@@ -304,8 +453,27 @@ const trap = (ctx: Ctx, cx: number, cy: number, icy: boolean, broken: boolean) =
 const flame = (ctx: Ctx, cx: number, bottom: number, now: number, still: boolean) =>
   stand(ctx, { id: FIRE_ART, scale: 0.55 }, cx, bottom, still ? 0 : now)
 
+/** The water cells next to the goal and joined to it: the pond of a spring. */
+const pondBy = (water: ReadonlySet<string>, goal: Cell): ReadonlyArray<Cell> => {
+  const seen = new Set<string>()
+  const queue: Array<Cell> = [goal]
+  const found: Array<Cell> = []
+  while (queue.length > 0) {
+    const c = queue.shift() as Cell
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+      const n = { x: c.x + dx, y: c.y + dy }
+      const key = cellKey(n.x, n.y)
+      if (!water.has(key) || seen.has(key)) continue
+      seen.add(key)
+      found.push(n)
+      queue.push(n)
+    }
+  }
+  return found
+}
+
 /** The goal. A well is a spring in the grass: water with stones. At home the house is the goal: the cell is marked. */
-const finishLook = (ctx: Ctx, scene: Scene, x: number, y: number, now: number, still: boolean) => {
+const finishLook = (ctx: Ctx, scene: Scene, x: number, y: number, now: number, still: boolean, pond: ReadonlyArray<Cell>) => {
   const kind = scene.finish ?? "flag"
   const cx = x * CELL + CELL / 2
   const own = scene.finishLook === undefined ? null : spriteOf(scene.finishLook)
@@ -314,6 +482,12 @@ const finishLook = (ctx: Ctx, scene: Scene, x: number, y: number, now: number, s
   if (look !== null) {
     shadow(ctx, cx, y * CELL + CELL / 2)
     stand(ctx, look, cx, cellBottom(y), still ? 0 : now)
+    return
+  }
+  if (kind === "well" && pond.length > 0) {
+    // The spring is the pond by the goal: a few stones with foam in its far corner.
+    const far = pond.reduce((a, b) => (Math.abs(b.x - x) + Math.abs(b.y - y) > Math.abs(a.x - x) + Math.abs(a.y - y) ? b : a))
+    stand(ctx, { id: SPRING_ROCKS_ART, clip: "play" }, (far.x + 0.5) * CELL, (far.y + 1) * CELL - 3, still ? 0 : now)
     return
   }
   if (kind === "well") {
@@ -689,7 +863,7 @@ export const drawActors = (ctx: Ctx, input: ActorsInput) => {
     const [tx = 0, ty = 0] = key.split(",").map(Number)
     trap(ctx, tx * CELL + CELL / 2, ty * CELL + CELL / 2, season.icy, world.fell && Math.round(pose.hero.x) === tx && Math.round(pose.hero.y) === ty)
   }
-  if (world.finish !== null) finishLook(ctx, scene, world.finish.x, world.finish.y, now, still)
+  if (world.finish !== null) finishLook(ctx, scene, world.finish.x, world.finish.y, now, still, pondBy(scenery.water, world.finish))
   if (world.storehouse !== null) storehouseLook(ctx, scene, world.storehouse.x, world.storehouse.y, world.stored)
   for (const key of world.gates) {
     const [gx = 0, gy = 0] = key.split(",").map(Number)
@@ -706,26 +880,43 @@ export const drawActors = (ctx: Ctx, input: ActorsInput) => {
   }
   const map = scene.tilemap
   const tileset = map === undefined ? null : spriteOf(map.tileset)
-  const tree = art(TREE_ART)
   // Who stands lower on the field is drawn later, so a figure in front covers the one behind. A house or a tree
   // stands by its bottom row: the hero above it walks behind it, the hero below it in front.
   const figures = [
     ...(scene.props ?? []).map((p) => ({ y: p.y + PROPS[p.kind].height - 1 - 0.02, draw: () => propFigure(ctx, p, still ? 0 : now) })),
-    ...(tree === null
-      ? []
-      : scenery.trees.map((t) => ({
-          y: t.y + 1 - 0.02,
-          draw: () =>
-            withFilter(ctx, season.plants, () =>
-              drawFigure(ctx, tree, { cx: (t.x + 1) * CELL, bottom: (t.y + 2) * CELL - FEET, now: still ? 0 : now + (cellHash(t.x, t.y, 6) % 1000), scale: TREE_SCALE })
-            )
-        }))),
+    ...scenery.trees.flatMap((t) => {
+      const tree = treeAt(t.x, t.y, scene.theme)
+      if (tree === null) return []
+      return [{
+        y: t.y + 1 - 0.02,
+        draw: () =>
+          // A birch already yellow for autumn keeps its own colours.
+          withFilter(ctx, tree.autumnal ? undefined : season.plants, () =>
+            drawFigure(ctx, tree.art, { cx: (t.x + 1) * CELL, bottom: (t.y + 2) * CELL - FEET, now: still ? 0 : now + (cellHash(t.x, t.y, 6) % 1000), scale: TREE_SCALE })
+          )
+      }]
+    }),
+    ...scenery.obstacles.flatMap(({ x, y, kind }) => {
+      const bush = swayingBush(kind, x, y)
+      if (bush === null) return []
+      return [{
+        y: y - 0.03,
+        draw: () =>
+          withFilter(ctx, season.plants, () =>
+            drawFigure(ctx, bush, { cx: (x + 0.5) * CELL, bottom: cellBottom(y) + 1, now: still ? 0 : now + (cellHash(x, y, 13) % 1000), scale: BUSH_SCALE })
+          )
+      }]
+    }),
     ...(map === undefined || tileset === null
       ? []
       : tilesOfKind(map, "objects").map((t) => ({ y: t.y - 0.02, draw: () => drawTile(ctx, tileset, t.tile, t.x, t.y) }))),
     ...sprites
       .filter(({ placed, found }) => found !== null && layerOf(placed, found) === "object")
       .map(({ placed }) => ({ y: placedDepth(placed) - 0.01, draw: () => drawPlaced(ctx, placed, still ? 0 : now) })),
+    ...scenery.sheep.map((home) => {
+      const at = sheepAt(home, still ? 0 : now)
+      return { y: home.y, draw: () => sheepFigure(ctx, at, still ? 0 : now) }
+    }),
     ...pose.enemies.map((e) => ({ y: e.y, draw: () => enemyFigure(ctx, e, pose.hero, now, still) })),
     { y: pose.hero.y + 0.01, draw: () => heroFigure(ctx, pose.hero, skin, now, still) }
   ]

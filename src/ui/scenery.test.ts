@@ -11,8 +11,8 @@ const treeCells = (trees: ReadonlyArray<{ x: number; y: number }>) =>
 describe("buildScenery", () => {
   test("the view is a square with the level in its middle and a meadow around it", () => {
     const { view } = buildScenery(world)
-    expect(view).toEqual({ x: -2, y: -4, width: 14, height: 14 })
-    expect(buildScenery(parseMap(["#####", "#S.F#", "#####"])).view).toEqual({ x: -2, y: -3, width: 9, height: 9 })
+    expect(view).toEqual({ x: -3, y: -5, width: 16, height: 16 })
+    expect(buildScenery(parseMap(["#####", "#S.F#", "#####"])).view).toEqual({ x: -3, y: -4, width: 11, height: 11 })
   })
 
   test("every wall cell of the level gets either a tree or one obstacle", () => {
@@ -53,5 +53,45 @@ describe("cellHash", () => {
   test("differs for neighbouring cells", () => {
     expect(cellHash(0, 0)).not.toBe(cellHash(1, 0))
     expect(cellHash(0, 0)).not.toBe(cellHash(0, 1))
+  })
+
+  test("plateaus and their cliffs stay in the meadow, a cell away from the level, with no tree on them", () => {
+    const { plateau, cliffs, trees } = buildScenery(world)
+    expect(plateau.size).toBeGreaterThan(0)
+    for (const key of [...plateau, ...cliffs]) {
+      const [x = 0, y = 0] = key.split(",").map(Number)
+      expect(x >= -1 && y >= -1 && x <= world.width && y <= world.height).toBe(false)
+    }
+    // Every cliff stands right under the plateau.
+    for (const key of cliffs) {
+      const [x = 0, y = 0] = key.split(",").map(Number)
+      expect(plateau.has(`${x},${y - 1}`)).toBe(true)
+    }
+    for (const t of trees) {
+      for (const key of [`${t.x},${t.y}`, `${t.x + 1},${t.y}`, `${t.x},${t.y + 1}`, `${t.x + 1},${t.y + 1}`]) {
+        expect(plateau.has(key) || cliffs.has(key)).toBe(false)
+      }
+    }
+  })
+
+  test("nothing grows on water", () => {
+    const water = new Set(["-2,-2", "-1,-2"])
+    const { trees, obstacles, decor } = buildScenery(world, { water })
+    const covered = new Set([...obstacles, ...decor].map((c) => `${c.x},${c.y}`))
+    for (const t of trees) for (const key of [`${t.x},${t.y}`, `${t.x + 1},${t.y}`, `${t.x},${t.y + 1}`, `${t.x + 1},${t.y + 1}`]) covered.add(key)
+    for (const key of water) expect(covered.has(key)).toBe(false)
+  })
+
+  test("sheep graze in the free meadow with room to step right", () => {
+    const { sheep, obstacles, plateau, view } = buildScenery(world)
+    expect(sheep.length).toBeGreaterThan(0)
+    const things = new Set([...obstacles.map((o) => `${o.x},${o.y}`), ...plateau])
+    for (const s of sheep) {
+      for (const x of [s.x, s.x + 1]) {
+        expect(x >= 0 && s.y >= 0 && x < world.width && s.y < world.height).toBe(false)
+        expect(things.has(`${x},${s.y}`)).toBe(false)
+        expect(x < view.x + view.width).toBe(true)
+      }
+    }
   })
 })
