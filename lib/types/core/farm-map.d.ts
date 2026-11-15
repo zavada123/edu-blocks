@@ -3,6 +3,9 @@ export declare const GOBLIN_HUT_ART: string;
 export declare const WATCH_TOWER_ART: string;
 export declare const SHEEP_ART: string;
 export declare const GOLD_MINE_ART: string;
+export declare const BUILD_SITE_ART: string;
+export declare const SECOND_BARN_ART: string;
+export declare const MILL_ART: string;
 export interface FarmLayout {
     /** The map of the day: `#` walls and the ring of paths. */
     readonly rows: ReadonlyArray<string>;
@@ -25,6 +28,11 @@ export interface FarmLayout {
     readonly pen: boolean;
     /** The gold mine under the bottom path, its mouth by the second cell of the path. */
     readonly mine: boolean;
+    /** The build site on the right path, between the forest and the beds. */
+    readonly site?: boolean;
+    /** The second barn in the bottom-right corner, and the mill in the bottom-left one. */
+    readonly barn?: boolean;
+    readonly mill?: boolean;
 }
 export declare const farmLook: (layout: FarmLayout) => {
     readonly tilemap: TileMap;

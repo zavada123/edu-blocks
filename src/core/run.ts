@@ -1,8 +1,8 @@
 import VirtualMachine, { type BlockUtility, type Runtime } from "scratch-vm"
 import vmLog from "scratch-vm/src/util/log.js"
-import { COUNTER_ID, COUNTER_NAME, HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID, isItemKind, ITEM_FIELD, ITEM_NAMES, itemMenu } from "./blocks.ts"
+import { COUNTER_ID, COUNTER_NAME, HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID, isItemKind, isStockKind, ITEM_FIELD, ITEM_NAMES, itemMenu, STOCK_KINDS, STOCK_NAMES } from "./blocks.ts"
 import { withLibrary } from "./book.ts"
-import { HERO_ACTIONS, HERO_SENSORS, heroAct, heroSense, newSession, type Sensor } from "./hero.ts"
+import { HERO_ACTIONS, HERO_SENSORS, heroAct, heroCount, heroSense, newSession, type Sensor } from "./hero.ts"
 import type { Level } from "./level.ts"
 import { checkProgram, MAX_FRAMES, programVariables, PASSES_PER_FRAME, type Program, resultOf, type RunResult, type Session } from "./program.ts"
 import type { Action } from "./world.ts"
@@ -79,9 +79,14 @@ const heroExtension = (level: Level | null, session: Session | null) =>
       const self = this as unknown as Record<string, BlockFunction>
       for (const action of HERO_ACTIONS) self[action] = (_args, util) => this.act(action, util)
       for (const sensor of Object.keys(HERO_SENSORS) as ReadonlyArray<Sensor>) self[sensor] = () => session !== null && heroSense(session, sensor)
+      const kindOf = (args: unknown) => (typeof args === "object" && args !== null ? (args as Record<string, unknown>)[ITEM_FIELD] : undefined)
       self.itemIs = (args) => {
-        const kind = typeof args === "object" && args !== null ? (args as Record<string, unknown>)[ITEM_FIELD] : undefined
+        const kind = kindOf(args)
         return session !== null && isItemKind(kind) && heroSense(session, { itemIs: kind })
+      }
+      self.stock = (args) => {
+        const kind = kindOf(args)
+        return session !== null && isStockKind(kind) ? heroCount(session, kind) : 0
       }
     }
 
@@ -95,11 +100,15 @@ const heroExtension = (level: Level | null, session: Session | null) =>
         color3: "#0B8E69",
         blocks: HERO_BLOCKS.map((b) => ({
           opcode: b.name,
-          blockType: b.boolean ? "Boolean" : "command",
+          blockType: b.boolean ? "Boolean" : b.reporter === true ? "reporter" : "command",
           text: b.text,
-          ...(b.name === "itemIs" ? { arguments: { [ITEM_FIELD]: { type: "string", menu: "items", defaultValue: menu[0] } } } : {})
+          ...(b.name === "itemIs" ? { arguments: { [ITEM_FIELD]: { type: "string", menu: "items", defaultValue: menu[0] } } } : {}),
+          ...(b.name === "stock" ? { arguments: { [ITEM_FIELD]: { type: "string", menu: "stock", defaultValue: "wood" } } } : {})
         })),
-        menus: { items: { acceptReporters: false, items: menu.map((k) => ({ text: ITEM_NAMES[k], value: k })) } }
+        menus: {
+          items: { acceptReporters: false, items: menu.map((k) => ({ text: ITEM_NAMES[k], value: k })) },
+          stock: { acceptReporters: false, items: STOCK_KINDS.map((k) => ({ text: STOCK_NAMES[k] ?? k, value: k })) }
+        }
       }
     }
 

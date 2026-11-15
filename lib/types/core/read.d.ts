@@ -1,4 +1,4 @@
-import type { Amount } from "./build.ts";
+import type { Amount, Compare } from "./build.ts";
 import { type Sensor } from "./hero.ts";
 import { type Program } from "./program.ts";
 import type { Action, ItemKind } from "./world.ts";
@@ -9,7 +9,7 @@ import type { Action, ItemKind } from "./world.ts";
  */
 export type Condition = Sensor | {
     readonly itemIs: ItemKind;
-} | {
+} | Compare | {
     readonly not: Slot;
 } | {
     readonly and: readonly [Slot, Slot];

@@ -19,6 +19,8 @@ export declare const MAX_STEPS = 200000;
  * for that many: a run that acts ends at MAX_ACTIONS before this limit.
  */
 export declare const MAX_CALL_DEPTH: number;
+/** Scratch `Cast.compare`: numbers as numbers, anything else as text without case. Below 0, 0 or above 0. */
+export declare const scratchCompare: (a: unknown, b: unknown) => number;
 /**
  * Runs a program on one field: the map of `level` only, without its other `fields`. The rules of the game live
  * here; `judgeProgram` runs it on every field of a level.

@@ -1,6 +1,7 @@
+import { type Comparison } from "./blocks.ts";
 import type { Sensor } from "./hero.ts";
 import type { Program } from "./program.ts";
-import type { Action, ItemKind } from "./world.ts";
+import type { Action, ItemKind, StockKind } from "./world.ts";
 /**
  * A short way to write a program in code: reference solutions of the levels and tests.
  * `buildProgram(["move", { repeat: 3, body: ["move", "collect"] }])` gives the same blocks the editor makes.
@@ -15,15 +16,24 @@ export type Question = Sensor
     readonly and: readonly [Question, Question];
 } | {
     readonly or: readonly [Question, Question];
-};
+}
+/** ‹ (скільки колод у коморі) > 2 ›: two numbers compared. */
+ | Compare;
+/** Two number slots compared: «>», «<» or «=». */
+export interface Compare {
+    readonly compare: Comparison;
+    readonly of: readonly [Amount, Amount];
+}
 /**
- * A number slot: a number, the counter, a variable the student made («Створити змінну») or a parameter of the custom
- * block it is in.
+ * A number slot: a number, the counter, a variable the student made («Створити змінну»), a parameter of the custom
+ * block it is in, or «скільки ‹…› у коморі».
  */
 export type Amount = number | "counter" | {
     readonly variable: string;
 } | {
     readonly param: string;
+} | {
+    readonly stock: StockKind;
 };
 export type Step = Action
 /** «повторити (лічильник)» with `repeat: "counter"`. */

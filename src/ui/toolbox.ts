@@ -22,15 +22,20 @@ const MY_BLOCKS = { name: "Мої блоки", colour: "#FF6680", secondary: "#F
 const EVENTS = { name: "Події", colour: "#FFBF00", secondary: "#CC9900" }
 
 const CONTROL_ORDER: ReadonlyArray<BlockName> = ["repeat", "forever", "repeatUntil", "if", "ifElse"]
-const OPERATOR_ORDER: ReadonlyArray<BlockName> = ["not", "and", "or"]
+const OPERATOR_ORDER: ReadonlyArray<BlockName> = ["gt", "lt", "equals", "not", "and", "or"]
 
 const escapeXml = (text: string): string =>
   text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;")
 
+/** A text slot of a comparison, with the number it starts with. */
+const operand = (name: string, text: string): string => `<value name="${name}"><shadow type="text"><field name="TEXT">${text}</field></shadow></value>`
+
 const blockXml = (name: BlockName): string =>
   name === "repeat"
     ? `<block type="${opcodeOf(name)}"><value name="TIMES"><shadow type="math_whole_number"><field name="NUM">4</field></shadow></value></block>`
-    : `<block type="${opcodeOf(name)}"/>`
+    : name === "gt" || name === "lt" || name === "equals"
+      ? `<block type="${opcodeOf(name)}">${operand("OPERAND1", "")}${operand("OPERAND2", "50")}</block>`
+      : `<block type="${opcodeOf(name)}"/>`
 
 const counterField = `<field name="VARIABLE" id="${COUNTER_ID}" variabletype="">${COUNTER_NAME}</field>`
 

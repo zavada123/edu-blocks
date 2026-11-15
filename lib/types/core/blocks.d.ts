@@ -1,8 +1,9 @@
 import type { BlockName, ItemKind } from "./level.ts";
+import type { StockKind } from "./world.ts";
 /** ID of the VM extension with the hero blocks. Opcodes in a program read `hero_move`. */
 export declare const HERO_EXTENSION_ID = "hero";
 export declare const HERO_COLOR = "#0FBD8C";
-export type HeroBlock = Extract<BlockName, "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "feed" | "chop" | "water" | "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "itemIs" | "bedEmpty" | "sheepHungry" | "woodAhead" | "ripeAhead" | "itemAhead">;
+export type HeroBlock = Extract<BlockName, "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "feed" | "chop" | "water" | "build" | "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "itemIs" | "bedEmpty" | "sheepHungry" | "woodAhead" | "ripeAhead" | "itemAhead" | "atSite" | "stock">;
 /** Hero blocks in palette order. `boolean` blocks are the questions for «якщо» and «повторити до». */
 /**
  * A hero block. `[ITEM]` in the text is a drop-down of the item kinds (`itemMenu`): the block keeps the choice in
@@ -12,10 +13,19 @@ export interface HeroBlockInfo {
     readonly name: HeroBlock;
     readonly text: string;
     readonly boolean: boolean;
+    /** A round block that gives a number: «скільки ‹колод› у коморі». */
+    readonly reporter?: true;
 }
 /** The field of «тут ‹…›?» that holds the item kind. */
 export declare const ITEM_FIELD = "ITEM";
 export declare const HERO_BLOCKS: ReadonlyArray<HeroBlockInfo>;
+/** What «скільки ‹…› у коморі» counts, by name in its drop-down: the barn of the farm. */
+export declare const STOCK_NAMES: Readonly<Partial<Record<StockKind, string>>>;
+export declare const STOCK_KINDS: ReadonlyArray<StockKind>;
+/** Whether a value of a program is a kind the barn keeps. */
+export declare const isStockKind: (value: unknown) => value is StockKind;
+/** The kind a «скільки ‹…› у коморі» block holds in its field; logs when the field is damaged. */
+export declare const stockOfField: (field: unknown) => StockKind;
 /** Item kinds by name, as the drop-down of «тут ‹…›?» shows them. */
 export declare const ITEM_NAMES: Readonly<Record<ItemKind, string>>;
 /** Whether a value of a program is an item kind. */
@@ -40,6 +50,10 @@ export declare const collectText: (scene: {
 export declare const heroBlockText: (name: HeroBlock, scene?: {
     readonly item?: ItemKind;
 }) => string;
+/** The comparisons of «Оператори»: how a program writes them, and their opcode. */
+export type Comparison = ">" | "<" | "=";
+export declare const COMPARISON_OPCODES: Readonly<Record<Comparison, string>>;
+export declare const comparisonOfOpcode: (opcode: string) => Comparison | undefined;
 export declare const START_OPCODE = "event_whenflagclicked";
 /** The one variable of the game. Its id is fixed, so the editor, the project and the judge agree on it. */
 export declare const COUNTER_ID = "eb-counter";

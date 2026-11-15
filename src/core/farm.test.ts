@@ -246,6 +246,19 @@ const WOOD_RING = python(`while True:
         hero.move()
 `)
 
+/** Pumpkins to the mill: at each corner the worker unloads, and the mill in the bottom-left one grinds them. */
+const MILLER = python(`while True:
+    if hero.item_is("carrot") and not hero.hands_full():
+        hero.collect()
+    if hero.bed_empty():
+        hero.sow()
+    if hero.wall_ahead():
+        hero.store()
+        hero.turn_right()
+    else:
+        hero.move()
+`)
+
 const withUnlocks = (...unlocked: FarmState["unlocked"]): FarmState => ({ ...NEW_FARM, unlocked })
 const order = (id: string): FarmOrder => FARM_ORDERS.find((o) => o.id === id) as FarmOrder
 
@@ -432,16 +445,18 @@ describe("orders", () => {
   test("every order can be done with the tools the orders before it open", () => {
     let state = NEW_FARM
     for (const o of FARM_ORDERS) {
-      const programs = [WOOD_RING, RING, SHUTTLE, PUMPKINS, SHEPHERD, goldLaps("laps == 1 or laps == 2"), goldLaps("laps == 1"), TALLY, CARPENTER, FROM_BOOK]
+      const programs = [WOOD_RING, RING, SHUTTLE, PUMPKINS, SHEPHERD, goldLaps("laps == 1 or laps == 2"), goldLaps("laps == 1"), TALLY, CARPENTER, FROM_BOOK, MILLER]
       // The student writes «працювати» in the book once «Облік ходок» opened it.
       if (o.fromBook === true) state = { ...state, book: [WORK_PAGE] }
+      // The student builds what an order needs on the site.
+      if (o.building !== undefined) state = { ...state, parts: { ...state.parts, [o.building]: 99 } }
       // Only the blocks the farm itself gives: a student who skipped the course can do every order.
       const palette = farmPalette(state, [])
       const best = Math.max(...programs.map((p) => checkOrder(state, o, p, palette).grade))
       expect(best, o.id).toBeGreaterThan(0)
       state = recordOrder(state, o, best)
     }
-    expect(state.unlocked).toEqual(["beds", "basket", "tower", "longDay", "cart", "pen", "spyglass", "mine", "workshop", "book"])
+    expect(state.unlocked).toEqual(["beds", "basket", "tower", "longDay", "cart", "pen", "spyglass", "mine", "workshop", "site", "abacus", "book"])
   })
 
   test("a lower grade later does not take back a better one", () => {
@@ -460,12 +475,12 @@ describe("orders", () => {
 
 describe("planting trees", () => {
   test("costs more for each tree and is paid from the barn", () => {
-    const rich: FarmState = { ...withUnlocks("beds"), stock: { wood: 100, pumpkin: 100, meat: 0, gold: 0 } }
-    expect(treePrice(rich)).toEqual({ wood: 10, pumpkin: 3, meat: 0, gold: 0 })
+    const rich: FarmState = { ...withUnlocks("beds"), stock: { wood: 100, pumpkin: 100, meat: 0, gold: 0, flour: 0 } }
+    expect(treePrice(rich)).toEqual({ wood: 10, pumpkin: 3, meat: 0, gold: 0, flour: 0 })
     const one = plantTree(rich)
     expect(one.trees).toBe(4)
-    expect(one.stock).toEqual({ wood: 90, pumpkin: 97, meat: 0, gold: 0 })
-    expect(treePrice(one)).toEqual({ wood: 20, pumpkin: 6, meat: 0, gold: 0 })
+    expect(one.stock).toEqual({ wood: 90, pumpkin: 97, meat: 0, gold: 0, flour: 0 })
+    expect(treePrice(one)).toEqual({ wood: 20, pumpkin: 6, meat: 0, gold: 0, flour: 0 })
   })
 
   test("is not possible without enough in the barn", () => {

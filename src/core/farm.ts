@@ -6,7 +6,7 @@ import { judgeField } from "./judge.ts"
 import { BED_ITEM, type BlockName, type ItemAt, type Level, type Scene, TROUGH_ITEM } from "./level.ts"
 import type { Program, RunResult } from "./program.ts"
 import { judgePythonField } from "./python/judge.ts"
-import { type Cell, cellKey, type EnemySpec, type ItemKind, kindAt } from "./world.ts"
+import { type Cell, cellKey, type EnemySpec, FLOUR, kindAt, type StockKind } from "./world.ts"
 
 /**
  * Хутір 2.0: a farm the student automates (analysis/hutir/plan.md). The farm stays from day to day: what was built,
@@ -19,21 +19,29 @@ import { type Cell, cellKey, type EnemySpec, type ItemKind, kindAt } from "./wor
  */
 
 /** What the farm makes and keeps in the barn. */
-export type Resource = "wood" | "pumpkin" | "meat" | "gold"
+export type Resource = "wood" | "pumpkin" | "meat" | "gold" | "flour"
 
-export const RESOURCES: ReadonlyArray<Resource> = ["wood", "pumpkin", "meat", "gold"]
+export const RESOURCES: ReadonlyArray<Resource> = ["wood", "pumpkin", "meat", "gold", "flour"]
 
-export const RESOURCE_NAMES: Readonly<Record<Resource, string>> = { wood: "колоди", pumpkin: "гарбузи", meat: "м'ясо", gold: "золото" }
+export const RESOURCE_NAMES: Readonly<Record<Resource, string>> = { wood: "колоди", pumpkin: "гарбузи", meat: "м'ясо", gold: "золото", flour: "борошно" }
 
-/** The item of the game that each resource is: what lies on the map and what the worker carries. */
-const ITEM_OF: Readonly<Record<Resource, ItemKind>> = { wood: "wood", pumpkin: BED_ITEM, meat: TROUGH_ITEM, gold: "gold" }
-const resourceOf = (item: ItemKind): Resource | null => RESOURCES.find((r) => ITEM_OF[r] === item) ?? null
+/** The kind of the game that each resource is: what lies on the map, what the worker carries, what the barn counts. */
+const ITEM_OF: Readonly<Record<Resource, StockKind>> = { wood: "wood", pumpkin: BED_ITEM, meat: TROUGH_ITEM, gold: "gold", flour: FLOUR }
+const resourceOf = (item: StockKind): Resource | null => RESOURCES.find((r) => ITEM_OF[r] === item) ?? null
 
 export type Amounts = Readonly<Record<Resource, number>>
-export const NO_AMOUNTS: Amounts = { wood: 0, pumpkin: 0, meat: 0, gold: 0 }
+export const NO_AMOUNTS: Amounts = { wood: 0, pumpkin: 0, meat: 0, gold: 0, flour: 0 }
+
+/** Amounts with every resource, from a save that may have fewer: a resource added later counts from 0. */
+export const amountsOf = (a: Partial<Amounts> | undefined): Amounts =>
+  RESOURCES.reduce((sum, r) => ({ ...sum, [r]: Math.max(0, Math.round(a?.[r] ?? 0)) }), NO_AMOUNTS)
+
+/** The amounts as the barn of a level counts them, by kind. */
+const byKind = (a: Partial<Amounts>): Readonly<Partial<Record<StockKind, number>>> =>
+  Object.fromEntries(RESOURCES.filter((r) => (a[r] ?? 0) > 0).map((r) => [ITEM_OF[r], a[r] ?? 0]))
 
 /** What an order opens: a building or a tool that changes how the farm works. */
-export type FarmUnlock = "beds" | "basket" | "longDay" | "cart" | "tower" | "pen" | "mine" | "workshop" | "book" | "spyglass"
+export type FarmUnlock = "beds" | "basket" | "longDay" | "cart" | "tower" | "pen" | "mine" | "workshop" | "book" | "spyglass" | "site" | "abacus"
 
 export interface FarmUnlockInfo {
   readonly id: FarmUnlock
@@ -63,8 +71,60 @@ export const FARM_UNLOCKS: ReadonlyArray<FarmUnlockInfo> = [
     id: "spyglass",
     name: "Підзорна труба",
     about: "Датчик «у трубу видно річ?»: щось лежить на одній із трьох клітинок попереду. Робітник іде одразу туди, де є що взяти. У Python hero.item_ahead()."
+  },
+  {
+    id: "site",
+    name: "Будмайданчик",
+    about: "На правій стежці, між лісом і грядками. Стань на нього й виконай «будувати»: з комори береться ціна однієї частини будівлі. У Python hero.build() і hero.at_site()."
+  },
+  {
+    id: "abacus",
+    name: "Рахівниця",
+    about: "Блок-число «скільки ‹колод› у коморі» і порівняння «>», «<», «=». Програма спершу перевіряє запас, а тоді будує. У Python hero.stock(\"wood\") > 2."
   }
 ]
+
+/** What the site builds: each building stands in parts, and a part costs its price from the barn. */
+export type BuildingId = "barn" | "mill" | "helper"
+
+export interface Building {
+  readonly id: BuildingId
+  readonly name: string
+  /** What it gives, in the words of its card. */
+  readonly about: string
+  readonly parts: number
+  /** The price of one part. */
+  readonly part: Partial<Amounts>
+  /** Shown as the next building only: it comes with a later stage of the farm. */
+  readonly later?: true
+}
+
+export const BUILDINGS: ReadonlyArray<Building> = [
+  {
+    id: "barn",
+    name: "Комора біля грядок",
+    about: "Друга комора в правому нижньому куті. Колоди з лісу можна скласти там, а гарбузи в хаті: ходки стають удвічі коротші.",
+    parts: 5,
+    part: { wood: 2 }
+  },
+  {
+    id: "mill",
+    name: "Млин",
+    about: "Стає в лівому нижньому куті й мелить гарбуз на борошно: «віднести на склад» на млині кладе гарбузи в жорна, а борошно лягає в комору.",
+    parts: 4,
+    part: { wood: 3, gold: 1 }
+  },
+  {
+    id: "helper",
+    name: "Хата помічника",
+    about: "Другий робітник зі своєю програмою: один рубає, другий носить. Прийде в наступному етапі.",
+    parts: 5,
+    part: { wood: 4, gold: 1 },
+    later: true
+  }
+]
+
+export const buildingOf = (id: BuildingId): Building => BUILDINGS.find((b) => b.id === id) ?? (BUILDINGS[0] as Building)
 
 /** What the student keeps of the farm. */
 export interface FarmState {
@@ -81,6 +141,10 @@ export interface FarmState {
   readonly book?: ReadonlyArray<BookPage>
   /** What the programs of all working days put in the barn: the crafts grow from it (`crafts.ts`). */
   readonly produced?: Amounts
+  /** What the build site builds now: chosen under the journal, one building at a time. */
+  readonly building?: BuildingId | null
+  /** The parts of each building that stand already. */
+  readonly parts?: Readonly<Partial<Record<BuildingId, number>>>
 }
 
 export const NEW_FARM: FarmState = { day: 1, trees: START_TREES, unlocked: [], stock: NO_AMOUNTS, orders: {} }
@@ -118,6 +182,24 @@ export const FASTER_WOOD_REGROW = 12
 export const FASTER_PUMPKIN_GROW = 18
 export const woodRegrowOf = (state: FarmState): number => (craftLevelOf(state, "wood") >= FASTER_LEVEL ? FASTER_WOOD_REGROW : WOOD_REGROW)
 export const pumpkinGrowOf = (state: FarmState): number => (craftLevelOf(state, "pumpkin") >= FASTER_LEVEL ? FASTER_PUMPKIN_GROW : PUMPKIN_GROW)
+
+/** The parts of a building that stand, and whether it stands whole. */
+export const partsOf = (state: FarmState, id: BuildingId): number => Math.min(buildingOf(id).parts, Math.max(0, Math.round(state.parts?.[id] ?? 0)))
+export const isBuilt = (state: FarmState, id: BuildingId): boolean => partsOf(state, id) >= buildingOf(id).parts
+
+/** The building the site builds now, or null: none chosen, it stands whole, or there is no site. */
+export const buildingNow = (state: FarmState): Building | null => {
+  if (!has(state, "site") || state.building == null || isBuilt(state, state.building)) return null
+  return buildingOf(state.building)
+}
+
+/** The buildings the student may choose for the site now: not built yet, and not of a later stage. */
+export const buildable = (state: FarmState): ReadonlyArray<Building> =>
+  has(state, "site") ? BUILDINGS.filter((b) => b.later !== true && !isBuilt(state, b.id)) : []
+
+/** The site builds this building from the next day; the parts of the one before stay. */
+export const chooseBuilding = (state: FarmState, id: BuildingId): FarmState =>
+  buildable(state).some((b) => b.id === id) ? { ...state, building: id } : state
 
 export const farmTurns = (state: FarmState): number => (has(state, "longDay") ? LONG_DAY_TURNS : DAY_TURNS)
 
@@ -192,6 +274,12 @@ export const farmPalette = (state: FarmState, learned: ReadonlyArray<BlockName>)
   // Ремесла and their tools: the questions, «рубати сокирою» and «полити» (a pumpkin needs the beds).
   for (const b of craftBlocks(producedOf(state))) if (has(state, "beds") || (b !== "ripeAhead" && b !== "water")) have.add(b)
   if (has(state, "spyglass")) have.add("itemAhead")
+  if (has(state, "site")) {
+    have.add("build")
+    have.add("atSite")
+  }
+  // «Рахівниця»: the number of the barn, and the comparisons to ask about it.
+  if (has(state, "abacus")) for (const b of ["stock", "gt", "lt", "equals"] as const) have.add(b)
   return PALETTE_ORDER.filter((b) => have.has(b))
 }
 
@@ -212,6 +300,8 @@ const BOTTOM = 3
 /** The trough of the sheep pen on the left path, and the mouth of the gold mine on the bottom path. */
 const TROUGH = { x: 1, y: TOP + 1 } as const
 const MINE = { x: 2, y: BOTTOM } as const
+/** The mill at the left end of the bottom path, where the pumpkins pass on their way to the farmhouse. */
+const MILL = { x: 1, y: BOTTOM } as const
 /** The chance that the mine has gold in the morning. */
 const GOLD_CHANCE = 0.5
 
@@ -280,7 +370,15 @@ export const farmDay = (state: FarmState, blocks: ReadonlyArray<BlockName>, day 
     ...(mine && !goldReady ? [{ ...MINE, turns: goldLater }] : [])
   ]
   const tower = has(state, "tower") ? { x: right + 1, y: TOP + 1 } : null
-  const look = farmLook({ rows, first: FIRST, trees, right, top: TOP, bottom: BOTTOM, beds, goblins, tower, pen, mine })
+  // The site on the right path between the forest and the beds; what was built: the second barn in the bottom-right
+  // corner and the mill in the bottom-left one.
+  const site = has(state, "site")
+  const siteAt = { x: right, y: TOP + 1 }
+  const barn = isBuilt(state, "barn")
+  const mill = isBuilt(state, "mill") ? MILL : null
+  if (barn) rows[BOTTOM] = `${rows[BOTTOM]?.slice(0, right) ?? ""}H${rows[BOTTOM]?.slice(right + 1) ?? ""}`
+  const now = buildingNow(state)
+  const look = farmLook({ rows, first: FIRST, trees, right, top: TOP, bottom: BOTTOM, beds, goblins, tower, pen, mine, site, barn, mill: mill !== null })
   // The beds hold pumpkins and the mine gold: the field draws each such cell as its own thing.
   const itemsAt: ReadonlyArray<ItemAt> = [
     ...(beds ? Array.from({ length: trees }, (_, i) => ({ x: FIRST + i, y: BOTTOM, item: BED_ITEM })) : []),
@@ -297,6 +395,15 @@ export const farmDay = (state: FarmState, blocks: ReadonlyArray<BlockName>, day 
       `Робітник несе не більше ${farmCapacity(state)} речей: коли руки повні, неси в комору.`,
       ...(pen ? ["Вівці на годівниці їдять гарбуз, а за кілька ходів там лежить м'ясо."] : []),
       ...(mine ? ["Золото з шахти важке: його беруть лише з порожніми руками."] : []),
+      ...(site
+        ? [
+            now === null
+              ? "Будмайданчик стоїть порожній: обери будівлю під журналом."
+              : `На будмайданчику будується ${now.name}: «будувати» бере з комори ${priceText(now.part)} за частину.`
+          ]
+        : []),
+      ...(barn ? ["Друга комора стоїть у правому нижньому куті."] : []),
+      ...(mill !== null ? ["Млин у лівому нижньому куті мелить гарбузи на борошно: «віднести на склад» там кладе їх у жорна."] : []),
       ...(goblins ? ["Сьогодні по стежках ходять гобліни з факелами. Ворог попереду? Бий, поки він не вдарив."] : [])
     ],
     map: rows,
@@ -312,6 +419,9 @@ export const farmDay = (state: FarmState, blocks: ReadonlyArray<BlockName>, day 
     growingAt,
     ...(goblins ? { enemies: goblinsOf(right) } : {}),
     ...(tower === null ? {} : { towers: [{ ...tower, range: TOWER_RANGE }] }),
+    ...(site || barn || mill !== null ? { barn: byKind(state.stock) } : {}),
+    ...(site ? { site: { ...siteAt, part: byKind(now?.part ?? {}), left: now === null ? 0 : now.parts - partsOf(state, now.id) } } : {}),
+    ...(mill === null ? {} : { mill }),
     procedure: "обійти ряд",
     ...(has(state, "book") && (state.book ?? []).length > 0 ? { library: state.book } : {}),
     scene
@@ -344,6 +454,9 @@ export interface FarmReport {
   readonly stopped: RunResult["reason"]
   /** Times the worker put something in the barn: «віднести на склад» that stored anything. */
   readonly trips?: number
+  /** Parts of the building the worker built this day, and what they took from the barn. */
+  readonly built?: number
+  readonly spent?: Amounts
   /** The student's variables when the day ended, by name, as Python writes the values: `5`, `"ходки"`. */
   readonly variables?: Readonly<Record<string, string>>
   /** An own block or function with parameters was called with different values this day. */
@@ -355,7 +468,7 @@ export interface FarmReport {
   readonly line?: number
 }
 
-const IDLE: ReadonlySet<string> = new Set(["nothingToCollect", "handsFull", "notStorehouse", "nothingToStore", "cannotSow", "waited", "noLever", "swingMissed", "cannotFeed", "cannotWater"])
+const IDLE: ReadonlySet<string> = new Set(["nothingToCollect", "handsFull", "notStorehouse", "nothingToStore", "cannotSow", "waited", "noLever", "swingMissed", "cannotFeed", "cannotWater", "cannotBuild"])
 
 const add = (a: Amounts, r: Resource, n = 1): Amounts => ({ ...a, [r]: a[r] + n })
 
@@ -379,9 +492,18 @@ export const farmReport = (level: Level, result: RunResult, day: number): FarmRe
       stored = load.reduce((sum, r) => add(sum, r), stored)
       load = []
     }
+    if (frame.outcome === "milled") {
+      // The millstones took every pumpkin of the load: as much flour lies in the barn.
+      const ground = load.filter((r) => r === "pumpkin").length
+      stored = add(stored, "flour", ground)
+      load = load.filter((r) => r !== "pumpkin")
+    }
     byTurn.push(stored)
   }
   const carried = load.reduce((sum, r) => add(sum, r), NO_AMOUNTS)
+  const built = result.frames.filter((f) => f.outcome === "built").length
+  const part = level.site?.part ?? {}
+  const spent = RESOURCES.reduce((sum, r) => add(sum, r, built * (part[ITEM_OF[r]] ?? 0)), NO_AMOUNTS)
   return {
     day,
     stored,
@@ -395,6 +517,7 @@ export const farmReport = (level: Level, result: RunResult, day: number): FarmRe
     beaten: result.frames.reduce((n, f) => n + f.events.filter((e) => e.type === "enemyDown").length, 0),
     stopped: result.reason === "goalsNotMet" ? null : result.reason,
     trips: result.frames.filter((f) => f.outcome === "stored").length,
+    ...(built > 0 ? { built, spent } : {}),
     ...(result.boxes === undefined ? {} : { variables: Object.fromEntries(result.boxes.map((b) => [b.name, b.value])) }),
     ownBlock: calledWithDifferentValues(result.calls ?? []),
     fromBook: (result.bookCalls ?? []).length > 0,
@@ -423,12 +546,42 @@ export const runFarmDay = (
 }
 
 /** The farm after a working day: the yield goes to the barn and the next day comes. A trial run changes nothing. */
-export const finishDay = (state: FarmState, report: FarmReport): FarmState => ({
-  ...state,
-  day: Math.max(state.day, report.day) + 1,
-  stock: RESOURCES.reduce((sum, r) => add(sum, r, report.stored[r]), state.stock),
-  produced: RESOURCES.reduce((sum, r) => add(sum, r, report.stored[r]), producedOf(state))
-})
+export const finishDay = (state: FarmState, report: FarmReport): FarmState => {
+  const spent = amountsOf(report.spent)
+  const stock = RESOURCES.reduce((sum, r) => add(sum, r, (report.stored[r] ?? 0) - spent[r]), amountsOf(state.stock))
+  const produced = RESOURCES.reduce((sum, r) => add(sum, r, report.stored[r] ?? 0), amountsOf(producedOf(state)))
+  const now = buildingNow(state)
+  const built = report.built ?? 0
+  if (now === null || built === 0) return { ...state, day: Math.max(state.day, report.day) + 1, stock, produced }
+  const parts = { ...state.parts, [now.id]: partsOf(state, now.id) + built }
+  // A building that stands whole leaves the site free for the next one.
+  const building = (parts[now.id] ?? 0) >= now.parts ? null : now.id
+  return { ...state, day: Math.max(state.day, report.day) + 1, stock, produced, parts, building }
+}
+
+/** The price of a part in words: «3 колоди і 1 золото». */
+export const priceText = (part: Partial<Amounts>): string => {
+  const words = RESOURCES.filter((r) => (part[r] ?? 0) > 0).map((r) => amountText(r, part[r] ?? 0))
+  return words.length <= 1 ? (words[0] ?? "нічого") : `${words.slice(0, -1).join(", ")} і ${words.at(-1)}`
+}
+
+/** The word after a number: one, two to four, five and more. */
+const PRICE_WORDS: Readonly<Record<Resource, readonly [string, string, string]>> = {
+  wood: ["колода", "колоди", "колод"],
+  pumpkin: ["гарбуз", "гарбузи", "гарбузів"],
+  meat: ["шматок м'яса", "шматки м'яса", "шматків м'яса"],
+  gold: ["золото", "золота", "золота"],
+  flour: ["мірка борошна", "мірки борошна", "мірок борошна"]
+}
+
+/** «1 колода», «3 колоди», «12 колод». */
+export const amountText = (r: Resource, n: number): string => {
+  const [one, few, many] = PRICE_WORDS[r]
+  const tens = Math.abs(n) % 100
+  const last = tens % 10
+  const word = tens >= 11 && tens <= 14 ? many : last === 1 ? one : last >= 2 && last <= 4 ? few : many
+  return `${n} ${word}`
+}
 
 /** An order of the village: a yield in one working day. */
 export interface FarmOrder {
@@ -452,6 +605,8 @@ export interface FarmOrder {
   readonly fromBook?: boolean
   /** The order gives one more page of «Книга команд». */
   readonly bookPage?: boolean
+  /** The building that must stand before the order is open. */
+  readonly building?: BuildingId
 }
 
 export const FARM_ORDERS: ReadonlyArray<FarmOrder> = [
@@ -550,7 +705,26 @@ export const FARM_ORDERS: ReadonlyArray<FarmOrder> = [
     text: "Усього потроху: вісім колод, чотири гарбузи, два шматки м'яса й злиток золота за один день.",
     needs: { wood: 8, pumpkin: 4, meat: 2, gold: 1 },
     fast: 150,
-    after: "bridge"
+    after: "bridge",
+    unlocks: "site"
+  },
+  {
+    id: "count",
+    title: "Облік комори",
+    text: "Комірник Іван лічить запас: дванадцять колод і чотири гарбузи за день. За це він дасть рахівницю, і програма знатиме, скільки чого в коморі.",
+    needs: { wood: 12, pumpkin: 4 },
+    fast: 140,
+    after: "fair",
+    unlocks: "abacus"
+  },
+  {
+    id: "bakery",
+    title: "Борошно для пекарні",
+    text: "Пекарка Марія просить чотири мірки борошна за день. Гарбузи неси не в хату, а на млин у лівому нижньому куті: «віднести на склад» там мелить їх. «Тут склад?» на млині каже «ні».",
+    needs: { flour: 4 },
+    fast: 140,
+    after: "count",
+    building: "mill"
   },
   {
     id: "tally",
@@ -624,11 +798,13 @@ export const orderMisses = (order: FarmOrder, report: FarmReport, language: "blo
 
 /** The orders the student can take now: not done yet, and the one before them is done. */
 export const openOrders = (state: FarmState): ReadonlyArray<FarmOrder> =>
-  FARM_ORDERS.filter((o) => (state.orders[o.id] ?? 0) === 0 && (o.after === undefined || (state.orders[o.after] ?? 0) > 0))
+  FARM_ORDERS.filter(
+    (o) => (state.orders[o.id] ?? 0) === 0 && (o.after === undefined || (state.orders[o.after] ?? 0) > 0) && (o.building === undefined || isBuilt(state, o.building))
+  )
 
 /** The turn after which the barn first held what the order needs, or null when it never did that day. */
 export const metAt = (report: FarmReport, needs: Partial<Amounts>): number | null => {
-  const i = report.byTurn.findIndex((a) => RESOURCES.every((r) => a[r] >= (needs[r] ?? 0)))
+  const i = report.byTurn.findIndex((a) => RESOURCES.every((r) => (a[r] ?? 0) >= (needs[r] ?? 0)))
   return i < 0 ? null : i + 1
 }
 
@@ -681,13 +857,13 @@ export const treePrice = (state: FarmState): Amounts => {
 }
 
 export const canPlantTree = (state: FarmState): boolean =>
-  treesOf(state) < MAX_TREES && RESOURCES.every((r) => state.stock[r] >= treePrice(state)[r])
+  treesOf(state) < MAX_TREES && RESOURCES.every((r) => (state.stock[r] ?? 0) >= treePrice(state)[r])
 
 /** One more tree, and one more bed under it, paid from the barn. */
 export const plantTree = (state: FarmState): FarmState => {
   if (!canPlantTree(state)) return state
   const price = treePrice(state)
-  return { ...state, trees: treesOf(state) + 1, stock: RESOURCES.reduce((s, r) => ({ ...s, [r]: s[r] - price[r] }), state.stock) }
+  return { ...state, trees: treesOf(state) + 1, stock: RESOURCES.reduce((s, r) => ({ ...s, [r]: s[r] - price[r] }), amountsOf(state.stock)) }
 }
 
 /** Whether a level is a day of the farm (its id). */

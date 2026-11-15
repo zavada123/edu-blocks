@@ -1,5 +1,5 @@
 import { COUNTER_NAME } from "../blocks.ts"
-import { heroAct, heroSense, newSession } from "../hero.ts"
+import { heroAct, heroCount, heroSense, newSession } from "../hero.ts"
 import { combineFields, levelFields } from "../fields.ts"
 import { allGoalsMet, type Level } from "../level.ts"
 import { resultOf, type RunResult } from "../program.ts"
@@ -66,6 +66,7 @@ export const judgePythonField = (level: Level, source: string): RunResult => {
       throw new Halt(false)
     },
     sense: (sensor) => heroSense(session, sensor),
+    count: (kind) => heroCount(session, kind),
     allows: (method) => level.blocks.includes(method.block),
     print: (text) => {
       if (output.length < MAX_OUTPUT_LINES) output.push(text)

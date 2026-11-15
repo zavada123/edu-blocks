@@ -3,6 +3,7 @@ import {
   CALL_OPCODE,
   CHANGE_OPCODE,
   COUNTER_ID,
+  comparisonOfOpcode,
   COUNTER_NAME,
   DEFINITION_OPCODE,
   ITEM_FIELD,
@@ -11,10 +12,11 @@ import {
   procedureTitle,
   SET_OPCODE,
   START_OPCODE,
+  stockOfField,
   VARIABLE_OPCODE,
   VARIABLE_PRIMITIVE
 } from "./blocks.ts"
-import { actionOfOpcode, heroAct, heroSense, newSession, sensorOfOpcode } from "./hero.ts"
+import { actionOfOpcode, heroAct, heroCount, heroSense, newSession, sensorOfOpcode } from "./hero.ts"
 import { combineFields, levelFields } from "./fields.ts"
 import type { Level } from "./level.ts"
 import {
@@ -123,6 +125,26 @@ const toNumber = (value: unknown): number => {
   return Number.isNaN(n) ? 0 : n
 }
 
+/** A text Scratch reads as a number: not empty and not only spaces (`Cast.isWhiteSpace`). */
+const numeric = (value: unknown): number | null => {
+  if (typeof value === "number") return Number.isNaN(value) ? null : value
+  if (typeof value === "boolean") return value ? 1 : 0
+  const text = String(value)
+  if (text.trim() === "") return null
+  const n = Number(text)
+  return Number.isNaN(n) ? null : n
+}
+
+/** Scratch `Cast.compare`: numbers as numbers, anything else as text without case. Below 0, 0 or above 0. */
+export const scratchCompare = (a: unknown, b: unknown): number => {
+  const x = numeric(a)
+  const y = numeric(b)
+  if (x !== null && y !== null) return x - y
+  const s = String(a).toLowerCase()
+  const t = String(b).toLowerCase()
+  return s < t ? -1 : s > t ? 1 : 0
+}
+
 /**
  * Runs a program on one field: the map of `level` only, without its other `fields`. The rules of the game live
  * here; `judgeProgram` runs it on every field of a level.
@@ -218,6 +240,11 @@ export const judgeField = (level: Level, own: Program): RunResult => {
     const sensor = sensorOfOpcode(block.opcode)
     if (sensor !== undefined) return heroSense(session, sensor)
     if (block.opcode === opcodeOf("itemIs")) return heroSense(session, { itemIs: itemOfField(fieldOf(block, ITEM_FIELD)) })
+    const comparison = comparisonOfOpcode(block.opcode)
+    if (comparison !== undefined) {
+      const order = scratchCompare(value(inputOf(block, "OPERAND1")), value(inputOf(block, "OPERAND2")))
+      return comparison === ">" ? order > 0 : comparison === "<" ? order < 0 : order === 0
+    }
     switch (block.opcode) {
       case "operator_not":
         return !question(inputOf(block, "OPERAND"), depth + 1)
@@ -249,6 +276,10 @@ export const judgeField = (level: Level, own: Program): RunResult => {
     if (block.opcode === ARGUMENT_OPCODE) {
       const field = fieldOf(block, "VALUE")
       return param(Array.isArray(field) ? field[0] : undefined)
+    }
+    if (block.opcode === opcodeOf("stock")) {
+      step()
+      return heroCount(session, stockOfField(fieldOf(block, ITEM_FIELD)))
     }
     const field = fieldOf(block, "NUM") ?? fieldOf(block, "TEXT")
     if (Array.isArray(field)) return field[0]

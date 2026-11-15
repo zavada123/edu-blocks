@@ -89,6 +89,31 @@ export interface World {
   readonly feedTurns: number
   /** Watch towers: after the enemies' turn each shoots one enemy within its range. */
   readonly towers: ReadonlyArray<Tower>
+  /** Every storehouse cell (`H`): a farm has a second barn by its beds. `storehouse` is the first of them. */
+  readonly storehouses: ReadonlySet<string>
+  /** What lies in the barn now, by kind: what it held in the morning and what was put there since (`Level.barn`). */
+  readonly barn: ReadonlyMap<StockKind, number>
+  /** The build site, or null when the map has none. */
+  readonly site: Site | null
+  /**
+   * The mill: «віднести на склад» there puts the pumpkins the hero carries into the millstones, as flour. It is no
+   * storehouse: «тут склад?» says no there, so a program that stores at every storehouse keeps its pumpkins.
+   */
+  readonly mill: Cell | null
+}
+
+/** What the barn keeps: the things of the map, and the flour the mill makes of pumpkins. */
+export type StockKind = ItemKind | "flour"
+
+/** Flour: never lies on the map, the mill makes it of pumpkins and puts it in the barn. */
+export const FLOUR: StockKind = "flour"
+
+/** A build site: «будувати» there adds one part of the building and takes the price of a part from the barn. */
+export interface Site extends Cell {
+  /** The price of one part. */
+  readonly part: ReadonlyMap<StockKind, number>
+  /** Parts the building still needs: 0 when there is nothing to build. */
+  readonly left: number
 }
 
 /** A watch tower with an archer: it stands on a wall cell and shoots an enemy `range` steps away or closer. */
@@ -219,6 +244,7 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
   let start: Cell | null = null
   let finish: Cell | null = null
   let storehouse: Cell | null = null
+  const storehouses = new Set<string>()
   const width = Math.max(0, ...rows.map((r) => r.length))
   rows.forEach((row, y) => {
     for (let x = 0; x < width; x++) {
@@ -228,7 +254,10 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
       else if (ch === "x") traps.add(cellKey(x, y))
       else if (ch === "S") start = { x, y }
       else if (ch === "F") finish = { x, y }
-      else if (ch === "H") storehouse = { x, y }
+      else if (ch === "H") {
+        storehouse ??= { x, y }
+        storehouses.add(cellKey(x, y))
+      }
       else if (ch === "L" || ch === "l") {
         levers.add(cellKey(x, y))
         if (ch === "l") leversOn.add(cellKey(x, y))
@@ -276,7 +305,11 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
     load: [],
     troughs,
     feedTurns: DEFAULT_FEED_TURNS,
-    towers: []
+    towers: [],
+    storehouses,
+    barn: new Map(),
+    site: null,
+    mill: null
   }
 }
 
@@ -350,8 +383,16 @@ export const atFinish = (world: World): boolean =>
   world.finish !== null && world.hero.x === world.finish.x && world.hero.y === world.finish.y
 
 /** The hero stands on the storehouse. */
-export const atStorehouse = (world: World): boolean =>
-  world.storehouse !== null && world.hero.x === world.storehouse.x && world.hero.y === world.storehouse.y
+export const atStorehouse = (world: World): boolean => world.storehouses.has(cellKey(world.hero.x, world.hero.y))
+
+/** The hero stands on the mill. */
+const atMill = (world: World): boolean => world.mill !== null && world.hero.x === world.mill.x && world.hero.y === world.mill.y
+
+/** «тут будмайданчик?»: the hero stands on the build site. */
+export const atSite = (world: World): boolean => world.site !== null && world.hero.x === world.site.x && world.hero.y === world.site.y
+
+/** «скільки ‹колод› у коморі»: what lies in the barn now, with what was put there today. */
+export const stockOf = (world: World, kind: StockKind): number => world.barn.get(kind) ?? 0
 
 /** The hero carries as much as it can: «взяти» would take nothing now. Never true on a level without a limit. */
 export const handsFull = (world: World): boolean =>
@@ -414,7 +455,7 @@ const canWater = (world: World): boolean => {
 /** A watered crop is ripe in at most half of its growing time. */
 const wateredTurns = (world: World): number => Math.ceil(world.growTurns / 2)
 
-export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "feed" | "chop" | "water"
+export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "feed" | "chop" | "water" | "build"
 
 /** What one action did, for the animation and the error message. */
 export type Outcome =
@@ -454,6 +495,12 @@ export type Outcome =
   | "watered"
   /** «полити» off a bed, where nothing grows, or where watering gives nothing any more. */
   | "cannotWater"
+  /** «віднести на склад» on the mill with pumpkins: they are flour in the barn now. */
+  | "milled"
+  /** «будувати» on the build site with the price in the barn: one more part stands. */
+  | "built"
+  /** «будувати» off the site, with nothing left to build, or with too little in the barn. */
+  | "cannotBuild"
 
 /**
  * What happened in the world, in the order it happened: the hero's action first, then each enemy's turn.
@@ -507,6 +554,12 @@ export type GameEvent =
   | { readonly type: "bedWatered"; readonly at: Cell }
   /** «полити» where watering gave nothing. */
   | { readonly type: "cannotWater"; readonly at: Cell }
+  /** The mill ground the pumpkins the hero brought: `count` of flour in the barn. */
+  | { readonly type: "flourMilled"; readonly at: Cell; readonly count: number }
+  /** One more part of the building stands on the site: `left` parts to go. */
+  | { readonly type: "partBuilt"; readonly at: Cell; readonly left: number }
+  /** «будувати» where nothing could be built. */
+  | { readonly type: "cannotBuild"; readonly at: Cell }
   /** A crop got ripe or a tree grew a thing again: it lies on the cell now. */
   | { readonly type: "itemGrew"; readonly at: Cell }
   /** The archer of a tower shot an enemy: `hp` left, 0 when it is down. */
@@ -559,6 +612,7 @@ const heroAction = (world: World, action: Action): ActionResult => {
   if (action === "sow") return sow(world)
   if (action === "feed") return feed(world)
   if (action === "water") return water(world)
+  if (action === "build") return build(world)
   const key = cellKey(world.hero.x, world.hero.y)
   if (!world.crystals.has(key)) return { world, outcome: "nothingToCollect", events: [{ type: "nothingToTake", at: here }] }
   const kind = kindAt(world, key)
@@ -620,16 +674,45 @@ const growTurn = (world: World): { readonly world: World; readonly events: Reado
   return { world: { ...world, growing, crystals }, events }
 }
 
-/** «віднести на склад»: on the storehouse the hero puts down everything it carries. */
+/** The barn with `n` more of a kind. */
+const addTo = (barn: ReadonlyMap<StockKind, number>, kind: StockKind, n: number): ReadonlyMap<StockKind, number> =>
+  new Map([...barn, [kind, (barn.get(kind) ?? 0) + n]])
+
+/**
+ * «віднести на склад»: on the storehouse the hero puts down everything it carries. On the mill it puts down only the
+ * pumpkins: the millstones grind them, and the flour lies in the barn.
+ */
 const store = (world: World): ActionResult => {
   const here = at(world.hero)
+  if (atMill(world)) {
+    const ground = world.load.filter((k) => k === FEED_ITEM).length
+    if (ground === 0) return { world, outcome: "nothingToStore", events: [{ type: "nothingToStore", at: here }] }
+    const load = world.load.filter((k) => k !== FEED_ITEM)
+    return {
+      world: { ...world, load, carrying: load.length, barn: addTo(world.barn, FLOUR, ground) },
+      outcome: "milled",
+      events: [{ type: "flourMilled", at: here, count: ground }]
+    }
+  }
   if (!atStorehouse(world)) return { world, outcome: "notStorehouse", events: [{ type: "nothingToStore", at: here }] }
   if (world.carrying === 0) return { world, outcome: "nothingToStore", events: [{ type: "nothingToStore", at: here }] }
   return {
-    world: { ...world, stored: world.stored + world.carrying, carrying: 0, load: [] },
+    world: { ...world, stored: world.stored + world.carrying, carrying: 0, load: [], barn: world.load.reduce((b, k) => addTo(b, k, 1), world.barn) },
     outcome: "stored",
     events: [{ type: "itemsStored", at: here, count: world.carrying }]
   }
+}
+
+/** «будувати»: on the site, with the price of a part in the barn, one more part stands and the price leaves the barn. */
+const build = (world: World): ActionResult => {
+  const here = at(world.hero)
+  const site = world.site
+  const cannot: ActionResult = { world, outcome: "cannotBuild", events: [{ type: "cannotBuild", at: here }] }
+  if (site === null || !atSite(world) || site.left <= 0) return cannot
+  if ([...site.part].some(([kind, n]) => stockOf(world, kind) < n)) return cannot
+  const barn = [...site.part].reduce((b, [kind, n]) => addTo(b, kind, -n), world.barn)
+  const left = site.left - 1
+  return { world: { ...world, barn, site: { ...site, left } }, outcome: "built", events: [{ type: "partBuilt", at: here, left }] }
 }
 
 /** «потягнути важіль»: switches the lever under the hero. The gates follow: open when every lever is on. */

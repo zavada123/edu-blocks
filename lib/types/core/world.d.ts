@@ -85,6 +85,28 @@ export interface World {
     readonly feedTurns: number;
     /** Watch towers: after the enemies' turn each shoots one enemy within its range. */
     readonly towers: ReadonlyArray<Tower>;
+    /** Every storehouse cell (`H`): a farm has a second barn by its beds. `storehouse` is the first of them. */
+    readonly storehouses: ReadonlySet<string>;
+    /** What lies in the barn now, by kind: what it held in the morning and what was put there since (`Level.barn`). */
+    readonly barn: ReadonlyMap<StockKind, number>;
+    /** The build site, or null when the map has none. */
+    readonly site: Site | null;
+    /**
+     * The mill: «віднести на склад» there puts the pumpkins the hero carries into the millstones, as flour. It is no
+     * storehouse: «тут склад?» says no there, so a program that stores at every storehouse keeps its pumpkins.
+     */
+    readonly mill: Cell | null;
+}
+/** What the barn keeps: the things of the map, and the flour the mill makes of pumpkins. */
+export type StockKind = ItemKind | "flour";
+/** Flour: never lies on the map, the mill makes it of pumpkins and puts it in the barn. */
+export declare const FLOUR: StockKind;
+/** A build site: «будувати» there adds one part of the building and takes the price of a part from the barn. */
+export interface Site extends Cell {
+    /** The price of one part. */
+    readonly part: ReadonlyMap<StockKind, number>;
+    /** Parts the building still needs: 0 when there is nothing to build. */
+    readonly left: number;
 }
 /** A watch tower with an archer: it stands on a wall cell and shoots an enemy `range` steps away or closer. */
 export interface Tower {
@@ -188,6 +210,10 @@ export declare const onCrystal: (world: World) => boolean;
 export declare const atFinish: (world: World) => boolean;
 /** The hero stands on the storehouse. */
 export declare const atStorehouse: (world: World) => boolean;
+/** «тут будмайданчик?»: the hero stands on the build site. */
+export declare const atSite: (world: World) => boolean;
+/** «скільки ‹колод› у коморі»: what lies in the barn now, with what was put there today. */
+export declare const stockOf: (world: World, kind: StockKind) => number;
 /** The hero carries as much as it can: «взяти» would take nothing now. Never true on a level without a limit. */
 export declare const handsFull: (world: World) => boolean;
 /** The hero stands on a lever. */
@@ -206,7 +232,7 @@ export declare const woodAhead: (world: World) => boolean;
 export declare const ripeAhead: (world: World) => boolean;
 /** «у трубу видно річ?»: something to take lies on one of the next `SPYGLASS_RANGE` cells, before any wall. */
 export declare const itemAhead: (world: World) => boolean;
-export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "feed" | "chop" | "water";
+export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "feed" | "chop" | "water" | "build";
 /** What one action did, for the animation and the error message. */
 export type Outcome = "moved" | "crashed" | "fell" | "tired" | "turned" | "collected" | "nothingToCollect" | "enemyHit" | "enemyDown" | "swingMissed"
 /** «взяти» with full hands: the thing stays where it lies. */
@@ -234,7 +260,13 @@ export type Outcome = "moved" | "crashed" | "fell" | "tired" | "turned" | "colle
 /** «полити» on a bed where a crop grows: it is ripe in half of its time at most. */
  | "watered"
 /** «полити» off a bed, where nothing grows, or where watering gives nothing any more. */
- | "cannotWater";
+ | "cannotWater"
+/** «віднести на склад» on the mill with pumpkins: they are flour in the barn now. */
+ | "milled"
+/** «будувати» on the build site with the price in the barn: one more part stands. */
+ | "built"
+/** «будувати» off the site, with nothing left to build, or with too little in the barn. */
+ | "cannotBuild";
 /**
  * What happened in the world, in the order it happened: the hero's action first, then each enemy's turn.
  * A frame keeps the events, so an animation shows what was done, not only where everybody stands now.
@@ -364,6 +396,23 @@ export type GameEvent = {
 /** «полити» where watering gave nothing. */
  | {
     readonly type: "cannotWater";
+    readonly at: Cell;
+}
+/** The mill ground the pumpkins the hero brought: `count` of flour in the barn. */
+ | {
+    readonly type: "flourMilled";
+    readonly at: Cell;
+    readonly count: number;
+}
+/** One more part of the building stands on the site: `left` parts to go. */
+ | {
+    readonly type: "partBuilt";
+    readonly at: Cell;
+    readonly left: number;
+}
+/** «будувати» where nothing could be built. */
+ | {
+    readonly type: "cannotBuild";
     readonly at: Cell;
 }
 /** A crop got ripe or a tree grew a thing again: it lies on the cell now. */
