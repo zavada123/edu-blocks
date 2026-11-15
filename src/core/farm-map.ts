@@ -104,14 +104,15 @@ export const farmLook = (layout: FarmLayout): { readonly tilemap: TileMap; reado
   }
   if (barn) sprites.push({ asset: SECOND_BARN_ART, x: right - 1, y: bottom + 2 })
   if (mill) sprites.push({ asset: MILL_ART, x: -0.3, y: bottom + 2 })
-  if (helper) sprites.push({ asset: HELPER_HOUSE_ART, x: right + 1, y: top - 1 })
+  // Over the top-right corner, where Тарас starts the day: the door looks at his cell, clear of the watch tower.
+  if (helper) sprites.push({ asset: HELPER_HOUSE_ART, x: right - 0.15, y: top - 1 })
 
   // Cells kept free: the ring and what stands on it, the house, the tower and the hut.
   const busy = (x: number, y: number) =>
     (x >= (pen ? -1 : 0) && x <= right + 1 && y >= top - 1 && y <= bottom + 1) ||
     (mine && x >= 1 && x <= 3 && y === bottom + 2) ||
     (barn && x >= right - 2 && x <= right && y === bottom + 2) || (mill && x >= -2 && x <= 1 && y >= bottom + 2 && y <= bottom + 3) ||
-    (helper && x >= right && x <= right + 2 && y >= top - 2 && y <= top - 1) || (tower !== null && Math.abs(x - tower.x) <= 1 && y >= tower.y - 2 && y <= tower.y)
+    (helper && x >= right - 1 && x <= right && y >= top - 3 && y <= top - 1) || (tower !== null && Math.abs(x - tower.x) <= 1 && y >= tower.y - 2 && y <= tower.y)
   for (let y = area.y; y < area.y + area.height; y++) {
     for (let x = area.x; x < area.x + area.width; x++) {
       if (busy(x, y)) continue
