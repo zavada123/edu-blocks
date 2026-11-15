@@ -32,6 +32,7 @@ declare module "scratch-blocks/dist/vertical.js" {
     getFlyout(): Flyout | null
     /** No toolbox (undefined) for a flat palette. */
     getToolbox(): Toolbox | null | undefined
+    getBlockById(id: string): Block | null
     glowBlock(id: string, glowing: boolean): void
     glowStack(id: string, glowing: boolean): void
     updateToolbox(toolbox: string): void

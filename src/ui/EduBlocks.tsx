@@ -14,7 +14,7 @@ import { judgeFields } from "../core/judge.ts"
 import { isPiece, joinPrograms, pieceBlockId, scriptCount } from "../core/pieces.ts"
 import type { FailReason, Program, RunResult } from "../core/program.ts"
 import { librarySource, programSource } from "../core/python/convert.ts"
-import { type BookPage, calledBlocks, definedBlocks, pageInfo, pageOf, tearPage, writePage } from "../core/book.ts"
+import { BOOK_ID_PREFIX, type BookPage, calledBlocks, definedBlocks, pageInfo, pageOf, tearPage, writePage } from "../core/book.ts"
 import { createVm, projectFor, settle, withVmLock } from "../core/run.ts"
 import { useFields } from "./fields.ts"
 import { useFullScreen } from "./fullscreen.ts"
@@ -350,9 +350,13 @@ export const EduBlocks = ({
   const setGlow = useCallback((id: string | null) => {
     const ws = workspaceRef.current
     if (ws === null) return
-    if (glowRef.current !== null) ws.glowBlock(glowRef.current, false)
-    glowRef.current = id
-    if (id !== null) ws.glowBlock(id, true)
+    // scratch-blocks throws on a block it does not have: one gone from the editor, or a block of «Книга команд», which
+    // runs but is not in the editor. Nothing lights up for those.
+    const inEditor = (blockId: string | null): blockId is string => blockId !== null && ws.getBlockById(blockId) !== null
+    if (inEditor(glowRef.current)) ws.glowBlock(glowRef.current, false)
+    const shown = id !== null && !id.startsWith(BOOK_ID_PREFIX) && inEditor(id) ? id : null
+    glowRef.current = shown
+    if (shown !== null) ws.glowBlock(shown, true)
   }, [])
 
   useEffect(() => {
