@@ -2,7 +2,7 @@ import type { Box } from "./python/boxes.ts"
 import { opcodeOf } from "./blocks.ts"
 import { allGoalsMet, goalStatus, type Level, startWorld } from "./level.ts"
 import { fatalReason, MAX_ACTIONS, type Session } from "./program.ts"
-import { type Action, applyAction, atFinish, atStorehouse, bedEmpty, enemyAhead, handsFull, itemIs, type ItemKind, leverOn, onCrystal, onLever, sheepHungry, trapAhead, wallAhead, type World } from "./world.ts"
+import { type Action, applyAction, atFinish, atStorehouse, bedEmpty, enemyAhead, handsFull, itemAhead, itemIs, type ItemKind, leverOn, onCrystal, onLever, ripeAhead, sheepHungry, trapAhead, wallAhead, woodAhead, type World } from "./world.ts"
 
 /**
  * The hero API: what a program may tell the hero to do and ask the hero about. Every way of programming calls
@@ -11,10 +11,10 @@ import { type Action, applyAction, atFinish, atStorehouse, bedEmpty, enemyAhead,
  */
 
 /** The questions a program may ask, for «якщо» and «повторити до». */
-export type Sensor = "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "bedEmpty" | "sheepHungry"
+export type Sensor = "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "bedEmpty" | "sheepHungry" | "woodAhead" | "ripeAhead" | "itemAhead"
 
 /** The hero's actions, in palette order. */
-export const HERO_ACTIONS: ReadonlyArray<Action> = ["move", "turnLeft", "turnRight", "collect", "attack", "store", "wait", "pull", "sow", "feed"]
+export const HERO_ACTIONS: ReadonlyArray<Action> = ["move", "turnLeft", "turnRight", "collect", "attack", "store", "wait", "pull", "sow", "feed", "chop", "water"]
 
 /** Each question and how the world answers it. */
 export const HERO_SENSORS: Readonly<Record<Sensor, (world: World) => boolean>> = {
@@ -28,7 +28,10 @@ export const HERO_SENSORS: Readonly<Record<Sensor, (world: World) => boolean>> =
   onLever,
   leverOn,
   bedEmpty,
-  sheepHungry
+  sheepHungry,
+  woodAhead,
+  ripeAhead,
+  itemAhead
 }
 
 const SENSOR_NAMES = Object.keys(HERO_SENSORS) as ReadonlyArray<Sensor>

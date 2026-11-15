@@ -441,7 +441,7 @@ describe("orders", () => {
       expect(best, o.id).toBeGreaterThan(0)
       state = recordOrder(state, o, best)
     }
-    expect(state.unlocked).toEqual(["beds", "basket", "tower", "longDay", "cart", "pen", "mine", "workshop", "book"])
+    expect(state.unlocked).toEqual(["beds", "basket", "tower", "longDay", "cart", "pen", "spyglass", "mine", "workshop", "book"])
   })
 
   test("a lower grade later does not take back a better one", () => {

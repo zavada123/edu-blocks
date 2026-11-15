@@ -13,13 +13,23 @@ export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "attack"
 /** «посіяти»: sows the empty bed under the hero; the crop is ripe after `grow` turns. */
  | "sow"
 /** «нагодувати»: gives the sheep at the trough under the hero a pumpkin it carries; meat lies there later. */
- | "feed" | "wallAhead" | "enemyAhead" | "trapAhead" | "onCrystal" | "atFinish" | "handsFull" | "atStorehouse" | "onLever" | "leverOn"
+ | "feed"
+/** «рубати сокирою» (Сокира): takes the log off the tree under the hero; the tree grows it again in half the time. */
+ | "chop"
+/** «полити» (Лійка): the crop on the bed under the hero is ripe in half of its time at most. */
+ | "water" | "wallAhead" | "enemyAhead" | "trapAhead" | "onCrystal" | "atFinish" | "handsFull" | "atStorehouse" | "onLever" | "leverOn"
 /** «тут ‹морква›?»: a question with a choice of the item kind in the block. */
  | "itemIs"
 /** «тут порожня грядка?»: the hero stands on a bed where nothing grows or lies. */
  | "bedEmpty"
 /** «вівці голодні?»: the hero stands on a trough where the sheep neither eat nor left meat. */
- | "sheepHungry" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or"
+ | "sheepHungry"
+/** «попереду дерево з колодою?»: the cell ahead is a tree with a log. */
+ | "woodAhead"
+/** «попереду стиглий гарбуз?»: the cell ahead is a bed with a ripe crop. */
+ | "ripeAhead"
+/** «у трубу видно річ?» (Підзорна труба): something to take lies on the next three cells ahead. */
+ | "itemAhead" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or"
 /** «задати / змінити лічильник» and the (лічильник) reporter: one variable, as «Змінні» in Scratch. */
  | "counter"
 /** A custom block of the level: its «визначити» hat and the call, as «Мої блоки» in Scratch. */

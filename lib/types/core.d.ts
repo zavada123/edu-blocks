@@ -38,4 +38,5 @@ export * from "./core/assets.ts";
 export { storyIssues } from "./core/story.ts";
 export * from "./core/farm.ts";
 export * from "./core/book.ts";
+export * from "./core/crafts.ts";
 export * from "./core/journal.ts";

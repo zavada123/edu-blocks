@@ -4,7 +4,7 @@ import type { BlockName, ItemKind } from "./level.ts"
 export const HERO_EXTENSION_ID = "hero"
 export const HERO_COLOR = "#0FBD8C"
 
-export type HeroBlock = Extract<BlockName, "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "feed" | "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "itemIs" | "bedEmpty" | "sheepHungry">
+export type HeroBlock = Extract<BlockName, "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "feed" | "chop" | "water" | "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "itemIs" | "bedEmpty" | "sheepHungry" | "woodAhead" | "ripeAhead" | "itemAhead">
 
 /** Hero blocks in palette order. `boolean` blocks are the questions for «якщо» and «повторити до». */
 /**
@@ -31,6 +31,8 @@ export const HERO_BLOCKS: ReadonlyArray<HeroBlockInfo> = [
   { name: "pull", text: "потягнути важіль", boolean: false },
   { name: "sow", text: "посіяти", boolean: false },
   { name: "feed", text: "нагодувати", boolean: false },
+  { name: "chop", text: "рубати сокирою", boolean: false },
+  { name: "water", text: "полити", boolean: false },
   { name: "wallAhead", text: "попереду стіна?", boolean: true },
   { name: "onCrystal", text: "тут щось є?", boolean: true },
   { name: "atFinish", text: "дійшов до мети?", boolean: true },
@@ -42,6 +44,9 @@ export const HERO_BLOCKS: ReadonlyArray<HeroBlockInfo> = [
   { name: "leverOn", text: "важіль увімкнено?", boolean: true },
   { name: "bedEmpty", text: "тут порожня грядка?", boolean: true },
   { name: "sheepHungry", text: "вівці голодні?", boolean: true },
+  { name: "woodAhead", text: "попереду дерево з колодою?", boolean: true },
+  { name: "ripeAhead", text: "попереду стиглий гарбуз?", boolean: true },
+  { name: "itemAhead", text: "у трубу видно річ?", boolean: true },
   { name: "itemIs", text: "тут [ITEM]?", boolean: true }
 ]
 

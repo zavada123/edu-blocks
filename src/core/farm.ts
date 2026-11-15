@@ -1,5 +1,6 @@
 import { farmLook } from "./farm-map.ts"
 import { BOOK_PAGES, type BookPage } from "./book.ts"
+import { craftBlocks, CRAFTS, craftLevel, type CraftResource, FASTER_LEVEL } from "./crafts.ts"
 import { estateSeason, MAX_TREES, PALETTE_ORDER, randomOf, START_TREES } from "./estate.ts"
 import { judgeField } from "./judge.ts"
 import { BED_ITEM, type BlockName, type ItemAt, type Level, type Scene, TROUGH_ITEM } from "./level.ts"
@@ -32,7 +33,7 @@ export type Amounts = Readonly<Record<Resource, number>>
 export const NO_AMOUNTS: Amounts = { wood: 0, pumpkin: 0, meat: 0, gold: 0 }
 
 /** What an order opens: a building or a tool that changes how the farm works. */
-export type FarmUnlock = "beds" | "basket" | "longDay" | "cart" | "tower" | "pen" | "mine" | "workshop" | "book"
+export type FarmUnlock = "beds" | "basket" | "longDay" | "cart" | "tower" | "pen" | "mine" | "workshop" | "book" | "spyglass"
 
 export interface FarmUnlockInfo {
   readonly id: FarmUnlock
@@ -57,6 +58,11 @@ export const FARM_UNLOCKS: ReadonlyArray<FarmUnlockInfo> = [
     id: "book",
     name: "Книга команд",
     about: "Свій блок можна записати в книгу: він лишається в палітрі на всі наступні дні, і програма його лише викликає. У Python це готова функція."
+  },
+  {
+    id: "spyglass",
+    name: "Підзорна труба",
+    about: "Датчик «у трубу видно річ?»: щось лежить на одній із трьох клітинок попереду. Робітник іде одразу туди, де є що взяти. У Python hero.item_ahead()."
   }
 ]
 
@@ -73,6 +79,8 @@ export interface FarmState {
   readonly orders: Readonly<Record<string, number>>
   /** «Книга команд»: the own blocks the student wrote in it, a «визначити» script each (`book.ts`). */
   readonly book?: ReadonlyArray<BookPage>
+  /** What the programs of all working days put in the barn: the crafts grow from it (`crafts.ts`). */
+  readonly produced?: Amounts
 }
 
 export const NEW_FARM: FarmState = { day: 1, trees: START_TREES, unlocked: [], stock: NO_AMOUNTS, orders: {} }
@@ -95,6 +103,21 @@ const WOOD_CHANCE = 0.7
 const RIPE_CHANCE = 0.4
 
 export const has = (state: FarmState, unlock: FarmUnlock): boolean => state.unlocked.includes(unlock)
+
+/** What the programs made so far, for the crafts. */
+export const producedOf = (state: FarmState): Amounts => state.produced ?? NO_AMOUNTS
+
+/** The level of a craft on this farm. */
+export const craftLevelOf = (state: FarmState, resource: CraftResource): number => {
+  const craft = CRAFTS.find((c) => c.resource === resource)
+  return craft === undefined ? 1 : craftLevel(craft, producedOf(state)[resource])
+}
+
+/** Turns until a tree has wood again and until a sown pumpkin is ripe: shorter from the third level of the craft. */
+export const FASTER_WOOD_REGROW = 12
+export const FASTER_PUMPKIN_GROW = 18
+export const woodRegrowOf = (state: FarmState): number => (craftLevelOf(state, "wood") >= FASTER_LEVEL ? FASTER_WOOD_REGROW : WOOD_REGROW)
+export const pumpkinGrowOf = (state: FarmState): number => (craftLevelOf(state, "pumpkin") >= FASTER_LEVEL ? FASTER_PUMPKIN_GROW : PUMPKIN_GROW)
 
 export const farmTurns = (state: FarmState): number => (has(state, "longDay") ? LONG_DAY_TURNS : DAY_TURNS)
 
@@ -166,6 +189,9 @@ export const farmPalette = (state: FarmState, learned: ReadonlyArray<BlockName>)
     have.add("attack")
     have.add("enemyAhead")
   }
+  // Ремесла and their tools: the questions, «рубати сокирою» and «полити» (a pumpkin needs the beds).
+  for (const b of craftBlocks(producedOf(state))) if (has(state, "beds") || (b !== "ripeAhead" && b !== "water")) have.add(b)
+  if (has(state, "spyglass")) have.add("itemAhead")
   return PALETTE_ORDER.filter((b) => have.has(b))
 }
 
@@ -223,6 +249,7 @@ export const farmDay = (state: FarmState, blocks: ReadonlyArray<BlockName>, day 
   const random = dayRandom(day)
   const wood = chances(trees, WOOD_CHANCE, random)
   const later = wood.map(() => 1 + Math.floor(random() * WOOD_REGROW))
+  const regrow = woodRegrowOf(state)
   const ripe = beds ? chances(trees, RIPE_CHANCE, random) : []
   const pen = has(state, "pen")
   const mine = has(state, "mine")
@@ -249,7 +276,7 @@ export const farmDay = (state: FarmState, blocks: ReadonlyArray<BlockName>, day 
     rows.push(row)
   }
   const growingAt = [
-    ...wood.flatMap((w, i) => (w ? [] : [{ x: FIRST + i, y: TOP, turns: later[i] ?? WOOD_REGROW }])),
+    ...wood.flatMap((w, i) => (w ? [] : [{ x: FIRST + i, y: TOP, turns: Math.min(regrow, later[i] ?? regrow) }])),
     ...(mine && !goldReady ? [{ ...MINE, turns: goldLater }] : [])
   ]
   const tower = has(state, "tower") ? { x: right + 1, y: TOP + 1 } : null
@@ -278,8 +305,8 @@ export const farmDay = (state: FarmState, blocks: ReadonlyArray<BlockName>, day 
     goals: [],
     capacity: farmCapacity(state),
     turns,
-    grow: PUMPKIN_GROW,
-    regrow: WOOD_REGROW,
+    grow: pumpkinGrowOf(state),
+    regrow,
     feed: SHEEP_EAT,
     ...(mine ? { regrowAt: [{ ...MINE, turns: GOLD_REGROW }] } : {}),
     growingAt,
@@ -328,7 +355,7 @@ export interface FarmReport {
   readonly line?: number
 }
 
-const IDLE: ReadonlySet<string> = new Set(["nothingToCollect", "handsFull", "notStorehouse", "nothingToStore", "cannotSow", "waited", "noLever", "swingMissed", "cannotFeed"])
+const IDLE: ReadonlySet<string> = new Set(["nothingToCollect", "handsFull", "notStorehouse", "nothingToStore", "cannotSow", "waited", "noLever", "swingMissed", "cannotFeed", "cannotWater"])
 
 const add = (a: Amounts, r: Resource, n = 1): Amounts => ({ ...a, [r]: a[r] + n })
 
@@ -399,7 +426,8 @@ export const runFarmDay = (
 export const finishDay = (state: FarmState, report: FarmReport): FarmState => ({
   ...state,
   day: Math.max(state.day, report.day) + 1,
-  stock: RESOURCES.reduce((sum, r) => add(sum, r, report.stored[r]), state.stock)
+  stock: RESOURCES.reduce((sum, r) => add(sum, r, report.stored[r]), state.stock),
+  produced: RESOURCES.reduce((sum, r) => add(sum, r, report.stored[r]), producedOf(state))
 })
 
 /** An order of the village: a yield in one working day. */
@@ -488,6 +516,15 @@ export const FARM_ORDERS: ReadonlyArray<FarmOrder> = [
     fast: 110,
     after: "wood-20",
     unlocks: "pen"
+  },
+  {
+    id: "school",
+    title: "Гарбузи для школи",
+    text: "Учителька Ганна готує свято врожаю: вісім гарбузів за день. За це вона дасть підзорну трубу, з якою видно, де щось лежить.",
+    needs: { pumpkin: 8 },
+    fast: 120,
+    after: "mowers",
+    unlocks: "spyglass"
   },
   {
     id: "stew",

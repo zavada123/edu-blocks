@@ -198,7 +198,15 @@ export declare const leverOn: (world: World) => boolean;
 export declare const bedEmpty: (world: World) => boolean;
 /** The hero stands on a trough where the sheep neither eat nor left meat: «нагодувати» would feed them there. */
 export declare const sheepHungry: (world: World) => boolean;
-export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "feed";
+/** How far «у трубу видно річ?» looks along the way ahead, in cells. */
+export declare const SPYGLASS_RANGE = 3;
+/** «попереду дерево з колодою?»: the cell ahead is a tree (not a bed, a trough or the mine) with a log on it. */
+export declare const woodAhead: (world: World) => boolean;
+/** «попереду стиглий гарбуз?»: the cell ahead is a bed with a ripe crop. */
+export declare const ripeAhead: (world: World) => boolean;
+/** «у трубу видно річ?»: something to take lies on one of the next `SPYGLASS_RANGE` cells, before any wall. */
+export declare const itemAhead: (world: World) => boolean;
+export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "feed" | "chop" | "water";
 /** What one action did, for the animation and the error message. */
 export type Outcome = "moved" | "crashed" | "fell" | "tired" | "turned" | "collected" | "nothingToCollect" | "enemyHit" | "enemyDown" | "swingMissed"
 /** «взяти» with full hands: the thing stays where it lies. */
@@ -222,7 +230,11 @@ export type Outcome = "moved" | "crashed" | "fell" | "tired" | "turned" | "colle
 /** «нагодувати» on a hungry trough with a pumpkin in the hands: the sheep eat, and meat lies there later. */
  | "fed"
 /** «нагодувати» off a trough, where the sheep are not hungry, or without a pumpkin. */
- | "cannotFeed";
+ | "cannotFeed"
+/** «полити» on a bed where a crop grows: it is ripe in half of its time at most. */
+ | "watered"
+/** «полити» off a bed, where nothing grows, or where watering gives nothing any more. */
+ | "cannotWater";
 /**
  * What happened in the world, in the order it happened: the hero's action first, then each enemy's turn.
  * A frame keeps the events, so an animation shows what was done, not only where everybody stands now.
@@ -342,6 +354,16 @@ export type GameEvent = {
 /** «нагодувати» where the hero could not feed. */
  | {
     readonly type: "cannotFeed";
+    readonly at: Cell;
+}
+/** The hero watered the bed under it. */
+ | {
+    readonly type: "bedWatered";
+    readonly at: Cell;
+}
+/** «полити» where watering gave nothing. */
+ | {
+    readonly type: "cannotWater";
     readonly at: Cell;
 }
 /** A crop got ripe or a tree grew a thing again: it lies on the cell now. */

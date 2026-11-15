@@ -375,7 +375,46 @@ export const sheepHungry = (world: World): boolean => {
   return world.troughs.has(key) && !world.growing.has(key) && !world.crystals.has(key)
 }
 
-export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "feed"
+/** How far «у трубу видно річ?» looks along the way ahead, in cells. */
+export const SPYGLASS_RANGE = 3
+
+/** The cell ahead holds this kind of thing ready to take. */
+const readyAhead = (world: World, ready: (key: string) => boolean): boolean => {
+  const next = cellAhead(world)
+  const key = cellKey(next.x, next.y)
+  return !isWall(world, next.x, next.y) && world.crystals.has(key) && ready(key)
+}
+
+/** «попереду дерево з колодою?»: the cell ahead is a tree (not a bed, a trough or the mine) with a log on it. */
+export const woodAhead = (world: World): boolean =>
+  readyAhead(world, (key) => kindAt(world, key) === "wood" && !world.beds.has(key) && !world.regrowAt.has(key))
+
+/** «попереду стиглий гарбуз?»: the cell ahead is a bed with a ripe crop. */
+export const ripeAhead = (world: World): boolean => readyAhead(world, (key) => world.beds.has(key))
+
+/** «у трубу видно річ?»: something to take lies on one of the next `SPYGLASS_RANGE` cells, before any wall. */
+export const itemAhead = (world: World): boolean => {
+  const d = DELTA[world.hero.dir]
+  for (let i = 1; i <= SPYGLASS_RANGE; i++) {
+    const x = world.hero.x + d.x * i
+    const y = world.hero.y + d.y * i
+    if (isWall(world, x, y)) return false
+    if (world.crystals.has(cellKey(x, y))) return true
+  }
+  return false
+}
+
+/** The hero stands on a bed where a crop grows and «полити» would make it ripe sooner. */
+const canWater = (world: World): boolean => {
+  const key = cellKey(world.hero.x, world.hero.y)
+  const left = world.growing.get(key)
+  return world.beds.has(key) && left !== undefined && left > wateredTurns(world)
+}
+
+/** A watered crop is ripe in at most half of its growing time. */
+const wateredTurns = (world: World): number => Math.ceil(world.growTurns / 2)
+
+export type Action = "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "feed" | "chop" | "water"
 
 /** What one action did, for the animation and the error message. */
 export type Outcome =
@@ -411,6 +450,10 @@ export type Outcome =
   | "fed"
   /** «нагодувати» off a trough, where the sheep are not hungry, or without a pumpkin. */
   | "cannotFeed"
+  /** «полити» on a bed where a crop grows: it is ripe in half of its time at most. */
+  | "watered"
+  /** «полити» off a bed, where nothing grows, or where watering gives nothing any more. */
+  | "cannotWater"
 
 /**
  * What happened in the world, in the order it happened: the hero's action first, then each enemy's turn.
@@ -460,6 +503,10 @@ export type GameEvent =
   | { readonly type: "sheepFed"; readonly at: Cell }
   /** «нагодувати» where the hero could not feed. */
   | { readonly type: "cannotFeed"; readonly at: Cell }
+  /** The hero watered the bed under it. */
+  | { readonly type: "bedWatered"; readonly at: Cell }
+  /** «полити» where watering gave nothing. */
+  | { readonly type: "cannotWater"; readonly at: Cell }
   /** A crop got ripe or a tree grew a thing again: it lies on the cell now. */
   | { readonly type: "itemGrew"; readonly at: Cell }
   /** The archer of a tower shot an enemy: `hp` left, 0 when it is down. */
@@ -511,14 +558,19 @@ const heroAction = (world: World, action: Action): ActionResult => {
   if (action === "pull") return pull(world)
   if (action === "sow") return sow(world)
   if (action === "feed") return feed(world)
+  if (action === "water") return water(world)
   const key = cellKey(world.hero.x, world.hero.y)
   if (!world.crystals.has(key)) return { world, outcome: "nothingToCollect", events: [{ type: "nothingToTake", at: here }] }
   const kind = kindAt(world, key)
+  // «рубати сокирою» takes only a log off a tree: the tree grows it again in half the time.
+  const onTree = kind === "wood" && !world.beds.has(key) && !world.troughs.has(key) && !world.regrowAt.has(key)
+  if (action === "chop" && !onTree) return { world, outcome: "nothingToCollect", events: [{ type: "nothingToTake", at: here }] }
   if (handsFull(world) || (kind === HEAVY_ITEM && world.carrying > 0)) return { world, outcome: "handsFull", events: [{ type: "handsFull", at: here }] }
   const crystals = new Set(world.crystals)
   crystals.delete(key)
   // A tree grows its thing again after a while, the mine after its own; a bed and a trough stay empty until worked.
-  const again = world.regrowAt.get(key) ?? (world.beds.has(key) || world.troughs.has(key) ? null : world.regrowTurns)
+  const regrow = action === "chop" && world.regrowTurns !== null ? Math.ceil(world.regrowTurns / 2) : world.regrowTurns
+  const again = world.regrowAt.get(key) ?? (world.beds.has(key) || world.troughs.has(key) ? null : regrow)
   const growing = again === null ? world.growing : new Map([...world.growing, [key, again]])
   const load = [...world.load, kind]
   return { world: { ...world, crystals, growing, load, carrying: load.length }, outcome: "collected", events: [{ type: "itemTaken", at: here }] }
@@ -532,6 +584,14 @@ const feed = (world: World): ActionResult => {
   const load = world.load.filter((_, j) => j !== i)
   const growing = new Map([...world.growing, [cellKey(here.x, here.y), world.feedTurns]])
   return { world: { ...world, growing, load, carrying: load.length }, outcome: "fed", events: [{ type: "sheepFed", at: here }] }
+}
+
+/** «полити»: the crop on the bed under the hero is ripe in half of its growing time at most. */
+const water = (world: World): ActionResult => {
+  const here = at(world.hero)
+  if (!canWater(world)) return { world, outcome: "cannotWater", events: [{ type: "cannotWater", at: here }] }
+  const growing = new Map([...world.growing, [cellKey(here.x, here.y), wateredTurns(world)]])
+  return { world: { ...world, growing }, outcome: "watered", events: [{ type: "bedWatered", at: here }] }
 }
 
 /** «посіяти»: on an empty bed the crop starts to grow. */
