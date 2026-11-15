@@ -14,9 +14,9 @@ export const GOBLIN_HUT_ART = ART("prop/goblin-house")
 export const WATCH_TOWER_ART = ART("prop/tower-blue")
 export const SHEEP_ART = ART("animal/sheep")
 export const GOLD_MINE_ART = ART("prop/gold-mine-active")
-export const BUILD_SITE_ART = ART("prop/house-construction")
+export const BUILD_SITE_ART = ART("decor/sign-arrow")
 export const SECOND_BARN_ART = ART("prop/house-yellow")
-export const MILL_ART = ART("prop/windmill")
+export const MILL_ART = ART("prop/house-red")
 const SHRUBS: ReadonlyArray<string> = [ART("decor/bush-small"), ART("decor/bush-medium"), ART("decor/rock-small"), ART("decor/grass-large")]
 
 export interface FarmLayout {
@@ -92,16 +92,20 @@ export const farmLook = (layout: FarmLayout): { readonly tilemap: TileMap; reado
   }
   // A step below the path, so the dome never hides the worker on the path.
   if (mine) sprites.push({ asset: GOLD_MINE_ART, x: 2, y: bottom + 2 })
-  // The site right of the right path, the second barn under the bottom-right corner, the mill left of the bottom-left.
-  if (site) sprites.push({ asset: BUILD_SITE_ART, x: right + 1, y: top + 1 })
-  if (barn) sprites.push({ asset: SECOND_BARN_ART, x: right, y: bottom + 1 })
-  if (mill) sprites.push({ asset: MILL_ART, x: 0, y: bottom + 1 })
+  // The site: dug ground on the right path and a sign by it. The second barn below the bottom-right corner, clear of
+  // the goblins' hut, and the mill left of the bottom-left corner, clear of the sheep.
+  if (site) {
+    sprites.push(soilAt(right, top + 1))
+    sprites.push({ asset: BUILD_SITE_ART, x: right - 1, y: top + 1 })
+  }
+  if (barn) sprites.push({ asset: SECOND_BARN_ART, x: right - 1, y: bottom + 2 })
+  if (mill) sprites.push({ asset: MILL_ART, x: -0.3, y: bottom + 2 })
 
   // Cells kept free: the ring and what stands on it, the house, the tower and the hut.
   const busy = (x: number, y: number) =>
     (x >= (pen ? -1 : 0) && x <= right + 1 && y >= top - 1 && y <= bottom + 1) ||
     (mine && x >= 1 && x <= 3 && y === bottom + 2) ||
-    ((mill || barn) && y === bottom + 2 && x >= -1 && x <= right + 1) || (site && x === right + 2 && y >= top && y <= top + 1) || (tower !== null && Math.abs(x - tower.x) <= 1 && y >= tower.y - 2 && y <= tower.y)
+    (barn && x >= right - 2 && x <= right && y === bottom + 2) || (mill && x >= -2 && x <= 1 && y >= bottom + 2 && y <= bottom + 3) || (tower !== null && Math.abs(x - tower.x) <= 1 && y >= tower.y - 2 && y <= tower.y)
   for (let y = area.y; y < area.y + area.height; y++) {
     for (let x = area.x; x < area.x + area.width; x++) {
       if (busy(x, y)) continue
