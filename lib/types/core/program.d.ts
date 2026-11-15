@@ -34,7 +34,7 @@ export interface Frame {
     readonly counter?: string;
     /** The line of the Python program that made the move, to highlight it in the code editor. */
     readonly line?: number;
-    /** The variables of a Python program after the move («Змінні»). */
+    /** The variables of the program after the move («Змінні»): Python, or blocks on a level with variables. */
     readonly boxes?: ReadonlyArray<Box>;
 }
 export interface RunResult {
@@ -53,8 +53,13 @@ export interface RunResult {
     readonly line?: number;
     /** What a Python program printed with `print`. */
     readonly output?: ReadonlyArray<string>;
-    /** The variables of a Python program when it stopped («Змінні»). */
+    /** The variables of the program when it stopped («Змінні»): Python, or blocks on a level with variables. */
     readonly boxes?: ReadonlyArray<Box>;
+    /**
+     * The calls of the student's own blocks or functions with parameters: each as «пройти(6)», once. An order can ask
+     * for one block called with different values.
+     */
+    readonly calls?: ReadonlyArray<string>;
     readonly frames: ReadonlyArray<Frame>;
     readonly world: World;
     /** On a level with more than one field: the field these frames are from, counted from 0 (see `combineFields`). */
@@ -62,6 +67,14 @@ export interface RunResult {
     /** On a level with more than one field: whether the program passed each field, in field order. */
     readonly fields?: ReadonlyArray<boolean>;
 }
+/**
+ * The variables a program names, each once, in the order of the program: those of «задати», «змінити» and the
+ * reporters. The project declares them, so the editor lists them and the VM starts each at 0.
+ */
+export declare const programVariables: (program: Program) => ReadonlyArray<{
+    readonly id: string;
+    readonly name: string;
+}>;
 /** Checks the program shape and palette before it runs. Returns the error text or the block count. */
 export declare const checkProgram: (level: Level, program: Program) => {
     readonly error: string;

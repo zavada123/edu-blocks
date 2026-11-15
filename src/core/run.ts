@@ -3,7 +3,7 @@ import vmLog from "scratch-vm/src/util/log.js"
 import { COUNTER_ID, COUNTER_NAME, HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID, isItemKind, ITEM_FIELD, ITEM_NAMES, itemMenu } from "./blocks.ts"
 import { HERO_ACTIONS, HERO_SENSORS, heroAct, heroSense, newSession, type Sensor } from "./hero.ts"
 import type { Level } from "./level.ts"
-import { checkProgram, MAX_FRAMES, PASSES_PER_FRAME, type Program, resultOf, type RunResult, type Session } from "./program.ts"
+import { checkProgram, MAX_FRAMES, programVariables, PASSES_PER_FRAME, type Program, resultOf, type RunResult, type Session } from "./program.ts"
 import type { Action } from "./world.ts"
 
 /**
@@ -38,8 +38,8 @@ export const projectFor = (program: Program): object => ({
     {
       isStage: false,
       name: "Hero",
-      // The counter belongs to the hero, as «лише для цього спрайту» in Scratch.
-      variables: { [COUNTER_ID]: [COUNTER_NAME, 0] },
+      // The variables belong to the hero, as «лише для цього спрайту» in Scratch: the counter and those the program names.
+      variables: Object.fromEntries([[COUNTER_ID, [COUNTER_NAME, 0]], ...programVariables(program).map((v) => [v.id, [v.name, 0]])]),
       lists: {},
       broadcasts: {},
       blocks: program,

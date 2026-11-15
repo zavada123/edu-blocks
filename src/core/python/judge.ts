@@ -37,8 +37,10 @@ export const judgePythonField = (level: Level, source: string): RunResult => {
   const answers = level.inputs ?? []
   let asked = 0
   let boxes: ReadonlyArray<Box> = []
-  // «Змінні» show the variables of the levels only for Python, where a student meets them for the first time.
-  const keepBoxes = level.language === "python"
+  // «Змінні» show the variables of the levels only for Python, where a student meets them for the first time, and
+  // where the student makes variables: there an order can ask what one holds at the end.
+  const keepBoxes = level.language === "python" || level.blocks.includes("variables")
+  const calls = new Set<string>()
   const counted = level.blocks.includes("counter")
   // On a level that asks to print, the program goes on after the hero meets the goals, so the print at its end runs.
   const printsAtEnd = level.prints !== undefined || (level.uses ?? []).includes("print")
@@ -57,6 +59,9 @@ export const judgePythonField = (level: Level, source: string): RunResult => {
     stopped: (globals) => {
       if (keepBoxes) boxes = boxesOf(globals)
     },
+    called: (name, args) => {
+      calls.add(`${name}(${args.map((a) => str(a)).join(", ")})`)
+    },
     input: (prompt, line) => {
       const answer = answers[asked]
       if (answer === undefined) {
@@ -67,7 +72,11 @@ export const judgePythonField = (level: Level, source: string): RunResult => {
       return answer
     }
   }
-  const printed = () => ({ ...(output.length === 0 ? {} : { output }), ...(boxes.length === 0 ? {} : { boxes }) })
+  const printed = () => ({
+    ...(output.length === 0 ? {} : { output }),
+    ...(boxes.length === 0 ? {} : { boxes }),
+    ...(calls.size === 0 ? {} : { calls: [...calls] })
+  })
 
   try {
     execute(program, host)

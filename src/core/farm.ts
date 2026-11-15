@@ -31,7 +31,7 @@ export type Amounts = Readonly<Record<Resource, number>>
 export const NO_AMOUNTS: Amounts = { wood: 0, pumpkin: 0, meat: 0, gold: 0 }
 
 /** What an order opens: a building or a tool that changes how the farm works. */
-export type FarmUnlock = "beds" | "basket" | "longDay" | "cart" | "tower" | "pen" | "mine"
+export type FarmUnlock = "beds" | "basket" | "longDay" | "cart" | "tower" | "pen" | "mine" | "workshop"
 
 export interface FarmUnlockInfo {
   readonly id: FarmUnlock
@@ -46,7 +46,12 @@ export const FARM_UNLOCKS: ReadonlyArray<FarmUnlockInfo> = [
   { id: "cart", name: "Візок", about: "Робітник несе 8 речей." },
   { id: "tower", name: "Сторожова вежа", about: "Вежа над стежкою гоблінів: лучник стріляє в кожного, хто підійде ближче ніж на 3 клітинки." },
   { id: "pen", name: "Вівчарня", about: "Годівниця на лівій стежці. «нагодувати» гарбузом, і за 12 ходів там лежить м'ясо. «вівці голодні?» підкаже, коли." },
-  { id: "mine", name: "Золота шахта", about: "Під нижньою стежкою. Золото біля входу з'являється раз на 20 ходів. Воно важке: його беруть лише з порожніми руками." }
+  { id: "mine", name: "Золота шахта", about: "Під нижньою стежкою. Золото біля входу з'являється раз на 20 ходів. Воно важке: його беруть лише з порожніми руками." },
+  {
+    id: "workshop",
+    name: "Майстерня",
+    about: "«Створити змінну» і «Створити блок»: змінні зі своїми назвами і свої блоки з параметром-числом. У Python це змінні й def з параметрами."
+  }
 ]
 
 /** What the student keeps of the farm. */
@@ -130,6 +135,13 @@ export const farmPalette = (state: FarmState, learned: ReadonlyArray<BlockName>)
       if (has(state, unlock)) have.add(b)
       else have.delete(b)
     }
+  // «Майстерня»: the student makes variables and own blocks. The counter and the fixed custom block are in them now.
+  if (has(state, "workshop")) {
+    have.delete("counter")
+    have.delete("procedure")
+    have.add("variables")
+    have.add("myBlocks")
+  }
   // Goblins come once the farm has a basket worth taking: the worker needs a way to meet them.
   if (has(state, "basket")) {
     have.add("attack")
@@ -283,6 +295,12 @@ export interface FarmReport {
   readonly beaten: number
   /** Why the day ended before its turns: the worker walked into a fence, or the program has a mistake. */
   readonly stopped: RunResult["reason"]
+  /** Times the worker put something in the barn: «віднести на склад» that stored anything. */
+  readonly trips?: number
+  /** The student's variables when the day ended, by name, as Python writes the values: `5`, `"ходки"`. */
+  readonly variables?: Readonly<Record<string, string>>
+  /** An own block or function with parameters was called with different values this day. */
+  readonly ownBlock?: boolean
   /** The explanation of a mistake in the program, as the judge gives it. */
   readonly detail?: string
   readonly line?: number
@@ -327,9 +345,18 @@ export const farmReport = (level: Level, result: RunResult, day: number): FarmRe
     goblins: level.enemies?.length ?? 0,
     beaten: result.frames.reduce((n, f) => n + f.events.filter((e) => e.type === "enemyDown").length, 0),
     stopped: result.reason === "goalsNotMet" ? null : result.reason,
+    trips: result.frames.filter((f) => f.outcome === "stored").length,
+    ...(result.boxes === undefined ? {} : { variables: Object.fromEntries(result.boxes.map((b) => [b.name, b.value])) }),
+    ownBlock: calledWithDifferentValues(result.calls ?? []),
     ...(result.detail === undefined ? {} : { detail: result.detail }),
     ...(result.line === undefined ? {} : { line: result.line })
   }
+}
+
+/** Whether one own block was called with different values: `calls` are like «пройти(6)», each once. */
+export const calledWithDifferentValues = (calls: ReadonlyArray<string>): boolean => {
+  const names = calls.map((c) => c.slice(0, c.indexOf("(")))
+  return names.some((n, i) => names.indexOf(n) !== i)
 }
 
 /** Runs the worker's program through one day of the farm. */
@@ -366,6 +393,10 @@ export interface FarmOrder {
   readonly unlocks?: FarmUnlock
   /** Goblins come on every checked day, not only on their own days. */
   readonly goblins?: boolean
+  /** A variable that must hold, when the day ends, how many times the worker put something in the barn. */
+  readonly tally?: string
+  /** The program must call one own block with parameters with different values. */
+  readonly ownBlock?: boolean
 }
 
 export const FARM_ORDERS: ReadonlyArray<FarmOrder> = [
@@ -446,7 +477,8 @@ export const FARM_ORDERS: ReadonlyArray<FarmOrder> = [
     text: "Громада будує міст: два злитки золота й вісім колод за день. Золото важке, тож по нього йди з порожніми руками.",
     needs: { gold: 2, wood: 8 },
     fast: 140,
-    after: "stew"
+    after: "stew",
+    unlocks: "workshop"
   },
   {
     id: "fair",
@@ -455,8 +487,58 @@ export const FARM_ORDERS: ReadonlyArray<FarmOrder> = [
     needs: { wood: 8, pumpkin: 4, meat: 2, gold: 1 },
     fast: 150,
     after: "bridge"
+  },
+  {
+    id: "tally",
+    title: "Облік ходок",
+    text: "Комірник записує кожну ходку. Дванадцять колод за день, і наприкінці дня змінна «ходки» має показати, скільки разів робітник відніс речі в комору.",
+    needs: { wood: 12 },
+    fast: 130,
+    after: "fair",
+    tally: "ходки"
+  },
+  {
+    id: "carpenter",
+    title: "Підряд теслі",
+    text: "Тесля дивиться і на креслення: дванадцять колод і вісім гарбузів за день, а в програмі свій блок з параметром, який кличуть з різними числами.",
+    needs: { wood: 12, pumpkin: 8 },
+    fast: 150,
+    after: "tally",
+    ownBlock: true
   }
 ]
+
+/** What an order asks besides the yield, in the words of its card. */
+export const orderRules = (order: FarmOrder): ReadonlyArray<string> => [
+  ...(order.tally === undefined ? [] : [`змінна «${order.tally}» наприкінці дня дорівнює кількості ходок до комори`]),
+  ...(order.ownBlock === true ? ["свій блок з параметром, викликаний з різними числами"] : [])
+]
+
+/**
+ * What a day missed of the order's rules besides the yield, for the student: empty when the day keeps them. The tally
+ * counts each «віднести на склад» that put something in the barn.
+ */
+export const orderMisses = (order: FarmOrder, report: FarmReport, language: "blocks" | "python" = "blocks"): ReadonlyArray<string> => {
+  const misses: Array<string> = []
+  if (order.tally !== undefined) {
+    const value = report.variables?.[order.tally]
+    const trips = report.trips ?? 0
+    if (value === undefined)
+      misses.push(
+        language === "python"
+          ? `Немає змінної ${order.tally}: задай ${order.tally} = 0 на початку і додавай 1 після кожного hero.store().`
+          : `Немає змінної «${order.tally}»: створи її в «Змінні», задай 0 на початку і змінюй на 1 після кожного «віднести на склад».`
+      )
+    else if (Number(value) !== trips) misses.push(`Змінна «${order.tally}» наприкінці дня: ${value}, а ходок до комори було ${trips}.`)
+  }
+  if (order.ownBlock === true && report.ownBlock !== true)
+    misses.push(
+      language === "python"
+        ? "Потрібна своя функція з параметром, наприклад def пройти(кроки):, і виклики з різними числами."
+        : "Потрібен свій блок з параметром («Створити блок»), і виклики з різними числами."
+    )
+  return misses
+}
 
 /** The orders the student can take now: not done yet, and the one before them is done. */
 export const openOrders = (state: FarmState): ReadonlyArray<FarmOrder> =>
@@ -492,13 +574,14 @@ export const checkOrder = (state: FarmState, order: FarmOrder, code: FarmProgram
       const day = state.day + i
       return runFarmDay(s, code, blocks, day, order.goblins === true || goblinDay(s, day)).report
     })
+  const kept = (r: FarmReport) => orderMisses(order, r).length === 0
   const reports = days(state, ORDER_DAYS)
   const at = reports.map((r) => metAt(r, order.needs))
-  if (at.some((t) => t === null)) return { grade: 0, reports }
+  if (at.some((t) => t === null) || !reports.every(kept)) return { grade: 0, reports }
   if (at.some((t) => t !== null && t > order.fast)) return { grade: 1, reports }
   const bigger = { ...state, trees: Math.min(MAX_TREES, treesOf(state) + 1) }
   if (bigger.trees === treesOf(state)) return { grade: 3, reports }
-  const universal = days(bigger, UNIVERSAL_DAYS).every((r) => metAt(r, order.needs) !== null)
+  const universal = days(bigger, UNIVERSAL_DAYS).every((r) => metAt(r, order.needs) !== null && kept(r))
   return { grade: universal ? 3 : 2, reports }
 }
 

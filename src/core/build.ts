@@ -1,4 +1,5 @@
 import {
+  ARGUMENT_OPCODE,
   CALL_OPCODE,
   CHANGE_OPCODE,
   COUNTER_ID,
@@ -26,15 +27,23 @@ export type Question =
   | { readonly itemIs: ItemKind }
   | { readonly not: Question } | { readonly and: readonly [Question, Question] } | { readonly or: readonly [Question, Question] }
 
+/**
+ * A number slot: a number, the counter, a variable the student made («Створити змінну») or a parameter of the custom
+ * block it is in.
+ */
+export type Amount = number | "counter" | { readonly variable: string } | { readonly param: string }
+
 export type Step =
   | Action
   /** «повторити (лічильник)» with `repeat: "counter"`. */
-  | { readonly repeat: number | "counter"; readonly body: ReadonlyArray<Step> }
-  /** «задати лічильник N» and «змінити лічильник на N». */
-  | { readonly set: number }
-  | { readonly change: number }
+  | { readonly repeat: Amount; readonly body: ReadonlyArray<Step> }
+  /** «задати лічильник N» and «змінити лічильник на N»; with `variable`, a variable the student made. */
+  | { readonly set: number; readonly variable?: string }
+  | { readonly change: Amount; readonly variable?: string }
   /** The custom block of the level. */
   | "call"
+  /** A custom block by name, with a value for each of its parameters. */
+  | { readonly call: string; readonly args: ReadonlyArray<Amount> }
   | { readonly forever: ReadonlyArray<Step> }
   | { readonly until: Question; readonly body: ReadonlyArray<Step> }
   | { readonly if: Question; readonly then: ReadonlyArray<Step>; readonly else?: ReadonlyArray<Step> }
@@ -42,16 +51,24 @@ export type Step =
 /** The custom block «визначити»: its name and what it does. */
 export interface Definition {
   readonly name?: string
+  /** Number parameters: «пройти (кроки)» has `["кроки"]`. */
+  readonly params?: ReadonlyArray<string>
   readonly body: ReadonlyArray<Step>
 }
 
+/** The words of a custom block with a slot for each parameter, as Scratch keeps them: «пройти %s». */
+export const proccodeOf = (name: string, params: ReadonlyArray<string> = []): string => [name, ...params.map(() => "%s")].join(" ")
+
+/** The id of a variable the student made, as the tests and solutions write it. */
+export const variableId = (name: string): string => `eb-var-${name}`
+
 /** The mutation of a custom block, as the editor keeps it. */
-const mutation = (name: string, prototype: boolean): Record<string, unknown> => ({
+const mutation = (proccode: string, ids: ReadonlyArray<string>, prototype: false | ReadonlyArray<string>): Record<string, unknown> => ({
   tagName: "mutation",
   children: [],
-  proccode: name,
-  argumentids: "[]",
-  ...(prototype ? { argumentnames: "[]", argumentdefaults: "[]" } : {}),
+  proccode,
+  argumentids: JSON.stringify(ids),
+  ...(prototype === false ? {} : { argumentnames: JSON.stringify(prototype), argumentdefaults: JSON.stringify(prototype.map(() => "")) }),
   warp: "false"
 })
 
@@ -68,7 +85,9 @@ type Block = {
   y?: number
 }
 
-export const buildProgram = (steps: ReadonlyArray<Step>, definition?: Definition): Program => {
+/** The program of `steps`, with one custom block or several (`definition`). */
+export const buildProgram = (steps: ReadonlyArray<Step>, definition?: Definition | ReadonlyArray<Definition>): Program => {
+  const defs: ReadonlyArray<Definition> = definition === undefined ? [] : "body" in definition ? [definition] : definition
   const blocks: Record<string, Block> = {}
   let counter = 0
   const add = (opcode: string, parent: string | null, extra: Partial<Block> = {}): string => {
@@ -109,29 +128,45 @@ export const buildProgram = (steps: ReadonlyArray<Step>, definition?: Definition
     if (first !== null) blocks[id]!.inputs[name] = [2, first]
   }
 
-  const procedure = definition?.name ?? DEFAULT_PROCEDURE
+  const procedure = defs[0]?.name ?? DEFAULT_PROCEDURE
+  /** The argument ids of each custom block by its name: the call and the «визначити» must agree. */
+  const argumentIds = new Map(defs.map((d, i) => [d.name ?? DEFAULT_PROCEDURE, (d.params ?? []).map((_, j) => `eb-arg-${i}-${j}`)]))
+  const paramsOf = new Map(defs.map((d) => [d.name ?? DEFAULT_PROCEDURE, d.params ?? []]))
 
-  /** A number slot: a shadow with the number, covered by the counter when it is `"counter"`. */
-  const numberInput = (id: string, name: string, shadow: string, value: number | "counter") => {
-    const number = add(shadow, id, { shadow: true, fields: { NUM: [value === "counter" ? "0" : String(value), null] } })
-    if (value !== "counter") {
+  const variableField = (name: string | undefined): [string, string] => (name === undefined ? [COUNTER_NAME, COUNTER_ID] : [name, variableId(name)])
+
+  /** A number slot: a shadow with the number, covered by the counter, a variable or a parameter. */
+  const numberInput = (id: string, name: string, shadow: string, value: Amount) => {
+    const number = add(shadow, id, { shadow: true, fields: { [shadow === "text" ? "TEXT" : "NUM"]: [typeof value === "number" ? String(value) : "0", null] } })
+    if (typeof value === "number") {
       blocks[id]!.inputs[name] = [1, number]
       return
     }
-    const variable = add(VARIABLE_OPCODE, id, { fields: { VARIABLE: [COUNTER_NAME, COUNTER_ID] } })
-    blocks[id]!.inputs[name] = [3, variable, number]
+    const reporter =
+      value !== "counter" && "param" in value
+        ? add(ARGUMENT_OPCODE, id, { fields: { VALUE: [value.param, null] } })
+        : add(VARIABLE_OPCODE, id, { fields: { VARIABLE: variableField(value === "counter" ? undefined : value.variable) } })
+    blocks[id]!.inputs[name] = [3, reporter, number]
+  }
+
+  const call = (name: string, args: ReadonlyArray<Amount>, parent: string): string => {
+    const ids = argumentIds.get(name) ?? []
+    const id = add(CALL_OPCODE, parent, { mutation: mutation(proccodeOf(name, paramsOf.get(name) ?? []), ids, false) })
+    ids.forEach((argId, i) => numberInput(id, argId, "text", args[i] ?? 0))
+    return id
   }
 
   const step = (s: Step, parent: string): string => {
-    if (s === "call") return add(CALL_OPCODE, parent, { mutation: mutation(procedure, false) })
+    if (s === "call") return call(procedure, [], parent)
     if (typeof s === "string") return add(opcodeOf(s), parent)
+    if ("call" in s) return call(s.call, s.args, parent)
     if ("set" in s) {
-      const id = add(SET_OPCODE, parent, { fields: { VARIABLE: [COUNTER_NAME, COUNTER_ID] } })
+      const id = add(SET_OPCODE, parent, { fields: { VARIABLE: variableField(s.variable) } })
       blocks[id]!.inputs.VALUE = [1, add("text", id, { shadow: true, fields: { TEXT: [String(s.set), null] } })]
       return id
     }
     if ("change" in s) {
-      const id = add(CHANGE_OPCODE, parent, { fields: { VARIABLE: [COUNTER_NAME, COUNTER_ID] } })
+      const id = add(CHANGE_OPCODE, parent, { fields: { VARIABLE: variableField(s.variable) } })
       numberInput(id, "VALUE", "math_number", s.change)
       return id
     }
@@ -162,10 +197,17 @@ export const buildProgram = (steps: ReadonlyArray<Step>, definition?: Definition
   const start = add(START_OPCODE, null, { topLevel: true, x: 40, y: 40 })
   const first = stack(steps, start)
   blocks[start]!.next = first
-  if (definition !== undefined) {
-    const define = add(DEFINITION_OPCODE, null, { topLevel: true, x: 360, y: 40 })
-    blocks[define]!.inputs.custom_block = [1, add(PROTOTYPE_OPCODE, define, { shadow: true, mutation: mutation(procedure, true) })]
-    blocks[define]!.next = stack(definition.body, define)
-  }
+  defs.forEach((d, i) => {
+    const name = d.name ?? DEFAULT_PROCEDURE
+    const params = d.params ?? []
+    const ids = argumentIds.get(name) ?? []
+    const define = add(DEFINITION_OPCODE, null, { topLevel: true, x: 360, y: 40 + 300 * i })
+    const prototype = add(PROTOTYPE_OPCODE, define, { shadow: true, mutation: mutation(proccodeOf(name, params), ids, params) })
+    ids.forEach((argId, j) => {
+      blocks[prototype]!.inputs[argId] = [1, add(ARGUMENT_OPCODE, prototype, { shadow: true, fields: { VALUE: [params[j] ?? "", null] } })]
+    })
+    blocks[define]!.inputs.custom_block = [1, prototype]
+    blocks[define]!.next = stack(d.body, define)
+  })
   return blocks
 }

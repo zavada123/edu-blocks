@@ -30,9 +30,14 @@ export const boxesOf = (globals: ReadonlyMap<string, Value>): ReadonlyArray<Box>
  * «Змінні» of a block program: its one variable, «лічильник», as Scratch keeps it (`Frame.counter`). A number is a
  * whole number or a number with a dot; anything else the student typed into «задати лічильник» is words.
  */
-export const counterBoxes = (counter: string | undefined): ReadonlyArray<Box> => {
-  if (counter === undefined) return []
-  if (/^-?\d+$/.test(counter)) return [{ name: COUNTER_NAME, value: counter, kind: "int" }]
-  if (/^-?\d*\.\d+$/.test(counter)) return [{ name: COUNTER_NAME, value: counter, kind: "float" }]
-  return [{ name: COUNTER_NAME, value: `"${counter}"`, kind: "str" }]
-}
+export const counterBoxes = (counter: string | undefined): ReadonlyArray<Box> =>
+  counter === undefined ? [] : blockBoxes([{ name: COUNTER_NAME, value: counter }])
+
+/** «Змінні» of a block program: each variable as a box, a number as a number and anything else as words. */
+export const blockBoxes = (variables: ReadonlyArray<{ readonly name: string; readonly value: unknown }>): ReadonlyArray<Box> =>
+  variables.map(({ name, value }) => {
+    const text = String(value)
+    if (/^-?\d+$/.test(text)) return { name, value: text, kind: "int" }
+    if (/^-?\d*\.\d+$/.test(text)) return { name, value: text, kind: "float" }
+    return { name, value: `"${text}"`, kind: "str" }
+  })

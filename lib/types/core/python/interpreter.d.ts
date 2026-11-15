@@ -24,6 +24,8 @@ export interface PyHost {
     readonly input: (prompt: string, line: number) => string;
     /** Called once when the program stops, for any reason, with its variables at that moment. */
     readonly stopped?: (globals: ReadonlyMap<string, Value>) => void;
+    /** Called when the program calls one of its own functions that has parameters, with the values it got. */
+    readonly called?: (name: string, args: ReadonlyArray<Value>) => void;
 }
 /** The run stops with no error: the hero is done, or the program ran too long. */
 export declare class Halt {

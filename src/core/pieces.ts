@@ -21,7 +21,7 @@ export const MAX_PIECES = 8
 export const PIECES_STAR_CAP = 2
 
 /** Palette blocks a piece cannot carry over: a custom block or the counter of an earlier piece. */
-const KEPT_STATE: ReadonlySet<string> = new Set(["procedure", "counter"])
+const KEPT_STATE: ReadonlySet<string> = new Set(["procedure", "counter", "variables", "myBlocks"])
 
 /**
  * Can the student go on from where this run stopped? Only when the program simply ended before the goals: after a
