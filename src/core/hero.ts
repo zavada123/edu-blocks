@@ -2,7 +2,7 @@ import type { Box } from "./python/boxes.ts"
 import { opcodeOf } from "./blocks.ts"
 import { allGoalsMet, goalStatus, type Level, startWorld } from "./level.ts"
 import { fatalReason, MAX_ACTIONS, type Session } from "./program.ts"
-import { type Action, applyAction, atFinish, atStorehouse, bedEmpty, enemyAhead, handsFull, itemAhead, itemIs, type ItemKind, leverOn, onCrystal, onLever, ripeAhead, sheepHungry, trapAhead, wallAhead, woodAhead, type World } from "./world.ts"
+import { type Action, applyAction, atFinish, atSite, atStorehouse, bedEmpty, enemyAhead, handsFull, itemAhead, itemIs, type ItemKind, leverOn, onCrystal, onLever, ripeAhead, sheepHungry, type StockKind, stockOf, trapAhead, wallAhead, woodAhead, type World } from "./world.ts"
 
 /**
  * The hero API: what a program may tell the hero to do and ask the hero about. Every way of programming calls
@@ -11,10 +11,10 @@ import { type Action, applyAction, atFinish, atStorehouse, bedEmpty, enemyAhead,
  */
 
 /** The questions a program may ask, for «якщо» and «повторити до». */
-export type Sensor = "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "bedEmpty" | "sheepHungry" | "woodAhead" | "ripeAhead" | "itemAhead"
+export type Sensor = "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "bedEmpty" | "sheepHungry" | "woodAhead" | "ripeAhead" | "itemAhead" | "atSite"
 
 /** The hero's actions, in palette order. */
-export const HERO_ACTIONS: ReadonlyArray<Action> = ["move", "turnLeft", "turnRight", "collect", "attack", "store", "wait", "pull", "sow", "feed", "chop", "water"]
+export const HERO_ACTIONS: ReadonlyArray<Action> = ["move", "turnLeft", "turnRight", "collect", "attack", "store", "wait", "pull", "sow", "feed", "chop", "water", "build"]
 
 /** Each question and how the world answers it. */
 export const HERO_SENSORS: Readonly<Record<Sensor, (world: World) => boolean>> = {
@@ -31,7 +31,8 @@ export const HERO_SENSORS: Readonly<Record<Sensor, (world: World) => boolean>> =
   sheepHungry,
   woodAhead,
   ripeAhead,
-  itemAhead
+  itemAhead,
+  atSite
 }
 
 const SENSOR_NAMES = Object.keys(HERO_SENSORS) as ReadonlyArray<Sensor>
@@ -97,6 +98,9 @@ export type Probe = Sensor | { readonly itemIs: ItemKind }
 /** The answer to a question about the world as it is now. */
 export const heroSense = (session: Session, probe: Probe): boolean =>
   typeof probe === "string" ? HERO_SENSORS[probe](session.world) : itemIs(session.world, probe.itemIs)
+
+/** «скільки ‹…› у коморі»: a number, what lies in the barn now. */
+export const heroCount = (session: Session, kind: StockKind): number => stockOf(session.world, kind)
 
 const end = (session: Session, reason: Session["reason"]): true => {
   session.done = true

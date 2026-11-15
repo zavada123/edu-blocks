@@ -1,10 +1,11 @@
 import type { BlockName, ItemKind } from "./level.ts"
+import type { StockKind } from "./world.ts"
 
 /** ID of the VM extension with the hero blocks. Opcodes in a program read `hero_move`. */
 export const HERO_EXTENSION_ID = "hero"
 export const HERO_COLOR = "#0FBD8C"
 
-export type HeroBlock = Extract<BlockName, "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "feed" | "chop" | "water" | "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "itemIs" | "bedEmpty" | "sheepHungry" | "woodAhead" | "ripeAhead" | "itemAhead">
+export type HeroBlock = Extract<BlockName, "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "feed" | "chop" | "water" | "build" | "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "itemIs" | "bedEmpty" | "sheepHungry" | "woodAhead" | "ripeAhead" | "itemAhead" | "atSite" | "stock">
 
 /** Hero blocks in palette order. `boolean` blocks are the questions for «якщо» and «повторити до». */
 /**
@@ -15,6 +16,8 @@ export interface HeroBlockInfo {
   readonly name: HeroBlock
   readonly text: string
   readonly boolean: boolean
+  /** A round block that gives a number: «скільки ‹колод› у коморі». */
+  readonly reporter?: true
 }
 
 /** The field of «тут ‹…›?» that holds the item kind. */
@@ -33,6 +36,7 @@ export const HERO_BLOCKS: ReadonlyArray<HeroBlockInfo> = [
   { name: "feed", text: "нагодувати", boolean: false },
   { name: "chop", text: "рубати сокирою", boolean: false },
   { name: "water", text: "полити", boolean: false },
+  { name: "build", text: "будувати", boolean: false },
   { name: "wallAhead", text: "попереду стіна?", boolean: true },
   { name: "onCrystal", text: "тут щось є?", boolean: true },
   { name: "atFinish", text: "дійшов до мети?", boolean: true },
@@ -47,8 +51,27 @@ export const HERO_BLOCKS: ReadonlyArray<HeroBlockInfo> = [
   { name: "woodAhead", text: "попереду дерево з колодою?", boolean: true },
   { name: "ripeAhead", text: "попереду стиглий гарбуз?", boolean: true },
   { name: "itemAhead", text: "у трубу видно річ?", boolean: true },
-  { name: "itemIs", text: "тут [ITEM]?", boolean: true }
+  { name: "atSite", text: "тут будмайданчик?", boolean: true },
+  { name: "itemIs", text: "тут [ITEM]?", boolean: true },
+  { name: "stock", text: "скільки [ITEM] у коморі", boolean: false, reporter: true }
 ]
+
+/** What «скільки ‹…› у коморі» counts, by name in its drop-down: the barn of the farm. */
+export const STOCK_NAMES: Readonly<Partial<Record<StockKind, string>>> = {
+  wood: "колод",
+  carrot: "гарбузів",
+  meat: "м'яса",
+  gold: "золота",
+  flour: "борошна"
+}
+
+export const STOCK_KINDS = Object.keys(STOCK_NAMES) as ReadonlyArray<StockKind>
+
+/** Whether a value of a program is a kind the barn keeps. */
+export const isStockKind = (value: unknown): value is StockKind => typeof value === "string" && (STOCK_KINDS as ReadonlyArray<string>).includes(value)
+
+/** The kind a «скільки ‹…› у коморі» block holds in its field; logs when the field is damaged. */
+export const stockOfField = (field: unknown): StockKind => (Array.isArray(field) && isStockKind(field[0]) ? field[0] : "wood")
 
 /**
  * What «взяти» says on a level: the hero lights a campfire and catches a fish, not «takes» them. Only the words on
@@ -117,8 +140,17 @@ const SCRATCH_OPCODES: Readonly<Record<ScratchBlock, string>> = {
   ifElse: "control_if_else",
   not: "operator_not",
   and: "operator_and",
-  or: "operator_or"
+  or: "operator_or",
+  gt: "operator_gt",
+  lt: "operator_lt",
+  equals: "operator_equals"
 }
+
+/** The comparisons of «Оператори»: how a program writes them, and their opcode. */
+export type Comparison = ">" | "<" | "="
+export const COMPARISON_OPCODES: Readonly<Record<Comparison, string>> = { ">": "operator_gt", "<": "operator_lt", "=": "operator_equals" }
+export const comparisonOfOpcode = (opcode: string): Comparison | undefined =>
+  (Object.keys(COMPARISON_OPCODES) as ReadonlyArray<Comparison>).find((c) => COMPARISON_OPCODES[c] === opcode)
 
 export const START_OPCODE = "event_whenflagclicked"
 

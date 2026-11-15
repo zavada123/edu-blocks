@@ -1,5 +1,5 @@
 import type { Definition, Step } from "./build.ts";
-import { type Cell, type Direction, type EnemySpec, type ItemKind, type MapRows, type Tower, type World } from "./world.ts";
+import { type Cell, type Direction, type EnemySpec, type ItemKind, type MapRows, type StockKind, type Tower, type World } from "./world.ts";
 import type { Tier } from "./xp.ts";
 import type { Program } from "./program.ts";
 /** Blocks a level can put into the palette. Hero blocks and the Scratch blocks with the same meaning. */
@@ -17,7 +17,9 @@ export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "attack"
 /** «рубати сокирою» (Сокира): takes the log off the tree under the hero; the tree grows it again in half the time. */
  | "chop"
 /** «полити» (Лійка): the crop on the bed under the hero is ripe in half of its time at most. */
- | "water" | "wallAhead" | "enemyAhead" | "trapAhead" | "onCrystal" | "atFinish" | "handsFull" | "atStorehouse" | "onLever" | "leverOn"
+ | "water"
+/** «будувати»: on the build site adds one part of the building and takes its price from the barn. */
+ | "build" | "wallAhead" | "enemyAhead" | "trapAhead" | "onCrystal" | "atFinish" | "handsFull" | "atStorehouse" | "onLever" | "leverOn"
 /** «тут ‹морква›?»: a question with a choice of the item kind in the block. */
  | "itemIs"
 /** «тут порожня грядка?»: the hero stands on a bed where nothing grows or lies. */
@@ -29,7 +31,13 @@ export type BlockName = "move" | "turnLeft" | "turnRight" | "collect" | "attack"
 /** «попереду стиглий гарбуз?»: the cell ahead is a bed with a ripe crop. */
  | "ripeAhead"
 /** «у трубу видно річ?» (Підзорна труба): something to take lies on the next three cells ahead. */
- | "itemAhead" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or"
+ | "itemAhead"
+/** «тут будмайданчик?»: the hero stands on the build site. */
+ | "atSite"
+/** «скільки ‹колод› у коморі» (Рахівниця): a number reporter with a choice of the kind in the block. */
+ | "stock" | "repeat" | "forever" | "repeatUntil" | "if" | "ifElse" | "not" | "and" | "or"
+/** ‹ › 50 ›, ‹ < 50 ›, ‹ = 50 ›: compare two numbers, as «Оператори» in Scratch. */
+ | "gt" | "lt" | "equals"
 /** «задати / змінити лічильник» and the (лічильник) reporter: one variable, as «Змінні» in Scratch. */
  | "counter"
 /** A custom block of the level: its «визначити» hat and the call, as «Мої блоки» in Scratch. */
@@ -289,6 +297,17 @@ export interface Level {
     }>;
     /** Turns the sheep eat a pumpkin until meat lies on the trough (`DEFAULT_FEED_TURNS` when left out). */
     readonly feed?: number;
+    /** What lies in the barn in the morning, by kind: «скільки ‹…› у коморі» counts from it, «будувати» pays from it. */
+    readonly barn?: Readonly<Partial<Record<StockKind, number>>>;
+    /** The build site: the price of one part and the parts the building still needs. */
+    readonly site?: {
+        readonly x: number;
+        readonly y: number;
+        readonly part: Readonly<Partial<Record<StockKind, number>>>;
+        readonly left: number;
+    };
+    /** The mill: «віднести на склад» there makes flour of the pumpkins the hero carries. */
+    readonly mill?: Cell;
     /** The name of the custom block when the palette has «procedure». «мій блок» when left out. */
     readonly procedure?: string;
     /**

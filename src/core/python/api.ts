@@ -1,6 +1,6 @@
 import type { Sensor } from "../hero.ts"
 import type { BlockName } from "../level.ts"
-import { ITEM_NAMES } from "../blocks.ts"
+import { ITEM_NAMES, STOCK_KINDS, STOCK_NAMES } from "../blocks.ts"
 import type { Action, ItemKind } from "../world.ts"
 
 /**
@@ -22,7 +22,14 @@ export interface PythonMethod {
   readonly sensor?: Sensor
   /** «тут ‹…›?»: asks with the item kind in the brackets, as `hero.item_is("egg")`. */
   readonly probesItem?: true
+  /** «скільки ‹…› у коморі»: gives a number, with the kind in the brackets, as `hero.stock("wood")`. */
+  readonly countsStock?: true
 }
+
+/** The method of «скільки ‹…› у коморі». */
+export const STOCK_METHOD = "stock"
+
+const STOCK_KINDS_TEXT = STOCK_KINDS.map((k) => `"${k}" (${STOCK_NAMES[k] ?? k})`).join(", ")
 
 /** The method of «тут ‹…›?». */
 export const ITEM_METHOD = "item_is"
@@ -55,6 +62,8 @@ export const PYTHON_METHODS: ReadonlyArray<PythonMethod> = [
   { name: "sheep_hungry", signature: "sheep_hungry()", doc: "True, якщо герой на годівниці, а вівці не їдять і м'яса там немає.", block: "sheepHungry", sensor: "sheepHungry" },
   { name: "wood_ahead", signature: "wood_ahead()", doc: "True, якщо попереду дерево з колодою.", block: "woodAhead", sensor: "woodAhead" },
   { name: "ripe_ahead", signature: "ripe_ahead()", doc: "True, якщо попереду грядка зі стиглим гарбузом.", block: "ripeAhead", sensor: "ripeAhead" },
+  { name: "build", signature: "build()", doc: "Будувати: стоячи на будмайданчику, додати одну частину будівлі. Її ціна береться з комори.", block: "build", action: "build" },
+  { name: "at_site", signature: "at_site()", doc: "True, якщо герой стоїть на будмайданчику.", block: "atSite", sensor: "atSite" },
   { name: "item_ahead", signature: "item_ahead()", doc: "True, якщо в підзорну трубу видно річ: на одній із трьох клітинок попереду, до стіни.", block: "itemAhead", sensor: "itemAhead" },
   {
     name: "item_is",
@@ -62,6 +71,13 @@ export const PYTHON_METHODS: ReadonlyArray<PythonMethod> = [
     doc: `True, якщо тут лежить саме це: ${ITEM_KINDS_TEXT}.`,
     block: "itemIs",
     probesItem: true
+  },
+  {
+    name: STOCK_METHOD,
+    signature: 'stock("wood")',
+    doc: `Число: скільки цього лежить у коморі зараз, разом із принесеним сьогодні: ${STOCK_KINDS_TEXT}.`,
+    block: "stock",
+    countsStock: true
   }
 ]
 

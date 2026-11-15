@@ -21,9 +21,10 @@ const types = (events: ReadonlyArray<GameEvent>) => events.map((e) => e.type)
 describe("hero API", () => {
   test("every hero block is an action or a question of the API, and back", () => {
     // «тут ‹…›?» asks with the kind chosen in the block: it is a probe of the API, not a plain question.
-    const api = [...HERO_ACTIONS, ...Object.keys(HERO_SENSORS), "itemIs"].sort()
+    // «скільки ‹…› у коморі» is a number of the API (`heroCount`), with the kind chosen in the block too.
+    const api = [...HERO_ACTIONS, ...Object.keys(HERO_SENSORS), "itemIs", "stock"].sort()
     expect(HERO_BLOCKS.map((b) => b.name).sort()).toEqual(api)
-    for (const b of HERO_BLOCKS.filter((h) => h.name !== "itemIs")) {
+    for (const b of HERO_BLOCKS.filter((h) => h.name !== "itemIs" && h.name !== "stock")) {
       const found = b.boolean ? sensorOfOpcode(opcodeOf(b.name)) : actionOfOpcode(opcodeOf(b.name))
       expect(found).toBe(b.name)
     }

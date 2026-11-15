@@ -1,6 +1,8 @@
 import {
   ARGUMENT_OPCODE,
   CALL_OPCODE,
+  type Comparison,
+  COMPARISON_OPCODES,
   CHANGE_OPCODE,
   COUNTER_ID,
   COUNTER_NAME,
@@ -15,7 +17,7 @@ import {
 } from "./blocks.ts"
 import type { Sensor } from "./hero.ts"
 import type { Program } from "./program.ts"
-import type { Action, ItemKind } from "./world.ts"
+import type { Action, ItemKind, StockKind } from "./world.ts"
 
 /**
  * A short way to write a program in code: reference solutions of the levels and tests.
@@ -26,12 +28,20 @@ export type Question =
   /** «тут ‹морква›?» */
   | { readonly itemIs: ItemKind }
   | { readonly not: Question } | { readonly and: readonly [Question, Question] } | { readonly or: readonly [Question, Question] }
+  /** ‹ (скільки колод у коморі) > 2 ›: two numbers compared. */
+  | Compare
+
+/** Two number slots compared: «>», «<» or «=». */
+export interface Compare {
+  readonly compare: Comparison
+  readonly of: readonly [Amount, Amount]
+}
 
 /**
- * A number slot: a number, the counter, a variable the student made («Створити змінну») or a parameter of the custom
- * block it is in.
+ * A number slot: a number, the counter, a variable the student made («Створити змінну»), a parameter of the custom
+ * block it is in, or «скільки ‹…› у коморі».
  */
-export type Amount = number | "counter" | { readonly variable: string } | { readonly param: string }
+export type Amount = number | "counter" | { readonly variable: string } | { readonly param: string } | { readonly stock: StockKind }
 
 export type Step =
   | Action
@@ -99,6 +109,12 @@ export const buildProgram = (steps: ReadonlyArray<Step>, definition?: Definition
   const question = (q: Question, parent: string): string => {
     if (typeof q === "string") return add(opcodeOf(q), parent)
     if ("itemIs" in q) return add(opcodeOf("itemIs"), parent, { fields: { [ITEM_FIELD]: [q.itemIs, null] } })
+    if ("compare" in q) {
+      const id = add(COMPARISON_OPCODES[q.compare], parent)
+      numberInput(id, "OPERAND1", "text", q.of[0])
+      numberInput(id, "OPERAND2", "text", q.of[1])
+      return id
+    }
     if ("not" in q) {
       const id = add("operator_not", parent)
       blocks[id]!.inputs.OPERAND = [2, question(q.not, id)]
@@ -143,9 +159,13 @@ export const buildProgram = (steps: ReadonlyArray<Step>, definition?: Definition
       return
     }
     const reporter =
-      value !== "counter" && "param" in value
-        ? add(ARGUMENT_OPCODE, id, { fields: { VALUE: [value.param, null] } })
-        : add(VARIABLE_OPCODE, id, { fields: { VARIABLE: variableField(value === "counter" ? undefined : value.variable) } })
+      value === "counter"
+        ? add(VARIABLE_OPCODE, id, { fields: { VARIABLE: variableField(undefined) } })
+        : "param" in value
+          ? add(ARGUMENT_OPCODE, id, { fields: { VALUE: [value.param, null] } })
+          : "stock" in value
+            ? add(opcodeOf("stock"), id, { fields: { [ITEM_FIELD]: [value.stock, null] } })
+            : add(VARIABLE_OPCODE, id, { fields: { VARIABLE: variableField(value.variable) } })
     blocks[id]!.inputs[name] = [3, reporter, number]
   }
 

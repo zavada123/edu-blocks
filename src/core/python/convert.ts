@@ -4,7 +4,7 @@ import type { Amount, Definition, Question, Step } from "../build.ts"
 import type { Level } from "../level.ts"
 import type { Program } from "../program.ts"
 import { type ReadStep, readProgram, type Slot } from "../read.ts"
-import { ITEM_METHOD, PYTHON_METHODS } from "./api.ts"
+import { ITEM_METHOD, PYTHON_METHODS, STOCK_METHOD } from "./api.ts"
 
 /** Blocks programs as Python code, as a student would write them. */
 
@@ -25,13 +25,14 @@ const KEYWORDS: ReadonlySet<string> = new Set(
 type CodeStep = Step | ReadStep
 
 /** A condition. An empty slot is `False`, as Scratch reads it. */
-const question = (q: Question | Slot): string => {
+const question = (q: Question | Slot, uses: Uses): string => {
   if (q === null) return "False"
   if (typeof q === "string") return `hero.${METHOD.get(q)}()`
   if ("itemIs" in q) return `hero.${ITEM_METHOD}("${q.itemIs}")`
-  if ("not" in q) return `not ${question(q.not)}`
+  if ("compare" in q) return `${amount(q.of[0], uses)} ${q.compare === "=" ? "==" : q.compare} ${amount(q.of[1], uses)}`
+  if ("not" in q) return `not ${question(q.not, uses)}`
   const [a, b] = "and" in q ? q.and : q.or
-  return `(${question(a)} ${"and" in q ? "and" : "or"} ${question(b)})`
+  return `(${question(a, uses)} ${"and" in q ? "and" : "or"} ${question(b, uses)})`
 }
 
 /** What a program does with its variables: those it reads (they need a start value) and those it sets. */
@@ -51,6 +52,7 @@ const variableName = (variable: string | undefined): string => (variable === und
 const amount = (value: Amount, uses: Uses): string => {
   if (typeof value === "number") return String(value)
   if (value !== "counter" && "param" in value) return identifier(value.param)
+  if (value !== "counter" && "stock" in value) return `hero.${STOCK_METHOD}("${value.stock}")`
   const name = variableName(value === "counter" ? undefined : value.variable)
   uses.read.add(name)
   return name
@@ -77,8 +79,8 @@ const lines = (steps: ReadonlyArray<CodeStep>, indent: string, procedure: string
     }
     if ("repeat" in s) return [`${indent}for _ in range(${amount(s.repeat, uses)}):`, ...lines(s.body, inner, procedure, uses)]
     if ("forever" in s) return [`${indent}while True:`, ...lines(s.forever, inner, procedure, uses)]
-    if ("until" in s) return [`${indent}while not ${question(s.until)}:`, ...lines(s.body, inner, procedure, uses)]
-    const branch = [`${indent}if ${question(s.if)}:`, ...lines(s.then, inner, procedure, uses)]
+    if ("until" in s) return [`${indent}while not ${question(s.until, uses)}:`, ...lines(s.body, inner, procedure, uses)]
+    const branch = [`${indent}if ${question(s.if, uses)}:`, ...lines(s.then, inner, procedure, uses)]
     return s.else === undefined ? branch : [...branch, `${indent}else:`, ...lines(s.else, inner, procedure, uses)]
   })
 }

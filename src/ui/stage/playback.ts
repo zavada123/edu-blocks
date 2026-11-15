@@ -218,7 +218,7 @@ const effectsOf = (before: World, events: ReadonlyArray<GameEvent>, p: number): 
       const lift = after(0.1, 0.9)
       if (lift > 0 && lift < 1) out.push({ kind: "lift", x: ev.at.x, y: ev.at.y, progress: lift })
     }
-    if (ev.type === "nothingToTake" || ev.type === "handsFull" || ev.type === "nothingToStore" || ev.type === "noLever" || ev.type === "cannotSow" || ev.type === "cannotFeed" || ev.type === "cannotWater") {
+    if (ev.type === "nothingToTake" || ev.type === "handsFull" || ev.type === "nothingToStore" || ev.type === "noLever" || ev.type === "cannotSow" || ev.type === "cannotFeed" || ev.type === "cannotWater" || ev.type === "cannotBuild") {
       const q = after(0.1, 0.9)
       if (q > 0 && q < 1) out.push({ kind: "question", x: ev.at.x, y: ev.at.y, progress: q })
     }

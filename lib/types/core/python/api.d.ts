@@ -19,7 +19,11 @@ export interface PythonMethod {
     readonly sensor?: Sensor;
     /** «тут ‹…›?»: asks with the item kind in the brackets, as `hero.item_is("egg")`. */
     readonly probesItem?: true;
+    /** «скільки ‹…› у коморі»: gives a number, with the kind in the brackets, as `hero.stock("wood")`. */
+    readonly countsStock?: true;
 }
+/** The method of «скільки ‹…› у коморі». */
+export declare const STOCK_METHOD = "stock";
 /** The method of «тут ‹…›?». */
 export declare const ITEM_METHOD = "item_is";
 export declare const PYTHON_METHODS: ReadonlyArray<PythonMethod>;

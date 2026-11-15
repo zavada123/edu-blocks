@@ -1,5 +1,5 @@
 import type { Definition, Step } from "./build.ts"
-import { atFinish, type Cell, cellKey, type Direction, enemiesLeft, enemyOf, type EnemySpec, itemCount, type ItemKind, type MapRows, parseMap, type Tower, type World } from "./world.ts"
+import { atFinish, type Cell, cellKey, type Direction, enemiesLeft, enemyOf, type EnemySpec, itemCount, type ItemKind, type MapRows, parseMap, type StockKind, type Tower, type World } from "./world.ts"
 import type { Tier } from "./xp.ts"
 import type { Program } from "./program.ts"
 
@@ -24,6 +24,8 @@ export type BlockName =
   | "chop"
   /** «полити» (Лійка): the crop on the bed under the hero is ripe in half of its time at most. */
   | "water"
+  /** «будувати»: on the build site adds one part of the building and takes its price from the barn. */
+  | "build"
   | "wallAhead"
   | "enemyAhead"
   | "trapAhead"
@@ -45,6 +47,10 @@ export type BlockName =
   | "ripeAhead"
   /** «у трубу видно річ?» (Підзорна труба): something to take lies on the next three cells ahead. */
   | "itemAhead"
+  /** «тут будмайданчик?»: the hero stands on the build site. */
+  | "atSite"
+  /** «скільки ‹колод› у коморі» (Рахівниця): a number reporter with a choice of the kind in the block. */
+  | "stock"
   | "repeat"
   | "forever"
   | "repeatUntil"
@@ -53,6 +59,10 @@ export type BlockName =
   | "not"
   | "and"
   | "or"
+  /** ‹ › 50 ›, ‹ < 50 ›, ‹ = 50 ›: compare two numbers, as «Оператори» in Scratch. */
+  | "gt"
+  | "lt"
+  | "equals"
   /** «задати / змінити лічильник» and the (лічильник) reporter: one variable, as «Змінні» in Scratch. */
   | "counter"
   /** A custom block of the level: its «визначити» hat and the call, as «Мої блоки» in Scratch. */
@@ -308,6 +318,12 @@ export interface Level {
   readonly regrowAt?: ReadonlyArray<{ readonly x: number; readonly y: number; readonly turns: number }>
   /** Turns the sheep eat a pumpkin until meat lies on the trough (`DEFAULT_FEED_TURNS` when left out). */
   readonly feed?: number
+  /** What lies in the barn in the morning, by kind: «скільки ‹…› у коморі» counts from it, «будувати» pays from it. */
+  readonly barn?: Readonly<Partial<Record<StockKind, number>>>
+  /** The build site: the price of one part and the parts the building still needs. */
+  readonly site?: { readonly x: number; readonly y: number; readonly part: Readonly<Partial<Record<StockKind, number>>>; readonly left: number }
+  /** The mill: «віднести на склад» there makes flour of the pumpkins the hero carries. */
+  readonly mill?: Cell
   /** The name of the custom block when the palette has «procedure». «мій блок» when left out. */
   readonly procedure?: string
   /**
@@ -404,7 +420,30 @@ export const startWorld = (level: Level): World => {
   const towers = (level.towers ?? []).map((t) => ({ x: t.x, y: t.y, range: Math.max(1, Math.round(t.range)) }))
   const regrowAt = new Map((level.regrowAt ?? []).map((g): [string, number] => [cellKey(g.x, g.y), Math.max(1, Math.round(g.turns))]))
   const feedTurns = level.feed === undefined ? world.feedTurns : Math.max(1, Math.round(level.feed))
-  return { ...world, enemies: (level.enemies ?? []).map(enemyOf), hearts, maxHearts: hearts, energy, capacity, itemKinds, gateLevers, growTurns, regrowTurns, regrowAt, feedTurns, growing, towers }
+  const amounts = (a: Readonly<Partial<Record<StockKind, number>>>) =>
+    new Map(Object.entries(a).map(([k, n]): [StockKind, number] => [k as StockKind, Math.max(0, Math.round(n ?? 0))]))
+  const barn = amounts(level.barn ?? {})
+  const site = level.site === undefined ? null : { x: level.site.x, y: level.site.y, part: amounts(level.site.part), left: Math.max(0, Math.round(level.site.left)) }
+  const mill = level.mill === undefined ? null : { x: level.mill.x, y: level.mill.y }
+  return {
+    ...world,
+    enemies: (level.enemies ?? []).map(enemyOf),
+    hearts,
+    maxHearts: hearts,
+    energy,
+    capacity,
+    itemKinds,
+    gateLevers,
+    growTurns,
+    regrowTurns,
+    regrowAt,
+    feedTurns,
+    growing,
+    towers,
+    barn,
+    site,
+    mill
+  }
 }
 
 /** The levers of each linked gate: links to cells that are no gate or no lever are left out (`checkLevel` tells). */

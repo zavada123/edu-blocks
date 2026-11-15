@@ -12,19 +12,36 @@ import type { Program, RunResult } from "./program.ts";
  * Everything here is pure and the same in the browser and on a server, as the rest of the core.
  */
 /** What the farm makes and keeps in the barn. */
-export type Resource = "wood" | "pumpkin" | "meat" | "gold";
+export type Resource = "wood" | "pumpkin" | "meat" | "gold" | "flour";
 export declare const RESOURCES: ReadonlyArray<Resource>;
 export declare const RESOURCE_NAMES: Readonly<Record<Resource, string>>;
 export type Amounts = Readonly<Record<Resource, number>>;
 export declare const NO_AMOUNTS: Amounts;
+/** Amounts with every resource, from a save that may have fewer: a resource added later counts from 0. */
+export declare const amountsOf: (a: Partial<Amounts> | undefined) => Amounts;
 /** What an order opens: a building or a tool that changes how the farm works. */
-export type FarmUnlock = "beds" | "basket" | "longDay" | "cart" | "tower" | "pen" | "mine" | "workshop" | "book" | "spyglass";
+export type FarmUnlock = "beds" | "basket" | "longDay" | "cart" | "tower" | "pen" | "mine" | "workshop" | "book" | "spyglass" | "site" | "abacus";
 export interface FarmUnlockInfo {
     readonly id: FarmUnlock;
     readonly name: string;
     readonly about: string;
 }
 export declare const FARM_UNLOCKS: ReadonlyArray<FarmUnlockInfo>;
+/** What the site builds: each building stands in parts, and a part costs its price from the barn. */
+export type BuildingId = "barn" | "mill" | "helper";
+export interface Building {
+    readonly id: BuildingId;
+    readonly name: string;
+    /** What it gives, in the words of its card. */
+    readonly about: string;
+    readonly parts: number;
+    /** The price of one part. */
+    readonly part: Partial<Amounts>;
+    /** Shown as the next building only: it comes with a later stage of the farm. */
+    readonly later?: true;
+}
+export declare const BUILDINGS: ReadonlyArray<Building>;
+export declare const buildingOf: (id: BuildingId) => Building;
 /** What the student keeps of the farm. */
 export interface FarmState {
     /** The next working day, from 1: it decides which trees have wood and which pumpkins are ripe in the morning. */
@@ -40,6 +57,10 @@ export interface FarmState {
     readonly book?: ReadonlyArray<BookPage>;
     /** What the programs of all working days put in the barn: the crafts grow from it (`crafts.ts`). */
     readonly produced?: Amounts;
+    /** What the build site builds now: chosen under the journal, one building at a time. */
+    readonly building?: BuildingId | null;
+    /** The parts of each building that stand already. */
+    readonly parts?: Readonly<Partial<Record<BuildingId, number>>>;
 }
 export declare const NEW_FARM: FarmState;
 /** The turns of a working day, and of a day with «Ліхтар». */
@@ -65,6 +86,15 @@ export declare const FASTER_WOOD_REGROW = 12;
 export declare const FASTER_PUMPKIN_GROW = 18;
 export declare const woodRegrowOf: (state: FarmState) => number;
 export declare const pumpkinGrowOf: (state: FarmState) => number;
+/** The parts of a building that stand, and whether it stands whole. */
+export declare const partsOf: (state: FarmState, id: BuildingId) => number;
+export declare const isBuilt: (state: FarmState, id: BuildingId) => boolean;
+/** The building the site builds now, or null: none chosen, it stands whole, or there is no site. */
+export declare const buildingNow: (state: FarmState) => Building | null;
+/** The buildings the student may choose for the site now: not built yet, and not of a later stage. */
+export declare const buildable: (state: FarmState) => ReadonlyArray<Building>;
+/** The site builds this building from the next day; the parts of the one before stay. */
+export declare const chooseBuilding: (state: FarmState, id: BuildingId) => FarmState;
 export declare const farmTurns: (state: FarmState) => number;
 /**
  * Pages of «Книга команд»: three at first, one more for each building opened after the book, and one for each order
@@ -116,6 +146,9 @@ export interface FarmReport {
     readonly stopped: RunResult["reason"];
     /** Times the worker put something in the barn: «віднести на склад» that stored anything. */
     readonly trips?: number;
+    /** Parts of the building the worker built this day, and what they took from the barn. */
+    readonly built?: number;
+    readonly spent?: Amounts;
     /** The student's variables when the day ended, by name, as Python writes the values: `5`, `"ходки"`. */
     readonly variables?: Readonly<Record<string, string>>;
     /** An own block or function with parameters was called with different values this day. */
@@ -138,6 +171,10 @@ export declare const runFarmDay: (state: FarmState, code: FarmProgram, blocks: R
 };
 /** The farm after a working day: the yield goes to the barn and the next day comes. A trial run changes nothing. */
 export declare const finishDay: (state: FarmState, report: FarmReport) => FarmState;
+/** The price of a part in words: «3 колоди і 1 золото». */
+export declare const priceText: (part: Partial<Amounts>) => string;
+/** «1 колода», «3 колоди», «12 колод». */
+export declare const amountText: (r: Resource, n: number) => string;
 /** An order of the village: a yield in one working day. */
 export interface FarmOrder {
     readonly id: string;
@@ -160,6 +197,8 @@ export interface FarmOrder {
     readonly fromBook?: boolean;
     /** The order gives one more page of «Книга команд». */
     readonly bookPage?: boolean;
+    /** The building that must stand before the order is open. */
+    readonly building?: BuildingId;
 }
 export declare const FARM_ORDERS: ReadonlyArray<FarmOrder>;
 /** What an order asks besides the yield, in the words of its card. */

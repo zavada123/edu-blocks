@@ -1,5 +1,5 @@
 import type { Probe } from "../hero.ts";
-import type { Action } from "../world.ts";
+import type { Action, StockKind } from "../world.ts";
 import { type PythonMethod } from "./api.ts";
 import type { Body } from "./ast.ts";
 import { type Value } from "./values.ts";
@@ -17,6 +17,8 @@ export interface PyHost {
     /** The hero acts. Throws `Halt` when the run is over. `globals` are the program's variables at this moment. */
     readonly act: (action: Action, line: number, globals: ReadonlyMap<string, Value>) => void;
     readonly sense: (probe: Probe) => boolean;
+    /** «скільки ‹…› у коморі»: what lies in the barn now. */
+    readonly count?: (kind: StockKind) => number;
     /** Whether the level opens this method. */
     readonly allows: (method: PythonMethod) => boolean;
     readonly print: (text: string) => void;

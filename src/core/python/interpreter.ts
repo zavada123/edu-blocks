@@ -1,6 +1,6 @@
-import { isItemKind, ITEM_NAMES } from "../blocks.ts"
+import { isItemKind, isStockKind, ITEM_NAMES, STOCK_KINDS } from "../blocks.ts"
 import type { Probe } from "../hero.ts"
-import type { Action } from "../world.ts"
+import type { Action, StockKind } from "../world.ts"
 import { HERO_NAME, MAX_MOVE_STEPS, PYTHON_METHODS, type PythonMethod } from "./api.ts"
 import type { Body, Expr, Stmt, Target } from "./ast.ts"
 import { makeBuiltins } from "./builtins.ts"
@@ -40,6 +40,8 @@ export interface PyHost {
   /** The hero acts. Throws `Halt` when the run is over. `globals` are the program's variables at this moment. */
   readonly act: (action: Action, line: number, globals: ReadonlyMap<string, Value>) => void
   readonly sense: (probe: Probe) => boolean
+  /** «скільки ‹…› у коморі»: what lies in the barn now. */
+  readonly count?: (kind: StockKind) => number
   /** Whether the level opens this method. */
   readonly allows: (method: PythonMethod) => boolean
   readonly print: (text: string) => void
@@ -349,6 +351,13 @@ class Interpreter {
   }
 
   private heroCall(method: PythonMethod, args: ReadonlyArray<Value>, line: number): Value {
+    if (method.countsStock === true) {
+      const kind = args[0]
+      if (args.length !== 1 || typeof kind !== "string")
+        throw new PyError(`${HERO_NAME}.${method.name}() чекає в дужках одне слово в лапках: ${HERO_NAME}.${method.name}("wood")`, line)
+      if (!isStockKind(kind)) throw new PyError(`У коморі не лічать «${kind}». Можна: ${STOCK_KINDS.join(", ")}`, line)
+      return this.host.count?.(kind) ?? 0
+    }
     if (method.probesItem === true) {
       const kind = args[0]
       if (args.length !== 1 || typeof kind !== "string")
