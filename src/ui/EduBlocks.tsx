@@ -9,7 +9,7 @@ import { combineFields } from "../core/fields.ts"
 import type { Level, Scene } from "../core/level.ts"
 import { adviseRun } from "../core/advice.ts"
 import { estateHarvest, type Harvest } from "../core/estate.ts"
-import { type FarmReport, farmReport } from "../core/farm.ts"
+import { crewReport, type FarmReport, farmReport, HELPER_NAME_OF, runFarmCrew } from "../core/farm.ts"
 import { judgeFields } from "../core/judge.ts"
 import { isPiece, joinPrograms, pieceBlockId, scriptCount } from "../core/pieces.ts"
 import type { FailReason, Program, RunResult } from "../core/program.ts"
@@ -29,6 +29,7 @@ import { bookCallMutation, type Made, NEW_BLOCK, NEW_VARIABLE, OPEN_BOOK, toolbo
 import { type Ask, WorkshopDialog } from "./Workshop.tsx"
 import { draftOf, idsOf, mutationOf } from "./make-block.ts"
 import { Boxes } from "./Boxes.tsx"
+import { type CrewTab, CrewTabs } from "./CrewTabs.tsx"
 import { counterBoxes } from "../core/python/boxes.ts"
 import { type EstateRun, type FarmRun, farmRewardOf, harvestRewardOf, type HeroXp, type Reward, rewardOf, Verdict } from "./Verdict.tsx"
 
@@ -334,6 +335,25 @@ export const EduBlocks = ({
   // The latest callback, so a new function from the app does not rebuild the editor.
   const onProgramChangeRef = useRef(onProgramChange)
   onProgramChangeRef.current = onProgramChange
+  // A farm day with a helper: two programs, one editor. The tab not on screen keeps its blocks here.
+  const helper = farm?.helper
+  const helperRef = useRef(helper)
+  helperRef.current = helper
+  const [tab, setTab] = useState<CrewTab>("worker")
+  const tabRef = useRef<CrewTab>("worker")
+  const crewPrograms = useRef<Record<CrewTab, Program>>({ worker: program ?? buildProgram([]), helper: helper?.program ?? buildProgram([]) })
+  /** The program of the tab on screen changed: the app keeps it for that worker. */
+  const programChanged = (next: Program) => {
+    if (helperRef.current === undefined) {
+      onProgramChangeRef.current?.(next)
+      return
+    }
+    crewPrograms.current[tabRef.current] = next
+    if (tabRef.current === "helper") helperRef.current.onProgramChange?.(next)
+    else onProgramChangeRef.current?.(next)
+  }
+  const programChangedRef = useRef(programChanged)
+  programChangedRef.current = programChanged
   // The book as the app has it now: a new book does not rebuild the editor, it changes the palette (`refreshRef`).
   const bookRef = useRef(book)
   bookRef.current = book
@@ -448,7 +468,7 @@ export const EduBlocks = ({
         const next = { ...page, ...heroProgram(vm) }
         await vm.loadProject(projectFor(next))
         await settle()
-        if (doneRef.current === null) onProgramChangeRef.current?.(next)
+        if (doneRef.current === null) programChangedRef.current(next)
       })
     }
     const openBook = () => {
@@ -498,7 +518,8 @@ export const EduBlocks = ({
         refreshToolbox()
       }
       vm.on("workspaceUpdate", onUpdate)
-      await vm.loadProject(projectFor(initialProgram.current ?? brokenProgram(level) ?? buildProgram([])))
+      const first = helperRef.current !== undefined && tabRef.current === "helper" ? crewPrograms.current.helper : (initialProgram.current ?? brokenProgram(level) ?? buildProgram([]))
+      await vm.loadProject(projectFor(first))
       await settle()
       if (disposed) return
       ws.getFlyout()?.getWorkspace().addChangeListener(vm.flyoutBlockListener)
@@ -509,7 +530,7 @@ export const EduBlocks = ({
       ws.addChangeListener((event: unknown) => {
         if (typeof event === "object" && event !== null && "type" in event && PROGRAM_EVENTS.has(String(event.type))) {
           // A piece is not the program: the app keeps the program the student had before the pieces.
-          if (doneRef.current === null) onProgramChangeRef.current?.(heroProgram(vm))
+          if (doneRef.current === null) programChangedRef.current(heroProgram(vm))
           updatePeek()
         }
       })
@@ -550,12 +571,13 @@ export const EduBlocks = ({
   const frameIndex = result === null ? -1 : frameIndexAt(result.frames, player.time)
   const atEnd = result !== null && player.time >= result.frames.length
   // After «Продовжити звідси» the frames name the blocks of the joined program: only the new piece is in the editor.
-  const frameBlock = result === null || atEnd ? null : (result.frames[frameIndex]?.blockId ?? null)
+  const playing = result === null || atEnd ? undefined : result.frames[frameIndex]
+  const frameBlock = (tab === "helper" ? playing?.crew?.[0]?.blockId : playing?.blockId) ?? null
   const glowId = done === null ? frameBlock : pieceBlockId(frameBlock, done.pieces.length)
   // «Змінні» on a level with «лічильник» or the student's variables: after the frame on screen, and after the last one at the end.
   const shownFrame = result === null ? undefined : atEnd ? result.frames.at(-1) : result.frames[frameIndex]
   const boxes =
-    result === null
+    result === null || tab === "helper"
       ? []
       : level.blocks.includes("variables")
         ? (shownFrame?.boxes ?? [])
@@ -570,15 +592,19 @@ export const EduBlocks = ({
     reset()
     setPhase({ kind: "running" })
     const piece = heroProgram(vm)
+    if (helper !== undefined) crewPrograms.current[tabRef.current] = piece
     const before = doneRef.current
     // After «Продовжити звідси» the pieces run as one program from the start; the screen plays only the new frames.
     const joined = before === null ? piece : isPiece(piece) ? joinPrograms([...before.pieces, piece]) : null
-    const prog = joined ?? piece
-    // The program runs on every field; the screen plays the first field it failed on, or the first field.
+    const prog = helper !== undefined ? crewPrograms.current.worker : (joined ?? piece)
+    // The program runs on every field; the screen plays the first field it failed on, or the first field. With a
+    // helper the day is one field, and both programs run on it turn by turn.
     const fieldRuns =
-      before !== null && scriptCount(piece) > 1
-        ? [{ ...combineFields(judgeFields(level, {})), reason: "badProgram" as const, detail: TWO_SCRIPTS }]
-        : judgeFields(withBook(level), prog)
+      helper !== undefined
+        ? [runFarmCrew(withBook(level), { worker: { language: "blocks", program: prog }, helper: { language: "blocks", program: crewPrograms.current.helper } })]
+        : before !== null && scriptCount(piece) > 1
+          ? [{ ...combineFields(judgeFields(level, {})), reason: "badProgram" as const, detail: TWO_SCRIPTS }]
+          : judgeFields(withBook(level), prog)
     const graded = gradePieces(level, combineFields(fieldRuns), before, large, "blocks")
     const result = graded.full
     const shown = result.field ?? 0
@@ -586,7 +612,7 @@ export const EduBlocks = ({
     if (!result.passed) failedRef.current += 1
     const harvest = estate === undefined ? null : estateHarvest(estate.day, result, graded.pieces)
     const firstRun = fieldRuns[0]
-    const dayReport = farm === undefined || firstRun === undefined ? null : farmReport(level, firstRun, farm.day)
+    const dayReport = farm === undefined || firstRun === undefined ? null : (helper === undefined ? farmReport : crewReport)(level, firstRun, farm.day)
     const { runXp, runCoins, reward } =
       dayReport !== null
         ? farmRewardOf(dayReport, firstTry, xp)
@@ -625,7 +651,7 @@ export const EduBlocks = ({
     setFieldIndex(shown)
     setResult(graded.shown)
     restart(graded.shown.frames.length)
-  }, [level, fields, large, onComplete, reset, restart, setFieldIndex, setRuns, xp, coins, estate, farm, doneRef, withBook])
+  }, [level, fields, large, onComplete, reset, restart, setFieldIndex, setRuns, xp, coins, estate, farm, doneRef, withBook, helper])
 
   /** Puts a program into the editor, as the student would have built it. */
   const loadProgram = useCallback(
@@ -637,6 +663,19 @@ export const EduBlocks = ({
         await settle()
       }),
     []
+  )
+
+  // The other tab: the editor keeps the blocks of the tab it leaves and shows the other one's.
+  const pickTab = useCallback(
+    (next: CrewTab) => {
+      const vm = vmRef.current
+      if (vm === null || next === tabRef.current) return
+      crewPrograms.current[tabRef.current] = heroProgram(vm)
+      tabRef.current = next
+      setTab(next)
+      void loadProgram(crewPrograms.current[next])
+    },
+    [loadProgram]
   )
 
   // «Продовжити звідси»: the hero stays where the run ended, the editor gets an empty piece.
@@ -707,7 +746,7 @@ export const EduBlocks = ({
       xpTotal={xpTotal}
       coinsTotal={coinsTotal}
       navigation={navigation}
-      editorTitle="Блоки героя"
+      editorTitle={helper === undefined ? "Блоки героя" : tab === "helper" ? `Блоки ${HELPER_NAME_OF}` : "Блоки робітника"}
       fields={
         fields.length > 1
           ? { count: fields.length, index: fieldIndex, passed: runs?.map((r) => r.passed) ?? null, disabled: running, onPick: pickField }
@@ -735,6 +774,7 @@ export const EduBlocks = ({
         )
       }
     >
+      {helper !== undefined && <CrewTabs tab={tab} helper={helper.name} disabled={running} onPick={pickTab} />}
       <PiecesBar done={done} unit={["блок", "блоки", "блоків"]} onJoin={joinPieces} onRestart={dropPieces} />
       <div className="eb-editor" ref={editorRef} />
       <Boxes boxes={boxes} />

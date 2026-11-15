@@ -437,6 +437,8 @@ export type FarmProgram = { readonly language: "blocks"; readonly program: Progr
 
 /** The helper who lives in «Хата помічника». */
 export const HELPER_NAME = "Тарас"
+/** «Програма Тараса»: the name after a noun. */
+export const HELPER_NAME_OF = "Тараса"
 
 /** The programs of a farm with a helper: the worker's and the helper's, each runs on its own worker. */
 export interface FarmCrew {
@@ -572,7 +574,10 @@ export const crewReport = (level: Level, result: RunResult, day: number): FarmRe
     used,
     turns: level.turns ?? used,
     beaten: result.frames.reduce((n, f) => n + f.events.filter((e) => e.type === "enemyDown").length, 0) + helperEvents.filter((e) => e.type === "enemyDown").length,
-    stopped: first.stopped ?? workers.find((r) => r.stopped !== null)?.stopped ?? null,
+    // The helper's crash shows in its own line of the report; a mistake in its program stops the day's verdict.
+    stopped: first.stopped ?? (workers.some((r) => r.stopped === "badProgram") ? "badProgram" : null),
+    // A mistake in the helper's program is told in the day's own words (`runFarmCrew`).
+    ...(result.detail === undefined ? {} : { detail: result.detail }),
     ...(built > 0 ? { built, spent: sum((r) => r.spent) } : {}),
     ownBlock: workers.some((r) => r.ownBlock === true),
     fromBook: workers.some((r) => r.fromBook === true),
@@ -596,7 +601,7 @@ export const runFarmDay = (
 ): { readonly level: Level; readonly result: RunResult; readonly report: FarmReport } => {
   const level = farmDay(state, blocks, day, goblins)
   if (isCrew(code) && (level.helpers ?? []).length > 0) {
-    const result = runCrew(level, [crewProgram(level, code.worker), crewProgram(level, code.helper)])
+    const result = runFarmCrew(level, code)
     return { level, result, report: crewReport(level, result, day) }
   }
   const one = isCrew(code) ? code.worker : code
@@ -606,6 +611,19 @@ export const runFarmDay = (
 
 const crewProgram = (level: Level, code: FarmProgram) => (stage: Stage) =>
   code.language === "blocks" ? blocksRun(level, code.program, stage) : pythonRun(level, code.source, stage)
+
+/**
+ * The day of the worker and the helper on the level of a farm day (`farmDay` with the helper's house built). A
+ * mistake in the helper's program is the mistake of the day, named after him: the worker's own comes first.
+ */
+export const runFarmCrew = (level: Level, crew: FarmCrew): RunResult => {
+  const result = runCrew(level, [crewProgram(level, crew.worker), crewProgram(level, crew.helper)])
+  const helper = result.workers?.[1]
+  if (result.reason === "badProgram" || helper?.reason !== "badProgram") return result
+  const where = helper.line === undefined ? "" : `, рядок ${helper.line}`
+  const { line: _line, ...rest } = result
+  return { ...rest, passed: false, stars: 0, reason: "badProgram", detail: `Програма ${HELPER_NAME_OF}${where}: ${helper.detail ?? "щось не так"}` }
+}
 
 /** The farm after a working day: the yield goes to the barn and the next day comes. A trial run changes nothing. */
 export const finishDay = (state: FarmState, report: FarmReport): FarmState => {

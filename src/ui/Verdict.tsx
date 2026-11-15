@@ -1,8 +1,8 @@
 import { coinGain, coinsFor } from "../core/coins.ts"
 import { type EstateDay, FULL_DAY_COINS, type Harvest } from "../core/estate.ts"
-import { type FarmReport, farmTips, RESOURCE_NAMES, RESOURCES, totalOf } from "../core/farm.ts"
+import { amountText, type FarmReport, farmTips, HELPER_NAME, RESOURCE_NAMES, RESOURCES, totalOf } from "../core/farm.ts"
 import { type Level, speaksTo } from "../core/level.ts"
-import type { FailReason, RunResult } from "../core/program.ts"
+import type { FailReason, Program, RunResult } from "../core/program.ts"
 import { heroLevelOf, xpFor, xpGain } from "../core/xp.ts"
 import { Coin } from "./Coin.tsx"
 
@@ -51,6 +51,19 @@ export interface Reward {
 export interface FarmRun {
   readonly day: number
   readonly capacity: number
+  /** Once «Хата помічника» stands: the helper's program, kept by the app like the worker's. */
+  readonly helper?: FarmHelperRun
+}
+
+/** The helper of a farm day: its name and its program, in the language of the worker's. */
+export interface FarmHelperRun {
+  readonly name: string
+  /** The helper's Python code, or none for a starter. */
+  readonly source?: string
+  /** The helper's blocks, or none for an empty program. */
+  readonly program?: Program
+  readonly onSourceChange?: (source: string) => void
+  readonly onProgramChange?: (program: Program) => void
 }
 
 /** A day of the estate, from the app: the day (`estateDay`) and the coins of its best run so far. */
@@ -424,6 +437,12 @@ const chartOf = (report: FarmReport): ReadonlyArray<number> => {
 }
 
 /** The report of a working day: what went to the barn, the turns spent for nothing, the chart and what to improve. */
+/** «9 колод, 2 гарбузи»: what one worker brought to the barn. */
+const crewYield = (report: FarmReport): string => {
+  const brought = RESOURCES.filter((r) => report.stored[r] > 0).map((r) => amountText(r, report.stored[r]))
+  return brought.length === 0 ? "нічого не приніс" : brought.join(", ")
+}
+
 const FarmVerdict = ({
   report,
   capacity,
@@ -482,6 +501,16 @@ const FarmVerdict = ({
               Усе в коморі за день: {totalOf(report.stored)} за {report.used} з {report.turns} ходів.
             </figcaption>
           </figure>
+        )}
+        {(report.workers ?? []).length > 1 && (
+          <ul className="eb-farm-crew" aria-label="Що приніс кожен">
+            {(report.workers ?? []).map((w, i) => (
+              <li key={i}>
+                <b>{i === 0 ? "Робітник" : HELPER_NAME}:</b> {crewYield(w)}
+                {w.stopped === "crashed" && `, урізався в паркан і простояв до вечора`}
+              </li>
+            ))}
+          </ul>
         )}
         {tips.map((t) => (
           <p key={t} className="eb-hint">

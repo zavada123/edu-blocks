@@ -1,7 +1,7 @@
 import { type EstateDay, type Harvest } from "../core/estate.ts";
 import { type FarmReport } from "../core/farm.ts";
 import { type Level } from "../core/level.ts";
-import type { RunResult } from "../core/program.ts";
+import type { Program, RunResult } from "../core/program.ts";
 /** The result of a run for the student: stars, XP, what went wrong and what to try. Shared by blocks and Python. */
 /** How the student programs the level: the words of the result depend on it. */
 export type Language = "blocks" | "python";
@@ -27,6 +27,18 @@ export interface Reward {
 export interface FarmRun {
     readonly day: number;
     readonly capacity: number;
+    /** Once «Хата помічника» stands: the helper's program, kept by the app like the worker's. */
+    readonly helper?: FarmHelperRun;
+}
+/** The helper of a farm day: its name and its program, in the language of the worker's. */
+export interface FarmHelperRun {
+    readonly name: string;
+    /** The helper's Python code, or none for a starter. */
+    readonly source?: string;
+    /** The helper's blocks, or none for an empty program. */
+    readonly program?: Program;
+    readonly onSourceChange?: (source: string) => void;
+    readonly onProgramChange?: (program: Program) => void;
 }
 /** A day of the estate, from the app: the day (`estateDay`) and the coins of its best run so far. */
 export interface EstateRun {

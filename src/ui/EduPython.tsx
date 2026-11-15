@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef, useState } from "react"
 import { COUNTER_NAME, procedureName } from "../core/blocks.ts"
 import { brokenSource } from "../core/broken.ts"
 import { estateHarvest, type Harvest } from "../core/estate.ts"
-import { type FarmReport, farmReport } from "../core/farm.ts"
+import { crewReport, type FarmReport, farmReport, HELPER_NAME_OF, runFarmCrew } from "../core/farm.ts"
 import { combineFields } from "../core/fields.ts"
 import { joinSources, linesBefore } from "../core/pieces.ts"
 import type { BlockName, Level } from "../core/level.ts"
@@ -16,6 +16,7 @@ import { useFullScreen } from "./fullscreen.ts"
 import { type GameNavigation, GameScreen } from "./GameScreen.tsx"
 import { frameIndexAt } from "./stage/playback.ts"
 import { Boxes } from "./Boxes.tsx"
+import { type CrewTab, CrewTabs } from "./CrewTabs.tsx"
 import type { Skin } from "./stage/Stage.tsx"
 import { gradePieces, JOIN_TIP, PiecesBar, usePieces } from "./pieces.tsx"
 import { usePlayer } from "./Timeline.tsx"
@@ -70,6 +71,9 @@ export interface EduPythonProps extends GameNavigation {
 
 /** The code a level opens with when there is no saved program. */
 export const starterSource = (): string => `# Напиши команди для героя, кожну з нового рядка.\n${HERO_NAME}.move()\n`
+
+/** The code of the helper's tab when the app has none. */
+const helperStarter = (name: string): string => `# Команди для ${name}, кожна з нового рядка. Він починає в правому верхньому куті.\n${HERO_NAME}.move()\n`
 
 /** What the editor holds after «Продовжити звідси»: the next piece starts empty. */
 const NEXT_PIECE = "# Продовжуй звідси\n"
@@ -138,6 +142,11 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
   const editorRef = useRef<{ readonly api: CodeEditorApi; readonly read: () => string } | null>(null)
   const initial = useRef(source ?? level.starter ?? brokenSource(level) ?? starterSource())
   const [lessonOpen, setLessonOpen] = useState(true)
+  // A farm day with a helper: two programs, one editor. The tab not on screen keeps its code here.
+  const helper = farm?.helper
+  const [tab, setTab] = useState<CrewTab>("worker")
+  const tabRef = useRef<CrewTab>("worker")
+  const codes = useRef<Record<CrewTab, string>>({ worker: initial.current, helper: helper?.source ?? helperStarter(HELPER_NAME_OF) })
   /** How many steps of the level's ladder of hints the student has opened. */
   const [hintStep, setHintStep] = useState(0)
   // «Продовжити звідси»: the pieces run so far. While there are any, the editor holds only the new piece.
@@ -160,12 +169,17 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
     setPhase({ kind: "running" })
     setLessonOpen(false)
     const piece = editor.read()
+    codes.current[tabRef.current] = piece
     const before = doneRef.current
     // After «Продовжити звідси» the pieces run as one program from the start; the screen plays only the new frames.
-    const code = before === null ? piece : joinSources([...before.pieces, piece])
+    const code = helper !== undefined ? codes.current.worker : before === null ? piece : joinSources([...before.pieces, piece])
     const lines = before === null ? 0 : linesBefore(before.pieces)
-    // The code runs on every field; the screen plays the first field it failed on, or the first field.
-    const fieldRuns = judgePythonFields(level, code)
+    // The code runs on every field; the screen plays the first field it failed on, or the first field. With a helper
+    // the day is one field, and both programs run on it turn by turn.
+    const fieldRuns =
+      helper !== undefined
+        ? [runFarmCrew(level, { worker: { language: "python", source: code }, helper: { language: "python", source: codes.current.helper } })]
+        : judgePythonFields(level, code)
     const graded = gradePieces(level, combineFields(fieldRuns), before, large, "python")
     const result = graded.full
     // A mistake names its line in the editor, not in the joined program.
@@ -176,7 +190,7 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
     if (!result.passed) failedRef.current += 1
     const harvest = estate === undefined ? null : estateHarvest(estate.day, result, graded.pieces)
     const firstRun = fieldRuns[0]
-    const dayReport = farm === undefined || firstRun === undefined ? null : farmReport(level, firstRun, farm.day)
+    const dayReport = farm === undefined || firstRun === undefined ? null : (helper === undefined ? farmReport : crewReport)(level, firstRun, farm.day)
     const { runXp, runCoins, reward } =
       dayReport !== null
         ? farmRewardOf(dayReport, firstTry, xp)
@@ -205,7 +219,20 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
     setFieldIndex(result.field ?? 0)
     setResult(shown)
     restart(shown.frames.length)
-  }, [level, large, onComplete, reset, restart, setFieldIndex, setRuns, xp, coins, estate, farm, doneRef])
+  }, [level, large, onComplete, reset, restart, setFieldIndex, setRuns, xp, coins, estate, farm, doneRef, helper])
+
+  // The other tab: the editor keeps the code of the tab it leaves and shows the other one's.
+  const pickTab = useCallback(
+    (next: CrewTab) => {
+      const editor = editorRef.current
+      if (editor === null || next === tabRef.current) return
+      codes.current[tabRef.current] = editor.read()
+      tabRef.current = next
+      setTab(next)
+      editor.api.replace(codes.current[next])
+    },
+    []
+  )
 
   // «Продовжити звідси»: the hero stays where the run ended, the editor gets an empty piece.
   const goOn = useCallback(() => {
@@ -247,11 +274,18 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
 
   // The line the hero acts on lights up while the run plays; a mistake's line once the run reaches it.
   const atEnd = result !== null && player.time >= result.frames.length
-  const runLine = result === null || atEnd ? null : pieceLine(result.frames[frameIndexAt(result.frames, player.time)]?.line, offset)
-  const errorLine = atEnd && result?.reason === "badProgram" ? (result.line ?? null) : null
+  const playing = result === null || atEnd ? undefined : result.frames[frameIndexAt(result.frames, player.time)]
+  const runLine = playing === undefined ? null : tab === "helper" ? (playing.crew?.[0]?.line ?? null) : pieceLine(playing.line, offset)
+  const helperRun = result?.workers?.[1]
+  const errorLine =
+    !atEnd || result?.reason !== "badProgram"
+      ? null
+      : tab === "helper"
+        ? helperRun?.reason === "badProgram" ? (helperRun.line ?? null) : null
+        : result.workers?.[0]?.reason === "badProgram" || helperRun === undefined ? (result.line ?? null) : null
   const output = phase.kind === "done" ? (phase.result.output ?? []) : []
   // «Змінні» follow the run: the variables after the frame on screen, and after the whole program at its end.
-  const boxes = result === null ? [] : atEnd ? (result.boxes ?? result.frames.at(-1)?.boxes ?? []) : (result.frames[frameIndexAt(result.frames, player.time)]?.boxes ?? [])
+  const boxes = result === null || tab === "helper" ? [] : atEnd ? (result.boxes ?? result.frames.at(-1)?.boxes ?? []) : (result.frames[frameIndexAt(result.frames, player.time)]?.boxes ?? [])
 
   const onReady = useCallback((api: CodeEditorApi, read: () => string) => {
     editorRef.current = { api, read }
@@ -259,9 +293,10 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
   // A piece is not the program: the app keeps the code the student had before the pieces.
   const onChange = useCallback(
     (code: string) => {
-      if (doneRef.current === null) onSourceChange?.(code)
+      if (tabRef.current === "helper") helper?.onSourceChange?.(code)
+      else if (doneRef.current === null) onSourceChange?.(code)
     },
-    [onSourceChange, doneRef]
+    [onSourceChange, doneRef, helper]
   )
 
   const navigation = { onMap, onLevel, progress, onSkinChange, ownedHeroes, onBuyHero }
@@ -283,7 +318,7 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
       xpTotal={xpTotal}
       coinsTotal={coinsTotal}
       navigation={navigation}
-      editorTitle="Код героя"
+      editorTitle={helper === undefined ? "Код героя" : tab === "helper" ? `Код ${HELPER_NAME_OF}` : "Код робітника"}
       fields={
         fields.length > 1
           ? { count: fields.length, index: fieldIndex, passed: runs?.map((r) => r.passed) ?? null, disabled: phase.kind === "running", onPick: pickField }
@@ -311,6 +346,7 @@ export const EduPython = ({ level, skin = "ninja", large = false, source, speed 
         )
       }
     >
+      {helper !== undefined && <CrewTabs tab={tab} helper={helper.name} disabled={phase.kind === "running"} onPick={pickTab} />}
       {level.lesson !== undefined && <Lesson lesson={level.lesson} open={lessonOpen} onToggle={setLessonOpen} />}
       <div className="eb-palette" role="toolbar" aria-label="Команди рівня: натисни, щоб додати в код">
         {methods.map((m) => (

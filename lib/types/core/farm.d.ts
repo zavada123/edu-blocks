@@ -125,6 +125,8 @@ export type FarmProgram = {
 };
 /** The helper who lives in «Хата помічника». */
 export declare const HELPER_NAME = "\u0422\u0430\u0440\u0430\u0441";
+/** «Програма Тараса»: the name after a noun. */
+export declare const HELPER_NAME_OF = "\u0422\u0430\u0440\u0430\u0441\u0430";
 /** The programs of a farm with a helper: the worker's and the helper's, each runs on its own worker. */
 export interface FarmCrew {
     readonly worker: FarmProgram;
@@ -188,6 +190,11 @@ export declare const runFarmDay: (state: FarmState, code: FarmCode, blocks: Read
     readonly result: RunResult;
     readonly report: FarmReport;
 };
+/**
+ * The day of the worker and the helper on the level of a farm day (`farmDay` with the helper's house built). A
+ * mistake in the helper's program is the mistake of the day, named after him: the worker's own comes first.
+ */
+export declare const runFarmCrew: (level: Level, crew: FarmCrew) => RunResult;
 /** The farm after a working day: the yield goes to the barn and the next day comes. A trial run changes nothing. */
 export declare const finishDay: (state: FarmState, report: FarmReport) => FarmState;
 /** The price of a part in words: «3 колоди і 1 золото». */
