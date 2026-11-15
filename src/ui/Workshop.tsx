@@ -17,13 +17,49 @@ export type Ask =
       readonly taken: ReadonlyArray<string>
       readonly done: (draft: BlockDraft | null) => void
     }
+  /** «Записати в Книгу команд»: an own block goes to a page of the book (or takes the place of its old page). */
+  | {
+      readonly kind: "bookWrite"
+      readonly name: string
+      readonly params: ReadonlyArray<string>
+      /** The page it goes to, from 1, and the pages of the book. */
+      readonly page: number
+      readonly size: number
+      /** The block has a page already: this writes it again. */
+      readonly again: boolean
+      readonly done: (ok: boolean) => void
+    }
+  /** «Книга команд»: its pages, and what the student can do with each. */
+  | {
+      readonly kind: "book"
+      readonly pages: ReadonlyArray<BookEntry>
+      readonly size: number
+      /** «Взяти на правку»: a copy of the page's «визначити» goes into the program. */
+      readonly take: (proccode: string) => void
+      /** «Вирвати сторінку». */
+      readonly tear: (proccode: string) => void
+      readonly done: () => void
+    }
+
+/** A page of the book as its window shows it. */
+export interface BookEntry {
+  readonly proccode: string
+  readonly name: string
+  readonly params: ReadonlyArray<string>
+  /** The page as Python: its `def`. */
+  readonly python: string
+  /** The program calls the block of this page. */
+  readonly called: boolean
+  /** The program has its own «визначити» of this block: a copy taken for editing. */
+  readonly defined: boolean
+}
 
 /** The window that asks `ask`; `onClose` takes it away after the answer. */
 export const WorkshopDialog = ({ ask, onClose }: { readonly ask: Ask; readonly onClose: () => void }) => {
   const cancel = () => {
     if (ask.kind === "text") ask.done(null)
-    else if (ask.kind === "alert") ask.done()
-    else if (ask.kind === "confirm") ask.done(false)
+    else if (ask.kind === "alert" || ask.kind === "book") ask.done()
+    else if (ask.kind === "confirm" || ask.kind === "bookWrite") ask.done(false)
     else ask.done(null)
     onClose()
   }
@@ -36,8 +72,17 @@ export const WorkshopDialog = ({ ask, onClose }: { readonly ask: Ask; readonly o
   })
   return (
     <div className="eb-picker-layer eb-workshop-layer" onClick={(e) => e.target === e.currentTarget && cancel()}>
-      <div className="eb-workshop eb-frame eb-parchment" role="dialog" aria-modal="true" aria-labelledby="eb-workshop-title">
-        {ask.kind === "block" ? (
+      <div
+        className={["eb-workshop eb-frame eb-parchment", ask.kind === "book" ? "eb-workshop-wide" : ""].filter(Boolean).join(" ")}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="eb-workshop-title"
+      >
+        {ask.kind === "book" ? (
+          <BookWindow ask={ask} onClose={onClose} />
+        ) : ask.kind === "bookWrite" ? (
+          <BookWriteForm ask={ask} onClose={onClose} onCancel={cancel} />
+        ) : ask.kind === "block" ? (
           <BlockForm ask={ask} onClose={onClose} onCancel={cancel} />
         ) : ask.kind === "text" ? (
           <TextForm ask={ask} onClose={onClose} onCancel={cancel} />
@@ -188,6 +233,133 @@ const BlockForm = ({ ask, onClose, onCancel }: { readonly ask: Extract<Ask, { ki
         </button>
       </div>
     </form>
+  )
+}
+
+/** A block as the book shows it: its words and a slot for each parameter. */
+const BlockChip = ({ name, params }: { readonly name: string; readonly params: ReadonlyArray<string> }) => (
+  <span className="eb-workshop-block">
+    {name}
+    {params.map((p, i) => (
+      <span key={i} className="eb-workshop-param">
+        {p}
+      </span>
+    ))}
+  </span>
+)
+
+const BookWriteForm = ({ ask, onClose, onCancel }: { readonly ask: Extract<Ask, { kind: "bookWrite" }>; readonly onClose: () => void; readonly onCancel: () => void }) => (
+  <>
+    <h3 id="eb-workshop-title">{ask.again ? "Записати нову версію?" : "Записати в Книгу команд?"}</h3>
+    <div className="eb-workshop-preview" aria-hidden="true">
+      <BlockChip name={ask.name} params={ask.params} />
+    </div>
+    <p className="eb-workshop-note">
+      {ask.again
+        ? `Сторінка ${ask.page} з ${ask.size} уже має цей блок. Нова версія замінить її для всіх наступних днів.`
+        : `Сторінка ${ask.page} з ${ask.size}. Блок буде в палітрі щодня, у розділі «З книги», а «визначити» піде з програми в книгу.`}
+    </p>
+    <div className="eb-workshop-actions">
+      <button type="button" className="eb-btn eb-btn-small" onClick={onCancel}>
+        Скасувати
+      </button>
+      <button
+        type="button"
+        className="eb-btn eb-btn-small eb-btn-go"
+        autoFocus
+        onClick={() => {
+          ask.done(true)
+          onClose()
+        }}
+      >
+        Записати
+      </button>
+    </div>
+  </>
+)
+
+const BookWindow = ({ ask, onClose }: { readonly ask: Extract<Ask, { kind: "book" }>; readonly onClose: () => void }) => {
+  const [chosen, setChosen] = useState(0)
+  const page = ask.pages[chosen] ?? ask.pages[0]
+  const close = () => {
+    ask.done()
+    onClose()
+  }
+  return (
+    <>
+      <h3 id="eb-workshop-title">Книга команд</h3>
+      {page === undefined ? (
+        <p className="eb-workshop-note">
+          Книга порожня. Зроби свій блок у «Створити блок», потім правий клік на його «визначити» і «Записати в Книгу команд». Сторінок: {ask.size}.
+        </p>
+      ) : (
+        <div className="eb-book">
+          <ol className="eb-book-pages">
+            {Array.from({ length: ask.size }, (_, i) => {
+              const p = ask.pages[i]
+              return (
+                <li key={i}>
+                  {p === undefined ? (
+                    <span className="eb-book-empty">порожня сторінка</span>
+                  ) : (
+                    <button type="button" className={i === chosen ? "eb-book-page eb-book-chosen" : "eb-book-page"} aria-pressed={i === chosen} onClick={() => setChosen(i)}>
+                      <BlockChip name={p.name} params={p.params} />
+                    </button>
+                  )}
+                </li>
+              )
+            })}
+          </ol>
+          <div className="eb-book-page-view">
+            <h4>
+              Сторінка {ask.pages.indexOf(page) + 1}: {page.name}
+              {page.params.length === 0 ? "" : ` (${page.params.join(", ")})`}
+            </h4>
+            <pre className="eb-book-code">{page.python}</pre>
+            <p className="eb-workshop-note">
+              {page.defined
+                ? "У програмі є копія цього блоку: поки вона там, програма бере її. Щоб оновити книгу, правий клік на «визначити» і «Записати в Книгу команд»."
+                : page.called
+                  ? "Програма викликає цей блок зі сторінки."
+                  : "Програма зараз цей блок не викликає."}
+            </p>
+            <div className="eb-workshop-actions eb-book-actions">
+              <button
+                type="button"
+                className="eb-btn eb-btn-small"
+                disabled={page.defined}
+                onClick={() => {
+                  ask.take(page.proccode)
+                  close()
+                }}
+              >
+                Взяти на правку
+              </button>
+              <button
+                type="button"
+                className="eb-btn eb-btn-small"
+                disabled={page.called}
+                title={page.called ? "Програма викликає цей блок: спершу прибери виклики" : undefined}
+                onClick={() => {
+                  ask.tear(page.proccode)
+                  close()
+                }}
+              >
+                Вирвати сторінку
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="eb-workshop-actions">
+        <span className="eb-workshop-note eb-book-count">
+          Сторінок: {ask.pages.length} з {ask.size}
+        </span>
+        <button type="button" className="eb-btn eb-btn-small eb-btn-go" autoFocus onClick={close}>
+          Закрити
+        </button>
+      </div>
+    </>
   )
 }
 

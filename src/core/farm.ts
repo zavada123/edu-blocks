@@ -1,4 +1,5 @@
 import { farmLook } from "./farm-map.ts"
+import { BOOK_PAGES, type BookPage } from "./book.ts"
 import { estateSeason, MAX_TREES, PALETTE_ORDER, randomOf, START_TREES } from "./estate.ts"
 import { judgeField } from "./judge.ts"
 import { BED_ITEM, type BlockName, type ItemAt, type Level, type Scene, TROUGH_ITEM } from "./level.ts"
@@ -31,7 +32,7 @@ export type Amounts = Readonly<Record<Resource, number>>
 export const NO_AMOUNTS: Amounts = { wood: 0, pumpkin: 0, meat: 0, gold: 0 }
 
 /** What an order opens: a building or a tool that changes how the farm works. */
-export type FarmUnlock = "beds" | "basket" | "longDay" | "cart" | "tower" | "pen" | "mine" | "workshop"
+export type FarmUnlock = "beds" | "basket" | "longDay" | "cart" | "tower" | "pen" | "mine" | "workshop" | "book"
 
 export interface FarmUnlockInfo {
   readonly id: FarmUnlock
@@ -51,6 +52,11 @@ export const FARM_UNLOCKS: ReadonlyArray<FarmUnlockInfo> = [
     id: "workshop",
     name: "Майстерня",
     about: "«Створити змінну» і «Створити блок»: змінні зі своїми назвами і свої блоки з параметром-числом. У Python це змінні й def з параметрами."
+  },
+  {
+    id: "book",
+    name: "Книга команд",
+    about: "Свій блок можна записати в книгу: він лишається в палітрі на всі наступні дні, і програма його лише викликає. У Python це готова функція."
   }
 ]
 
@@ -65,6 +71,8 @@ export interface FarmState {
   readonly stock: Amounts
   /** The best grade of each order by its id: 1 done, 2 efficient, 3 universal. */
   readonly orders: Readonly<Record<string, number>>
+  /** «Книга команд»: the own blocks the student wrote in it, a «визначити» script each (`book.ts`). */
+  readonly book?: ReadonlyArray<BookPage>
 }
 
 export const NEW_FARM: FarmState = { day: 1, trees: START_TREES, unlocked: [], stock: NO_AMOUNTS, orders: {} }
@@ -89,6 +97,17 @@ const RIPE_CHANCE = 0.4
 export const has = (state: FarmState, unlock: FarmUnlock): boolean => state.unlocked.includes(unlock)
 
 export const farmTurns = (state: FarmState): number => (has(state, "longDay") ? LONG_DAY_TURNS : DAY_TURNS)
+
+/**
+ * Pages of «Книга команд»: three at first, one more for each building opened after the book, and one for each order
+ * that gives a page.
+ */
+export const bookSize = (state: FarmState): number => {
+  if (!has(state, "book")) return 0
+  const later = state.unlocked.slice(state.unlocked.indexOf("book") + 1).length
+  const given = FARM_ORDERS.filter((o) => o.bookPage === true && (state.orders[o.id] ?? 0) > 0).length
+  return BOOK_PAGES + later + given
+}
 
 export const farmCapacity = (state: FarmState): number => (has(state, "cart") ? CART : has(state, "basket") ? BASKET : HANDS)
 
@@ -267,6 +286,7 @@ export const farmDay = (state: FarmState, blocks: ReadonlyArray<BlockName>, day 
     ...(goblins ? { enemies: goblinsOf(right) } : {}),
     ...(tower === null ? {} : { towers: [{ ...tower, range: TOWER_RANGE }] }),
     procedure: "обійти ряд",
+    ...(has(state, "book") && (state.book ?? []).length > 0 ? { library: state.book } : {}),
     scene
   }
 }
@@ -301,6 +321,8 @@ export interface FarmReport {
   readonly variables?: Readonly<Record<string, string>>
   /** An own block or function with parameters was called with different values this day. */
   readonly ownBlock?: boolean
+  /** The program called a block or function of «Книга команд» it did not define itself. */
+  readonly fromBook?: boolean
   /** The explanation of a mistake in the program, as the judge gives it. */
   readonly detail?: string
   readonly line?: number
@@ -348,6 +370,7 @@ export const farmReport = (level: Level, result: RunResult, day: number): FarmRe
     trips: result.frames.filter((f) => f.outcome === "stored").length,
     ...(result.boxes === undefined ? {} : { variables: Object.fromEntries(result.boxes.map((b) => [b.name, b.value])) }),
     ownBlock: calledWithDifferentValues(result.calls ?? []),
+    fromBook: (result.bookCalls ?? []).length > 0,
     ...(result.detail === undefined ? {} : { detail: result.detail }),
     ...(result.line === undefined ? {} : { line: result.line })
   }
@@ -397,6 +420,10 @@ export interface FarmOrder {
   readonly tally?: string
   /** The program must call one own block with parameters with different values. */
   readonly ownBlock?: boolean
+  /** The program must call a block of «Книга команд» with parameters, without defining it again. */
+  readonly fromBook?: boolean
+  /** The order gives one more page of «Книга команд». */
+  readonly bookPage?: boolean
 }
 
 export const FARM_ORDERS: ReadonlyArray<FarmOrder> = [
@@ -495,7 +522,8 @@ export const FARM_ORDERS: ReadonlyArray<FarmOrder> = [
     needs: { wood: 12 },
     fast: 130,
     after: "fair",
-    tally: "ходки"
+    tally: "ходки",
+    unlocks: "book"
   },
   {
     id: "carpenter",
@@ -505,13 +533,24 @@ export const FARM_ORDERS: ReadonlyArray<FarmOrder> = [
     fast: 150,
     after: "tally",
     ownBlock: true
+  },
+  {
+    id: "garden-field",
+    title: "Сад і поле",
+    text: "Мірошник хоче і гарбузи, і дрова: по десять за день. Обходи схожі, тож хай програма кличе блоки з Книги команд, а не визначає їх заново.",
+    needs: { wood: 10, pumpkin: 10 },
+    fast: 150,
+    after: "carpenter",
+    fromBook: true,
+    bookPage: true
   }
 ]
 
 /** What an order asks besides the yield, in the words of its card. */
 export const orderRules = (order: FarmOrder): ReadonlyArray<string> => [
   ...(order.tally === undefined ? [] : [`змінна «${order.tally}» наприкінці дня дорівнює кількості ходок до комори`]),
-  ...(order.ownBlock === true ? ["свій блок з параметром, викликаний з різними числами"] : [])
+  ...(order.ownBlock === true ? ["свій блок з параметром, викликаний з різними числами"] : []),
+  ...(order.fromBook === true ? ["виклик блоку з Книги команд, не визначеного в програмі заново"] : [])
 ]
 
 /**
@@ -536,6 +575,12 @@ export const orderMisses = (order: FarmOrder, report: FarmReport, language: "blo
       language === "python"
         ? "Потрібна своя функція з параметром, наприклад def пройти(кроки):, і виклики з різними числами."
         : "Потрібен свій блок з параметром («Створити блок»), і виклики з різними числами."
+    )
+  if (order.fromBook === true && report.fromBook !== true)
+    misses.push(
+      language === "python"
+        ? "Виклич функцію з Книги команд і не пиши для неї свій def: вона вже визначена."
+        : "Виклич блок з Книги команд («Мої блоки → З книги») і не визначай його в програмі заново."
     )
   return misses
 }

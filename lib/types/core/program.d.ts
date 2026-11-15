@@ -60,6 +60,8 @@ export interface RunResult {
      * for one block called with different values.
      */
     readonly calls?: ReadonlyArray<string>;
+    /** The blocks or functions of «Книга команд» the program called without defining them, by their words, each once. */
+    readonly bookCalls?: ReadonlyArray<string>;
     readonly frames: ReadonlyArray<Frame>;
     readonly world: World;
     /** On a level with more than one field: the field these frames are from, counted from 0 (see `combineFields`). */

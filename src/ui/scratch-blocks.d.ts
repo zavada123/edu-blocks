@@ -32,6 +32,7 @@ declare module "scratch-blocks/dist/vertical.js" {
     getFlyout(): Flyout | null
     /** No toolbox (undefined) for a flat palette. */
     getToolbox(): Toolbox | null | undefined
+    getBlockById(id: string): Block | null
     glowBlock(id: string, glowing: boolean): void
     glowStack(id: string, glowing: boolean): void
     updateToolbox(toolbox: string): void
@@ -67,6 +68,10 @@ declare module "scratch-blocks/dist/vertical.js" {
       externalProcedureDefCallback: (mutation: Element, callback: (mutation: Element | null) => void) => void
       /** The mutations of every custom block's prototype in the workspace. */
       allProcedureMutations(workspace: WorkspaceSvg): ReadonlyArray<Element>
+      /** The prototype of a custom block in the workspace, or null when its «визначити» is not there. */
+      getPrototypeBlock(proccode: string, workspace: WorkspaceSvg): object | null
+      /** The «визначити» of a custom block in the workspace, or null. */
+      getDefineBlock(proccode: string, workspace: WorkspaceSvg): { dispose(healStack: boolean): void } | null
     }
     utils: { genUid(): string }
     svgResize(workspace: WorkspaceSvg): void

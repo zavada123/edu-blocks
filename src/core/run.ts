@@ -1,6 +1,7 @@
 import VirtualMachine, { type BlockUtility, type Runtime } from "scratch-vm"
 import vmLog from "scratch-vm/src/util/log.js"
 import { COUNTER_ID, COUNTER_NAME, HERO_BLOCKS, HERO_COLOR, HERO_EXTENSION_ID, isItemKind, ITEM_FIELD, ITEM_NAMES, itemMenu } from "./blocks.ts"
+import { withLibrary } from "./book.ts"
 import { HERO_ACTIONS, HERO_SENSORS, heroAct, heroSense, newSession, type Sensor } from "./hero.ts"
 import type { Level } from "./level.ts"
 import { checkProgram, MAX_FRAMES, programVariables, PASSES_PER_FRAME, type Program, resultOf, type RunResult, type Session } from "./program.ts"
@@ -153,7 +154,7 @@ export const runProgram = (level: Level, program: Program): Promise<RunResult> =
 
     const vm = createVm(level, session)
     try {
-      await vm.loadProject(projectFor(program))
+      await vm.loadProject(projectFor(withLibrary(program, level.library)))
     } catch {
       return resultOf(level, { ...session, reason: "badProgram" }, checked.blocks, { detail: "Програму не вдалося прочитати" })
     }

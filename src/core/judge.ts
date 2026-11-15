@@ -29,6 +29,7 @@ import {
   resultOf,
   type RunResult
 } from "./program.ts"
+import { BOOK_ID_PREFIX, withLibrary } from "./book.ts"
 import { blockBoxes } from "./python/boxes.ts"
 import type { Action } from "./world.ts"
 
@@ -126,11 +127,13 @@ const toNumber = (value: unknown): number => {
  * Runs a program on one field: the map of `level` only, without its other `fields`. The rules of the game live
  * here; `judgeProgram` runs it on every field of a level.
  */
-export const judgeField = (level: Level, program: Program): RunResult => {
+export const judgeField = (level: Level, own: Program): RunResult => {
   const session = newSession(level)
-  const checked = checkProgram(level, program)
+  const checked = checkProgram(level, own)
   if ("error" in checked) return resultOf(level, { ...session, reason: "badProgram" }, 0, { detail: checked.error })
   if (!checked.hasStart) return resultOf(level, { ...session, reason: "noStart" }, checked.blocks)
+  // The blocks of «Книга команд» run with the program, but the program is graded by its own blocks.
+  const program = withLibrary(own, level.library)
 
   /** What an input holds: a block id, a primitive `[type, value]`, or nothing. */
   const inputOf = (block: Block, name: string): unknown => {
@@ -190,6 +193,8 @@ export const judgeField = (level: Level, program: Program): RunResult => {
   const boxesNow = () => blockBoxes([...variables.values()].map((v) => ({ name: String(v.name), value: v.value })))
   /** The calls of custom blocks with parameters: each block with the values it got, once (`RunResult.calls`). */
   const calls = new Set<string>()
+  /** The blocks of «Книга команд» the program called, by their words (`RunResult.bookCalls`). */
+  const bookCalls = new Set<string>()
   /** The thread that runs now: a parameter reads its stack. */
   let current: Thread = []
 
@@ -309,6 +314,7 @@ export const judgeField = (level: Level, program: Program): RunResult => {
         )
         frame.params = new Map(definition.names.map((n, i) => [String(n), args[i]]))
         if (args.length > 0) calls.add(`${procedureTitle(String(name))}(${args.map((a) => String(a)).join(", ")})`)
+        if (definition.id.startsWith(BOOK_ID_PREFIX)) bookCalls.add(procedureTitle(String(name)))
         const yields = recursive(thread, name)
         thread.push(newFrame(definition.id, 0, frame.calls + 1))
         return yields ? "yield" : "pushed"
@@ -375,7 +381,8 @@ export const judgeField = (level: Level, program: Program): RunResult => {
   const boxes = shown ? boxesNow() : []
   return resultOf(level, session, checked.blocks, {
     ...(boxes.length === 0 ? {} : { boxes }),
-    ...(calls.size === 0 ? {} : { calls: [...calls] })
+    ...(calls.size === 0 ? {} : { calls: [...calls] }),
+    ...(bookCalls.size === 0 ? {} : { bookCalls: [...bookCalls] })
   })
 }
 

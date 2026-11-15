@@ -1,3 +1,4 @@
+import { type BookPage } from "./book.ts";
 import { type BlockName, type Level } from "./level.ts";
 import type { Program, RunResult } from "./program.ts";
 /**
@@ -16,7 +17,7 @@ export declare const RESOURCE_NAMES: Readonly<Record<Resource, string>>;
 export type Amounts = Readonly<Record<Resource, number>>;
 export declare const NO_AMOUNTS: Amounts;
 /** What an order opens: a building or a tool that changes how the farm works. */
-export type FarmUnlock = "beds" | "basket" | "longDay" | "cart" | "tower" | "pen" | "mine" | "workshop";
+export type FarmUnlock = "beds" | "basket" | "longDay" | "cart" | "tower" | "pen" | "mine" | "workshop" | "book";
 export interface FarmUnlockInfo {
     readonly id: FarmUnlock;
     readonly name: string;
@@ -34,6 +35,8 @@ export interface FarmState {
     readonly stock: Amounts;
     /** The best grade of each order by its id: 1 done, 2 efficient, 3 universal. */
     readonly orders: Readonly<Record<string, number>>;
+    /** «Книга команд»: the own blocks the student wrote in it, a «визначити» script each (`book.ts`). */
+    readonly book?: ReadonlyArray<BookPage>;
 }
 export declare const NEW_FARM: FarmState;
 /** The turns of a working day, and of a day with «Ліхтар». */
@@ -51,6 +54,11 @@ export declare const SHEEP_EAT = 12;
 export declare const GOLD_REGROW = 20;
 export declare const has: (state: FarmState, unlock: FarmUnlock) => boolean;
 export declare const farmTurns: (state: FarmState) => number;
+/**
+ * Pages of «Книга команд»: three at first, one more for each building opened after the book, and one for each order
+ * that gives a page.
+ */
+export declare const bookSize: (state: FarmState) => number;
 export declare const farmCapacity: (state: FarmState) => number;
 /** The blocks of the farm: the base, what the student learned in the course, and the beds once they are built. */
 export declare const farmPalette: (state: FarmState, learned: ReadonlyArray<BlockName>) => ReadonlyArray<BlockName>;
@@ -100,6 +108,8 @@ export interface FarmReport {
     readonly variables?: Readonly<Record<string, string>>;
     /** An own block or function with parameters was called with different values this day. */
     readonly ownBlock?: boolean;
+    /** The program called a block or function of «Книга команд» it did not define itself. */
+    readonly fromBook?: boolean;
     /** The explanation of a mistake in the program, as the judge gives it. */
     readonly detail?: string;
     readonly line?: number;
@@ -134,6 +144,10 @@ export interface FarmOrder {
     readonly tally?: string;
     /** The program must call one own block with parameters with different values. */
     readonly ownBlock?: boolean;
+    /** The program must call a block of «Книга команд» with parameters, without defining it again. */
+    readonly fromBook?: boolean;
+    /** The order gives one more page of «Книга команд». */
+    readonly bookPage?: boolean;
 }
 export declare const FARM_ORDERS: ReadonlyArray<FarmOrder>;
 /** What an order asks besides the yield, in the words of its card. */

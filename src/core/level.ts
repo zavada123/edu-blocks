@@ -1,6 +1,7 @@
 import type { Definition, Step } from "./build.ts"
 import { atFinish, type Cell, cellKey, type Direction, enemiesLeft, enemyOf, type EnemySpec, itemCount, type ItemKind, type MapRows, parseMap, type Tower, type World } from "./world.ts"
 import type { Tier } from "./xp.ts"
+import type { Program } from "./program.ts"
 
 /** Blocks a level can put into the palette. Hero blocks and the Scratch blocks with the same meaning. */
 export type BlockName =
@@ -299,6 +300,11 @@ export interface Level {
   readonly feed?: number
   /** The name of the custom block when the palette has «procedure». «мій блок» when left out. */
   readonly procedure?: string
+  /**
+   * «Книга команд»: the «визначити» scripts of own blocks the program may call without defining them (`book.ts`). Each
+   * run joins them to the program; a block the program defines itself takes the place of its page.
+   */
+  readonly library?: ReadonlyArray<Program>
   /** Summer, crystals and a flag when left out. */
   readonly scene?: Scene
   /** Sets the XP of the level. An intro level when left out. */
