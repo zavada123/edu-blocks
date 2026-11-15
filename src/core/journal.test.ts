@@ -129,6 +129,7 @@ describe("the programs of the journal", () => {
 describe("the records", () => {
   const entry = (day: number, wood: number, idle: number, trips: number, tenWoodAt: number | null): JournalEntry => ({
     day,
+    helper: null,
     stored: { wood, pumpkin: 0, meat: 0, gold: 0, flour: 0 },
     used: 100,
     turns: 100,

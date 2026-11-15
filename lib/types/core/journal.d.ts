@@ -25,8 +25,8 @@ export interface JournalEntry {
     readonly own: ReadonlyArray<string>;
     /** The blocks or functions of «Книга команд» it called and did not define itself. */
     readonly book: ReadonlyArray<string>;
-    /** On a farm with a helper: what the helper put in the barn, a part of `stored`. */
-    readonly helper?: Amounts;
+    /** On a farm with a helper: what the helper put in the barn, a part of `stored`. Null for a day of one worker. */
+    readonly helper: Amounts | null;
 }
 /** The days the journal keeps: older days leave it. */
 export declare const JOURNAL_DAYS = 60;

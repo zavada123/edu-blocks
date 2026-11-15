@@ -30,8 +30,8 @@ export interface JournalEntry {
   readonly own: ReadonlyArray<string>
   /** The blocks or functions of «Книга команд» it called and did not define itself. */
   readonly book: ReadonlyArray<string>
-  /** On a farm with a helper: what the helper put in the barn, a part of `stored`. */
-  readonly helper?: Amounts
+  /** On a farm with a helper: what the helper put in the barn, a part of `stored`. Null for a day of one worker. */
+  readonly helper: Amounts | null
 }
 
 /** The days the journal keeps: older days leave it. */
@@ -100,7 +100,7 @@ export const journalEntry = (report: FarmReport, program: Pick<JournalEntry, "la
     beaten: report.beaten,
     tenWoodAt: ten < 0 ? null : ten + 1,
     ...program,
-    ...(report.workers?.[1] === undefined ? {} : { helper: report.workers[1].stored })
+    helper: report.workers?.[1]?.stored ?? null
   }
 }
 
