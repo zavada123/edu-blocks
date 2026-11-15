@@ -39,3 +39,21 @@ describe("toolboxXml: the counter and the custom block", () => {
     expect(xml.match(/proccode=/g)).toHaveLength(2)
   })
 })
+
+describe("toolboxXml: «Створити змінну» and «Створити блок»", () => {
+  test("a button for a new variable, then each variable the student made with «задати» and «змінити»", () => {
+    expect(toolboxXml(["move", "variables"])).toContain('callbackKey="eb-new-variable"')
+    expect(toolboxXml(["move", "variables"])).not.toContain("data_setvariableto")
+    const xml = toolboxXml(["move", "variables", "counter"], false, undefined, { variables: [{ id: "v1", name: "ходки" }], blocks: [] })
+    expect(xml).toContain('id="v1" variabletype="">ходки</field>')
+    expect(xml).toContain("data_setvariableto")
+    expect(xml).not.toContain("eb-counter")
+  })
+
+  test("a button for a new block, then a call of each own block", () => {
+    const mutation = '<mutation proccode="пройти %s" argumentids="[&quot;a&quot;]" warp="false"></mutation>'
+    const xml = toolboxXml(["move", "myBlocks"], true, undefined, { variables: [], blocks: [mutation] })
+    expect(xml).toContain('callbackKey="eb-new-block"')
+    expect(xml).toContain(`<block type="procedures_call" gap="16">${mutation}</block>`)
+  })
+})

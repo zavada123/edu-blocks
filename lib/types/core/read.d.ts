@@ -1,10 +1,11 @@
+import type { Amount } from "./build.ts";
 import { type Sensor } from "./hero.ts";
 import { type Program } from "./program.ts";
 import type { Action, ItemKind } from "./world.ts";
 /**
  * Reads a program of the editor back into steps, as `build.ts` writes them: for the Python view under the blocks.
- * Unlike a `Step`, a condition slot can be empty (`null`, which Scratch reads as false), a call names its custom
- * block, and a number slot can hold the counter. Blocks that do not run (outside every script) are left out.
+ * Unlike a `Step`, a condition slot can be empty (`null`, which Scratch reads as false), and a call always names its
+ * custom block. Blocks that do not run (outside every script) are left out.
  */
 export type Condition = Sensor | {
     readonly itemIs: ItemKind;
@@ -17,17 +18,22 @@ export type Condition = Sensor | {
 };
 /** A condition slot: empty when the student has not put a question into it. */
 export type Slot = Condition | null;
-/** A number slot: a number, or the counter. */
-export type Amount = number | "counter";
-export type ReadStep = Action | {
+export type ReadStep = Action
+/** A custom block by its words without the slots («пройти»), with a value for each parameter. */
+ | {
     readonly call: string;
+    readonly args: ReadonlyArray<Amount>;
 } | {
     readonly repeat: Amount;
     readonly body: ReadonlyArray<ReadStep>;
-} | {
+}
+/** `variable` names a variable the student made; without it, the counter. */
+ | {
     readonly set: Amount;
+    readonly variable?: string;
 } | {
     readonly change: Amount;
+    readonly variable?: string;
 } | {
     readonly forever: ReadonlyArray<ReadStep>;
 } | {
@@ -39,7 +45,10 @@ export type ReadStep = Action | {
     readonly else?: ReadonlyArray<ReadStep>;
 };
 export interface ReadDefinition {
+    /** The words of the block without its slots: «пройти». */
     readonly name: string;
+    /** The names of its number parameters. */
+    readonly params: ReadonlyArray<string>;
     readonly body: ReadonlyArray<ReadStep>;
 }
 export interface ReadProgram {

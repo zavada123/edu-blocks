@@ -1,32 +1,50 @@
-import { CALL_OPCODE, CHANGE_OPCODE, DEFINITION_OPCODE, ITEM_FIELD, itemOfField, opcodeOf, SET_OPCODE, START_OPCODE, VARIABLE_OPCODE, VARIABLE_PRIMITIVE } from "./blocks.ts"
+import {
+  ARGUMENT_OPCODE,
+  CALL_OPCODE,
+  CHANGE_OPCODE,
+  COUNTER_ID,
+  DEFINITION_OPCODE,
+  ITEM_FIELD,
+  itemOfField,
+  opcodeOf,
+  procedureTitle,
+  SET_OPCODE,
+  START_OPCODE,
+  VARIABLE_OPCODE,
+  VARIABLE_PRIMITIVE
+} from "./blocks.ts"
+import type { Amount } from "./build.ts"
 import { actionOfOpcode, type Sensor, sensorOfOpcode } from "./hero.ts"
 import { MAX_PROGRAM_BLOCKS, type Program } from "./program.ts"
 import type { Action, ItemKind } from "./world.ts"
 
 /**
  * Reads a program of the editor back into steps, as `build.ts` writes them: for the Python view under the blocks.
- * Unlike a `Step`, a condition slot can be empty (`null`, which Scratch reads as false), a call names its custom
- * block, and a number slot can hold the counter. Blocks that do not run (outside every script) are left out.
+ * Unlike a `Step`, a condition slot can be empty (`null`, which Scratch reads as false), and a call always names its
+ * custom block. Blocks that do not run (outside every script) are left out.
  */
 
 export type Condition = Sensor | { readonly itemIs: ItemKind } | { readonly not: Slot } | { readonly and: readonly [Slot, Slot] } | { readonly or: readonly [Slot, Slot] }
 /** A condition slot: empty when the student has not put a question into it. */
 export type Slot = Condition | null
-/** A number slot: a number, or the counter. */
-export type Amount = number | "counter"
 
 export type ReadStep =
   | Action
-  | { readonly call: string }
+  /** A custom block by its words without the slots («пройти»), with a value for each parameter. */
+  | { readonly call: string; readonly args: ReadonlyArray<Amount> }
   | { readonly repeat: Amount; readonly body: ReadonlyArray<ReadStep> }
-  | { readonly set: Amount }
-  | { readonly change: Amount }
+  /** `variable` names a variable the student made; without it, the counter. */
+  | { readonly set: Amount; readonly variable?: string }
+  | { readonly change: Amount; readonly variable?: string }
   | { readonly forever: ReadonlyArray<ReadStep> }
   | { readonly until: Slot; readonly body: ReadonlyArray<ReadStep> }
   | { readonly if: Slot; readonly then: ReadonlyArray<ReadStep>; readonly else?: ReadonlyArray<ReadStep> }
 
 export interface ReadDefinition {
+  /** The words of the block without its slots: «пройти». */
   readonly name: string
+  /** The names of its number parameters. */
+  readonly params: ReadonlyArray<string>
   readonly body: ReadonlyArray<ReadStep>
 }
 
@@ -75,6 +93,26 @@ export const readProgram = (program: Program): ReadProgram => {
   }
   const proccodeOf = (block: Block | null): string | null =>
     block !== null && isRecord(block.mutation) && typeof block.mutation.proccode === "string" ? block.mutation.proccode : null
+  /** A list the mutation keeps as JSON text: the argument ids or names. */
+  const listOf = (block: Block | null, key: string): ReadonlyArray<string> => {
+    const text = block !== null && isRecord(block.mutation) ? block.mutation[key] : undefined
+    try {
+      const list: unknown = typeof text === "string" ? JSON.parse(text) : []
+      return Array.isArray(list) ? list.map(String) : []
+    } catch {
+      return []
+    }
+  }
+  /** A variable field `[name, id]`: the counter or a variable the student made. */
+  const variableOf = (field: unknown): Amount => {
+    const [name, id] = Array.isArray(field) ? field : []
+    return id === COUNTER_ID ? "counter" : { variable: String(name ?? "") }
+  }
+  /** The variable a «задати» or «змінити» sets: nothing for the counter. */
+  const target = (block: Block): { readonly variable?: string } => {
+    const v = variableOf(block.fields.VARIABLE)
+    return typeof v === "object" && "variable" in v ? { variable: v.variable } : {}
+  }
 
   // A damaged program can link blocks in a circle: each block is read once.
   const seen = new Set<string>()
@@ -98,10 +136,14 @@ export const readProgram = (program: Program): ReadProgram => {
   }
 
   const amount = (ref: unknown): Amount => {
-    if (Array.isArray(ref)) return ref[0] === VARIABLE_PRIMITIVE ? "counter" : numberOf(ref[1])
+    if (Array.isArray(ref)) return ref[0] === VARIABLE_PRIMITIVE ? variableOf([ref[1], ref[2]]) : numberOf(ref[1])
     const block = visit(ref)
     if (block === null) return 0
-    if (block.opcode === VARIABLE_OPCODE) return "counter"
+    if (block.opcode === VARIABLE_OPCODE) return variableOf(block.fields.VARIABLE)
+    if (block.opcode === ARGUMENT_OPCODE) {
+      const field = block.fields.VALUE
+      return { param: String(Array.isArray(field) ? field[0] : "") }
+    }
     const field = block.fields.NUM ?? block.fields.TEXT
     return Array.isArray(field) ? numberOf(field[0]) : 0
   }
@@ -121,7 +163,7 @@ export const readProgram = (program: Program): ReadProgram => {
     switch (block.opcode) {
       case "control_repeat": {
         const times = amount(inputOf(block, "TIMES"))
-        return { repeat: times === "counter" ? times : Math.max(0, Math.round(times)), body: stack(inputOf(block, "SUBSTACK")) }
+        return { repeat: typeof times === "number" ? Math.max(0, Math.round(times)) : times, body: stack(inputOf(block, "SUBSTACK")) }
       }
       case "control_forever":
         return { forever: stack(inputOf(block, "SUBSTACK")) }
@@ -132,11 +174,11 @@ export const readProgram = (program: Program): ReadProgram => {
       case "control_if_else":
         return { if: slot(inputOf(block, "CONDITION")), then: stack(inputOf(block, "SUBSTACK")), else: stack(inputOf(block, "SUBSTACK2")) }
       case SET_OPCODE:
-        return { set: amount(inputOf(block, "VALUE")) }
+        return { set: amount(inputOf(block, "VALUE")), ...target(block) }
       case CHANGE_OPCODE:
-        return { change: amount(inputOf(block, "VALUE")) }
+        return { change: amount(inputOf(block, "VALUE")), ...target(block) }
       case CALL_OPCODE:
-        return { call: proccodeOf(block) ?? "" }
+        return { call: procedureTitle(proccodeOf(block) ?? ""), args: listOf(block, "argumentids").map((id) => amount(inputOf(block, id))) }
       default:
         return null
     }
@@ -152,13 +194,14 @@ export const readProgram = (program: Program): ReadProgram => {
       seen.add(t.id)
       return stack(t.block.next)
     })
-  const definitions: Array<ReadDefinition> = []
+  const definitions: Array<ReadDefinition & { readonly proccode: string }> = []
   for (const t of tops) {
     if (t.block.opcode !== DEFINITION_OPCODE) continue
-    const name = proccodeOf(blockAt(inputOf(t.block, "custom_block")))
-    if (name === null || definitions.some((d) => d.name === name)) continue
+    const prototype = blockAt(inputOf(t.block, "custom_block"))
+    const proccode = proccodeOf(prototype)
+    if (proccode === null || definitions.some((d) => d.proccode === proccode)) continue
     seen.add(t.id)
-    definitions.push({ name, body: stack(t.block.next) })
+    definitions.push({ proccode, name: procedureTitle(proccode), params: listOf(prototype, "argumentnames"), body: stack(t.block.next) })
   }
-  return { scripts, definitions }
+  return { scripts, definitions: definitions.map(({ proccode: _, ...d }) => d) }
 }

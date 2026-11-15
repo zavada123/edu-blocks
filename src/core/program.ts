@@ -41,7 +41,7 @@ export interface Frame {
   readonly counter?: string
   /** The line of the Python program that made the move, to highlight it in the code editor. */
   readonly line?: number
-  /** The variables of a Python program after the move («Змінні»). */
+  /** The variables of the program after the move («Змінні»): Python, or blocks on a level with variables. */
   readonly boxes?: ReadonlyArray<Box>
 }
 
@@ -61,8 +61,13 @@ export interface RunResult {
   readonly line?: number
   /** What a Python program printed with `print`. */
   readonly output?: ReadonlyArray<string>
-  /** The variables of a Python program when it stopped («Змінні»). */
+  /** The variables of the program when it stopped («Змінні»): Python, or blocks on a level with variables. */
   readonly boxes?: ReadonlyArray<Box>
+  /**
+   * The calls of the student's own blocks or functions with parameters: each as «пройти(6)», once. An order can ask
+   * for one block called with different values.
+   */
+  readonly calls?: ReadonlyArray<string>
   readonly frames: ReadonlyArray<Frame>
   readonly world: World
   /** On a level with more than one field: the field these frames are from, counted from 0 (see `combineFields`). */
@@ -119,6 +124,32 @@ const attachedTo = (program: Program): ((id: string) => boolean) => {
     return result
   }
   return (id) => attached(id, new Set())
+}
+
+/**
+ * The variables a program names, each once, in the order of the program: those of «задати», «змінити» and the
+ * reporters. The project declares them, so the editor lists them and the VM starts each at 0.
+ */
+export const programVariables = (program: Program): ReadonlyArray<{ readonly id: string; readonly name: string }> => {
+  const found = new Map<string, string>()
+  const note = (name: unknown, id: unknown) => {
+    if (typeof id === "string" && typeof name === "string" && !found.has(id)) found.set(id, name)
+  }
+  for (const block of Object.values(program)) {
+    if (isVariablePrimitive(block)) {
+      const [, name, id] = block as ReadonlyArray<unknown>
+      note(name, id)
+      continue
+    }
+    if (!isProgramBlock(block)) continue
+    const fields = (block as { readonly fields?: unknown }).fields
+    if (isRecord(fields) && Array.isArray(fields.VARIABLE)) note(fields.VARIABLE[0], fields.VARIABLE[1])
+    if (!isRecord(block.inputs)) continue
+    for (const input of Object.values(block.inputs)) {
+      if (Array.isArray(input) && isVariablePrimitive(input[1])) note(input[1][1], input[1][2])
+    }
+  }
+  return [...found].map(([id, name]) => ({ id, name }))
 }
 
 /** Checks the program shape and palette before it runs. Returns the error text or the block count. */

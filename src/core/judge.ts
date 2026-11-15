@@ -1,4 +1,5 @@
 import {
+  ARGUMENT_OPCODE,
   CALL_OPCODE,
   CHANGE_OPCODE,
   COUNTER_ID,
@@ -7,6 +8,7 @@ import {
   ITEM_FIELD,
   itemOfField,
   opcodeOf,
+  procedureTitle,
   SET_OPCODE,
   START_OPCODE,
   VARIABLE_OPCODE,
@@ -18,6 +20,7 @@ import type { Level } from "./level.ts"
 import {
   checkProgram,
   type FailReason,
+  programVariables,
   MAX_ACTIONS,
   MAX_FRAMES,
   MAX_PROGRAM_BLOCKS,
@@ -26,6 +29,7 @@ import {
   resultOf,
   type RunResult
 } from "./program.ts"
+import { blockBoxes } from "./python/boxes.ts"
 import type { Action } from "./world.ts"
 
 /**
@@ -43,10 +47,11 @@ export const MAX_PASSES = MAX_FRAMES * PASSES_PER_FRAME
 /** Blocks executed in one run. A program can go over it only with a damaged `next` that makes a circle. */
 export const MAX_STEPS = 200_000
 /**
- * Custom blocks running inside each other. Only a block that calls itself goes deep; the VM has no limit, but
- * each level that acts takes one of MAX_ACTIONS, so a run ends there before this limit.
+ * Custom blocks running inside each other. Only blocks that call themselves or each other go deep; the VM has no
+ * limit. With own blocks («Створити блок») a cycle can make several calls for one action, so the limit leaves room
+ * for that many: a run that acts ends at MAX_ACTIONS before this limit.
  */
-export const MAX_CALL_DEPTH = MAX_ACTIONS
+export const MAX_CALL_DEPTH = MAX_ACTIONS * 10
 /** Enclosing blocks the VM looks through to tell that a custom block calls itself (`Thread.isRecursiveCall`). */
 const RECURSION_LOOKBACK = 6
 
@@ -75,6 +80,11 @@ interface StackFrame {
   readonly depth: number
   /** Custom blocks running inside each other here. */
   readonly calls: number
+  /**
+   * The values of the parameters of a custom block this frame called, by name, as the VM keeps them
+   * (`Thread.initParams`): the parameters inside it read the nearest frame that has them.
+   */
+  params: Map<string, unknown> | null
 }
 
 /** The stack of one thread: a frame for each stack of blocks it is inside, the innermost last. */
@@ -83,7 +93,18 @@ type Thread = Array<StackFrame>
 /** After a block: go to the next one, a branch or custom block was put on the stack, or give the turn away. */
 type Signal = "next" | "pushed" | "yield"
 
-const newFrame = (id: unknown, depth: number, calls: number): StackFrame => ({ id, isLoop: false, loopCounter: undefined, depth, calls })
+const newFrame = (id: unknown, depth: number, calls: number): StackFrame => ({ id, isLoop: false, loopCounter: undefined, depth, calls, params: null })
+
+/** A list the mutation of a custom block keeps as JSON text: its argument ids, names or defaults. */
+const listOf = (mutation: unknown, key: string): ReadonlyArray<unknown> => {
+  const text = isRecord(mutation) ? mutation[key] : undefined
+  try {
+    const list: unknown = typeof text === "string" ? JSON.parse(text) : []
+    return Array.isArray(list) ? list : []
+  } catch {
+    return []
+  }
+}
 
 /** The run stops: the hero is done, a limit is reached, or the program is damaged. */
 class Stop {
@@ -127,17 +148,31 @@ export const judgeField = (level: Level, program: Program): RunResult => {
 
   const proccodeOf = (block: Block | null): unknown => (block !== null && isRecord(block.mutation) ? block.mutation.proccode : undefined)
 
+  /** A custom block: where its «визначити» is, and its parameters as its prototype names them. */
+  interface Definition {
+    readonly id: string
+    readonly names: ReadonlyArray<unknown>
+    readonly ids: ReadonlyArray<unknown>
+    readonly defaults: ReadonlyArray<unknown>
+  }
   /** Custom blocks by name: the first «визначити» with that name, as the VM finds it. */
-  const definitions = new Map<unknown, string>()
+  const definitions = new Map<unknown, Definition>()
   for (const [id] of Object.entries(program)) {
     const block = blockAt(id)
     if (block === null || block.opcode !== DEFINITION_OPCODE) continue
-    const name = proccodeOf(blockAt(inputOf(block, "custom_block")))
-    if (name !== undefined && !definitions.has(name)) definitions.set(name, id)
+    const prototype = blockAt(inputOf(block, "custom_block"))
+    const name = proccodeOf(prototype)
+    if (name === undefined || definitions.has(name)) continue
+    const mutation = prototype?.mutation
+    definitions.set(name, { id, names: listOf(mutation, "argumentnames"), ids: listOf(mutation, "argumentids"), defaults: listOf(mutation, "argumentdefaults") })
   }
 
   // The VM looks a variable up by id, then by name, and creates a missing one with 0 (`lookupOrCreateVariable`).
-  const variables = new Map<unknown, Variable>([[COUNTER_ID, { name: COUNTER_NAME, value: 0 }]])
+  // The project has every variable the program names from the start (`projectFor`), so the run does too.
+  const variables = new Map<unknown, Variable>([
+    ...(level.blocks.includes("counter") ? [[COUNTER_ID, { name: COUNTER_NAME, value: 0 }] as const] : []),
+    ...programVariables(program).map((v) => [v.id, { name: v.name, value: 0 }] as const)
+  ])
   const variable = (field: unknown): Variable => {
     const [name, id] = Array.isArray(field) ? field : []
     const byId = variables.get(id)
@@ -150,6 +185,13 @@ export const judgeField = (level: Level, program: Program): RunResult => {
   const fieldOf = (block: Block, name: string): unknown => (isRecord(block.fields) ? block.fields[name] : undefined)
 
   const counted = level.blocks.includes("counter")
+  // «Змінні» under the field: where the student makes variables, each move shows them all (else only the counter).
+  const shown = level.blocks.includes("variables")
+  const boxesNow = () => blockBoxes([...variables.values()].map((v) => ({ name: String(v.name), value: v.value })))
+  /** The calls of custom blocks with parameters: each block with the values it got, once (`RunResult.calls`). */
+  const calls = new Set<string>()
+  /** The thread that runs now: a parameter reads its stack. */
+  let current: Thread = []
 
   let steps = 0
   const step = () => {
@@ -158,7 +200,8 @@ export const judgeField = (level: Level, program: Program): RunResult => {
 
   const act = (action: Action, blockId: string) => {
     const counter = counted ? { counter: String(variable([COUNTER_NAME, COUNTER_ID]).value) } : {}
-    if (heroAct(level, session, action, { blockId, ...counter })) throw new Stop(session.reason)
+    const boxes = shown ? { boxes: boxesNow() } : {}
+    if (heroAct(level, session, action, { blockId, ...counter, ...boxes })) throw new Stop(session.reason)
   }
 
   /** A Boolean input: an empty slot is false, as in Scratch. */
@@ -182,12 +225,26 @@ export const judgeField = (level: Level, program: Program): RunResult => {
     }
   }
 
-  /** What a number or text slot gives: a primitive, a shadow with the number, the counter or a question. */
+  /** A parameter of the custom block that runs: the nearest frame with parameters, or 0 (`Thread.getParam`). */
+  const param = (name: unknown): unknown => {
+    for (let i = current.length - 1; i >= 0; i--) {
+      const params = current[i]?.params ?? null
+      if (params === null) continue
+      return typeof name === "string" && params.has(name) ? params.get(name) : 0
+    }
+    return 0
+  }
+
+  /** What a number or text slot gives: a primitive, a shadow with the number, a variable, a parameter or a question. */
   const value = (ref: unknown): unknown => {
     if (Array.isArray(ref)) return ref[0] === VARIABLE_PRIMITIVE ? variable([ref[1], ref[2]]).value : ref[1]
     const block = blockAt(ref)
     if (block === null) return ""
     if (block.opcode === VARIABLE_OPCODE) return variable(fieldOf(block, "VARIABLE")).value
+    if (block.opcode === ARGUMENT_OPCODE) {
+      const field = fieldOf(block, "VALUE")
+      return param(Array.isArray(field) ? field[0] : undefined)
+    }
     const field = fieldOf(block, "NUM") ?? fieldOf(block, "TEXT")
     if (Array.isArray(field)) return field[0]
     return question(ref, 0)
@@ -246,8 +303,14 @@ export const judgeField = (level: Level, program: Program): RunResult => {
         const definition = definitions.get(name)
         if (definition === undefined) return "next"
         if (frame.calls >= MAX_CALL_DEPTH) throw new Stop("tooLong")
+        // The values come from the call's slots, by the prototype's argument ids; a missing slot takes the default.
+        const args = definition.ids.map((argId, i) =>
+          isRecord(block.inputs) && typeof argId === "string" && Object.hasOwn(block.inputs, argId) ? value(inputOf(block, argId)) : definition.defaults[i]
+        )
+        frame.params = new Map(definition.names.map((n, i) => [String(n), args[i]]))
+        if (args.length > 0) calls.add(`${procedureTitle(String(name))}(${args.map((a) => String(a)).join(", ")})`)
         const yields = recursive(thread, name)
-        thread.push(newFrame(definition, 0, frame.calls + 1))
+        thread.push(newFrame(definition.id, 0, frame.calls + 1))
         return yields ? "yield" : "pushed"
       }
       default:
@@ -261,10 +324,12 @@ export const judgeField = (level: Level, program: Program): RunResult => {
     frame.id = block === null ? null : block.next
     frame.isLoop = false
     frame.loopCounter = undefined
+    frame.params = null
   }
 
   /** One turn of a thread (`Sequencer.stepThread`). False when the thread is done. */
   const stepThread = (thread: Thread): boolean => {
+    current = thread
     for (;;) {
       const frame = thread.at(-1)
       if (frame === undefined) return false
@@ -307,7 +372,11 @@ export const judgeField = (level: Level, program: Program): RunResult => {
       if (error.reason === "badProgram") return resultOf(level, session, checked.blocks, { detail: "Програму пошкоджено: блоки замкнулися в коло" })
     }
   }
-  return resultOf(level, session, checked.blocks)
+  const boxes = shown ? boxesNow() : []
+  return resultOf(level, session, checked.blocks, {
+    ...(boxes.length === 0 ? {} : { boxes }),
+    ...(calls.size === 0 ? {} : { calls: [...calls] })
+  })
 }
 
 /** Runs a program on every field of the level (`levelFields`): one result for each field, in order. */

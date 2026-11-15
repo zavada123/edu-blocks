@@ -96,7 +96,9 @@ const snippetsOf = (level: Level, methods: ReadonlyArray<PythonMethod>): Readonl
     { block: "if", code: `if ${ask("wall_ahead")}:`, doc: "Якщо умова правда, зробити те, що зсунуто нижче." },
     { block: "ifElse", code: "else:", doc: "Інакше: що робити, коли умова не правда." },
     { block: "counter", code: `${COUNTER_NAME} = 0`, doc: "Змінна-лічильник." },
-    { block: "procedure", code: `def ${name}():`, doc: `Своя функція: її команди зсунуті нижче, виклик — ${name}().` }
+    { block: "procedure", code: `def ${name}():`, doc: `Своя функція: її команди зсунуті нижче, виклик — ${name}().` },
+    { block: "variables", code: "ходки = 0", doc: "Своя змінна: назва каже, що в ній лежить. ходки += 1 додає один." },
+    { block: "myBlocks", code: "def пройти(кроки):", doc: "Своя функція з параметром: пройти(3) і пройти(5) роблять різне." }
   ]
   const ideas = level.uses ?? []
   const pythonOnly: ReadonlyArray<{ readonly shown: boolean; readonly code: string; readonly doc: string }> = [

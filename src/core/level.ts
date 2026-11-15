@@ -46,6 +46,10 @@ export type BlockName =
   | "counter"
   /** A custom block of the level: its «визначити» hat and the call, as «Мої блоки» in Scratch. */
   | "procedure"
+  /** «Створити змінну»: the student makes variables with own names, each with «задати», «змінити» and its reporter. */
+  | "variables"
+  /** «Створити блок»: the student makes own blocks, with number parameters, as «Мої блоки» in Scratch. */
+  | "myBlocks"
 
 /** A gate (`G`) and the levers (`L`, `l`) that open it. */
 export interface GateLink {

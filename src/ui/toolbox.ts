@@ -41,6 +41,38 @@ const counterXml = [
   `<block type="${VARIABLE_OPCODE}">${counterField}</block>`
 ].join("")
 
+/** What the student made in the editor: variables («Створити змінну») and own blocks («Створити блок»). */
+export interface Made {
+  readonly variables: ReadonlyArray<{ readonly id: string; readonly name: string }>
+  /** The mutation of each own block's prototype, as XML text: the palette offers a call of each. */
+  readonly blocks: ReadonlyArray<string>
+}
+
+export const NOTHING_MADE: Made = { variables: [], blocks: [] }
+
+/** The callback keys of the palette buttons. */
+export const NEW_VARIABLE = "eb-new-variable"
+export const NEW_BLOCK = "eb-new-block"
+
+/** «Створити змінну», then «задати», «змінити» and a reporter for each variable the student has. */
+const variablesXml = (variables: Made["variables"]): string => {
+  const button = `<button text="Створити змінну" callbackKey="${NEW_VARIABLE}"/>`
+  const first = variables[0]
+  if (first === undefined) return button
+  const field = (v: { readonly id: string; readonly name: string }) =>
+    `<field name="VARIABLE" id="${escapeXml(v.id)}" variabletype="">${escapeXml(v.name)}</field>`
+  return [
+    button,
+    ...variables.map((v) => `<block type="${VARIABLE_OPCODE}">${field(v)}</block>`),
+    `<block type="${SET_OPCODE}">${field(first)}<value name="VALUE"><shadow type="text"><field name="TEXT">0</field></shadow></value></block>`,
+    `<block type="${CHANGE_OPCODE}">${field(first)}<value name="VALUE"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>`
+  ].join("")
+}
+
+/** «Створити блок», then a call of each own block. */
+const myBlocksXml = (blocks: Made["blocks"]): string =>
+  [`<button text="Створити блок" callbackKey="${NEW_BLOCK}"/>`, ...blocks.map((m) => `<block type="${CALL_OPCODE}" gap="16">${m}</block>`)].join("")
+
 /** The «визначити» hat of the level's custom block and its call. The student does not make new ones. */
 const procedureXml = (name: string): string => {
   const proccode = escapeXml(name)
@@ -58,15 +90,16 @@ const category = (id: string, c: { readonly name: string; readonly colour: strin
  * Toolbox XML with only the blocks of the level. `flat` drops the category column: on a phone
  * the palette is one short scrolling list, and the program gets the width.
  */
-export const toolboxXml = (palette: ReadonlyArray<BlockName>, flat = false, procedure = DEFAULT_PROCEDURE): string => {
+export const toolboxXml = (palette: ReadonlyArray<BlockName>, flat = false, procedure = DEFAULT_PROCEDURE, made: Made = NOTHING_MADE): string => {
   const has = new Set(palette)
   const hero = HERO_BLOCKS.filter((b) => has.has(b.name))
     .map((b) => blockXml(b.name))
     .join("")
   const control = CONTROL_ORDER.filter((n) => has.has(n)).map(blockXml).join("")
   const operators = OPERATOR_ORDER.filter((n) => has.has(n)).map(blockXml).join("")
-  const variables = has.has("counter") ? counterXml : ""
-  const myBlocks = has.has("procedure") ? procedureXml(procedure) : ""
+  // With «Створити змінну» the counter is one of the student's variables.
+  const variables = has.has("variables") ? variablesXml(made.variables) : has.has("counter") ? counterXml : ""
+  const myBlocks = [has.has("procedure") ? procedureXml(procedure) : "", has.has("myBlocks") ? myBlocksXml(made.blocks) : ""].join("")
   if (flat) return `<xml style="display: none">${hero}${control}${operators}${variables}${myBlocks}<block type="event_whenflagclicked"/></xml>`
   return [
     "<xml style=\"display: none\">",

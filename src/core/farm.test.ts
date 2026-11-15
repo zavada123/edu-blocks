@@ -17,6 +17,8 @@ import {
   isFarmLevel,
   LONG_DAY_TURNS,
   metAt,
+  orderMisses,
+  orderRules,
   NEW_FARM,
   openOrders,
   plantTree,
@@ -168,6 +170,45 @@ while True:
             hero.turn_right()
     else:
         hero.move()
+`)
+
+/** The ring that counts its trips to the barn in «ходки»: the tally of «Облік ходок». */
+const TALLY = python(`ходки = 0
+while True:
+    if hero.item_here() and not hero.hands_full():
+        hero.collect()
+    if hero.bed_empty():
+        hero.sow()
+    if hero.at_storehouse() and hero.hands_full():
+        hero.store()
+        ходки += 1
+    if hero.enemy_ahead():
+        hero.attack()
+    elif hero.wall_ahead():
+        hero.turn_right()
+    else:
+        hero.move()
+`)
+
+/** The ring as an own function with a parameter, called with different numbers: «Підряд теслі». */
+const CARPENTER = python(`def працювати(ходів):
+    for _ in range(ходів):
+        if hero.item_here() and not hero.hands_full():
+            hero.collect()
+        if hero.bed_empty():
+            hero.sow()
+        if hero.at_storehouse():
+            hero.store()
+        if hero.enemy_ahead():
+            hero.attack()
+        elif hero.wall_ahead():
+            hero.turn_right()
+        else:
+            hero.move()
+
+while True:
+    працювати(5)
+    працювати(3)
 `)
 
 /** The first ring of a new farm: only the blocks the farm gives before anything is built. */
@@ -368,14 +409,14 @@ describe("orders", () => {
   test("every order can be done with the tools the orders before it open", () => {
     let state = NEW_FARM
     for (const o of FARM_ORDERS) {
-      const programs = [WOOD_RING, RING, SHUTTLE, PUMPKINS, SHEPHERD, goldLaps("laps == 1 or laps == 2"), goldLaps("laps == 1")]
+      const programs = [WOOD_RING, RING, SHUTTLE, PUMPKINS, SHEPHERD, goldLaps("laps == 1 or laps == 2"), goldLaps("laps == 1"), TALLY, CARPENTER]
       // Only the blocks the farm itself gives: a student who skipped the course can do every order.
       const palette = farmPalette(state, [])
       const best = Math.max(...programs.map((p) => checkOrder(state, o, p, palette).grade))
       expect(best, o.id).toBeGreaterThan(0)
       state = recordOrder(state, o, best)
     }
-    expect(state.unlocked).toEqual(["beds", "basket", "tower", "longDay", "cart", "pen", "mine"])
+    expect(state.unlocked).toEqual(["beds", "basket", "tower", "longDay", "cart", "pen", "mine", "workshop"])
   })
 
   test("a lower grade later does not take back a better one", () => {
@@ -617,5 +658,102 @@ describe("the sheep pen and the gold mine", () => {
     const level = farmDay(state, ALL, 2)
     const vm = await runProgram(level, buildProgram(steps))
     expect(vm.frames.map((f) => f.outcome)).toEqual(judgeField(level, buildProgram(steps)).frames.map((f) => f.outcome))
+  })
+})
+
+describe("Майстерня", () => {
+  const built = withUnlocks("beds", "basket", "tower", "longDay", "cart", "pen", "mine", "workshop")
+
+  test("gives «Створити змінну» and «Створити блок» in place of the counter and the fixed block", () => {
+    const palette = farmPalette(built, ["counter", "procedure"])
+    expect(palette).toContain("variables")
+    expect(palette).toContain("myBlocks")
+    expect(palette).not.toContain("counter")
+    expect(palette).not.toContain("procedure")
+    expect(farmPalette(withUnlocks("beds"), [])).not.toContain("variables")
+  })
+
+  test("«Облік ходок» asks the variable to hold the trips to the barn", () => {
+    const palette = farmPalette(built, [])
+    const tally = order("tally")
+    expect(orderRules(tally)).toEqual(["змінна «ходки» наприкінці дня дорівнює кількості ходок до комори"])
+    expect(checkOrder(built, tally, TALLY, palette).grade).toBeGreaterThan(0)
+    const ring = runFarmDay(built, RING, palette).report
+    expect(orderMisses(tally, ring, "python")[0]).toMatch(/Немає змінної ходки/)
+    expect(checkOrder(built, tally, RING, palette).grade).toBe(0)
+    // Counting every visit to the barn, also with empty hands, gives more than the trips.
+    const report = runFarmDay(built, python(`ходки = 0
+while True:
+    if hero.item_here() and not hero.hands_full():
+        hero.collect()
+    if hero.at_storehouse():
+        hero.store()
+        ходки += 1
+    if hero.wall_ahead():
+        hero.turn_right()
+    else:
+        hero.move()
+`), palette).report
+    expect(orderMisses(tally, report)[0]).toMatch(/наприкінці дня/)
+  })
+
+  test("«Облік ходок» in blocks: a variable the student made counts the trips", () => {
+    const palette = farmPalette(built, [])
+    const steps: ReadonlyArray<Step> = [
+      { set: 0, variable: "ходки" },
+      {
+        forever: [
+          { if: { and: ["onCrystal", { not: "handsFull" }] }, then: ["collect"] },
+          { if: "bedEmpty", then: ["sow"] },
+          { if: { and: ["atStorehouse", "handsFull"] }, then: ["store", { change: 1, variable: "ходки" }] },
+          { if: "enemyAhead", then: ["attack"], else: [{ if: "wallAhead", then: ["turnRight"], else: ["move"] }] }
+        ]
+      }
+    ]
+    const program = { language: "blocks", program: buildProgram(steps) } as const
+    const { report } = runFarmDay(built, program, palette)
+    expect(report.trips).toBeGreaterThan(0)
+    expect(report.variables?.ходки).toBe(String(report.trips))
+    expect(checkOrder(built, order("tally"), program, palette).grade).toBeGreaterThan(0)
+  })
+
+  test("«Підряд теслі» asks for an own block called with different values", () => {
+    const palette = farmPalette(built, [])
+    const carpenter = order("carpenter")
+    expect(checkOrder(built, carpenter, CARPENTER, palette).grade).toBeGreaterThan(0)
+    expect(checkOrder(built, carpenter, RING, palette).grade).toBe(0)
+    expect(orderMisses(carpenter, runFarmDay(built, RING, palette).report)[0]).toMatch(/свій блок з параметром/)
+    const once = python(`def працювати(ходів):
+    for _ in range(ходів):
+        if hero.wall_ahead():
+            hero.turn_right()
+        else:
+            hero.move()
+
+while True:
+    працювати(5)
+`)
+    expect(runFarmDay(built, once, palette).report.ownBlock).toBe(false)
+  })
+
+  test("«Підряд теслі» in blocks: «пройти (кроки)» with 5 and 3", () => {
+    const palette = farmPalette(built, [])
+    const body: ReadonlyArray<Step> = [
+      {
+        repeat: { param: "ходів" },
+        body: [
+          { if: { and: ["onCrystal", { not: "handsFull" }] }, then: ["collect"] },
+          { if: "bedEmpty", then: ["sow"] },
+          { if: "atStorehouse", then: ["store"] },
+          { if: "enemyAhead", then: ["attack"], else: [{ if: "wallAhead", then: ["turnRight"], else: ["move"] }] }
+        ]
+      }
+    ]
+    const program = {
+      language: "blocks",
+      program: buildProgram([{ forever: [{ call: "працювати", args: [5] }, { call: "працювати", args: [3] }] }], { name: "працювати", params: ["ходів"], body })
+    } as const
+    expect(runFarmDay(built, program, palette).report.ownBlock).toBe(true)
+    expect(checkOrder(built, order("carpenter"), program, palette).grade).toBeGreaterThan(0)
   })
 })

@@ -175,7 +175,9 @@ export const PALETTE_ORDER: ReadonlyArray<BlockName> = [
   "and",
   "or",
   "counter",
-  "procedure"
+  "procedure",
+  "variables",
+  "myBlocks"
 ]
 
 /** The blocks of the estate: those of every level the student passed, and always the hero's walk and «взяти». */

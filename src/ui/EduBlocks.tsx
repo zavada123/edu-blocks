@@ -24,7 +24,9 @@ import { frameIndexAt } from "./stage/playback.ts"
 import type { Skin } from "./stage/Stage.tsx"
 import { gradePieces, JOIN_TIP, PiecesBar, usePieces } from "./pieces.tsx"
 import { usePlayer } from "./Timeline.tsx"
-import { toolboxXml } from "./toolbox.ts"
+import { type Made, NEW_BLOCK, NEW_VARIABLE, toolboxXml } from "./toolbox.ts"
+import { type Ask, WorkshopDialog } from "./Workshop.tsx"
+import { draftOf, idsOf, mutationOf } from "./make-block.ts"
 import { Boxes } from "./Boxes.tsx"
 import { counterBoxes } from "../core/python/boxes.ts"
 import { type EstateRun, type FarmRun, farmRewardOf, harvestRewardOf, type HeroXp, type Reward, rewardOf, Verdict } from "./Verdict.tsx"
@@ -106,6 +108,60 @@ for (const b of HERO_BLOCKS) {
 
 /** Workspace events that change the program: a block is added, removed, moved or gets a new field value. */
 const PROGRAM_EVENTS: ReadonlySet<string> = new Set(["create", "delete", "change", "move"])
+/** Workspace events after which the palette may need the student's new variable or own block. */
+const MADE_EVENTS: ReadonlySet<string> = new Set(["create", "delete", "change", "var_create", "var_delete", "var_rename"])
+
+/** Workspace units between the program and a new «визначити» put under it. */
+const NEW_BLOCK_GAP = 48
+
+/** What the student made in the editor: its variables and the prototypes of its own blocks. */
+const madeIn = (ws: WorkspaceSvg): Made => ({
+  variables: ws.getVariablesOfType("").map((v) => ({ id: v.getId(), name: v.name })),
+  blocks: ScratchBlocks.Procedures.allProcedureMutations(ws).map((m) => ScratchBlocks.Xml.domToText(m))
+})
+
+/**
+ * scratch-blocks asks for names and shows its messages with `prompt`, `alert` and `confirm` of the browser, and for a
+ * new block with a window it does not have. The editor shows its own windows instead (`WorkshopDialog`).
+ */
+const askInEditor = (ws: WorkspaceSvg, setAsk: (ask: Ask | null) => void) => {
+  ScratchBlocks.prompt = (message, value, done) => setAsk({ kind: "text", message: message.replace(/:\s*$/, ""), value, done })
+  ScratchBlocks.alert = (message, done) => setAsk({ kind: "alert", message, done: () => done?.() })
+  ScratchBlocks.confirm = (message, done) => setAsk({ kind: "confirm", message, done })
+  ScratchBlocks.Procedures.externalProcedureDefCallback = (mutation, done) => {
+    const proccodes = ScratchBlocks.Procedures.allProcedureMutations(ws).map((m) => m.getAttribute("proccode") ?? "")
+    const own = mutation.getAttribute("proccode") ?? ""
+    // A new block comes with a made-up name: the window starts empty.
+    const draft = proccodes.includes(own) ? draftOf(mutation) : { name: "", params: [] }
+    setAsk({
+      kind: "block",
+      draft,
+      taken: proccodes.filter((p) => p !== own),
+      done: (made) => {
+        if (made === null) {
+          done(null)
+          return
+        }
+        const next = mutation.cloneNode(true) as Element
+        for (const [key, value] of Object.entries(mutationOf(made, idsOf(mutation), () => ScratchBlocks.utils.genUid()))) next.setAttribute(key, value)
+        const before = new Set(ws.getTopBlocks(false).map((b) => b.id))
+        done(next)
+        // scratch-blocks puts a new «визначити» at the top left, often over the program: it goes under the scripts.
+        const added = ws.getTopBlocks(false).filter((b) => !before.has(b.id))
+        const others = ws.getTopBlocks(false).filter((b) => before.has(b.id))
+        for (const block of added) {
+          if (others.length === 0) continue
+          const at = block.getRelativeToSurfaceXY()
+          const left = Math.min(...others.map((b) => b.getRelativeToSurfaceXY().x))
+          const bottom = Math.max(...others.map((b) => b.getRelativeToSurfaceXY().y + b.getHeightWidth().height))
+          block.moveBy(left - at.x, bottom + NEW_BLOCK_GAP - at.y)
+        }
+      }
+    })
+  }
+  ws.registerButtonCallback(NEW_VARIABLE, () => ScratchBlocks.Variables.createVariable(ws, null, ""))
+  ws.registerButtonCallback(NEW_BLOCK, () => ScratchBlocks.Procedures.createProcedureDefCallback_(ws))
+}
 
 /** Editor width (px) below which the palette turns compact. */
 const COMPACT_WIDTH = 560
@@ -141,7 +197,7 @@ const heroProgram = (vm: VirtualMachine): Program => {
  * the blocks to choose at the same size. The flyout grows with them. `onZoom` gets each new zoom as a share of the
  * start scale.
  */
-const followZoomInFlyout = (ws: WorkspaceSvg, el: HTMLElement, toolboxXml: string, onZoom: (zoom: number) => void) => {
+const followZoomInFlyout = (ws: WorkspaceSvg, el: HTMLElement, toolboxXml: () => string, onZoom: (zoom: number) => void) => {
   const startScale = ws.scale
   const baseWidth = ScratchBlocks.VerticalFlyout.prototype.DEFAULT_WIDTH
   const setScale = ws.setScale.bind(ws)
@@ -158,7 +214,7 @@ const followZoomInFlyout = (ws: WorkspaceSvg, el: HTMLElement, toolboxXml: strin
       // This flyout lies over the program: the program moves by what the flyout grows, so it stays in sight.
       ws.scrollX += width - flyout.DEFAULT_WIDTH
       flyout.DEFAULT_WIDTH = width
-      ws.updateToolbox(toolboxXml)
+      ws.updateToolbox(toolboxXml())
       ws.translate(ws.scrollX, ws.scrollY)
     } else {
       // The toolbox is the categories and the flyout: it grows by what the flyout grows.
@@ -200,6 +256,8 @@ export const EduBlocks = ({
   const [phase, setPhase] = useState<Phase>({ kind: "edit" })
   // On a phone the result covers the blocks until the student closes it.
   const [verdictOpen, setVerdictOpen] = useState(true)
+  // A window of «Майстерня» over the editor: a new variable, a new block, or a message of the editor.
+  const [ask, setAsk] = useState<Ask | null>(null)
   const editorRef = useRef<HTMLDivElement>(null)
   const workspaceRef = useRef<WorkspaceSvg | null>(null)
   const vmRef = useRef<VirtualMachine | null>(null)
@@ -246,7 +304,7 @@ export const EduBlocks = ({
     ScratchBlocks.VerticalFlyout.prototype.DEFAULT_WIDTH = compact ? 190 : 250
     ScratchBlocks.ScratchMsgs.setLocale("uk")
     editorScene = level.scene
-    const toolbox = toolboxXml(level.blocks, compact, procedureName(level))
+    let toolbox = toolboxXml(level.blocks, compact, procedureName(level))
     const ws = ScratchBlocks.inject(el, {
       toolbox,
       media,
@@ -259,9 +317,23 @@ export const EduBlocks = ({
       zoom: { controls: true, wheel: true, startScale: (large ? 0.9 : 0.75) * (compact ? 0.95 : 1) }
     })
     workspaceRef.current = ws
+    setAsk(null)
+    // «Створити змінну» and «Створити блок»: the palette lists what the student made, and changes when it does.
+    const workshop = level.blocks.includes("variables") || level.blocks.includes("myBlocks")
+    const refreshToolbox = () => {
+      if (!workshop) return
+      const next = toolboxXml(level.blocks, compact, procedureName(level), madeIn(ws))
+      if (next === toolbox) return
+      toolbox = next
+      ws.updateToolbox(next)
+    }
+    if (workshop) askInEditor(ws, setAsk)
+    ws.addChangeListener((event: unknown) => {
+      if (typeof event === "object" && event !== null && "type" in event && MADE_EVENTS.has(String(event.type))) refreshToolbox()
+    })
     // The zoom the student chose last time, also on another level or after a reload.
     const savedZoom = loadZoom()
-    followZoomInFlyout(ws, el, toolbox, saveZoom)
+    followZoomInFlyout(ws, el, () => toolbox, saveZoom)
     if (savedZoom !== 1) ws.setScale(ws.scale * savedZoom)
 
     void withVmLock(async () => {
@@ -270,6 +342,7 @@ export const EduBlocks = ({
         ws.removeChangeListener(vm.blockListener)
         ScratchBlocks.Xml.clearWorkspaceAndLoadFromXml(ScratchBlocks.Xml.textToDom(xml), ws)
         ws.addChangeListener(vm.blockListener)
+        refreshToolbox()
       }
       vm.on("workspaceUpdate", onUpdate)
       await vm.loadProject(projectFor(initialProgram.current ?? brokenProgram(level) ?? buildProgram([])))
@@ -320,9 +393,16 @@ export const EduBlocks = ({
   // After «Продовжити звідси» the frames name the blocks of the joined program: only the new piece is in the editor.
   const frameBlock = result === null || atEnd ? null : (result.frames[frameIndex]?.blockId ?? null)
   const glowId = done === null ? frameBlock : pieceBlockId(frameBlock, done.pieces.length)
-  // «Змінні» on a level with «лічильник»: the counter after the frame on screen, and after the last one at the end.
+  // «Змінні» on a level with «лічильник» or the student's variables: after the frame on screen, and after the last one at the end.
+  const shownFrame = result === null ? undefined : atEnd ? result.frames.at(-1) : result.frames[frameIndex]
   const boxes =
-    result === null || !level.blocks.includes("counter") ? [] : counterBoxes((atEnd ? result.frames.at(-1) : result.frames[frameIndex])?.counter)
+    result === null
+      ? []
+      : level.blocks.includes("variables")
+        ? (shownFrame?.boxes ?? [])
+        : level.blocks.includes("counter")
+          ? counterBoxes(shownFrame?.counter)
+          : []
   useEffect(() => setGlow(glowId), [glowId, setGlow])
 
   const run = useCallback(() => {
@@ -500,6 +580,7 @@ export const EduBlocks = ({
       <div className="eb-editor" ref={editorRef} />
       <Boxes boxes={boxes} />
       <PythonPeek open={peek} source={peekSource} onToggle={togglePeek} />
+      {ask !== null && <WorkshopDialog ask={ask} onClose={() => setAsk(null)} />}
     </GameScreen>
   )
 }

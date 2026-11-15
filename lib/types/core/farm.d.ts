@@ -16,7 +16,7 @@ export declare const RESOURCE_NAMES: Readonly<Record<Resource, string>>;
 export type Amounts = Readonly<Record<Resource, number>>;
 export declare const NO_AMOUNTS: Amounts;
 /** What an order opens: a building or a tool that changes how the farm works. */
-export type FarmUnlock = "beds" | "basket" | "longDay" | "cart" | "tower" | "pen" | "mine";
+export type FarmUnlock = "beds" | "basket" | "longDay" | "cart" | "tower" | "pen" | "mine" | "workshop";
 export interface FarmUnlockInfo {
     readonly id: FarmUnlock;
     readonly name: string;
@@ -94,12 +94,20 @@ export interface FarmReport {
     readonly beaten: number;
     /** Why the day ended before its turns: the worker walked into a fence, or the program has a mistake. */
     readonly stopped: RunResult["reason"];
+    /** Times the worker put something in the barn: «віднести на склад» that stored anything. */
+    readonly trips?: number;
+    /** The student's variables when the day ended, by name, as Python writes the values: `5`, `"ходки"`. */
+    readonly variables?: Readonly<Record<string, string>>;
+    /** An own block or function with parameters was called with different values this day. */
+    readonly ownBlock?: boolean;
     /** The explanation of a mistake in the program, as the judge gives it. */
     readonly detail?: string;
     readonly line?: number;
 }
 /** Reads the yield of a day from the frames: what each «взяти» took, and what each «віднести на склад» put down. */
 export declare const farmReport: (level: Level, result: RunResult, day: number) => FarmReport;
+/** Whether one own block was called with different values: `calls` are like «пройти(6)», each once. */
+export declare const calledWithDifferentValues: (calls: ReadonlyArray<string>) => boolean;
 /** Runs the worker's program through one day of the farm. */
 export declare const runFarmDay: (state: FarmState, code: FarmProgram, blocks: ReadonlyArray<BlockName>, day?: number, goblins?: boolean) => {
     readonly level: Level;
@@ -122,8 +130,19 @@ export interface FarmOrder {
     readonly unlocks?: FarmUnlock;
     /** Goblins come on every checked day, not only on their own days. */
     readonly goblins?: boolean;
+    /** A variable that must hold, when the day ends, how many times the worker put something in the barn. */
+    readonly tally?: string;
+    /** The program must call one own block with parameters with different values. */
+    readonly ownBlock?: boolean;
 }
 export declare const FARM_ORDERS: ReadonlyArray<FarmOrder>;
+/** What an order asks besides the yield, in the words of its card. */
+export declare const orderRules: (order: FarmOrder) => ReadonlyArray<string>;
+/**
+ * What a day missed of the order's rules besides the yield, for the student: empty when the day keeps them. The tally
+ * counts each «віднести на склад» that put something in the barn.
+ */
+export declare const orderMisses: (order: FarmOrder, report: FarmReport, language?: "blocks" | "python") => ReadonlyArray<string>;
 /** The orders the student can take now: not done yet, and the one before them is done. */
 export declare const openOrders: (state: FarmState) => ReadonlyArray<FarmOrder>;
 /** The turn after which the barn first held what the order needs, or null when it never did that day. */

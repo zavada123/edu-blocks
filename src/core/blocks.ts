@@ -102,7 +102,7 @@ export const heroBlockText = (name: HeroBlock, scene?: { readonly item?: ItemKin
 
 const HERO_NAMES: ReadonlySet<string> = new Set(HERO_BLOCKS.map((b) => b.name))
 
-type ScratchBlock = Exclude<BlockName, HeroBlock | "counter" | "procedure">
+type ScratchBlock = Exclude<BlockName, HeroBlock | "counter" | "procedure" | "variables" | "myBlocks">
 
 const SCRATCH_OPCODES: Readonly<Record<ScratchBlock, string>> = {
   repeat: "control_repeat",
@@ -130,21 +130,24 @@ export const DEFINITION_OPCODE = "procedures_definition"
 export const PROTOTYPE_OPCODE = "procedures_prototype"
 export const CALL_OPCODE = "procedures_call"
 export const DEFAULT_PROCEDURE = "мій блок"
+/** A number parameter of a custom block, as the reporter inside its «визначити». */
+export const ARGUMENT_OPCODE = "argument_reporter_string_number"
 
 /** Shadow blocks that hold the number in «повторити 10», and the text in «задати лічильник 0». */
 const NUMBER_SHADOWS: ReadonlySet<string> = new Set(["math_whole_number", "math_positive_number", "math_number", "text"])
 
 /** Blocks a palette name brings. Most names are one block; the counter and the custom block are several. */
 export const opcodesOf = (name: BlockName): ReadonlyArray<string> => {
-  if (name === "counter") return [SET_OPCODE, CHANGE_OPCODE, VARIABLE_OPCODE]
+  if (name === "counter" || name === "variables") return [SET_OPCODE, CHANGE_OPCODE, VARIABLE_OPCODE]
   if (name === "procedure") return [DEFINITION_OPCODE, PROTOTYPE_OPCODE, CALL_OPCODE]
+  if (name === "myBlocks") return [DEFINITION_OPCODE, PROTOTYPE_OPCODE, CALL_OPCODE, ARGUMENT_OPCODE]
   return [HERO_NAMES.has(name) ? `${HERO_EXTENSION_ID}_${name}` : SCRATCH_OPCODES[name as ScratchBlock]]
 }
 
 /** The block of a palette name. For the counter it is «змінити», for the custom block the call. */
 export const opcodeOf = (name: BlockName): string => {
-  if (name === "counter") return CHANGE_OPCODE
-  if (name === "procedure") return CALL_OPCODE
+  if (name === "counter" || name === "variables") return CHANGE_OPCODE
+  if (name === "procedure" || name === "myBlocks") return CALL_OPCODE
   return opcodesOf(name)[0] ?? ""
 }
 
@@ -156,3 +159,6 @@ export const isNumberShadow = (opcode: string): boolean => NUMBER_SHADOWS.has(op
 
 /** The name of the custom block on this level. */
 export const procedureName = (level: { readonly procedure?: string }): string => level.procedure?.trim() || DEFAULT_PROCEDURE
+
+/** The words of a custom block without its parameter slots: «пройти %s» is «пройти». */
+export const procedureTitle = (proccode: string): string => proccode.replace(/%[snb]/g, " ").replace(/\s+/g, " ").trim()

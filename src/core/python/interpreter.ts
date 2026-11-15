@@ -47,6 +47,8 @@ export interface PyHost {
   readonly input: (prompt: string, line: number) => string
   /** Called once when the program stops, for any reason, with its variables at that moment. */
   readonly stopped?: (globals: ReadonlyMap<string, Value>) => void
+  /** Called when the program calls one of its own functions that has parameters, with the values it got. */
+  readonly called?: (name: string, args: ReadonlyArray<Value>) => void
 }
 
 /** The run stops with no error: the hero is done, or the program ran too long. */
@@ -327,6 +329,7 @@ class Interpreter {
       throw new PyError(`Функція ${def.name}() чекає ${def.params.length} значень у дужках, а отримала ${args.length}`, line)
     }
     if (this.depth >= MAX_PY_DEPTH) throw new PyError(`Функція ${def.name}() викликає себе забагато разів`, line)
+    if (args.length > 0) this.host.called?.(def.name, args)
     const saved = this.scope
     this.scope = { vars: new Map(def.params.map((p, i) => [p, args[i] ?? null])), own: def.locals }
     this.depth++

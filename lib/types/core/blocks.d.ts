@@ -53,6 +53,8 @@ export declare const DEFINITION_OPCODE = "procedures_definition";
 export declare const PROTOTYPE_OPCODE = "procedures_prototype";
 export declare const CALL_OPCODE = "procedures_call";
 export declare const DEFAULT_PROCEDURE = "\u043C\u0456\u0439 \u0431\u043B\u043E\u043A";
+/** A number parameter of a custom block, as the reporter inside its «визначити». */
+export declare const ARGUMENT_OPCODE = "argument_reporter_string_number";
 /** Blocks a palette name brings. Most names are one block; the counter and the custom block are several. */
 export declare const opcodesOf: (name: BlockName) => ReadonlyArray<string>;
 /** The block of a palette name. For the counter it is «змінити», for the custom block the call. */
@@ -64,3 +66,5 @@ export declare const isNumberShadow: (opcode: string) => boolean;
 export declare const procedureName: (level: {
     readonly procedure?: string;
 }) => string;
+/** The words of a custom block without its parameter slots: «пройти %s» is «пройти». */
+export declare const procedureTitle: (proccode: string) => string;

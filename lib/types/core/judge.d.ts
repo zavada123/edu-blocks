@@ -14,10 +14,11 @@ export declare const MAX_PASSES: number;
 /** Blocks executed in one run. A program can go over it only with a damaged `next` that makes a circle. */
 export declare const MAX_STEPS = 200000;
 /**
- * Custom blocks running inside each other. Only a block that calls itself goes deep; the VM has no limit, but
- * each level that acts takes one of MAX_ACTIONS, so a run ends there before this limit.
+ * Custom blocks running inside each other. Only blocks that call themselves or each other go deep; the VM has no
+ * limit. With own blocks («Створити блок») a cycle can make several calls for one action, so the limit leaves room
+ * for that many: a run that acts ends at MAX_ACTIONS before this limit.
  */
-export declare const MAX_CALL_DEPTH = 1000;
+export declare const MAX_CALL_DEPTH: number;
 /**
  * Runs a program on one field: the map of `level` only, without its other `fields`. The rules of the game live
  * here; `judgeProgram` runs it on every field of a level.
