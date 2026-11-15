@@ -6,7 +6,8 @@ import { tilemapView } from "../../core/tilemap.ts"
 import { cellKey, gatesOpen, type World } from "../../core/world.ts"
 import { propCells, seasonOf } from "../look.ts"
 import { buildScenery } from "../scenery.ts"
-import { CELL, drawActors, drawGround, type Skin } from "./draw.ts"
+import { waterCells } from "../water.ts"
+import { CELL, drawActors, drawGround, drawWater, type Skin } from "./draw.ts"
 import { cellAt, type Cell, drawHover } from "./hover.ts"
 import { whenLoaded } from "./images.ts"
 import { poseAt } from "./playback.ts"
@@ -80,16 +81,20 @@ export const Stage = ({ start, frames = NO_FRAMES, time = 0, skin, scene = NO_SC
   const ground = scene.ground ?? "path"
   const tilemap = scene.tilemap
   const terrain = scene.terrain
+  const waterPaint = scene.water
+  const finishKind = scene.finish
+  const finishLook = scene.finishLook
   const scenery = useMemo(() => {
     // A hand-drawn map shows itself and nothing the field would add on its own.
-    if (tilemap !== undefined) return { view: tilemapView(tilemap), trees: [], obstacles: [], decor: [] }
+    if (tilemap !== undefined) return { view: tilemapView(tilemap), trees: [], obstacles: [], decor: [], water: new Set<string>(), plateau: new Set<string>(), cliffs: new Set<string>(), sheep: [] }
     const reserved = new Set(propCells(props ?? []))
     for (const n of npcs ?? []) reserved.add(cellKey(n.x, n.y))
     for (const s of sprites ?? []) for (const key of placedCells(s)) reserved.add(key)
     // Water or a path painted on the meadow stays clear of trees and bushes.
     for (const key of terrain === undefined ? [] : paintedCells(terrain)) reserved.add(key)
-    return buildScenery({ width, height, walls, finish }, { reserved, bareWalls: ground === "bridge" })
-  }, [width, height, walls, finish, props, npcs, sprites, ground, tilemap, terrain])
+    const water = ground === "path" ? waterCells({ width, height, walls, finish }, { water: waterPaint, finish: finishKind, finishLook }, reserved) : new Set<string>()
+    return buildScenery({ width, height, walls, finish }, { reserved, bareWalls: ground === "bridge", water })
+  }, [width, height, walls, finish, props, npcs, sprites, ground, tilemap, terrain, waterPaint, finishKind, finishLook])
   // Every cell where a thing can lie during the run: what lies there at the start, what grows (a tree that grows its
   // wood again) and the beds, where a sown pumpkin ripens.
   const items = useMemo(() => [...new Set([...start.crystals, ...start.growing.keys(), ...start.beds, ...start.troughs])].map((key) => {
@@ -158,6 +163,10 @@ export const Stage = ({ start, frames = NO_FRAMES, time = 0, skin, scene = NO_SC
       ctx.setTransform(1, 0, 0, 1, 0, 0)
       ctx.imageSmoothingEnabled = false
       ctx.clearRect(0, 0, canvas.width, canvas.height)
+      // Water lies under the ground, which leaves it uncovered: its foam laps at the shores each frame.
+      ctx.setTransform(scale, 0, 0, scale, -view.x * CELL * scale, -view.y * CELL * scale)
+      drawWater(ctx, { scenery: s.scenery, now, still: s.still })
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
       ctx.drawImage(groundCanvas, 0, 0)
       ctx.setTransform(scale, 0, 0, scale, -view.x * CELL * scale, -view.y * CELL * scale)
       if (hover.current !== null) drawHover(ctx, hover.current)
