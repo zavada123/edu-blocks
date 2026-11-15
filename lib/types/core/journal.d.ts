@@ -69,7 +69,7 @@ export interface JournalRecords {
     readonly idle: JournalRecord | null;
     readonly trips: JournalRecord | null;
 }
-/** «Рекорди»: the most in the barn, the fastest 10 logs, the fewest idle turns, the most trips. */
+/** «Рекорди»: the most in the barn, the fastest 10 logs, the fewest idle turns in a whole working day, the most trips. */
 export declare const journalRecords: (journal: ReadonlyArray<JournalEntry>) => JournalRecords;
 /** The records the newest day set, for «Рекорд!» in the report of the day: those it reached alone. */
 export declare const newRecords: (journal: ReadonlyArray<JournalEntry>) => ReadonlyArray<keyof JournalRecords>;

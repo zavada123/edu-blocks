@@ -153,6 +153,8 @@ describe("the records", () => {
       trips: { value: 5, days: [2] }
     })
     expect(journalRecords([])).toEqual({ harvest: null, tenWood: null, idle: null, trips: null })
+    // A day that stopped early, or brought nothing, is no record of idle turns.
+    expect(journalRecords([{ ...entry(1, 0, 0, 0, null), used: 6 }, entry(2, 5, 3, 1, null)]).idle).toEqual({ value: 3, days: [2] })
   })
 
   test("a new day sets those it reached alone", () => {

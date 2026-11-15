@@ -182,11 +182,12 @@ const best = (journal: ReadonlyArray<JournalEntry>, value: (e: JournalEntry) => 
     return v === found.value ? { ...found, days: [...found.days, e.day] } : found
   }, null)
 
-/** «Рекорди»: the most in the barn, the fastest 10 logs, the fewest idle turns, the most trips. */
+/** «Рекорди»: the most in the barn, the fastest 10 logs, the fewest idle turns in a whole working day, the most trips. */
 export const journalRecords = (journal: ReadonlyArray<JournalEntry>): JournalRecords => ({
   harvest: best(journal, (e) => (harvestOf(e) > 0 ? harvestOf(e) : null), (a, b) => a > b),
   tenWood: best(journal, (e) => e.tenWoodAt, (a, b) => a < b),
-  idle: best(journal, (e) => e.idle, (a, b) => a < b),
+  // Only a whole day that brought something: a program that stopped at once wastes no turn, but does no work either.
+  idle: best(journal, (e) => (e.used === e.turns && harvestOf(e) > 0 ? e.idle : null), (a, b) => a < b),
   trips: best(journal, (e) => (e.trips > 0 ? e.trips : null), (a, b) => a > b)
 })
 
