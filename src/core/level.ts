@@ -20,6 +20,10 @@ export type BlockName =
   | "sow"
   /** «нагодувати»: gives the sheep at the trough under the hero a pumpkin it carries; meat lies there later. */
   | "feed"
+  /** «рубати сокирою» (Сокира): takes the log off the tree under the hero; the tree grows it again in half the time. */
+  | "chop"
+  /** «полити» (Лійка): the crop on the bed under the hero is ripe in half of its time at most. */
+  | "water"
   | "wallAhead"
   | "enemyAhead"
   | "trapAhead"
@@ -35,6 +39,12 @@ export type BlockName =
   | "bedEmpty"
   /** «вівці голодні?»: the hero stands on a trough where the sheep neither eat nor left meat. */
   | "sheepHungry"
+  /** «попереду дерево з колодою?»: the cell ahead is a tree with a log. */
+  | "woodAhead"
+  /** «попереду стиглий гарбуз?»: the cell ahead is a bed with a ripe crop. */
+  | "ripeAhead"
+  /** «у трубу видно річ?» (Підзорна труба): something to take lies on the next three cells ahead. */
+  | "itemAhead"
   | "repeat"
   | "forever"
   | "repeatUntil"

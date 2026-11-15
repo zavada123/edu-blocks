@@ -1,4 +1,5 @@
 import { type BookPage } from "./book.ts";
+import { type CraftResource } from "./crafts.ts";
 import { type BlockName, type Level } from "./level.ts";
 import type { Program, RunResult } from "./program.ts";
 /**
@@ -17,7 +18,7 @@ export declare const RESOURCE_NAMES: Readonly<Record<Resource, string>>;
 export type Amounts = Readonly<Record<Resource, number>>;
 export declare const NO_AMOUNTS: Amounts;
 /** What an order opens: a building or a tool that changes how the farm works. */
-export type FarmUnlock = "beds" | "basket" | "longDay" | "cart" | "tower" | "pen" | "mine" | "workshop" | "book";
+export type FarmUnlock = "beds" | "basket" | "longDay" | "cart" | "tower" | "pen" | "mine" | "workshop" | "book" | "spyglass";
 export interface FarmUnlockInfo {
     readonly id: FarmUnlock;
     readonly name: string;
@@ -37,6 +38,8 @@ export interface FarmState {
     readonly orders: Readonly<Record<string, number>>;
     /** «Книга команд»: the own blocks the student wrote in it, a «визначити» script each (`book.ts`). */
     readonly book?: ReadonlyArray<BookPage>;
+    /** What the programs of all working days put in the barn: the crafts grow from it (`crafts.ts`). */
+    readonly produced?: Amounts;
 }
 export declare const NEW_FARM: FarmState;
 /** The turns of a working day, and of a day with «Ліхтар». */
@@ -53,6 +56,15 @@ export declare const PUMPKIN_GROW = 24;
 export declare const SHEEP_EAT = 12;
 export declare const GOLD_REGROW = 20;
 export declare const has: (state: FarmState, unlock: FarmUnlock) => boolean;
+/** What the programs made so far, for the crafts. */
+export declare const producedOf: (state: FarmState) => Amounts;
+/** The level of a craft on this farm. */
+export declare const craftLevelOf: (state: FarmState, resource: CraftResource) => number;
+/** Turns until a tree has wood again and until a sown pumpkin is ripe: shorter from the third level of the craft. */
+export declare const FASTER_WOOD_REGROW = 12;
+export declare const FASTER_PUMPKIN_GROW = 18;
+export declare const woodRegrowOf: (state: FarmState) => number;
+export declare const pumpkinGrowOf: (state: FarmState) => number;
 export declare const farmTurns: (state: FarmState) => number;
 /**
  * Pages of «Книга команд»: three at first, one more for each building opened after the book, and one for each order

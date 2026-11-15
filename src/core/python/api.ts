@@ -40,6 +40,8 @@ export const PYTHON_METHODS: ReadonlyArray<PythonMethod> = [
   { name: "pull", signature: "pull()", doc: "Потягнути важіль під героєм: увімкнути або вимкнути. Ворота відчиняються, коли всі важелі увімкнено.", block: "pull", action: "pull" },
   { name: "sow", signature: "sow()", doc: "Посіяти на порожній грядці під героєм. Урожай достигне за кілька ходів.", block: "sow", action: "sow" },
   { name: "feed", signature: "feed()", doc: "Нагодувати вівць гарбузом, який несеш: герой стоїть на годівниці. М'ясо буде там за кілька ходів.", block: "feed", action: "feed" },
+  { name: "chop", signature: "chop()", doc: "Рубати сокирою: взяти колоду з дерева під героєм. Дерево відросте вдвічі швидше, ніж після collect().", block: "chop", action: "chop" },
+  { name: "water", signature: "water()", doc: "Полити грядку під героєм, де росте гарбуз: він достигне вдвічі швидше.", block: "water", action: "water" },
   { name: "wall_ahead", signature: "wall_ahead()", doc: "True, якщо попереду стіна.", block: "wallAhead", sensor: "wallAhead" },
   { name: "item_here", signature: "item_here()", doc: "True, якщо тут щось лежить.", block: "onCrystal", sensor: "onCrystal" },
   { name: "at_finish", signature: "at_finish()", doc: "True, якщо герой дійшов до мети.", block: "atFinish", sensor: "atFinish" },
@@ -51,6 +53,9 @@ export const PYTHON_METHODS: ReadonlyArray<PythonMethod> = [
   { name: "lever_on", signature: "lever_on()", doc: "True, якщо важіль під героєм увімкнено.", block: "leverOn", sensor: "leverOn" },
   { name: "bed_empty", signature: "bed_empty()", doc: "True, якщо герой стоїть на грядці, де нічого не росте й не лежить.", block: "bedEmpty", sensor: "bedEmpty" },
   { name: "sheep_hungry", signature: "sheep_hungry()", doc: "True, якщо герой на годівниці, а вівці не їдять і м'яса там немає.", block: "sheepHungry", sensor: "sheepHungry" },
+  { name: "wood_ahead", signature: "wood_ahead()", doc: "True, якщо попереду дерево з колодою.", block: "woodAhead", sensor: "woodAhead" },
+  { name: "ripe_ahead", signature: "ripe_ahead()", doc: "True, якщо попереду грядка зі стиглим гарбузом.", block: "ripeAhead", sensor: "ripeAhead" },
+  { name: "item_ahead", signature: "item_ahead()", doc: "True, якщо в підзорну трубу видно річ: на одній із трьох клітинок попереду, до стіни.", block: "itemAhead", sensor: "itemAhead" },
   {
     name: "item_is",
     signature: 'item_is("carrot")',

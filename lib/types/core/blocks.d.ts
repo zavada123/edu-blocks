@@ -2,7 +2,7 @@ import type { BlockName, ItemKind } from "./level.ts";
 /** ID of the VM extension with the hero blocks. Opcodes in a program read `hero_move`. */
 export declare const HERO_EXTENSION_ID = "hero";
 export declare const HERO_COLOR = "#0FBD8C";
-export type HeroBlock = Extract<BlockName, "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "feed" | "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "itemIs" | "bedEmpty" | "sheepHungry">;
+export type HeroBlock = Extract<BlockName, "move" | "turnLeft" | "turnRight" | "collect" | "attack" | "store" | "wait" | "pull" | "sow" | "feed" | "chop" | "water" | "wallAhead" | "onCrystal" | "atFinish" | "enemyAhead" | "trapAhead" | "handsFull" | "atStorehouse" | "onLever" | "leverOn" | "itemIs" | "bedEmpty" | "sheepHungry" | "woodAhead" | "ripeAhead" | "itemAhead">;
 /** Hero blocks in palette order. `boolean` blocks are the questions for «якщо» and «повторити до». */
 /**
  * A hero block. `[ITEM]` in the text is a drop-down of the item kinds (`itemMenu`): the block keeps the choice in
