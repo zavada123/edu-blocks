@@ -20,6 +20,7 @@ import {
   priceText,
   runFarmDay
 } from "./farm.ts"
+import { dayRecord } from "./journal.ts"
 import { heroAct, heroCount, heroSense, newSession } from "./hero.ts"
 import { judgeField, scratchCompare } from "./judge.ts"
 import type { Level } from "./level.ts"
@@ -210,6 +211,15 @@ describe("помічник Тарас", () => {
     expect(report.stored.wood).toBe((worker?.stored.wood ?? 0) + (helper?.stored.wood ?? 0))
     expect(report.byTurn.at(-1)).toEqual(report.stored)
     expect(finishDay(state, report).stock.wood).toBe(7 + report.stored.wood)
+  })
+
+  test("the journal keeps the helper's part, and a new helper program is a new program of the day", () => {
+    const { report } = runFarmDay(state, crew, farmPalette(state, []))
+    const entry = dayRecord(state, report, crew, [])
+    expect(entry.helper).toEqual(report.workers?.[1]?.stored)
+    const other = dayRecord(state, report, { ...crew, helper: { language: "python", source: FOREST } }, [])
+    expect(other.print).not.toBe(entry.print)
+    expect(dayRecord(state, report, crew.worker, []).helper).toEqual(entry.helper)
   })
 
   test("«Двоє на хуторі» asks for both workers: one program alone does not do it", () => {
