@@ -1,6 +1,6 @@
 import type { Box } from "./python/boxes.ts";
 import { type Level } from "./level.ts";
-import { type Session } from "./program.ts";
+import { type RunResult, type Session } from "./program.ts";
 import { type Action, type ItemKind, type StockKind, type World } from "./world.ts";
 /**
  * The hero API: what a program may tell the hero to do and ask the hero about. Every way of programming calls
@@ -36,6 +36,24 @@ export interface ActionSource {
  * The caller then stops the program.
  */
 export declare const heroAct: (level: Level, session: Session, action: Action, source: ActionSource) => boolean;
+/**
+ * Where the actions of a program go. Alone on a level (`soloStage`) each action is a turn of the level. In a crew
+ * (`crew.ts`) the day asks every worker for one action a turn, and `session.world` is the world as this worker sees it.
+ */
+export interface Stage {
+    readonly session: Session;
+    /** The worker does the action. True when its run is over after it: `session.reason` says why. */
+    readonly act: (action: Action, source: ActionSource) => boolean;
+}
+/** A program alone on a level: its actions are the hero's (`heroAct`). */
+export declare const soloStage: (level: Level) => Stage;
+/**
+ * A program's run, step by step: it gives the turn away after each action that does not end it, and is resumed
+ * with true when its day is over all the same (a crew's day ended for another reason).
+ */
+export type ProgramSteps = Generator<void, RunResult, boolean>;
+/** Runs a program to its end, alone on its level. */
+export declare const runAlone: (run: ProgramSteps) => RunResult;
 /** A question to the world: a plain one, or «тут ‹…›?» with the kind chosen in the block. */
 export type Probe = Sensor | {
     readonly itemIs: ItemKind;

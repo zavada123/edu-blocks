@@ -17,6 +17,7 @@ export const GOLD_MINE_ART = ART("prop/gold-mine-active")
 export const BUILD_SITE_ART = ART("decor/sign-arrow")
 export const SECOND_BARN_ART = ART("prop/house-yellow")
 export const MILL_ART = ART("prop/house-red")
+export const HELPER_HOUSE_ART = ART("prop/wood-tower-yellow")
 const SHRUBS: ReadonlyArray<string> = [ART("decor/bush-small"), ART("decor/bush-medium"), ART("decor/rock-small"), ART("decor/grass-large")]
 
 export interface FarmLayout {
@@ -43,6 +44,8 @@ export interface FarmLayout {
   /** The second barn in the bottom-right corner, and the mill in the bottom-left one. */
   readonly barn?: boolean
   readonly mill?: boolean
+  /** «Хата помічника» above the top-right corner, where the helper starts the day. */
+  readonly helper?: boolean
 }
 
 /** Cells of meadow around the ring. */
@@ -66,6 +69,7 @@ export const farmLook = (layout: FarmLayout): { readonly tilemap: TileMap; reado
   const site = layout.site === true
   const barn = layout.barn === true
   const mill = layout.mill === true
+  const helper = layout.helper === true
   const width = Math.max(...rows.map((r) => r.length))
   const area = areaOf(width, rows.length)
   const ring = new Set<string>()
@@ -100,12 +104,14 @@ export const farmLook = (layout: FarmLayout): { readonly tilemap: TileMap; reado
   }
   if (barn) sprites.push({ asset: SECOND_BARN_ART, x: right - 1, y: bottom + 2 })
   if (mill) sprites.push({ asset: MILL_ART, x: -0.3, y: bottom + 2 })
+  if (helper) sprites.push({ asset: HELPER_HOUSE_ART, x: right + 1, y: top - 1 })
 
   // Cells kept free: the ring and what stands on it, the house, the tower and the hut.
   const busy = (x: number, y: number) =>
     (x >= (pen ? -1 : 0) && x <= right + 1 && y >= top - 1 && y <= bottom + 1) ||
     (mine && x >= 1 && x <= 3 && y === bottom + 2) ||
-    (barn && x >= right - 2 && x <= right && y === bottom + 2) || (mill && x >= -2 && x <= 1 && y >= bottom + 2 && y <= bottom + 3) || (tower !== null && Math.abs(x - tower.x) <= 1 && y >= tower.y - 2 && y <= tower.y)
+    (barn && x >= right - 2 && x <= right && y === bottom + 2) || (mill && x >= -2 && x <= 1 && y >= bottom + 2 && y <= bottom + 3) ||
+    (helper && x >= right && x <= right + 2 && y >= top - 2 && y <= top - 1) || (tower !== null && Math.abs(x - tower.x) <= 1 && y >= tower.y - 2 && y <= tower.y)
   for (let y = area.y; y < area.y + area.height; y++) {
     for (let x = area.x; x < area.x + area.width; x++) {
       if (busy(x, y)) continue

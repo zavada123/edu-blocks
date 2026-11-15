@@ -324,6 +324,8 @@ export interface Level {
   readonly site?: { readonly x: number; readonly y: number; readonly part: Readonly<Partial<Record<StockKind, number>>>; readonly left: number }
   /** The mill: «віднести на склад» there makes flour of the pumpkins the hero carries. */
   readonly mill?: Cell
+  /** The helpers of a crew: where each starts the day and where it looks. Each runs its own program (`crew.ts`). */
+  readonly helpers?: ReadonlyArray<Cell & { readonly dir: Direction }>
   /** The name of the custom block when the palette has «procedure». «мій блок» when left out. */
   readonly procedure?: string
   /**
@@ -442,7 +444,8 @@ export const startWorld = (level: Level): World => {
     towers,
     barn,
     site,
-    mill
+    mill,
+    crew: (level.helpers ?? []).map((h) => ({ hero: { x: h.x, y: h.y, dir: h.dir }, load: [], carrying: 0 }))
   }
 }
 

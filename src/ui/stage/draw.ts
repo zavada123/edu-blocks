@@ -636,8 +636,10 @@ const heroClip = (found: Art, spriteId: string, hero: HeroPose): { readonly clip
   return { clip: pickClip(sprite, ["idle"]) }
 }
 
-const heroFigure = (ctx: Ctx, hero: HeroPose, skin: Skin, now: number, still: boolean) => {
-  const spriteId = HERO_ART[skin]
+/** The helper of a crew: a worker of the pack in a straw-yellow shirt, whatever hero the student plays. */
+const HELPER_ART = "character/pawn-yellow"
+
+const heroFigure = (ctx: Ctx, hero: HeroPose, spriteId: string, now: number, still: boolean) => {
   const found = art(spriteId)
   const cx = hero.x * CELL + CELL / 2
   const cy = hero.y * CELL + CELL / 2
@@ -918,7 +920,8 @@ export const drawActors = (ctx: Ctx, input: ActorsInput) => {
       return { y: home.y, draw: () => sheepFigure(ctx, at, still ? 0 : now) }
     }),
     ...pose.enemies.map((e) => ({ y: e.y, draw: () => enemyFigure(ctx, e, pose.hero, now, still) })),
-    { y: pose.hero.y + 0.01, draw: () => heroFigure(ctx, pose.hero, skin, now, still) }
+    ...pose.crew.map((h) => ({ y: h.y + 0.005, draw: () => heroFigure(ctx, h, HELPER_ART, now, still) })),
+    { y: pose.hero.y + 0.01, draw: () => heroFigure(ctx, pose.hero, HERO_ART[skin], now, still) }
   ]
   for (const f of figures.sort((a, b) => a.y - b.y)) f.draw()
   // Roofs and crowns of the tile map cover the hero who walks under them.

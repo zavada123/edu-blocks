@@ -123,6 +123,15 @@ export type FarmProgram = {
     readonly language: "python";
     readonly source: string;
 };
+/** The helper who lives in «Хата помічника». */
+export declare const HELPER_NAME = "\u0422\u0430\u0440\u0430\u0441";
+/** The programs of a farm with a helper: the worker's and the helper's, each runs on its own worker. */
+export interface FarmCrew {
+    readonly worker: FarmProgram;
+    readonly helper: FarmProgram;
+}
+/** What a working day runs: the worker's program, or the programs of the worker and the helper. */
+export type FarmCode = FarmProgram | FarmCrew;
 /** What a working day brought, for the report under the field and for the orders. */
 export interface FarmReport {
     readonly day: number;
@@ -158,13 +167,23 @@ export interface FarmReport {
     /** The explanation of a mistake in the program, as the judge gives it. */
     readonly detail?: string;
     readonly line?: number;
+    /**
+     * On a farm with a helper: the report of each worker, the worker first. The report itself adds their yields up;
+     * its variables, trips and mistake are the worker's.
+     */
+    readonly workers?: ReadonlyArray<FarmReport>;
 }
 /** Reads the yield of a day from the frames: what each «взяти» took, and what each «віднести на склад» put down. */
 export declare const farmReport: (level: Level, result: RunResult, day: number) => FarmReport;
+/**
+ * The report of a crew's day: each worker's from its own frames, and their sum. The yield by turn adds up turn by
+ * turn: a worker whose program stopped keeps what it brought.
+ */
+export declare const crewReport: (level: Level, result: RunResult, day: number) => FarmReport;
 /** Whether one own block was called with different values: `calls` are like «пройти(6)», each once. */
 export declare const calledWithDifferentValues: (calls: ReadonlyArray<string>) => boolean;
 /** Runs the worker's program through one day of the farm. */
-export declare const runFarmDay: (state: FarmState, code: FarmProgram, blocks: ReadonlyArray<BlockName>, day?: number, goblins?: boolean) => {
+export declare const runFarmDay: (state: FarmState, code: FarmCode, blocks: ReadonlyArray<BlockName>, day?: number, goblins?: boolean) => {
     readonly level: Level;
     readonly result: RunResult;
     readonly report: FarmReport;
@@ -199,6 +218,8 @@ export interface FarmOrder {
     readonly bookPage?: boolean;
     /** The building that must stand before the order is open. */
     readonly building?: BuildingId;
+    /** Every worker of the crew must bring something to the barn: the helper's program counts too. */
+    readonly crew?: true;
 }
 export declare const FARM_ORDERS: ReadonlyArray<FarmOrder>;
 /** What an order asks besides the yield, in the words of its card. */
@@ -227,7 +248,7 @@ export interface OrderCheck {
  * day on, so a program that remembers one morning does not pass. «Ефективно» asks for it within `fast` turns, and
  * «Універсально» asks the same on five days of a farm with one more tree.
  */
-export declare const checkOrder: (state: FarmState, order: FarmOrder, code: FarmProgram, blocks: ReadonlyArray<BlockName>) => OrderCheck;
+export declare const checkOrder: (state: FarmState, order: FarmOrder, code: FarmCode, blocks: ReadonlyArray<BlockName>) => OrderCheck;
 /** The farm after an order was checked: its best grade, and what it opens. */
 export declare const recordOrder: (state: FarmState, order: FarmOrder, grade: number) => FarmState;
 /** What one more tree costs: the price grows with the forest, so a better program pays more than more days. */

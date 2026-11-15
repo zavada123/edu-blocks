@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest"
 import { buildProgram, type Step } from "../../core/build.ts"
-import { judgeProgram } from "../../core/judge.ts"
+import { runCrew } from "../../core/crew.ts"
+import { blocksRun, judgeProgram } from "../../core/judge.ts"
 import { type Level, startWorld } from "../../core/level.ts"
 import { cellKey } from "../../core/world.ts"
 import { ENEMY_PART, frameIndexAt, HERO_PART, poseAt } from "./playback.ts"
@@ -118,5 +119,21 @@ describe("poseAt", () => {
     expect(frameIndexAt(frames, 3)).toBe(2)
     expect(frameIndexAt(frames, 10)).toBe(2)
     expect(frameIndexAt([], 1)).toBe(-1)
+  })
+})
+
+describe("a crew", () => {
+  test("the helper walks in the hero's part of the frame and rests at its place between frames", () => {
+    const lvl = level(["#######", "#S....#", "#.....#", "#######"], { goals: [], turns: 2, helpers: [{ x: 5, y: 2, dir: "left" }] })
+    const program = buildProgram([{ repeat: 2, body: ["move"] }])
+    const result = runCrew(lvl, [(stage) => blocksRun(lvl, program, stage), (stage) => blocksRun(lvl, program, stage)])
+    const start = startWorld(lvl)
+    expect(poseAt(start, result.frames, 0).crew).toEqual([expect.objectContaining({ x: 5, y: 2, dir: "left", act: "idle" })])
+    const mid = poseAt(start, result.frames, 0.3).crew[0]
+    expect(mid?.act).toBe("walk")
+    expect(mid?.x).toBeGreaterThan(4)
+    expect(mid?.x).toBeLessThan(5)
+    expect(poseAt(start, result.frames, 2).crew[0]).toMatchObject({ x: 3, y: 2 })
+    expect(poseAt(start, result.frames, 2).hero).toMatchObject({ x: 3, y: 1 })
   })
 })

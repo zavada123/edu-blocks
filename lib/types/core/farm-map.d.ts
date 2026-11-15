@@ -6,6 +6,7 @@ export declare const GOLD_MINE_ART: string;
 export declare const BUILD_SITE_ART: string;
 export declare const SECOND_BARN_ART: string;
 export declare const MILL_ART: string;
+export declare const HELPER_HOUSE_ART: string;
 export interface FarmLayout {
     /** The map of the day: `#` walls and the ring of paths. */
     readonly rows: ReadonlyArray<string>;
@@ -33,6 +34,8 @@ export interface FarmLayout {
     /** The second barn in the bottom-right corner, and the mill in the bottom-left one. */
     readonly barn?: boolean;
     readonly mill?: boolean;
+    /** «Хата помічника» above the top-right corner, where the helper starts the day. */
+    readonly helper?: boolean;
 }
 export declare const farmLook: (layout: FarmLayout) => {
     readonly tilemap: TileMap;

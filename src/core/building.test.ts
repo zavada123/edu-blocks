@@ -8,11 +8,14 @@ import {
   farmPalette,
   type FarmReport,
   type FarmState,
+  FARM_ORDERS,
   finishDay,
   isBuilt,
   NEW_FARM,
+  metAt,
   NO_AMOUNTS,
   openOrders,
+  orderMisses,
   partsOf,
   priceText,
   runFarmDay
@@ -124,9 +127,9 @@ describe("будівництво на хуторі", () => {
   })
 
   test("the site builds what the student chose, one building at a time", () => {
-    expect(buildable(farm()).map((b) => b.id)).toEqual(["barn", "mill"])
+    expect(buildable(farm()).map((b) => b.id)).toEqual(["barn", "mill", "helper"])
     expect(buildable({ ...farm(), unlocked: ["beds"] })).toEqual([])
-    expect(chooseBuilding(farm(), "helper").building).toBeUndefined()
+    expect(chooseBuilding(farm({ parts: { helper: 5 } }), "helper").building).toBeUndefined()
     const chosen = chooseBuilding(farm(), "mill")
     expect(buildingNow(chosen)?.name).toBe("Млин")
     expect(priceText(buildingNow(chosen)?.part ?? {})).toBe("3 колоди і 1 золото")
@@ -172,5 +175,52 @@ describe("будівництво на хуторі", () => {
     const done = { wood: 1, "wood-3": 1, fair: 1, count: 1 }
     expect(openOrders(farm({ orders: done })).map((o) => o.id)).not.toContain("bakery")
     expect(openOrders(farm({ orders: done, parts: { mill: 4 } })).map((o) => o.id)).toContain("bakery")
+  })
+})
+
+describe("помічник Тарас", () => {
+  const RING = "while True:\n    if hero.item_here() and not hero.hands_full():\n        hero.collect()\n    if hero.bed_empty():\n        hero.sow()\n    if hero.at_storehouse():\n        hero.store()\n    if hero.enemy_ahead():\n        hero.attack()\n    elif hero.wall_ahead():\n        hero.turn_right()\n    else:\n        hero.move()\n"
+  // The worker stays in the forest by the barn; the helper goes round for the pumpkins.
+  const FOREST = "while True:\n    if hero.item_here() and not hero.hands_full():\n        hero.collect()\n    if hero.at_storehouse():\n        hero.store()\n    if hero.wall_ahead():\n        hero.turn_right()\n        hero.turn_right()\n    else:\n        hero.move()\n"
+  const state: FarmState = {
+    ...NEW_FARM,
+    day: 13,
+    unlocked: ["beds", "basket", "pen", "mine", "workshop", "site", "abacus"],
+    stock: { ...NO_AMOUNTS, wood: 7, gold: 2 },
+    orders: { wood: 1, "wood-3": 1, fair: 1, count: 1 },
+    parts: { helper: 5 }
+  }
+  const crew = { worker: { language: "python", source: FOREST }, helper: { language: "python", source: RING } } as const
+
+  test("the helper's house puts Тарас in the top-right corner, looking down", () => {
+    const level = farmDay(state, [])
+    const right = (level.map[1]?.length ?? 0) - 2
+    expect(level.helpers).toEqual([{ x: right, y: 1, dir: "down" }])
+    expect(level.task.join(" ")).toContain("Тарас")
+    expect(farmDay({ ...state, parts: {} }, []).helpers).toBeUndefined()
+  })
+
+  test("a day of two reports each worker and adds their yields up", () => {
+    const { report, result } = runFarmDay(state, crew, farmPalette(state, []))
+    expect(result.frames.every((f) => f.crew?.length === 1)).toBe(true)
+    expect(report.workers).toHaveLength(2)
+    const [worker, helper] = report.workers ?? []
+    expect(worker?.stored.pumpkin).toBe(0)
+    expect(helper?.stored.pumpkin).toBeGreaterThan(0)
+    expect(report.stored.wood).toBe((worker?.stored.wood ?? 0) + (helper?.stored.wood ?? 0))
+    expect(report.byTurn.at(-1)).toEqual(report.stored)
+    expect(finishDay(state, report).stock.wood).toBe(7 + report.stored.wood)
+  })
+
+  test("«Двоє на хуторі» asks for both workers: one program alone does not do it", () => {
+    const order = FARM_ORDERS.find((o) => o.id === "two")
+    if (order === undefined) throw new Error("no order")
+    expect(openOrders(state).map((o) => o.id)).toContain("two")
+    expect(openOrders({ ...state, parts: {} }).map((o) => o.id)).not.toContain("two")
+    const alone = runFarmDay(state, { language: "python", source: RING }, farmPalette(state, [])).report
+    expect(orderMisses(order, alone).join(" ")).toContain("Тарас за день нічого не приніс")
+    const together = runFarmDay(state, crew, farmPalette(state, [])).report
+    expect(orderMisses(order, together)).toEqual([])
+    expect(metAt(together, order.needs)).not.toBeNull()
   })
 })

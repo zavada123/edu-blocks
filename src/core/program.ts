@@ -43,6 +43,20 @@ export interface Frame {
   readonly line?: number
   /** The variables of the program after the move («Змінні»): Python, or blocks on a level with variables. */
   readonly boxes?: ReadonlyArray<Box>
+  /**
+   * On a level with a crew: what each helper did in this turn, after the hero, in the order of `level.helpers`.
+   * Null for a helper whose program had stopped. `world` is the world after every worker and the enemies.
+   */
+  readonly crew?: ReadonlyArray<CrewStep | null>
+}
+
+/** A helper's action in a turn of a crew. */
+export interface CrewStep {
+  readonly action: Action
+  readonly outcome: Outcome
+  readonly events: ReadonlyArray<GameEvent>
+  readonly blockId: string | null
+  readonly line?: number
 }
 
 export interface RunResult {
@@ -76,6 +90,11 @@ export interface RunResult {
   readonly field?: number
   /** On a level with more than one field: whether the program passed each field, in field order. */
   readonly fields?: ReadonlyArray<boolean>
+  /**
+   * On a level with a crew: the run of each worker's program, the hero first. Its frames are that worker's own
+   * actions, each with the world as the worker saw it right after (it stands as `hero` there).
+   */
+  readonly workers?: ReadonlyArray<RunResult>
 }
 
 interface ProgramBlock {

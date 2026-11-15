@@ -96,7 +96,25 @@ export interface World {
      * storehouse: «тут склад?» says no there, so a program that stores at every storehouse keeps its pumpkins.
      */
     readonly mill: Cell | null;
+    /**
+     * The other workers of a crew (`crew.ts`), the helper first: each with its own place and load. `hero` is the
+     * worker who acts now; on a level with one worker this is empty.
+     */
+    readonly crew: ReadonlyArray<Worker>;
 }
+/** A worker of a crew who does not act now: where it stands and what it carries. */
+export interface Worker {
+    readonly hero: Cell & {
+        readonly dir: Direction;
+    };
+    readonly load: ReadonlyArray<ItemKind>;
+    readonly carrying: number;
+}
+/**
+ * The world as worker `k` of the crew sees it: worker 0 is the hero of the level, worker k > 0 is `crew[k - 1]`.
+ * The same call again puts the workers back, so a helper acts with every rule of the hero and steps back after.
+ */
+export declare const asWorker: (world: World, k: number) => World;
 /** What the barn keeps: the things of the map, and the flour the mill makes of pumpkins. */
 export type StockKind = ItemKind | "flour";
 /** Flour: never lies on the map, the mill makes it of pumpkins and puts it in the barn. */
@@ -432,9 +450,16 @@ export interface ActionResult {
     readonly outcome: Outcome;
     readonly events: ReadonlyArray<GameEvent>;
 }
+/** The hero's own action, before the enemies, the towers and the crops take their turn (`worldTurn`). */
+export declare const heroAction: (world: World, action: Action) => ActionResult;
 /** The enemy sees the hero in its row or column, `sight` cells away or closer, with no wall between. */
 export declare const seesInLine: (world: World, self: Enemy) => boolean;
 /** Outcomes that end the run at once: the enemies do not move after them. */
 export declare const isFatal: (outcome: Outcome) => boolean;
 /** One hero action, then the enemies' turn. A crash, a trap or the end of the steps ends the run at once. */
 export declare const applyAction: (world: World, action: Action) => ActionResult;
+/** What happens after the hero's action, or after every worker of a crew acted: enemies, towers, crops. */
+export declare const worldTurn: (world: World) => {
+    readonly world: World;
+    readonly events: ReadonlyArray<GameEvent>;
+};

@@ -54,6 +54,8 @@ export interface StagePose {
     /** The world for the things that only switch: items, hearts, steps, broken ice. */
     readonly world: World;
     readonly hero: HeroPose;
+    /** The helpers of a crew, in the order of `World.crew`: each acts in the hero's part of the frame. */
+    readonly crew: ReadonlyArray<HeroPose>;
     readonly enemies: ReadonlyArray<EnemyPose>;
     readonly effects: ReadonlyArray<Effect>;
     /** The frame being played or the last one played, or null at the start. */

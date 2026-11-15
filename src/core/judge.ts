@@ -16,7 +16,7 @@ import {
   VARIABLE_OPCODE,
   VARIABLE_PRIMITIVE
 } from "./blocks.ts"
-import { actionOfOpcode, heroAct, heroCount, heroSense, newSession, sensorOfOpcode } from "./hero.ts"
+import { actionOfOpcode, heroCount, heroSense, type ProgramSteps, runAlone, sensorOfOpcode, soloStage, type Stage } from "./hero.ts"
 import { combineFields, levelFields } from "./fields.ts"
 import type { Level } from "./level.ts"
 import {
@@ -149,8 +149,14 @@ export const scratchCompare = (a: unknown, b: unknown): number => {
  * Runs a program on one field: the map of `level` only, without its other `fields`. The rules of the game live
  * here; `judgeProgram` runs it on every field of a level.
  */
-export const judgeField = (level: Level, own: Program): RunResult => {
-  const session = newSession(level)
+export const judgeField = (level: Level, own: Program): RunResult => runAlone(blocksRun(level, own, soloStage(level)))
+
+/**
+ * The run of a block program on a stage: alone on a level, or one worker of a crew. It gives the turn away after
+ * each action (`ProgramSteps`).
+ */
+export function* blocksRun(level: Level, own: Program, stage: Stage): ProgramSteps {
+  const { session } = stage
   const checked = checkProgram(level, own)
   if ("error" in checked) return resultOf(level, { ...session, reason: "badProgram" }, 0, { detail: checked.error })
   if (!checked.hasStart) return resultOf(level, { ...session, reason: "noStart" }, checked.blocks)
@@ -225,10 +231,11 @@ export const judgeField = (level: Level, own: Program): RunResult => {
     if (++steps > MAX_STEPS) throw new Stop("tooLong")
   }
 
-  const act = (action: Action, blockId: string) => {
+  function* act(action: Action, blockId: string): Generator<void, void, boolean> {
     const counter = counted ? { counter: String(variable([COUNTER_NAME, COUNTER_ID]).value) } : {}
     const boxes = shown ? { boxes: boxesNow() } : {}
-    if (heroAct(level, session, action, { blockId, ...counter, ...boxes })) throw new Stop(session.reason)
+    if (stage.act(action, { blockId, ...counter, ...boxes })) throw new Stop(session.reason)
+    if (yield) throw new Stop(session.reason)
   }
 
   /** A Boolean input: an empty slot is false, as in Scratch. */
@@ -307,10 +314,10 @@ export const judgeField = (level: Level, own: Program): RunResult => {
   }
 
   /** Runs the block on top of the stack. */
-  const execute = (thread: Thread, frame: StackFrame, block: Block, id: string): Signal => {
+  function* execute(thread: Thread, frame: StackFrame, block: Block, id: string): Generator<void, Signal, boolean> {
     const action = actionOfOpcode(block.opcode)
     if (action !== undefined) {
-      act(action, id)
+      yield* act(action, id)
       return "next"
     }
     switch (block.opcode) {
@@ -365,7 +372,7 @@ export const judgeField = (level: Level, own: Program): RunResult => {
   }
 
   /** One turn of a thread (`Sequencer.stepThread`). False when the thread is done. */
-  const stepThread = (thread: Thread): boolean => {
+  function* stepThread(thread: Thread): Generator<void, boolean, boolean> {
     current = thread
     for (;;) {
       const frame = thread.at(-1)
@@ -373,7 +380,7 @@ export const judgeField = (level: Level, own: Program): RunResult => {
       const block = blockAt(frame.id)
       if (block !== null && typeof frame.id === "string") {
         step()
-        const signal = execute(thread, frame, block, frame.id)
+        const signal = yield* execute(thread, frame, block, frame.id)
         if (signal === "yield") return true
         if (signal === "next") advance(frame, block)
       }
@@ -400,7 +407,9 @@ export const judgeField = (level: Level, own: Program): RunResult => {
     let alive = threads
     for (let pass = 0; alive.length > 0; pass++) {
       if (pass >= MAX_PASSES) throw new Stop("tooLong")
-      alive = alive.filter(stepThread)
+      const next: Array<Thread> = []
+      for (const thread of alive) if (yield* stepThread(thread)) next.push(thread)
+      alive = next
     }
   } catch (error) {
     if (!(error instanceof Stop)) throw error
