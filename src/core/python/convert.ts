@@ -126,6 +126,8 @@ export const solutionSource = (level: Level): string => {
  */
 export const programSource = (level: Level, program: Program): string => {
   const { scripts, definitions } = readProgram(program)
+  const book = bookSignatures(level)
+  const header = book.length === 0 ? [] : [`# Книга команд: ${book.join(", ")}`, ""]
   const procedure = identifier(procedureName(level))
   const uses = newUses()
   const defs = definitions.flatMap((d) => [...functionLines(level, d.name, d.params, d.body, procedure, uses), ""])
@@ -137,5 +139,29 @@ export const programSource = (level: Level, program: Program): string => {
         ? ["# Додай блоки під «коли прапорець натиснуто»."]
         : lines(first, "", procedure, uses)
   const note = others.length === 0 ? [] : ["", `# Ще скриптів «коли прапорець натиснуто»: ${others.length}. У Python програма одна, тут лише перший.`]
-  return [...startLines(uses), ...defs, ...main, ...note].join("\n")
+  return [...header, ...startLines(uses), ...defs, ...main, ...note].join("\n")
+}
+
+/** The definitions of the pages of «Книга команд» (`level.library`), each once, as `readProgram` reads them. */
+const libraryDefinitions = (level: Level) => {
+  const seen = new Set<string>()
+  return (level.library ?? [])
+    .flatMap((page) => readProgram(page).definitions.slice(0, 1))
+    .filter((d) => !seen.has(d.name) && (seen.add(d.name), true))
+}
+
+/** The functions of «Книга команд» as Python calls them: «пройти(кроки)». */
+export const bookSignatures = (level: Level): ReadonlyArray<string> =>
+  libraryDefinitions(level).map((d) => `${identifier(d.name)}(${d.params.map(identifier).join(", ")})`)
+
+/**
+ * «Книга команд» in Python: the start values of the variables its functions use, and a `def` for each page. A Python
+ * program runs after this code, so it calls them as built-in functions, and its own `def` of a name takes their place.
+ */
+export const librarySource = (level: Level): { readonly source: string; readonly names: ReadonlyArray<string> } => {
+  const pages = libraryDefinitions(level)
+  const uses = newUses()
+  const procedure = identifier(procedureName(level))
+  const defs = pages.flatMap((d) => functionLines(level, d.name, d.params, d.body, procedure, uses))
+  return { source: [...startLines(uses), ...defs].join("\n"), names: pages.map((d) => identifier(d.name)) }
 }

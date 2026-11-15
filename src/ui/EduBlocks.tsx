@@ -13,7 +13,8 @@ import { type FarmReport, farmReport } from "../core/farm.ts"
 import { judgeFields } from "../core/judge.ts"
 import { isPiece, joinPrograms, pieceBlockId, scriptCount } from "../core/pieces.ts"
 import type { FailReason, Program, RunResult } from "../core/program.ts"
-import { programSource } from "../core/python/convert.ts"
+import { librarySource, programSource } from "../core/python/convert.ts"
+import { type BookPage, calledBlocks, definedBlocks, pageInfo, pageOf, tearPage, writePage } from "../core/book.ts"
 import { createVm, projectFor, settle, withVmLock } from "../core/run.ts"
 import { useFields } from "./fields.ts"
 import { useFullScreen } from "./fullscreen.ts"
@@ -24,7 +25,7 @@ import { frameIndexAt } from "./stage/playback.ts"
 import type { Skin } from "./stage/Stage.tsx"
 import { gradePieces, JOIN_TIP, PiecesBar, usePieces } from "./pieces.tsx"
 import { usePlayer } from "./Timeline.tsx"
-import { type Made, NEW_BLOCK, NEW_VARIABLE, toolboxXml } from "./toolbox.ts"
+import { bookCallMutation, type Made, NEW_BLOCK, NEW_VARIABLE, OPEN_BOOK, toolboxXml } from "./toolbox.ts"
 import { type Ask, WorkshopDialog } from "./Workshop.tsx"
 import { draftOf, idsOf, mutationOf } from "./make-block.ts"
 import { Boxes } from "./Boxes.tsx"
@@ -72,9 +73,65 @@ export interface EduBlocksProps extends GameNavigation {
   readonly estate?: EstateRun
   /** A working day of the farm: `level` is its level (`farmDay`), and the result shows the report of the day. */
   readonly farm?: FarmRun
+  /**
+   * «Книга команд» of the farm, once the student has it: its pages take the place of `level.library` in the runs, the
+   * palette offers them, and «Записати в Книгу команд» on a «визначити» writes a page.
+   */
+  readonly book?: BookRun
   readonly onComplete?: (report: BlocksReport) => void
   /** After each change of the blocks, with the program as it is now. An app that has its own check button sends it. */
   readonly onProgramChange?: (program: Program) => void
+}
+
+/** «Книга команд» from the app: the pages, how many the book has, and the book after the student changes it. */
+export interface BookRun {
+  readonly pages: ReadonlyArray<BookPage>
+  readonly size: number
+  readonly onChange: (pages: ReadonlyArray<BookPage>) => void
+}
+
+/** What the context menus of own blocks do with «Книга команд» in the editor open now: null without a book. */
+let bookMenu: { readonly write: (proccode: string) => void; readonly open: () => void } | null = null
+
+interface MenuOption {
+  readonly text: string
+  readonly enabled: boolean
+  readonly callback: () => void
+}
+
+/** The parts of a «визначити» or a call the context menus read. */
+interface ProcedureBlock {
+  readonly isInFlyout?: boolean
+  readonly workspace: WorkspaceSvg & { readonly isFlyout?: boolean; readonly targetWorkspace?: WorkspaceSvg }
+  getInput(name: string): { readonly connection: { targetBlock(): { getProcCode(): string } | null } | null } | null
+  getProcCode(): string
+}
+
+type ContextMenu = { customContextMenu(this: ProcedureBlock, options: Array<MenuOption>): void }
+
+// The menu of a «визначити» gets «Записати в Книгу команд». A call of a block whose «визначити» is only in the book has
+// nothing to edit: «Правка» gives way to «Відкрити книгу». scratch-blocks copies these menus into each new block.
+const menus = (ScratchBlocks as unknown as { ScratchBlocks?: { VerticalExtensions?: Record<string, ContextMenu | undefined> } }).ScratchBlocks?.VerticalExtensions
+const defineMenu = menus?.PROCEDURE_DEF_CONTEXTMENU
+const callMenu = menus?.PROCEDURE_CALL_CONTEXTMENU
+if (defineMenu !== undefined) {
+  const base = defineMenu.customContextMenu
+  defineMenu.customContextMenu = function (options) {
+    base.call(this, options)
+    const proccode = this.getInput("custom_block")?.connection?.targetBlock()?.getProcCode()
+    if (bookMenu === null || proccode === undefined || this.isInFlyout === true) return
+    options.push({ text: "Записати в Книгу команд", enabled: true, callback: () => bookMenu?.write(proccode) })
+  }
+}
+if (callMenu !== undefined) {
+  const base = callMenu.customContextMenu
+  callMenu.customContextMenu = function (options) {
+    base.call(this, options)
+    const ws = this.workspace.isFlyout === true ? this.workspace.targetWorkspace : this.workspace
+    if (ws === undefined || ScratchBlocks.Procedures.getPrototypeBlock(this.getProcCode(), ws) !== null) return
+    options.pop()
+    if (bookMenu !== null) options.push({ text: "Відкрити книгу", enabled: true, callback: () => bookMenu?.open() })
+  }
 }
 
 /**
@@ -124,7 +181,7 @@ const madeIn = (ws: WorkspaceSvg): Made => ({
  * scratch-blocks asks for names and shows its messages with `prompt`, `alert` and `confirm` of the browser, and for a
  * new block with a window it does not have. The editor shows its own windows instead (`WorkshopDialog`).
  */
-const askInEditor = (ws: WorkspaceSvg, setAsk: (ask: Ask | null) => void) => {
+const askInEditor = (ws: WorkspaceSvg, setAsk: (ask: Ask | null) => void, bookBlocks: () => ReadonlyArray<string>) => {
   ScratchBlocks.prompt = (message, value, done) => setAsk({ kind: "text", message: message.replace(/:\s*$/, ""), value, done })
   ScratchBlocks.alert = (message, done) => setAsk({ kind: "alert", message, done: () => done?.() })
   ScratchBlocks.confirm = (message, done) => setAsk({ kind: "confirm", message, done })
@@ -136,7 +193,7 @@ const askInEditor = (ws: WorkspaceSvg, setAsk: (ask: Ask | null) => void) => {
     setAsk({
       kind: "block",
       draft,
-      taken: proccodes.filter((p) => p !== own),
+      taken: [...proccodes, ...bookBlocks()].filter((p) => p !== own),
       done: (made) => {
         if (made === null) {
           done(null)
@@ -236,6 +293,7 @@ export const EduBlocks = ({
   xp,
   estate,
   farm,
+  book,
   onComplete,
   onProgramChange,
   onMap,
@@ -276,6 +334,12 @@ export const EduBlocks = ({
   // The latest callback, so a new function from the app does not rebuild the editor.
   const onProgramChangeRef = useRef(onProgramChange)
   onProgramChangeRef.current = onProgramChange
+  // The book as the app has it now: a new book does not rebuild the editor, it changes the palette (`refreshRef`).
+  const bookRef = useRef(book)
+  bookRef.current = book
+  const refreshRef = useRef<(() => void) | null>(null)
+  /** The level with the pages of the book the student has now, for the runs and the Python view. */
+  const withBook = useCallback((l: Level): Level => (bookRef.current === undefined ? l : { ...l, library: bookRef.current.pages }), [])
   // «Як це в Python» under the blocks: open or closed stays across levels, the code follows each change of the blocks.
   const [peek, setPeek] = useState(loadPeek)
   const peekRef = useRef(peek)
@@ -320,14 +384,99 @@ export const EduBlocks = ({
     setAsk(null)
     // «Створити змінну» and «Створити блок»: the palette lists what the student made, and changes when it does.
     const workshop = level.blocks.includes("variables") || level.blocks.includes("myBlocks")
+    /** The pages of the book, with what each holds. */
+    const bookPages = () => (bookRef.current?.pages ?? []).flatMap((page) => {
+      const info = pageInfo(page)
+      return info === null ? [] : [{ page, info }]
+    })
+    /** What the student made, and the pages of the book the program does not define: the palette offers those. */
+    const madeNow = (): Made => {
+      const made = madeIn(ws)
+      if (bookRef.current === undefined) return made
+      const own = new Set(ScratchBlocks.Procedures.allProcedureMutations(ws).map((m) => m.getAttribute("proccode") ?? ""))
+      return { ...made, book: bookPages().filter((p) => !own.has(p.info.proccode)).map((p) => bookCallMutation(p.info.proccode, p.info.ids)) }
+    }
     const refreshToolbox = () => {
       if (!workshop) return
-      const next = toolboxXml(level.blocks, compact, procedureName(level), madeIn(ws))
+      const next = toolboxXml(level.blocks, compact, procedureName(level), madeNow())
       if (next === toolbox) return
       toolbox = next
       ws.updateToolbox(next)
     }
-    if (workshop) askInEditor(ws, setAsk)
+    refreshRef.current = refreshToolbox
+    if (workshop)
+      askInEditor(ws, setAsk, () => bookPages().map((p) => p.info.proccode))
+    // «Записати в Книгу команд»: the «визначити» goes from the program to a page, and the calls stay.
+    const writeToBook = (proccode: string) => {
+      const vm = vmRef.current
+      const current = bookRef.current
+      if (vm === null || current === undefined) return
+      const page = pageOf(heroProgram(vm), proccode)
+      const info = page === null ? null : pageInfo(page)
+      if (page === null || info === null) return
+      const next = writePage(current.pages, page, current.size)
+      if (next === null) {
+        setAsk({ kind: "alert", message: `Усі сторінки книги (${current.size}) зайняті. Відкрий книгу й вирви сторінку, якою не користуєшся.`, done: () => {} })
+        return
+      }
+      const at = current.pages.findIndex((p) => pageInfo(p)?.proccode === proccode)
+      setAsk({
+        kind: "bookWrite",
+        name: info.name,
+        params: info.params,
+        page: at >= 0 ? at + 1 : current.pages.length + 1,
+        size: current.size,
+        again: at >= 0,
+        done: (ok) => {
+          if (!ok) return
+          bookRef.current?.onChange(next)
+          ScratchBlocks.Procedures.getDefineBlock(proccode, ws)?.dispose(false)
+        }
+      })
+    }
+    // «Взяти на правку»: a copy of the page's «визначити» goes into the program, and wins over the page while it is there.
+    const takeFromBook = (proccode: string) => {
+      const page = bookPages().find((p) => p.info.proccode === proccode)?.page
+      if (page === undefined) return
+      void withVmLock(async () => {
+        const vm = vmRef.current
+        if (vm === null) return
+        const next = { ...page, ...heroProgram(vm) }
+        await vm.loadProject(projectFor(next))
+        await settle()
+        if (doneRef.current === null) onProgramChangeRef.current?.(next)
+      })
+    }
+    const openBook = () => {
+      const vm = vmRef.current
+      const current = bookRef.current
+      if (vm === null || current === undefined) return
+      const program = heroProgram(vm)
+      const defined = new Set(definedBlocks(program))
+      const called = new Set(calledBlocks(program))
+      const pages = bookPages().map(({ page, info }) => {
+        const source = librarySource({ ...level, library: [page] }).source
+        return {
+          proccode: info.proccode,
+          name: info.name,
+          params: info.params,
+          python: source.slice(Math.max(0, source.indexOf("def "))),
+          called: called.has(info.proccode) && !defined.has(info.proccode),
+          defined: defined.has(info.proccode)
+        }
+      })
+      setAsk({
+        kind: "book",
+        pages,
+        size: current.size,
+        take: takeFromBook,
+        tear: (proccode) => bookRef.current?.onChange(tearPage(bookRef.current.pages, proccode)),
+        done: () => {}
+      })
+    }
+    const menu = level.blocks.includes("myBlocks") ? { write: writeToBook, open: openBook } : null
+    bookMenu = menu
+    if (menu !== null) ws.registerButtonCallback(OPEN_BOOK, openBook)
     ws.addChangeListener((event: unknown) => {
       if (typeof event === "object" && event !== null && "type" in event && MADE_EVENTS.has(String(event.type))) refreshToolbox()
     })
@@ -350,7 +499,7 @@ export const EduBlocks = ({
       if (disposed) return
       ws.getFlyout()?.getWorkspace().addChangeListener(vm.flyoutBlockListener)
       const updatePeek = () => {
-        if (peekRef.current) setPeekSource(programSource(level, heroProgram(vm)))
+        if (peekRef.current) setPeekSource(programSource(withBook(level), heroProgram(vm)))
       }
       // The VM updates its blocks in its own listener, which runs first.
       ws.addChangeListener((event: unknown) => {
@@ -369,13 +518,19 @@ export const EduBlocks = ({
     observer.observe(el)
     return () => {
       disposed = true
+      if (bookMenu === menu) bookMenu = null
+      refreshRef.current = null
       observer.disconnect()
       vmRef.current = null
       glowRef.current = null
       workspaceRef.current = null
       ws.dispose()
     }
-  }, [level, media, large, doneRef])
+  }, [level, media, large, doneRef, withBook])
+
+  // A page written or torn: the palette lists the book as it is now.
+  const pages = book?.pages
+  useEffect(() => refreshRef.current?.(), [pages])
 
   const { seek, restart } = player
   const reset = useCallback(() => {
@@ -419,7 +574,7 @@ export const EduBlocks = ({
     const fieldRuns =
       before !== null && scriptCount(piece) > 1
         ? [{ ...combineFields(judgeFields(level, {})), reason: "badProgram" as const, detail: TWO_SCRIPTS }]
-        : judgeFields(level, prog)
+        : judgeFields(withBook(level), prog)
     const graded = gradePieces(level, combineFields(fieldRuns), before, large, "blocks")
     const result = graded.full
     const shown = result.field ?? 0
@@ -466,7 +621,7 @@ export const EduBlocks = ({
     setFieldIndex(shown)
     setResult(graded.shown)
     restart(graded.shown.frames.length)
-  }, [level, fields, large, onComplete, reset, restart, setFieldIndex, setRuns, xp, coins, estate, farm, doneRef])
+  }, [level, fields, large, onComplete, reset, restart, setFieldIndex, setRuns, xp, coins, estate, farm, doneRef, withBook])
 
   /** Puts a program into the editor, as the student would have built it. */
   const loadProgram = useCallback(
@@ -525,8 +680,8 @@ export const EduBlocks = ({
     setPeek(open)
     savePeek(open)
     const vm = vmRef.current
-    if (open && vm !== null) setPeekSource(programSource(level, heroProgram(vm)))
-  }, [level])
+    if (open && vm !== null) setPeekSource(programSource(withBook(level), heroProgram(vm)))
+  }, [level, withBook])
 
   const running = phase.kind === "running"
   const navigation = { onMap, onLevel, progress, onSkinChange, ownedHeroes, onBuyHero }

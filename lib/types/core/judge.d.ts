@@ -23,7 +23,7 @@ export declare const MAX_CALL_DEPTH: number;
  * Runs a program on one field: the map of `level` only, without its other `fields`. The rules of the game live
  * here; `judgeProgram` runs it on every field of a level.
  */
-export declare const judgeField: (level: Level, program: Program) => RunResult;
+export declare const judgeField: (level: Level, own: Program) => RunResult;
 /** Runs a program on every field of the level (`levelFields`): one result for each field, in order. */
 export declare const judgeFields: (level: Level, program: Program) => ReadonlyArray<RunResult>;
 /** Grades a program: it passes only when it passes every field of the level (see `combineFields`). */

@@ -2,6 +2,7 @@ import type { Level } from "../core/level.ts";
 import { type Harvest } from "../core/estate.ts";
 import { type FarmReport } from "../core/farm.ts";
 import type { FailReason, Program } from "../core/program.ts";
+import { type BookPage } from "../core/book.ts";
 import { type GameNavigation } from "./GameScreen.tsx";
 import type { Skin } from "./stage/Stage.tsx";
 import { type EstateRun, type FarmRun, type HeroXp } from "./Verdict.tsx";
@@ -44,8 +45,19 @@ export interface EduBlocksProps extends GameNavigation {
     readonly estate?: EstateRun;
     /** A working day of the farm: `level` is its level (`farmDay`), and the result shows the report of the day. */
     readonly farm?: FarmRun;
+    /**
+     * «Книга команд» of the farm, once the student has it: its pages take the place of `level.library` in the runs, the
+     * palette offers them, and «Записати в Книгу команд» on a «визначити» writes a page.
+     */
+    readonly book?: BookRun;
     readonly onComplete?: (report: BlocksReport) => void;
     /** After each change of the blocks, with the program as it is now. An app that has its own check button sends it. */
     readonly onProgramChange?: (program: Program) => void;
 }
-export declare const EduBlocks: ({ level, skin, large, program, media, speed, xp, estate, farm, onComplete, onProgramChange, onMap, onNext, onLevel, progress, onSkinChange, coins, ownedHeroes, onBuyHero }: EduBlocksProps) => import("react").JSX.Element;
+/** «Книга команд» from the app: the pages, how many the book has, and the book after the student changes it. */
+export interface BookRun {
+    readonly pages: ReadonlyArray<BookPage>;
+    readonly size: number;
+    readonly onChange: (pages: ReadonlyArray<BookPage>) => void;
+}
+export declare const EduBlocks: ({ level, skin, large, program, media, speed, xp, estate, farm, book, onComplete, onProgramChange, onMap, onNext, onLevel, progress, onSkinChange, coins, ownedHeroes, onBuyHero }: EduBlocksProps) => import("react").JSX.Element;

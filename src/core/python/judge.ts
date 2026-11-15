@@ -9,6 +9,7 @@ import { type Box, boxesOf } from "./boxes.ts"
 import { missingIdea, missingPrint } from "./ideas.ts"
 import { execute, Halt, type PyHost } from "./interpreter.ts"
 import { parse } from "./parser.ts"
+import { librarySource } from "./convert.ts"
 import { programSize } from "./size.ts"
 import { repr, str } from "./values.ts"
 
@@ -19,6 +20,13 @@ import { repr, str } from "./values.ts"
 
 /** Lines of `print` kept for the student. */
 export const MAX_OUTPUT_LINES = 200
+
+/** A tree of code with every line set to 0. */
+const onLine0 = (node: unknown): unknown => {
+  if (Array.isArray(node)) return node.map(onLine0)
+  if (typeof node !== "object" || node === null || node instanceof Set) return node
+  return Object.fromEntries(Object.entries(node).map(([k, v]) => [k, k === "line" ? 0 : onLine0(v)]))
+}
 
 /** Runs a Python program on one field: the map of `level` only, without its other `fields`. */
 export const judgePythonField = (level: Level, source: string): RunResult => {
@@ -32,6 +40,11 @@ export const judgePythonField = (level: Level, source: string): RunResult => {
   }
   const size = programSize(program)
   if (program.length === 0) return resultOf(level, { ...session, reason: "noStart" }, 0)
+  // «Книга команд» runs before the program, on line 0 so that no line of the student lights up for it.
+  const library = librarySource(level)
+  const own = new Set(program.flatMap((s) => (s.k === "def" ? [s.name] : [])))
+  const fromBook = new Set(library.names.filter((n) => !own.has(n)))
+  const libraryBody = library.source === "" ? [] : (onLine0(parse(library.source)) as Body)
 
   const output: Array<string> = []
   const answers = level.inputs ?? []
@@ -41,6 +54,7 @@ export const judgePythonField = (level: Level, source: string): RunResult => {
   // where the student makes variables: there an order can ask what one holds at the end.
   const keepBoxes = level.language === "python" || level.blocks.includes("variables")
   const calls = new Set<string>()
+  const bookCalls = new Set<string>()
   const counted = level.blocks.includes("counter")
   // On a level that asks to print, the program goes on after the hero meets the goals, so the print at its end runs.
   const printsAtEnd = level.prints !== undefined || (level.uses ?? []).includes("print")
@@ -61,6 +75,7 @@ export const judgePythonField = (level: Level, source: string): RunResult => {
     },
     called: (name, args) => {
       calls.add(`${name}(${args.map((a) => str(a)).join(", ")})`)
+      if (fromBook.has(name)) bookCalls.add(name)
     },
     input: (prompt, line) => {
       const answer = answers[asked]
@@ -75,11 +90,12 @@ export const judgePythonField = (level: Level, source: string): RunResult => {
   const printed = () => ({
     ...(output.length === 0 ? {} : { output }),
     ...(boxes.length === 0 ? {} : { boxes }),
-    ...(calls.size === 0 ? {} : { calls: [...calls] })
+    ...(calls.size === 0 ? {} : { calls: [...calls] }),
+    ...(bookCalls.size === 0 ? {} : { bookCalls: [...bookCalls] })
   })
 
   try {
-    execute(program, host)
+    execute([...libraryBody, ...program], host)
   } catch (error) {
     if (error instanceof Halt) {
       if (!session.done) session.reason = "tooLong"

@@ -46,6 +46,11 @@ export interface Made {
   readonly variables: ReadonlyArray<{ readonly id: string; readonly name: string }>
   /** The mutation of each own block's prototype, as XML text: the palette offers a call of each. */
   readonly blocks: ReadonlyArray<string>
+  /**
+   * «Книга команд», when the student has it: a call of each page the program does not define itself, as XML text of
+   * its mutation (`bookCallMutation`). The palette offers them under «З книги», with a button that opens the book.
+   */
+  readonly book?: ReadonlyArray<string>
 }
 
 export const NOTHING_MADE: Made = { variables: [], blocks: [] }
@@ -53,6 +58,13 @@ export const NOTHING_MADE: Made = { variables: [], blocks: [] }
 /** The callback keys of the palette buttons. */
 export const NEW_VARIABLE = "eb-new-variable"
 export const NEW_BLOCK = "eb-new-block"
+export const OPEN_BOOK = "eb-open-book"
+
+/** The mutation of a call of a page of the book, as XML text: its words with slots, and the ids of the slots. */
+export const bookCallMutation = (proccode: string, ids: ReadonlyArray<string>): string => {
+  const list = (items: ReadonlyArray<string>) => escapeXml(JSON.stringify(items))
+  return `<mutation proccode="${escapeXml(proccode)}" argumentids="${list(ids)}" warp="false"></mutation>`
+}
 
 /** «Створити змінну», then «задати», «змінити» and a reporter for each variable the student has. */
 const variablesXml = (variables: Made["variables"]): string => {
@@ -69,9 +81,19 @@ const variablesXml = (variables: Made["variables"]): string => {
   ].join("")
 }
 
-/** «Створити блок», then a call of each own block. */
-const myBlocksXml = (blocks: Made["blocks"]): string =>
-  [`<button text="Створити блок" callbackKey="${NEW_BLOCK}"/>`, ...blocks.map((m) => `<block type="${CALL_OPCODE}" gap="16">${m}</block>`)].join("")
+/** «Створити блок», then a call of each own block, then «Книга команд» and a call of each of its pages. */
+const myBlocksXml = (blocks: Made["blocks"], book: Made["book"]): string =>
+  [
+    `<button text="Створити блок" callbackKey="${NEW_BLOCK}"/>`,
+    ...blocks.map((m) => `<block type="${CALL_OPCODE}" gap="16">${m}</block>`),
+    ...(book === undefined
+      ? []
+      : [
+          `<button text="Книга команд" callbackKey="${OPEN_BOOK}"/>`,
+          ...(book.length === 0 ? [] : ['<label text="З книги"/>']),
+          ...book.map((m) => `<block type="${CALL_OPCODE}" gap="16">${m}</block>`)
+        ])
+  ].join("")
 
 /** The «визначити» hat of the level's custom block and its call. The student does not make new ones. */
 const procedureXml = (name: string): string => {
@@ -99,7 +121,7 @@ export const toolboxXml = (palette: ReadonlyArray<BlockName>, flat = false, proc
   const operators = OPERATOR_ORDER.filter((n) => has.has(n)).map(blockXml).join("")
   // With «Створити змінну» the counter is one of the student's variables.
   const variables = has.has("variables") ? variablesXml(made.variables) : has.has("counter") ? counterXml : ""
-  const myBlocks = [has.has("procedure") ? procedureXml(procedure) : "", has.has("myBlocks") ? myBlocksXml(made.blocks) : ""].join("")
+  const myBlocks = [has.has("procedure") ? procedureXml(procedure) : "", has.has("myBlocks") ? myBlocksXml(made.blocks, made.book) : ""].join("")
   if (flat) return `<xml style="display: none">${hero}${control}${operators}${variables}${myBlocks}<block type="event_whenflagclicked"/></xml>`
   return [
     "<xml style=\"display: none\">",

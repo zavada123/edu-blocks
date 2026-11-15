@@ -1,6 +1,8 @@
 import { describe, expect, test } from "vitest"
+import { BOOK_PAGES, type BookPage, pageOf } from "./book.ts"
 import { buildProgram, type Step } from "./build.ts"
 import {
+  bookSize,
   canPlantTree,
   checkOrder,
   DAY_TURNS,
@@ -211,6 +213,27 @@ while True:
     працювати(3)
 `)
 
+/** «працювати (ходів)» of «Підряд теслі» in blocks: the page a student writes in «Книга команд». */
+const WORK_BODY: ReadonlyArray<Step> = [
+  {
+    repeat: { param: "ходів" },
+    body: [
+      { if: { and: ["onCrystal", { not: "handsFull" }] }, then: ["collect"] },
+      { if: "bedEmpty", then: ["sow"] },
+      { if: "atStorehouse", then: ["store"] },
+      { if: "enemyAhead", then: ["attack"], else: [{ if: "wallAhead", then: ["turnRight"], else: ["move"] }] }
+    ]
+  }
+]
+const WORK_STEPS: ReadonlyArray<Step> = [{ forever: [{ call: "працювати", args: [5] }, { call: "працювати", args: [3] }] }]
+const CARPENTER_BLOCKS = buildProgram(WORK_STEPS, { name: "працювати", params: ["ходів"], body: WORK_BODY })
+const WORK_PAGE = pageOf(CARPENTER_BLOCKS, "працювати %s") as BookPage
+/** «Сад і поле»: the program only calls the block of the book. */
+const FROM_BOOK = python(`while True:
+    працювати(5)
+    працювати(3)
+`)
+
 /** The first ring of a new farm: only the blocks the farm gives before anything is built. */
 const WOOD_RING = python(`while True:
     if hero.item_here() and not hero.hands_full():
@@ -409,14 +432,16 @@ describe("orders", () => {
   test("every order can be done with the tools the orders before it open", () => {
     let state = NEW_FARM
     for (const o of FARM_ORDERS) {
-      const programs = [WOOD_RING, RING, SHUTTLE, PUMPKINS, SHEPHERD, goldLaps("laps == 1 or laps == 2"), goldLaps("laps == 1"), TALLY, CARPENTER]
+      const programs = [WOOD_RING, RING, SHUTTLE, PUMPKINS, SHEPHERD, goldLaps("laps == 1 or laps == 2"), goldLaps("laps == 1"), TALLY, CARPENTER, FROM_BOOK]
+      // The student writes «працювати» in the book once «Облік ходок» opened it.
+      if (o.fromBook === true) state = { ...state, book: [WORK_PAGE] }
       // Only the blocks the farm itself gives: a student who skipped the course can do every order.
       const palette = farmPalette(state, [])
       const best = Math.max(...programs.map((p) => checkOrder(state, o, p, palette).grade))
       expect(best, o.id).toBeGreaterThan(0)
       state = recordOrder(state, o, best)
     }
-    expect(state.unlocked).toEqual(["beds", "basket", "tower", "longDay", "cart", "pen", "mine", "workshop"])
+    expect(state.unlocked).toEqual(["beds", "basket", "tower", "longDay", "cart", "pen", "mine", "workshop", "book"])
   })
 
   test("a lower grade later does not take back a better one", () => {
@@ -749,11 +774,46 @@ while True:
         ]
       }
     ]
-    const program = {
-      language: "blocks",
-      program: buildProgram([{ forever: [{ call: "працювати", args: [5] }, { call: "працювати", args: [3] }] }], { name: "працювати", params: ["ходів"], body })
-    } as const
+    const program = { language: "blocks", program: buildProgram(WORK_STEPS, { name: "працювати", params: ["ходів"], body }) } as const
     expect(runFarmDay(built, program, palette).report.ownBlock).toBe(true)
     expect(checkOrder(built, order("carpenter"), program, palette).grade).toBeGreaterThan(0)
+  })
+})
+
+describe("Книга команд", () => {
+  const built = withUnlocks("beds", "basket", "tower", "longDay", "cart", "pen", "mine", "workshop", "book")
+  const palette = farmPalette(built, [])
+  const withBook: FarmState = { ...built, book: [WORK_PAGE] }
+
+  test("«Облік ходок» opens the book with three pages, and «Сад і поле» gives one more", () => {
+    expect(order("tally").unlocks).toBe("book")
+    expect(bookSize(withUnlocks("workshop"))).toBe(0)
+    expect(bookSize(built)).toBe(BOOK_PAGES)
+    expect(bookSize({ ...built, orders: { "garden-field": 1 } })).toBe(BOOK_PAGES + 1)
+  })
+
+  test("a day of the farm gives its pages to the program, in blocks and in Python", () => {
+    expect(farmDay(withBook, palette).library).toEqual([WORK_PAGE])
+    expect(farmDay({ ...withBook, unlocked: built.unlocked.filter((u) => u !== "book") }, palette).library).toBeUndefined()
+    // The program after «Записати в книгу»: the calls stay, the «визначити» is in the book.
+    const calls = { language: "blocks", program: Object.fromEntries(Object.entries(CARPENTER_BLOCKS).filter(([id]) => !Object.hasOwn(WORK_PAGE, id))) } as const
+    const blocks = runFarmDay(withBook, calls, palette).report
+    const own = runFarmDay(built, { language: "blocks", program: CARPENTER_BLOCKS }, palette).report
+    expect(blocks.stored).toEqual(own.stored)
+    expect(blocks.fromBook).toBe(true)
+    expect(own.fromBook).toBe(false)
+    const py = runFarmDay(withBook, FROM_BOOK, palette).report
+    expect(py.stored).toEqual(own.stored)
+    expect(py.fromBook).toBe(true)
+    // A program that defines the block again does not call the book.
+    expect(runFarmDay(withBook, CARPENTER, palette).report.fromBook).toBe(false)
+  })
+
+  test("«Сад і поле» asks for a block of the book, not one defined again", () => {
+    const garden = order("garden-field")
+    expect(orderRules(garden)).toEqual(["виклик блоку з Книги команд, не визначеного в програмі заново"])
+    expect(checkOrder(withBook, garden, FROM_BOOK, palette).grade).toBeGreaterThan(0)
+    expect(checkOrder(withBook, garden, CARPENTER, palette).grade).toBe(0)
+    expect(orderMisses(garden, runFarmDay(withBook, CARPENTER, palette).report, "python")[0]).toMatch(/не пиши для неї свій def/)
   })
 })

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest"
-import { toolboxXml } from "./toolbox.ts"
+import { bookCallMutation, toolboxXml } from "./toolbox.ts"
 
 describe("toolboxXml", () => {
   test("shows only the blocks of the level, in categories", () => {
@@ -55,5 +55,15 @@ describe("toolboxXml: «Створити змінну» and «Створити �
     const xml = toolboxXml(["move", "myBlocks"], true, undefined, { variables: [], blocks: [mutation] })
     expect(xml).toContain('callbackKey="eb-new-block"')
     expect(xml).toContain(`<block type="procedures_call" gap="16">${mutation}</block>`)
+  })
+
+  test("with «Книга команд»: a button that opens it, and a call of each page under «З книги»", () => {
+    const page = bookCallMutation("пройти %s", ["a"])
+    expect(page).toBe('<mutation proccode="пройти %s" argumentids="[&quot;a&quot;]" warp="false"></mutation>')
+    const xml = toolboxXml(["move", "myBlocks"], true, undefined, { variables: [], blocks: [], book: [page] })
+    expect(xml).toContain('callbackKey="eb-open-book"')
+    expect(xml).toContain(`<label text="З книги"/><block type="procedures_call" gap="16">${page}</block>`)
+    expect(toolboxXml(["move", "myBlocks"], true, undefined, { variables: [], blocks: [], book: [] })).not.toContain("З книги")
+    expect(toolboxXml(["move", "myBlocks"], true, undefined, { variables: [], blocks: [] })).not.toContain("eb-open-book")
   })
 })
