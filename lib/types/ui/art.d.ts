@@ -51,9 +51,18 @@ export declare const FINISH_ART: Readonly<Record<FinishKind, Look | null>>;
 export declare const POINTER_ART = "ui/pointer-select";
 export declare const WATER_ART = "tileset/water";
 export declare const SPRING_ROCKS_ART = "terrain/water-rocks-2";
+export declare const FOAM_ART = "terrain/foam";
 export declare const FIRE_ART = "effect/fire";
 export declare const DEAD_ART = "effect/dead";
 export declare const TREE_ART = "decor/tree";
+/**
+ * Trees of the Free Pack: two firs and a birch, all swaying in the wind; in autumn the birch turns yellow. Where the
+ * Free Pack is not served, every tree is the fir of the public pack.
+ */
+export declare const TREES: ReadonlyArray<string>;
+export declare const AUTUMN_BIRCH = "decor/tree-4";
+/** Bushes of the Free Pack that sway in the wind, in place of the still bushes of the public pack. */
+export declare const SWAYING_BUSHES: ReadonlyArray<string>;
 export declare const GROUND_ART = "tileset/ground";
 export declare const BRIDGE_ART = "tileset/bridge";
 export declare const COIN_ART = "item/gold";

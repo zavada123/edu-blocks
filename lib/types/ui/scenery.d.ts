@@ -28,6 +28,16 @@ export interface Scenery {
     readonly decor: ReadonlyArray<At & {
         readonly kind: Decor;
     }>;
+    /** Cells of water: ponds and the sea, with nothing growing there (see water.ts). */
+    readonly water: ReadonlySet<string>;
+    /**
+     * Raised ground in the meadow, as the plateaus of Tiny Swords: the grass on top, by keys. Under the bottom row of
+     * each plateau a cliff wall stands in the cell below (`cliffs`).
+     */
+    readonly plateau: ReadonlySet<string>;
+    readonly cliffs: ReadonlySet<string>;
+    /** Where sheep graze in the meadow: each walks between its cell and the cell to the right of it. */
+    readonly sheep: ReadonlyArray<At>;
 }
 /** A small integer hash of a cell: the same cell always gets the same number. */
 export declare const cellHash: (x: number, y: number, salt?: number) => number;
@@ -36,6 +46,8 @@ export interface SceneryOptions {
     readonly reserved?: ReadonlySet<string>;
     /** Walls of the level stay bare, as the water under a bridge. The meadow still gets its scenery. */
     readonly bareWalls?: boolean;
+    /** Cells of water: no tree, bush or flower there. */
+    readonly water?: ReadonlySet<string>;
 }
-export declare const buildScenery: (world: Pick<World, "width" | "height" | "walls" | "finish">, { reserved, bareWalls }?: SceneryOptions) => Scenery;
+export declare const buildScenery: (world: Pick<World, "width" | "height" | "walls" | "finish">, { reserved, bareWalls, water }?: SceneryOptions) => Scenery;
 export {};
