@@ -11,6 +11,11 @@ updates:
     groups:
       npm-minor-patch:
         update-types: ["minor", "patch"]
+    ignore:
+      # scratch-blocks 2 переписано на Blockly 12 (ESM, інший API, немає dist/vertical.js),
+      # а scratch-vm (TurboWarp) працює з XML scratch-blocks 1. Перехід — окрема задача, не оновлення.
+      - dependency-name: "scratch-blocks"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
