@@ -8,6 +8,7 @@ import {
   DAY_TURNS,
   FARM_ORDERS,
   type FarmOrder,
+  type FarmCode,
   type FarmProgram,
   type FarmState,
   farmCapacity,
@@ -56,6 +57,37 @@ const BARE_RING = python(`while True:
     else:
         hero.move()
 `)
+
+/** Two workers: the worker stays in the forest by the barn and beats goblins, the helper goes round for pumpkins. */
+const CREW = {
+  worker: python(`while True:
+    if hero.item_here() and not hero.hands_full():
+        hero.collect()
+    if hero.at_storehouse():
+        hero.store()
+    if hero.enemy_ahead():
+        hero.attack()
+    elif hero.wall_ahead():
+        hero.turn_right()
+        hero.turn_right()
+    else:
+        hero.move()
+`),
+  helper: python(`while True:
+    if hero.item_here() and not hero.hands_full():
+        hero.collect()
+    if hero.bed_empty():
+        hero.sow()
+    if hero.at_storehouse():
+        hero.store()
+    if hero.enemy_ahead():
+        hero.attack()
+    elif hero.wall_ahead():
+        hero.turn_right()
+    else:
+        hero.move()
+`)
+}
 
 /** The same ring that beats a goblin in its way. */
 const RING = python(`while True:
@@ -445,7 +477,7 @@ describe("orders", () => {
   test("every order can be done with the tools the orders before it open", () => {
     let state = NEW_FARM
     for (const o of FARM_ORDERS) {
-      const programs = [WOOD_RING, RING, SHUTTLE, PUMPKINS, SHEPHERD, goldLaps("laps == 1 or laps == 2"), goldLaps("laps == 1"), TALLY, CARPENTER, FROM_BOOK, MILLER]
+      const programs: ReadonlyArray<FarmCode> = [WOOD_RING, RING, SHUTTLE, PUMPKINS, SHEPHERD, goldLaps("laps == 1 or laps == 2"), goldLaps("laps == 1"), TALLY, CARPENTER, FROM_BOOK, MILLER, CREW]
       // The student writes «працювати» in the book once «Облік ходок» opened it.
       if (o.fromBook === true) state = { ...state, book: [WORK_PAGE] }
       // The student builds what an order needs on the site.

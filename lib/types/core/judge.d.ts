@@ -1,3 +1,4 @@
+import { type ProgramSteps, type Stage } from "./hero.ts";
 import type { Level } from "./level.ts";
 import { type Program, type RunResult } from "./program.ts";
 /**
@@ -26,6 +27,11 @@ export declare const scratchCompare: (a: unknown, b: unknown) => number;
  * here; `judgeProgram` runs it on every field of a level.
  */
 export declare const judgeField: (level: Level, own: Program) => RunResult;
+/**
+ * The run of a block program on a stage: alone on a level, or one worker of a crew. It gives the turn away after
+ * each action (`ProgramSteps`).
+ */
+export declare function blocksRun(level: Level, own: Program, stage: Stage): ProgramSteps;
 /** Runs a program on every field of the level (`levelFields`): one result for each field, in order. */
 export declare const judgeFields: (level: Level, program: Program) => ReadonlyArray<RunResult>;
 /** Grades a program: it passes only when it passes every field of the level (see `combineFields`). */

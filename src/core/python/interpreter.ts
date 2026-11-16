@@ -85,7 +85,11 @@ const textCall = (name: TextMethodName, text: string, args: ReadonlyArray<Value>
   }
 }
 
-export const execute = (program: Body, host: PyHost): void => new Interpreter(host).run(program)
+/** The interpreter's work, step by step: it gives the turn away after each action of the hero (`ProgramSteps`). */
+type Steps<T> = Generator<void, T, boolean>
+
+/** Runs a program. It gives the turn away after each action, and stops (`Halt`) when resumed with true. */
+export const execute = (program: Body, host: PyHost): Steps<void> => new Interpreter(host).run(program)
 
 class Interpreter {
   private steps = 0
@@ -98,9 +102,9 @@ class Interpreter {
     this.builtins = makeBuiltins({ print: host.print, input: host.input })
   }
 
-  run(program: Body) {
+  *run(program: Body): Steps<void> {
     try {
-      this.block(program)
+      yield* this.block(program)
     } catch (signal) {
       if (signal instanceof BreakSignal || signal instanceof ContinueSignal) throw new PyError("break і continue працюють тільки всередині циклу", 1)
       if (signal instanceof ReturnSignal) throw new PyError("return працює тільки всередині функції", 1)
@@ -116,30 +120,32 @@ class Interpreter {
 
   // Statements
 
-  private block(body: Body) {
-    for (const s of body) this.statement(s)
+  private *block(body: Body): Steps<void> {
+    for (const s of body) yield* this.statement(s)
   }
 
-  private statement(s: Stmt) {
+  private *statement(s: Stmt): Steps<void> {
     this.tick()
     switch (s.k) {
       case "expr":
-        return this.expressionStatement(s.expr)
+        return yield* this.expressionStatement(s.expr)
       case "assign":
-        return this.assign(s.target, this.eval(s.value))
-      case "augassign":
-        return this.assign(s.target, binary(s.op, this.eval(s.target), this.eval(s.value), s.line))
+        return yield* this.assign(s.target, yield* this.eval(s.value))
+      case "augassign": {
+        const old = yield* this.eval(s.target)
+        return yield* this.assign(s.target, binary(s.op, old, yield* this.eval(s.value), s.line))
+      }
       case "if":
-        return this.block(truthy(this.eval(s.test)) ? s.body : s.orelse)
+        return yield* this.block(truthy(yield* this.eval(s.test)) ? s.body : s.orelse)
       case "while":
-        return this.whileLoop(s)
+        return yield* this.whileLoop(s)
       case "for":
-        return this.forLoop(s)
+        return yield* this.forLoop(s)
       case "def":
-        return this.assign({ k: "name", id: s.name, line: s.line }, { type: "function", def: s })
+        return yield* this.assign({ k: "name", id: s.name, line: s.line }, { type: "function", def: s })
       case "return":
         if (this.scope === null) throw new PyError("return працює тільки всередині функції", s.line)
-        throw new ReturnSignal(s.value === null ? null : this.eval(s.value))
+        throw new ReturnSignal(s.value === null ? null : yield* this.eval(s.value))
       case "break":
         throw new BreakSignal()
       case "continue":
@@ -152,8 +158,8 @@ class Interpreter {
     }
   }
 
-  private expressionStatement(expr: Expr) {
-    const value = this.eval(expr)
+  private *expressionStatement(expr: Expr): Steps<void> {
+    const value = yield* this.eval(expr)
     if (expr.k !== "call" && isCallable(value)) {
       const shown = expr.k === "attribute" ? `${HERO_NAME}.${expr.name}` : expr.k === "name" ? expr.id : "функцію"
       throw new PyError(`Щоб виконати ${shown}, додай дужки: ${shown}()`, expr.line)
@@ -161,9 +167,9 @@ class Interpreter {
   }
 
   /** Runs a loop body. False when the loop must stop (`break`). */
-  private loopBody(body: Body): boolean {
+  private *loopBody(body: Body): Steps<boolean> {
     try {
-      this.block(body)
+      yield* this.block(body)
     } catch (signal) {
       if (signal instanceof BreakSignal) return false
       if (!(signal instanceof ContinueSignal)) throw signal
@@ -171,27 +177,27 @@ class Interpreter {
     return true
   }
 
-  private whileLoop(s: Extract<Stmt, { readonly k: "while" }>) {
-    while (truthy(this.eval(s.test))) {
+  private *whileLoop(s: Extract<Stmt, { readonly k: "while" }>): Steps<void> {
+    while (truthy(yield* this.eval(s.test))) {
       this.tick()
-      if (!this.loopBody(s.body)) return
+      if (!(yield* this.loopBody(s.body))) return
     }
   }
 
-  private forLoop(s: Extract<Stmt, { readonly k: "for" }>) {
-    const iterable = this.eval(s.iter)
+  private *forLoop(s: Extract<Stmt, { readonly k: "for" }>): Steps<void> {
+    const iterable = yield* this.eval(s.iter)
     const items = typeof iterable === "string" ? [...iterable] : isList(iterable) ? [...iterable.items] : null
     if (items === null) throw new PyError(`for проходить по списку, тексту чи range(…), а тут ${typeName(iterable)}: може, range(${repr(iterable)})?`, s.line)
     for (const item of items) {
       this.tick()
-      this.assign({ k: "name", id: s.target, line: s.line }, item)
-      if (!this.loopBody(s.body)) return
+      yield* this.assign({ k: "name", id: s.target, line: s.line }, item)
+      if (!(yield* this.loopBody(s.body))) return
     }
   }
 
-  private assign(target: Target, value: Value) {
+  private *assign(target: Target, value: Value): Steps<void> {
     if (target.k === "index") {
-      const [items, index] = this.item(target)
+      const [items, index] = yield* this.item(target)
       items.items[index] = value
       return
     }
@@ -202,7 +208,7 @@ class Interpreter {
 
   // Expressions
 
-  private eval(e: Expr): Value {
+  private *eval(e: Expr): Steps<Value> {
     this.tick()
     switch (e.k) {
       case "number":
@@ -212,26 +218,37 @@ class Interpreter {
       case "name":
         return this.lookup(e.id, e.line)
       case "list":
-        return list(e.items.map((x) => this.eval(x)))
+        return list(yield* this.all(e.items))
       case "attribute":
-        return this.attribute(this.eval(e.object), e.name, e.line)
+        return this.attribute(yield* this.eval(e.object), e.name, e.line)
       case "index": {
-        const [items, index] = this.item(e)
+        const [items, index] = yield* this.item(e)
         return items.items[index] ?? null
       }
-      case "call":
-        return this.call(this.eval(e.fn), e.args.map((a) => this.eval(a)), e.line)
+      case "call": {
+        const fn = yield* this.eval(e.fn)
+        return yield* this.call(fn, yield* this.all(e.args), e.line)
+      }
       case "unary":
-        return this.unary(e.op, this.eval(e.arg), e.line)
-      case "binary":
-        return binary(e.op, this.eval(e.left), this.eval(e.right), e.line)
+        return this.unary(e.op, yield* this.eval(e.arg), e.line)
+      case "binary": {
+        const left = yield* this.eval(e.left)
+        return binary(e.op, left, yield* this.eval(e.right), e.line)
+      }
       case "bool": {
-        const left = this.eval(e.left)
-        return (e.op === "and" ? truthy(left) : !truthy(left)) ? this.eval(e.right) : left
+        const left = yield* this.eval(e.left)
+        return (e.op === "and" ? truthy(left) : !truthy(left)) ? yield* this.eval(e.right) : left
       }
       case "compare":
-        return this.chain(e)
+        return yield* this.chain(e)
     }
+  }
+
+  /** The values of expressions, left to right. */
+  private *all(es: ReadonlyArray<Expr>): Steps<Array<Value>> {
+    const values: Array<Value> = []
+    for (const x of es) values.push(yield* this.eval(x))
+    return values
   }
 
   private unary(op: "-" | "+" | "not", v: Value, line: number): Value {
@@ -240,10 +257,10 @@ class Interpreter {
     return op === "-" ? -Number(v) : Number(v)
   }
 
-  private chain(e: Extract<Expr, { readonly k: "compare" }>): Value {
-    let left = this.eval(e.operands[0] as Expr)
+  private *chain(e: Extract<Expr, { readonly k: "compare" }>): Steps<Value> {
+    let left = yield* this.eval(e.operands[0] as Expr)
     for (let i = 0; i < e.ops.length; i++) {
-      const right = this.eval(e.operands[i + 1] as Expr)
+      const right = yield* this.eval(e.operands[i + 1] as Expr)
       if (!compare(e.ops[i] ?? "==", left, right, e.line)) return false
       left = right
     }
@@ -251,10 +268,10 @@ class Interpreter {
   }
 
   /** The list and the index of `x[i]`; a negative index counts from the end, as in Python. */
-  private item(e: Extract<Expr, { readonly k: "index" }>): [PyList, number] {
-    const container = this.eval(e.object)
+  private *item(e: Extract<Expr, { readonly k: "index" }>): Steps<[PyList, number]> {
+    const container = yield* this.eval(e.object)
     if (!isList(container)) throw new PyError(`Квадратні дужки [ ] беруть елемент списку, а тут ${typeName(container)}`, e.line)
-    const raw = toInt(this.eval(e.index), "Номер елемента", e.line)
+    const raw = toInt(yield* this.eval(e.index), "Номер елемента", e.line)
     const index = raw < 0 ? container.items.length + raw : raw
     if (index < 0 || index >= container.items.length) {
       throw new PyError(`У списку немає елемента з номером ${raw}: номери від 0 до ${container.items.length - 1}`, e.line)
@@ -307,7 +324,7 @@ class Interpreter {
 
   // Calls
 
-  private call(fn: Value, args: ReadonlyArray<Value>, line: number): Value {
+  private *call(fn: Value, args: ReadonlyArray<Value>, line: number): Steps<Value> {
     if (typeof fn !== "object" || fn === null || fn.type === "list" || fn.type === "hero") {
       throw new PyError(`${repr(fn)} — це ${typeName(fn)}, а не функція: дужки () після нього зайві`, line)
     }
@@ -315,9 +332,9 @@ class Interpreter {
       case "builtin":
         return fn.call(args, line)
       case "function":
-        return this.callFunction(fn, args, line)
+        return yield* this.callFunction(fn, args, line)
       case "heroMethod":
-        return this.heroCall(fn.method, args, line)
+        return yield* this.heroCall(fn.method, args, line)
       case "listMethod":
         return this.listCall(fn.name, fn.list, args, line)
       case "textMethod":
@@ -325,7 +342,7 @@ class Interpreter {
     }
   }
 
-  private callFunction(fn: PyFunction, args: ReadonlyArray<Value>, line: number): Value {
+  private *callFunction(fn: PyFunction, args: ReadonlyArray<Value>, line: number): Steps<Value> {
     const { def } = fn
     if (args.length !== def.params.length) {
       throw new PyError(`Функція ${def.name}() чекає ${def.params.length} значень у дужках, а отримала ${args.length}`, line)
@@ -336,7 +353,7 @@ class Interpreter {
     this.scope = { vars: new Map(def.params.map((p, i) => [p, args[i] ?? null])), own: def.locals }
     this.depth++
     try {
-      this.block(def.body)
+      yield* this.block(def.body)
       return null
     } catch (signal) {
       if (signal instanceof ReturnSignal) return signal.value
@@ -350,7 +367,7 @@ class Interpreter {
     }
   }
 
-  private heroCall(method: PythonMethod, args: ReadonlyArray<Value>, line: number): Value {
+  private *heroCall(method: PythonMethod, args: ReadonlyArray<Value>, line: number): Steps<Value> {
     if (method.countsStock === true) {
       const kind = args[0]
       if (args.length !== 1 || typeof kind !== "string")
@@ -377,6 +394,7 @@ class Interpreter {
     for (let i = 0; i < times; i++) {
       this.tick()
       this.host.act(action, line, this.globals)
+      if (yield) throw new Halt(false)
     }
     return null
   }

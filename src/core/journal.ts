@@ -1,6 +1,6 @@
 import { calledBlocks, definedBlocks, pageInfo } from "./book.ts"
 import { procedureTitle } from "./blocks.ts"
-import { type Amounts, farmDay, type FarmProgram, type FarmReport, type FarmState, RESOURCES } from "./farm.ts"
+import { type Amounts, farmDay, type FarmCode, type FarmProgram, type FarmReport, type FarmState, RESOURCES } from "./farm.ts"
 import type { BlockName, Level } from "./level.ts"
 import { checkProgram } from "./program.ts"
 import { bookSignatures, programSource } from "./python/convert.ts"
@@ -30,6 +30,8 @@ export interface JournalEntry {
   readonly own: ReadonlyArray<string>
   /** The blocks or functions of «Книга команд» it called and did not define itself. */
   readonly book: ReadonlyArray<string>
+  /** On a farm with a helper: what the helper put in the barn, a part of `stored`. Null for a day of one worker. */
+  readonly helper: Amounts | null
 }
 
 /** The days the journal keeps: older days leave it. */
@@ -97,7 +99,8 @@ export const journalEntry = (report: FarmReport, program: Pick<JournalEntry, "la
     goblins: report.goblins,
     beaten: report.beaten,
     tenWoodAt: ten < 0 ? null : ten + 1,
-    ...program
+    ...program,
+    helper: report.workers?.[1]?.stored ?? null
   }
 }
 
@@ -105,13 +108,24 @@ export const journalEntry = (report: FarmReport, program: Pick<JournalEntry, "la
  * The record of a day the student ended on the farm `state`, with the program that ran: the page calls it at «Завершити
  * день», before the day changes.
  */
-export const dayRecord = (state: FarmState, report: FarmReport, code: FarmProgram, blocks: ReadonlyArray<BlockName>): JournalEntry => {
+export const dayRecord = (state: FarmState, report: FarmReport, code: FarmCode, blocks: ReadonlyArray<BlockName>): JournalEntry => {
   const level = { ...farmDay(state, blocks, report.day), library: state.book ?? [] }
+  const worker = "worker" in code ? code.worker : code
   const book =
-    code.language === "python"
+    worker.language === "python"
       ? bookSignatures(level).map((s) => s.slice(0, s.indexOf("(")))
       : (state.book ?? []).flatMap((p) => pageInfo(p)?.name ?? [])
-  return journalEntry(report, programPrint(level, code, book))
+  const own = programPrint(level, worker, book)
+  if (!("worker" in code)) return journalEntry(report, own)
+  // Two programs are one program of the day: a change of either is a new one in the journal.
+  const helper = programPrint(level, code.helper, book)
+  return journalEntry(report, {
+    ...own,
+    print: hash(`${own.print}+${helper.print}`),
+    size: own.size + helper.size,
+    own: [...new Set([...own.own, ...helper.own])],
+    book: [...new Set([...own.book, ...helper.book])]
+  })
 }
 
 /** The journal with the day: a day already there is written over, and only the last `JOURNAL_DAYS` stay. */

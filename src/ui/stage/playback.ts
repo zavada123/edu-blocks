@@ -1,5 +1,5 @@
 import type { Frame } from "../../core/program.ts"
-import { type Cell, type Direction, type Enemy, type GameEvent, isAlive, type World } from "../../core/world.ts"
+import { asWorker, type Cell, type Direction, type Enemy, type GameEvent, isAlive, type World } from "../../core/world.ts"
 
 /**
  * What the field shows at a moment of a run. Pure: the same run and the same moment always give the same picture,
@@ -59,6 +59,8 @@ export interface StagePose {
   /** The world for the things that only switch: items, hearts, steps, broken ice. */
   readonly world: World
   readonly hero: HeroPose
+  /** The helpers of a crew, in the order of `World.crew`: each acts in the hero's part of the frame. */
+  readonly crew: ReadonlyArray<HeroPose>
   readonly enemies: ReadonlyArray<EnemyPose>
   readonly effects: ReadonlyArray<Effect>
   /** The frame being played or the last one played, or null at the start. */
@@ -97,6 +99,17 @@ const restingHero = (world: World): HeroPose => ({
   crashed: world.crashed,
   fallen: world.fell ? 1 : 0
 })
+
+/** Worker `k` of the crew, from 1, as a hero: `asWorker` puts it in the hero's place. A helper never shows a crash. */
+const restingCrew = (world: World): ReadonlyArray<HeroPose> =>
+  world.crew.map((_, i) => ({ ...restingHero(asWorker(world, i + 1)), crashed: false, fallen: 0 }))
+
+const crewPoses = (before: World, after: World, frame: Frame, p: number): ReadonlyArray<HeroPose> =>
+  before.crew.map((_, i) => {
+    const events = frame.crew?.[i]?.events ?? []
+    const pose = heroActionPose(asWorker(before, i + 1), asWorker({ ...after, crashed: false }, i + 1), events, p)
+    return { ...pose, crashed: false }
+  })
 
 const restingEnemies = (world: World): ReadonlyArray<EnemyPose> =>
   world.enemies.map((e) => ({
@@ -243,7 +256,7 @@ export const poseAt = (start: World, frames: ReadonlyArray<Frame>, t: number): S
   const p = time - i
   if (p === 0) {
     const world = worldBefore(start, frames, i)
-    return { world, hero: restingHero(world), enemies: restingEnemies(world), effects: [], frame: frames[i - 1] ?? null }
+    return { world, hero: restingHero(world), crew: restingCrew(world), enemies: restingEnemies(world), effects: [], frame: frames[i - 1] ?? null }
   }
   const frame = frames[i] as Frame
   const before = worldBefore(start, frames, i)
@@ -262,7 +275,9 @@ export const poseAt = (start: World, frames: ReadonlyArray<Frame>, t: number): S
     hearts: epart > 0.5 ? after.hearts : before.hearts,
     fell: hero.fallen > 0.5 ? after.fell : before.fell
   }
-  return { world, hero, enemies, effects: effectsOf(before, frame.events, p), frame }
+  const crew = crewPoses(before, after, frame, p)
+  const helperEffects = (frame.crew ?? []).flatMap((c, k) => (c === null ? [] : effectsOf(asWorker(before, k + 1), c.events, p)))
+  return { world, hero, crew, enemies, effects: [...effectsOf(before, frame.events, p), ...helperEffects], frame }
 }
 
 /** The frame whose block lights up at time `t`: the one playing, or the last one played. */

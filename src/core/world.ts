@@ -100,6 +100,29 @@ export interface World {
    * storehouse: «тут склад?» says no there, so a program that stores at every storehouse keeps its pumpkins.
    */
   readonly mill: Cell | null
+  /**
+   * The other workers of a crew (`crew.ts`), the helper first: each with its own place and load. `hero` is the
+   * worker who acts now; on a level with one worker this is empty.
+   */
+  readonly crew: ReadonlyArray<Worker>
+}
+
+/** A worker of a crew who does not act now: where it stands and what it carries. */
+export interface Worker {
+  readonly hero: Cell & { readonly dir: Direction }
+  readonly load: ReadonlyArray<ItemKind>
+  readonly carrying: number
+}
+
+/**
+ * The world as worker `k` of the crew sees it: worker 0 is the hero of the level, worker k > 0 is `crew[k - 1]`.
+ * The same call again puts the workers back, so a helper acts with every rule of the hero and steps back after.
+ */
+export const asWorker = (world: World, k: number): World => {
+  const other = world.crew[k - 1]
+  if (k === 0 || other === undefined) return world
+  const crew = world.crew.map((w, i) => (i === k - 1 ? { hero: world.hero, load: world.load, carrying: world.carrying } : w))
+  return { ...world, hero: other.hero, load: other.load, carrying: other.carrying, crew }
 }
 
 /** What the barn keeps: the things of the map, and the flour the mill makes of pumpkins. */
@@ -309,7 +332,8 @@ export const parseMap = (rows: MapRows, dir: Direction = "right"): World => {
     storehouses,
     barn: new Map(),
     site: null,
-    mill: null
+    mill: null,
+    crew: []
   }
 }
 
@@ -573,7 +597,8 @@ export interface ActionResult {
 
 const at = (c: Cell): Cell => ({ x: c.x, y: c.y })
 
-const heroAction = (world: World, action: Action): ActionResult => {
+/** The hero's own action, before the enemies, the towers and the crops take their turn (`worldTurn`). */
+export const heroAction = (world: World, action: Action): ActionResult => {
   const here = at(world.hero)
   if (action === "move") {
     const next = cellAhead(world)
@@ -879,8 +904,14 @@ export const isFatal = (outcome: Outcome): boolean => outcome === "crashed" || o
 export const applyAction = (world: World, action: Action): ActionResult => {
   const done = heroAction(world, action)
   if (isFatal(done.outcome)) return done
-  const turn = enemiesTurn(done.world)
+  const turn = worldTurn(done.world)
+  return { world: turn.world, outcome: done.outcome, events: [...done.events, ...turn.events] }
+}
+
+/** What happens after the hero's action, or after every worker of a crew acted: enemies, towers, crops. */
+export const worldTurn = (world: World): { readonly world: World; readonly events: ReadonlyArray<GameEvent> } => {
+  const turn = enemiesTurn(world)
   const shot = towersTurn(turn.world)
   const grown = growTurn(shot.world)
-  return { world: grown.world, outcome: done.outcome, events: [...done.events, ...turn.events, ...shot.events, ...grown.events] }
+  return { world: grown.world, events: [...turn.events, ...shot.events, ...grown.events] }
 }

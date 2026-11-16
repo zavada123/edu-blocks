@@ -1434,3 +1434,34 @@ html.eb-page-full {
   margin: 0 auto 0 0;
   align-self: center;
 }
+
+/* A farm day with a helper: the tabs of the two programs over the editor. */
+.eb-crew {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-bottom: 8px;
+}
+
+.eb-crew-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.eb-crew-tab[aria-selected="true"] {
+  --eb-btn-bg: var(--eb-gold);
+  --eb-btn-fg: var(--eb-edge);
+}
+
+.eb-crew-note {
+  color: var(--eb-fg-soft);
+  font: 400 14px/1.3 var(--eb-font-text);
+}
+
+/* What each worker of a crew brought, under the tiles of the report. */
+.eb-farm-crew {
+  margin: 0;
+  padding-left: 18px;
+  font: 400 15px/1.4 var(--eb-font-text);
+}

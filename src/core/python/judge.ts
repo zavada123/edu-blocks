@@ -1,5 +1,5 @@
 import { COUNTER_NAME } from "../blocks.ts"
-import { heroAct, heroCount, heroSense, newSession } from "../hero.ts"
+import { heroCount, heroSense, type ProgramSteps, runAlone, soloStage, type Stage } from "../hero.ts"
 import { combineFields, levelFields } from "../fields.ts"
 import { allGoalsMet, type Level } from "../level.ts"
 import { resultOf, type RunResult } from "../program.ts"
@@ -29,8 +29,14 @@ const onLine0 = (node: unknown): unknown => {
 }
 
 /** Runs a Python program on one field: the map of `level` only, without its other `fields`. */
-export const judgePythonField = (level: Level, source: string): RunResult => {
-  const session = newSession(level)
+export const judgePythonField = (level: Level, source: string): RunResult => runAlone(pythonRun(level, source, soloStage(level)))
+
+/**
+ * The run of a Python program on a stage: alone on a level, or one worker of a crew. It gives the turn away after
+ * each action (`ProgramSteps`).
+ */
+export function* pythonRun(level: Level, source: string, stage: Stage): ProgramSteps {
+  const { session } = stage
   let program: Body
   try {
     program = parse(source)
@@ -61,7 +67,7 @@ export const judgePythonField = (level: Level, source: string): RunResult => {
   const host: PyHost = {
     act: (action, line, globals) => {
       const counter = counted ? { counter: str(globals.get(COUNTER_NAME) ?? 0) } : {}
-      if (!heroAct(level, session, action, { blockId: null, line, ...(keepBoxes ? { boxes: boxesOf(globals) } : {}), ...counter })) return
+      if (!stage.act(action, { blockId: null, line, ...(keepBoxes ? { boxes: boxesOf(globals) } : {}), ...counter })) return
       if (printsAtEnd && session.reason === null) return
       throw new Halt(false)
     },
@@ -96,7 +102,7 @@ export const judgePythonField = (level: Level, source: string): RunResult => {
   })
 
   try {
-    execute([...libraryBody, ...program], host)
+    yield* execute([...libraryBody, ...program], host)
   } catch (error) {
     if (error instanceof Halt) {
       if (!session.done) session.reason = "tooLong"

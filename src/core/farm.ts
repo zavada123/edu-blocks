@@ -2,10 +2,12 @@ import { farmLook } from "./farm-map.ts"
 import { BOOK_PAGES, type BookPage } from "./book.ts"
 import { craftBlocks, CRAFTS, craftLevel, type CraftResource, FASTER_LEVEL } from "./crafts.ts"
 import { estateSeason, MAX_TREES, PALETTE_ORDER, randomOf, START_TREES } from "./estate.ts"
-import { judgeField } from "./judge.ts"
+import { runCrew } from "./crew.ts"
+import type { Stage } from "./hero.ts"
+import { blocksRun, judgeField } from "./judge.ts"
 import { BED_ITEM, type BlockName, type ItemAt, type Level, type Scene, TROUGH_ITEM } from "./level.ts"
 import type { Program, RunResult } from "./program.ts"
-import { judgePythonField } from "./python/judge.ts"
+import { judgePythonField, pythonRun } from "./python/judge.ts"
 import { type Cell, cellKey, type EnemySpec, FLOUR, kindAt, type StockKind } from "./world.ts"
 
 /**
@@ -117,10 +119,9 @@ export const BUILDINGS: ReadonlyArray<Building> = [
   {
     id: "helper",
     name: "Хата помічника",
-    about: "Другий робітник зі своєю програмою: один рубає, другий носить. Прийде в наступному етапі.",
+    about: "Тут живе помічник Тарас: другий робітник зі своєю програмою. Він починає день у правому верхньому куті, і поки один рубає, другий носить.",
     parts: 5,
-    part: { wood: 4, gold: 1 },
-    later: true
+    part: { wood: 4, gold: 1 }
   }
 ]
 
@@ -378,7 +379,8 @@ export const farmDay = (state: FarmState, blocks: ReadonlyArray<BlockName>, day 
   const mill = isBuilt(state, "mill") ? MILL : null
   if (barn) rows[BOTTOM] = `${rows[BOTTOM]?.slice(0, right) ?? ""}H${rows[BOTTOM]?.slice(right + 1) ?? ""}`
   const now = buildingNow(state)
-  const look = farmLook({ rows, first: FIRST, trees, right, top: TOP, bottom: BOTTOM, beds, goblins, tower, pen, mine, site, barn, mill: mill !== null })
+  const helper = isBuilt(state, "helper")
+  const look = farmLook({ rows, first: FIRST, trees, right, top: TOP, bottom: BOTTOM, beds, goblins, tower, pen, mine, site, barn, mill: mill !== null, helper })
   // The beds hold pumpkins and the mine gold: the field draws each such cell as its own thing.
   const itemsAt: ReadonlyArray<ItemAt> = [
     ...(beds ? Array.from({ length: trees }, (_, i) => ({ x: FIRST + i, y: BOTTOM, item: BED_ITEM })) : []),
@@ -404,6 +406,7 @@ export const farmDay = (state: FarmState, blocks: ReadonlyArray<BlockName>, day 
         : []),
       ...(barn ? ["Друга комора стоїть у правому нижньому куті."] : []),
       ...(mill !== null ? ["Млин у лівому нижньому куті мелить гарбузи на борошно: «віднести на склад» там кладе їх у жорна."] : []),
+      ...(helper ? [`${HELPER_NAME} починає день у правому верхньому куті, обличчям донизу, і робить свою програму: щоходу спершу робітник, потім він.`] : []),
       ...(goblins ? ["Сьогодні по стежках ходять гобліни з факелами. Ворог попереду? Бий, поки він не вдарив."] : [])
     ],
     map: rows,
@@ -422,6 +425,7 @@ export const farmDay = (state: FarmState, blocks: ReadonlyArray<BlockName>, day 
     ...(site || barn || mill !== null ? { barn: byKind(state.stock) } : {}),
     ...(site ? { site: { ...siteAt, part: byKind(now?.part ?? {}), left: now === null ? 0 : now.parts - partsOf(state, now.id) } } : {}),
     ...(mill === null ? {} : { mill }),
+    ...(helper ? { helpers: [{ x: right, y: TOP, dir: "down" as const }] } : {}),
     procedure: "обійти ряд",
     ...(has(state, "book") && (state.book ?? []).length > 0 ? { library: state.book } : {}),
     scene
@@ -430,6 +434,22 @@ export const farmDay = (state: FarmState, blocks: ReadonlyArray<BlockName>, day 
 
 /** The student's program for the worker, in blocks or in Python. */
 export type FarmProgram = { readonly language: "blocks"; readonly program: Program } | { readonly language: "python"; readonly source: string }
+
+/** The helper who lives in «Хата помічника». */
+export const HELPER_NAME = "Тарас"
+/** «Програма Тараса»: the name after a noun. */
+export const HELPER_NAME_OF = "Тараса"
+
+/** The programs of a farm with a helper: the worker's and the helper's, each runs on its own worker. */
+export interface FarmCrew {
+  readonly worker: FarmProgram
+  readonly helper: FarmProgram
+}
+
+/** What a working day runs: the worker's program, or the programs of the worker and the helper. */
+export type FarmCode = FarmProgram | FarmCrew
+
+const isCrew = (code: FarmCode): code is FarmCrew => "worker" in code
 
 /** What a working day brought, for the report under the field and for the orders. */
 export interface FarmReport {
@@ -466,6 +486,11 @@ export interface FarmReport {
   /** The explanation of a mistake in the program, as the judge gives it. */
   readonly detail?: string
   readonly line?: number
+  /**
+   * On a farm with a helper: the report of each worker, the worker first. The report itself adds their yields up;
+   * its variables, trips and mistake are the worker's.
+   */
+  readonly workers?: ReadonlyArray<FarmReport>
 }
 
 const IDLE: ReadonlySet<string> = new Set(["nothingToCollect", "handsFull", "notStorehouse", "nothingToStore", "cannotSow", "waited", "noLever", "swingMissed", "cannotFeed", "cannotWater", "cannotBuild"])
@@ -526,6 +551,40 @@ export const farmReport = (level: Level, result: RunResult, day: number): FarmRe
   }
 }
 
+/**
+ * The report of a crew's day: each worker's from its own frames, and their sum. The yield by turn adds up turn by
+ * turn: a worker whose program stopped keeps what it brought.
+ */
+export const crewReport = (level: Level, result: RunResult, day: number): FarmReport => {
+  const workers = (result.workers ?? [result]).map((w) => farmReport(level, w, day))
+  const [first] = workers
+  if (first === undefined || workers.length === 1) return farmReport(level, result, day)
+  const sum = (pick: (r: FarmReport) => Amounts | undefined) => workers.reduce((total, r) => RESOURCES.reduce((a, k) => add(a, k, pick(r)?.[k] ?? 0), total), NO_AMOUNTS)
+  const used = result.frames.length
+  const byTurn = Array.from({ length: used }, (_, i) => sum((r) => r.byTurn[Math.min(i, r.byTurn.length - 1)]))
+  const built = workers.reduce((n, r) => n + (r.built ?? 0), 0)
+  const helperEvents = result.frames.flatMap((f) => (f.crew ?? []).flatMap((c) => c?.events ?? []))
+  return {
+    ...first,
+    stored: sum((r) => r.stored),
+    carried: sum((r) => r.carried),
+    byTurn,
+    idle: workers.reduce((n, r) => n + r.idle, 0),
+    idleFeed: workers.reduce((n, r) => n + (r.idleFeed ?? 0), 0),
+    used,
+    turns: level.turns ?? used,
+    beaten: result.frames.reduce((n, f) => n + f.events.filter((e) => e.type === "enemyDown").length, 0) + helperEvents.filter((e) => e.type === "enemyDown").length,
+    // The helper's crash shows in its own line of the report; a mistake in its program stops the day's verdict.
+    stopped: first.stopped ?? (workers.some((r) => r.stopped === "badProgram") ? "badProgram" : null),
+    // A mistake in the helper's program is told in the day's own words (`runFarmCrew`).
+    ...(result.detail === undefined ? {} : { detail: result.detail }),
+    ...(built > 0 ? { built, spent: sum((r) => r.spent) } : {}),
+    ownBlock: workers.some((r) => r.ownBlock === true),
+    fromBook: workers.some((r) => r.fromBook === true),
+    workers
+  }
+}
+
 /** Whether one own block was called with different values: `calls` are like «пройти(6)», each once. */
 export const calledWithDifferentValues = (calls: ReadonlyArray<string>): boolean => {
   const names = calls.map((c) => c.slice(0, c.indexOf("(")))
@@ -535,14 +594,35 @@ export const calledWithDifferentValues = (calls: ReadonlyArray<string>): boolean
 /** Runs the worker's program through one day of the farm. */
 export const runFarmDay = (
   state: FarmState,
-  code: FarmProgram,
+  code: FarmCode,
   blocks: ReadonlyArray<BlockName>,
   day = state.day,
   goblins = goblinDay(state, day)
 ): { readonly level: Level; readonly result: RunResult; readonly report: FarmReport } => {
   const level = farmDay(state, blocks, day, goblins)
-  const result = code.language === "blocks" ? judgeField(level, code.program) : judgePythonField(level, code.source)
+  if (isCrew(code) && (level.helpers ?? []).length > 0) {
+    const result = runFarmCrew(level, code)
+    return { level, result, report: crewReport(level, result, day) }
+  }
+  const one = isCrew(code) ? code.worker : code
+  const result = one.language === "blocks" ? judgeField(level, one.program) : judgePythonField(level, one.source)
   return { level, result, report: farmReport(level, result, day) }
+}
+
+const crewProgram = (level: Level, code: FarmProgram) => (stage: Stage) =>
+  code.language === "blocks" ? blocksRun(level, code.program, stage) : pythonRun(level, code.source, stage)
+
+/**
+ * The day of the worker and the helper on the level of a farm day (`farmDay` with the helper's house built). A
+ * mistake in the helper's program is the mistake of the day, named after him: the worker's own comes first.
+ */
+export const runFarmCrew = (level: Level, crew: FarmCrew): RunResult => {
+  const result = runCrew(level, [crewProgram(level, crew.worker), crewProgram(level, crew.helper)])
+  const helper = result.workers?.[1]
+  if (result.reason === "badProgram" || helper?.reason !== "badProgram") return result
+  const where = helper.line === undefined ? "" : `, рядок ${helper.line}`
+  const { line: _line, ...rest } = result
+  return { ...rest, passed: false, stars: 0, reason: "badProgram", detail: `Програма ${HELPER_NAME_OF}${where}: ${helper.detail ?? "щось не так"}` }
 }
 
 /** The farm after a working day: the yield goes to the barn and the next day comes. A trial run changes nothing. */
@@ -607,6 +687,8 @@ export interface FarmOrder {
   readonly bookPage?: boolean
   /** The building that must stand before the order is open. */
   readonly building?: BuildingId
+  /** Every worker of the crew must bring something to the barn: the helper's program counts too. */
+  readonly crew?: true
 }
 
 export const FARM_ORDERS: ReadonlyArray<FarmOrder> = [
@@ -727,6 +809,16 @@ export const FARM_ORDERS: ReadonlyArray<FarmOrder> = [
     building: "mill"
   },
   {
+    id: "two",
+    title: "Двоє на хуторі",
+    text: "Староста хоче побачити, як працюють двоє: шістнадцять колод і вісім гарбузів за день. У Тараса своя програма: нехай один рубає, а другий носить гарбузи, і кожен щось принесе в комору.",
+    needs: { wood: 16, pumpkin: 8 },
+    fast: 110,
+    after: "count",
+    building: "helper",
+    crew: true
+  },
+  {
     id: "tally",
     title: "Облік ходок",
     text: "Комірник записує кожну ходку. Дванадцять колод за день, і наприкінці дня змінна «ходки» має показати, скільки разів робітник відніс речі в комору.",
@@ -761,7 +853,8 @@ export const FARM_ORDERS: ReadonlyArray<FarmOrder> = [
 export const orderRules = (order: FarmOrder): ReadonlyArray<string> => [
   ...(order.tally === undefined ? [] : [`змінна «${order.tally}» наприкінці дня дорівнює кількості ходок до комори`]),
   ...(order.ownBlock === true ? ["свій блок з параметром, викликаний з різними числами"] : []),
-  ...(order.fromBook === true ? ["виклик блоку з Книги команд, не визначеного в програмі заново"] : [])
+  ...(order.fromBook === true ? ["виклик блоку з Книги команд, не визначеного в програмі заново"] : []),
+  ...(order.crew === true ? [`і робітник, і ${HELPER_NAME} щось приносять у комору`] : [])
 ]
 
 /**
@@ -787,6 +880,12 @@ export const orderMisses = (order: FarmOrder, report: FarmReport, language: "blo
         ? "Потрібна своя функція з параметром, наприклад def пройти(кроки):, і виклики з різними числами."
         : "Потрібен свій блок з параметром («Створити блок»), і виклики з різними числами."
     )
+  if (order.crew === true) {
+    const [worker, helper] = report.workers ?? [report]
+    if (worker !== undefined && totalOf(worker.stored) === 0) misses.push("Робітник за день нічого не приніс у комору: подивись його програму.")
+    if (helper === undefined || totalOf(helper.stored) === 0)
+      misses.push(`${HELPER_NAME} за день нічого не приніс у комору: напиши програму і для нього, на вкладці «${HELPER_NAME}».`)
+  }
   if (order.fromBook === true && report.fromBook !== true)
     misses.push(
       language === "python"
@@ -826,7 +925,7 @@ export interface OrderCheck {
  * day on, so a program that remembers one morning does not pass. «Ефективно» asks for it within `fast` turns, and
  * «Універсально» asks the same on five days of a farm with one more tree.
  */
-export const checkOrder = (state: FarmState, order: FarmOrder, code: FarmProgram, blocks: ReadonlyArray<BlockName>): OrderCheck => {
+export const checkOrder = (state: FarmState, order: FarmOrder, code: FarmCode, blocks: ReadonlyArray<BlockName>): OrderCheck => {
   const days = (s: FarmState, n: number) =>
     Array.from({ length: n }, (_, i) => {
       const day = state.day + i

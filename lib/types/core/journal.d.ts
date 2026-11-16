@@ -1,4 +1,4 @@
-import { type Amounts, type FarmProgram, type FarmReport, type FarmState } from "./farm.ts";
+import { type Amounts, type FarmCode, type FarmProgram, type FarmReport, type FarmState } from "./farm.ts";
 import type { BlockName, Level } from "./level.ts";
 /**
  * «Журнал господарства»: a record of each working day the student ended. With each day it keeps a print of the
@@ -25,6 +25,8 @@ export interface JournalEntry {
     readonly own: ReadonlyArray<string>;
     /** The blocks or functions of «Книга команд» it called and did not define itself. */
     readonly book: ReadonlyArray<string>;
+    /** On a farm with a helper: what the helper put in the barn, a part of `stored`. Null for a day of one worker. */
+    readonly helper: Amounts | null;
 }
 /** The days the journal keeps: older days leave it. */
 export declare const JOURNAL_DAYS = 60;
@@ -38,7 +40,7 @@ export declare const journalEntry: (report: FarmReport, program: Pick<JournalEnt
  * The record of a day the student ended on the farm `state`, with the program that ran: the page calls it at «Завершити
  * день», before the day changes.
  */
-export declare const dayRecord: (state: FarmState, report: FarmReport, code: FarmProgram, blocks: ReadonlyArray<BlockName>) => JournalEntry;
+export declare const dayRecord: (state: FarmState, report: FarmReport, code: FarmCode, blocks: ReadonlyArray<BlockName>) => JournalEntry;
 /** The journal with the day: a day already there is written over, and only the last `JOURNAL_DAYS` stay. */
 export declare const writeDay: (journal: ReadonlyArray<JournalEntry>, entry: JournalEntry) => ReadonlyArray<JournalEntry>;
 /** All that a day put in the barn. */

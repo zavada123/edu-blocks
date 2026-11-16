@@ -34,4 +34,8 @@ export declare class Halt {
     readonly tooLong: boolean;
     constructor(tooLong: boolean);
 }
-export declare const execute: (program: Body, host: PyHost) => void;
+/** The interpreter's work, step by step: it gives the turn away after each action of the hero (`ProgramSteps`). */
+type Steps<T> = Generator<void, T, boolean>;
+/** Runs a program. It gives the turn away after each action, and stops (`Halt`) when resumed with true. */
+export declare const execute: (program: Body, host: PyHost) => Steps<void>;
+export {};

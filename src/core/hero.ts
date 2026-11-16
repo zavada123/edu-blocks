@@ -1,7 +1,7 @@
 import type { Box } from "./python/boxes.ts"
 import { opcodeOf } from "./blocks.ts"
 import { allGoalsMet, goalStatus, type Level, startWorld } from "./level.ts"
-import { fatalReason, MAX_ACTIONS, type Session } from "./program.ts"
+import { fatalReason, MAX_ACTIONS, type RunResult, type Session } from "./program.ts"
 import { type Action, applyAction, atFinish, atSite, atStorehouse, bedEmpty, enemyAhead, handsFull, itemAhead, itemIs, type ItemKind, leverOn, onCrystal, onLever, ripeAhead, sheepHungry, type StockKind, stockOf, trapAhead, wallAhead, woodAhead, type World } from "./world.ts"
 
 /**
@@ -90,6 +90,35 @@ export const heroAct = (level: Level, session: Session, action: Action, source: 
   if (world.hearts === 0) return end(session, "defeated")
   if (session.frames.length >= MAX_ACTIONS) return end(session, "tooLong")
   return false
+}
+
+/**
+ * Where the actions of a program go. Alone on a level (`soloStage`) each action is a turn of the level. In a crew
+ * (`crew.ts`) the day asks every worker for one action a turn, and `session.world` is the world as this worker sees it.
+ */
+export interface Stage {
+  readonly session: Session
+  /** The worker does the action. True when its run is over after it: `session.reason` says why. */
+  readonly act: (action: Action, source: ActionSource) => boolean
+}
+
+/** A program alone on a level: its actions are the hero's (`heroAct`). */
+export const soloStage = (level: Level): Stage => {
+  const session = newSession(level)
+  return { session, act: (action, source) => heroAct(level, session, action, source) }
+}
+
+/**
+ * A program's run, step by step: it gives the turn away after each action that does not end it, and is resumed
+ * with true when its day is over all the same (a crew's day ended for another reason).
+ */
+export type ProgramSteps = Generator<void, RunResult, boolean>
+
+/** Runs a program to its end, alone on its level. */
+export const runAlone = (run: ProgramSteps): RunResult => {
+  let step = run.next(false)
+  while (step.done !== true) step = run.next(false)
+  return step.value
 }
 
 /** A question to the world: a plain one, or «тут ‹…›?» with the kind chosen in the block. */

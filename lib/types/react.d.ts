@@ -4,7 +4,7 @@ export type { BlocksReport, BookRun, EduBlocksProps, HeroXp } from "./ui/EduBloc
 export type { BookPage } from "./core/book.ts";
 export type { EstateRun, HeroCoins } from "./ui/Verdict.tsx";
 export type { EstateDay, Harvest } from "./core/estate.ts";
-export type { FarmRun } from "./ui/Verdict.tsx";
+export type { FarmHelperRun, FarmRun } from "./ui/Verdict.tsx";
 export type { FarmReport } from "./core/farm.ts";
 export type { Skin } from "./ui/stage/Stage.tsx";
 export { canBuyHero, HEROES, heroesCost, heroOpen } from "./core/heroes.ts";
