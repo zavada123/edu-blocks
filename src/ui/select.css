@@ -1,0 +1,119 @@
+/* Site-styled dropdown (Select.tsx). Each trainer sets the --edu-select-* colors for its theme;
+   the fallbacks are the EduProstir light palette. */
+.edu-select {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+  vertical-align: middle;
+}
+.edu-select-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: var(--edu-select-height, 36px);
+  margin: 0;
+  padding: 0 10px 0 12px;
+  border: 1.5px solid var(--edu-select-line, #e6dde2);
+  border-radius: var(--edu-select-radius, 10px);
+  background: var(--edu-select-bg, #ffffff);
+  color: var(--edu-select-fg, #1f181d);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.edu-select-button:hover {
+  border-color: var(--edu-select-hover-line, #d2c6cd);
+}
+.edu-select-button:focus-visible,
+.edu-select-button[aria-expanded="true"] {
+  outline: none;
+  border-color: var(--edu-select-accent, #ba0f4b);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--edu-select-accent, #ba0f4b) 25%, transparent);
+}
+.edu-select-labels {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+.edu-select-sizer,
+.edu-select-value {
+  grid-area: 1 / 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.edu-select-sizer {
+  visibility: hidden;
+  height: 0;
+}
+.edu-select-chevron,
+.edu-select-check {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.edu-select-chevron {
+  color: var(--edu-select-muted, #655761);
+  transition: transform 0.15s;
+}
+.edu-select-button[aria-expanded="true"] .edu-select-chevron {
+  transform: rotate(180deg);
+  color: var(--edu-select-accent, #ba0f4b);
+}
+.edu-select-list {
+  position: fixed;
+  z-index: 1000;
+  box-sizing: border-box;
+  max-width: calc(100vw - 16px);
+  max-height: 288px;
+  margin: 0;
+  padding: 4px;
+  overflow: auto;
+  list-style: none;
+  border: 1px solid var(--edu-select-line, #e6dde2);
+  border-radius: calc(var(--edu-select-radius, 10px) + 2px);
+  background: var(--edu-select-list-bg, var(--edu-select-bg, #ffffff));
+  color: var(--edu-select-fg, #1f181d);
+  box-shadow: 0 10px 30px color-mix(in srgb, #140f13 18%, transparent);
+  font: inherit;
+  text-align: left;
+}
+.edu-select-list[hidden] {
+  display: none;
+}
+.edu-select-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 6px 10px;
+  border-radius: var(--edu-select-radius, 10px);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.edu-select-option.is-active {
+  background: var(--edu-select-active-bg, #fff0f5);
+  color: var(--edu-select-active-fg, #740e33);
+}
+.edu-select-option[aria-selected="true"] {
+  font-weight: 650;
+}
+.edu-select-option[aria-disabled="true"] {
+  color: var(--edu-select-muted, #655761);
+  cursor: default;
+}
+.edu-select-text {
+  flex: 1;
+}
+.edu-select-check {
+  color: var(--edu-select-accent, #ba0f4b);
+}

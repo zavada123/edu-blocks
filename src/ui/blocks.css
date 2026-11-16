@@ -313,15 +313,19 @@
 
 .eb-timeline-rate {
   flex: none;
-  height: 34px;
   margin: 2px;
-  padding: 0 6px;
-  border: 0;
-  border-radius: 0;
-  background: var(--eb-slate);
-  color: var(--eb-fg);
-  box-shadow: 0 0 0 2px var(--eb-edge);
   font: 600 15px var(--eb-font-text);
+  /* The site-styled dropdown (select.css) in the game's pixel look. */
+  --edu-select-height: 34px;
+  --edu-select-radius: 0;
+  --edu-select-bg: var(--eb-slate);
+  --edu-select-fg: var(--eb-fg);
+  --edu-select-muted: var(--eb-fg-soft);
+  --edu-select-line: var(--eb-edge);
+  --edu-select-hover-line: var(--eb-gold);
+  --edu-select-accent: var(--eb-gold);
+  --edu-select-active-bg: var(--eb-gold);
+  --edu-select-active-fg: var(--eb-ink);
 }
 
 /* ---- The task ---- */
