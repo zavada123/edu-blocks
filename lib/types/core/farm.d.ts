@@ -102,7 +102,10 @@ export declare const farmTurns: (state: FarmState) => number;
  */
 export declare const bookSize: (state: FarmState) => number;
 export declare const farmCapacity: (state: FarmState) => number;
-/** The blocks of the farm: the base, what the student learned in the course, and the beds once they are built. */
+/**
+ * The blocks of the farm: the commands the first days opened one by one (`FARM_LADDER`), from the last of those days
+ * what the student learned in the course, and the commands of the buildings and tools.
+ */
 export declare const farmPalette: (state: FarmState, learned: ReadonlyArray<BlockName>) => ReadonlyArray<BlockName>;
 /** Goblins come every third day once the farm has a basket; an order can bring them on any day. */
 export declare const GOBLIN_EVERY = 3;
@@ -270,5 +273,8 @@ export declare const totalOf: (amounts: Amounts) => number;
 /**
  * What to improve after a working day, in the words of the report: the turns spent for nothing, what was left in the
  * hands, a program that stopped before the evening. At most three tips, the most useful first.
+ *
+ * `blocks`: the palette of the day. A tip names only the commands the student has; on the first days, before the
+ * loops and the questions open, it says what to do in other words.
  */
-export declare const farmTips: (report: FarmReport, capacity: number, language?: "blocks" | "python") => ReadonlyArray<string>;
+export declare const farmTips: (report: FarmReport, capacity: number, language?: "blocks" | "python", blocks?: ReadonlyArray<BlockName>) => ReadonlyArray<string>;

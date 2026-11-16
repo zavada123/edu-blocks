@@ -1,7 +1,7 @@
 import { coinGain, coinsFor } from "../core/coins.ts"
 import { type EstateDay, FULL_DAY_COINS, type Harvest } from "../core/estate.ts"
 import { amountText, type FarmReport, farmTips, HELPER_NAME, RESOURCE_NAMES, RESOURCES, totalOf } from "../core/farm.ts"
-import { type Level, speaksTo } from "../core/level.ts"
+import { type BlockName, type Level, speaksTo } from "../core/level.ts"
 import type { FailReason, Program, RunResult } from "../core/program.ts"
 import { heroLevelOf, xpFor, xpGain } from "../core/xp.ts"
 import { Coin } from "./Coin.tsx"
@@ -317,7 +317,7 @@ export const Verdict = ({
   readonly farmCapacity?: number
 }) => {
   if (reward.farm !== null)
-    return <FarmVerdict report={reward.farm} capacity={farmCapacity} language={language} onClose={onClose} onNext={onNext} />
+    return <FarmVerdict report={reward.farm} capacity={farmCapacity} language={language} blocks={level.blocks} onClose={onClose} onNext={onNext} />
   if (reward.harvest !== null)
     return <HarvestVerdict result={result} reward={reward} language={language} onClose={onClose} onNext={onNext} onContinue={onContinue} />
   // A course level speaks of blocks: in Python it shows neither its ladder nor its gift.
@@ -447,19 +447,22 @@ const FarmVerdict = ({
   report,
   capacity,
   language,
+  blocks,
   onClose,
   onNext
 }: {
   readonly report: FarmReport
   readonly capacity: number
   readonly language: Language
+  /** The palette of the day: the tips name only its commands. */
+  readonly blocks: ReadonlyArray<BlockName>
   readonly onClose: () => void
   /** «Завершити день»: the app puts the yield in the barn and starts the next day. */
   readonly onNext: (() => void) | undefined
 }) => {
   const bars = chartOf(report)
   const top = Math.max(1, ...bars)
-  const tips = farmTips(report, capacity, language)
+  const tips = farmTips(report, capacity, language, blocks)
   const failed = report.stopped === "badProgram" || report.stopped === "noStart" || report.stopped === "tooLong"
   return (
     <div className="eb-verdict-layer">
