@@ -101,8 +101,10 @@ const snippetsOf = (level: Level, methods: ReadonlyArray<PythonMethod>): Readonl
     { block: "ifElse", code: "else:", doc: "Інакше: що робити, коли умова не правда." },
     { block: "counter", code: `${COUNTER_NAME} = 0`, doc: "Змінна-лічильник." },
     { block: "procedure", code: `def ${name}():`, doc: `Своя функція: її команди зсунуті нижче, виклик — ${name}().` },
+    { block: "procedure", code: `${name}()`, doc: `Виклик своєї функції: напиши її ім'я з дужками в головній програмі, і вона виконає всі команди визначення.` },
     { block: "variables", code: "ходки = 0", doc: "Своя змінна: назва каже, що в ній лежить. ходки += 1 додає один." },
-    { block: "myBlocks", code: "def пройти(кроки):", doc: "Своя функція з параметром: пройти(3) і пройти(5) роблять різне." }
+    { block: "myBlocks", code: "def пройти(кроки):", doc: "Своя функція з параметром: пройти(3) і пройти(5) роблять різне." },
+    { block: "myBlocks", code: "пройти(3)", doc: "Виклик функції з параметром: у дужках кажеш, скільки разів чи на скільки." }
   ]
   const ideas = level.uses ?? []
   const pythonOnly: ReadonlyArray<{ readonly shown: boolean; readonly code: string; readonly doc: string }> = [
