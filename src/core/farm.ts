@@ -1,5 +1,5 @@
 import { farmLook } from "./farm-map.ts"
-import { ladderBlocks, LADDER_DONE, ladderStep } from "./farm-ladder.ts"
+import { ladderBlocks, LADDER_DONE, ladderFullWood, ladderStep } from "./farm-ladder.ts"
 import { BOOK_PAGES, type BookPage } from "./book.ts"
 import { craftBlocks, CRAFTS, craftLevel, type CraftResource, FASTER_LEVEL } from "./crafts.ts"
 import { estateSeason, MAX_TREES, PALETTE_ORDER, randomOf, START_TREES } from "./estate.ts"
@@ -318,7 +318,9 @@ export const farmDay = (state: FarmState, blocks: ReadonlyArray<BlockName>, day 
   const trees = treesOf(state)
   const beds = has(state, "beds")
   const random = dayRandom(day)
-  const wood = chances(trees, WOOD_CHANCE, random)
+  // Drawn on every day, so the numbers after the wood stay the same when a day of the ladder fills the forest.
+  const drawn = chances(trees, WOOD_CHANCE, random)
+  const wood = ladderFullWood(day) ? drawn.map(() => true) : drawn
   const later = wood.map(() => 1 + Math.floor(random() * WOOD_REGROW))
   const regrow = woodRegrowOf(state)
   const ripe = beds ? chances(trees, RIPE_CHANCE, random) : []

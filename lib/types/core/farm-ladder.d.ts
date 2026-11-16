@@ -11,6 +11,8 @@ export interface FarmStep {
     /** The goal of the day, the first line of the task. */
     readonly goal: string;
     readonly lesson: Lesson;
+    /** Every tree of the forest has a log in the morning, so the example of the lesson fits the field. */
+    readonly fullWood?: boolean;
 }
 export declare const FARM_LADDER: ReadonlyArray<FarmStep>;
 /** The day from which the farm has every command of the ladder and what the course taught. */
@@ -19,3 +21,5 @@ export declare const LADDER_DONE: number;
 export declare const ladderBlocks: (day: number) => ReadonlyArray<BlockName>;
 /** The step that opens on this day, if any. */
 export declare const ladderStep: (day: number) => FarmStep | undefined;
+/** Every tree has a log on this day of the ladder. */
+export declare const ladderFullWood: (day: number) => boolean;
