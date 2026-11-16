@@ -12,6 +12,8 @@ export interface FarmStep {
   /** The goal of the day, the first line of the task. */
   readonly goal: string
   readonly lesson: Lesson
+  /** Every tree of the forest has a log in the morning, so the example of the lesson fits the field. */
+  readonly fullWood?: boolean
 }
 
 export const FARM_LADDER: ReadonlyArray<FarmStep> = [
@@ -37,17 +39,32 @@ export const FARM_LADDER: ReadonlyArray<FarmStep> = [
         "hero.move()        # стоїмо на хаті",
         "hero.store()       # віднести в комору"
       ].join("\n")
-    }
+    },
+    fullWood: true
   },
   {
     day: 2,
     blocks: ["repeat"],
-    goal: "Нова команда: «повторити». Мета дня: те саме, що вчора, але кроки, які повторюються, загорни в цикл.",
+    goal: "Нова команда: «повторити». Мета дня: візьми всі три колоди на стежці й віднеси їх у комору. Кроки, які повторюються, загорни в цикл.",
     lesson: {
       title: "повторити",
-      text: ["Замість трьох однакових рядків напиши цикл.", "Усе, що зсунуто під for, робітник повторить стільки разів, скільки в range()."],
-      example: ["for i in range(3):", "    hero.move()    # три кроки вперед", "hero.collect()"].join("\n")
-    }
+      text: [
+        "Замість трьох однакових рядків напиши цикл.",
+        "Усе, що зсунуто під for, робітник повторить стільки разів, скільки в range().",
+        "Рядок без відступу вже не в циклі: він виконається один раз, після циклу."
+      ],
+      example: [
+        "for i in range(3):",
+        "    hero.move()      # крок до колоди",
+        "    hero.collect()   # і взяти її",
+        "hero.turn_left()     # без відступу: уже після циклу",
+        "hero.turn_left()",
+        "for i in range(4):",
+        "    hero.move()      # чотири кроки до хати",
+        "hero.store()"
+      ].join("\n")
+    },
+    fullWood: true
   },
   {
     day: 3,
@@ -99,3 +116,6 @@ export const ladderBlocks = (day: number): ReadonlyArray<BlockName> => FARM_LADD
 
 /** The step that opens on this day, if any. */
 export const ladderStep = (day: number): FarmStep | undefined => FARM_LADDER.find((s) => s.day === day)
+
+/** Every tree has a log on this day of the ladder. */
+export const ladderFullWood = (day: number): boolean => ladderStep(day)?.fullWood === true

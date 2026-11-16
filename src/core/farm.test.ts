@@ -881,6 +881,17 @@ describe("the ladder of the first days", () => {
       expect(result.reason, `day ${step.day}`).toBeNull()
     }
   })
+
+  test("on the first two days every tree has a log, and the example of day 2 takes all three to the barn", () => {
+    for (const day of [1, 2]) {
+      const state = { ...NEW_FARM, day }
+      expect(farmDay(state, farmPalette(state, [])).map[1], `day ${day}`).toBe("#HSccc.#")
+    }
+    const state = { ...NEW_FARM, day: 2 }
+    const example = FARM_LADDER.find((s) => s.day === 2)?.lesson.example ?? ""
+    const { report } = runFarmDay(state, { language: "python", source: example }, farmPalette(state, []))
+    expect(report.stored.wood).toBe(3)
+  })
 })
 
 describe("the tips of the first days", () => {
