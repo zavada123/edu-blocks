@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { loadRate, saveRate } from "./prefs.ts"
+import { Select } from "./Select.tsx"
 
 /** Speeds of the playback, as a share of the normal pace. */
 export const RATES: ReadonlyArray<number> = [0.5, 1, 2, 4]
+const RATE_OPTIONS = RATES.map((r) => ({ value: String(r), label: `×${r}` }))
 
 export interface Player {
   /** Actions played so far, fractions included: see `poseAt`. */
@@ -133,13 +135,13 @@ export const Timeline = ({ player, length }: { readonly player: Player; readonly
       <span className="eb-timeline-count" aria-hidden="true">
         {done}/{length}
       </span>
-      <select className="eb-timeline-rate" value={player.rate} onChange={(e) => player.setRate(Number(e.target.value))} aria-label="Швидкість">
-        {RATES.map((r) => (
-          <option key={r} value={r}>
-            ×{r}
-          </option>
-        ))}
-      </select>
+      <Select
+        className="eb-timeline-rate"
+        ariaLabel="Швидкість"
+        value={String(player.rate)}
+        options={RATE_OPTIONS}
+        onChange={(r) => player.setRate(Number(r))}
+      />
     </div>
   )
 }
