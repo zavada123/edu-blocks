@@ -1,4 +1,5 @@
 import { farmLook } from "./farm-map.ts"
+import { ladderBlocks, LADDER_DONE, ladderStep } from "./farm-ladder.ts"
 import { BOOK_PAGES, type BookPage } from "./book.ts"
 import { craftBlocks, CRAFTS, craftLevel, type CraftResource, FASTER_LEVEL } from "./crafts.ts"
 import { estateSeason, MAX_TREES, PALETTE_ORDER, randomOf, START_TREES } from "./estate.ts"
@@ -220,32 +221,11 @@ export const farmCapacity = (state: FarmState): number => (has(state, "cart") ? 
 const treesOf = (state: FarmState): number => Math.min(MAX_TREES, Math.max(START_TREES, Math.round(state.trees)))
 
 /**
- * The blocks every farm has: the farm is a sandbox, so a loop, a branch and the questions about the road, the hands
- * and the barn are there from the first day, even before the course reached them.
+ * The blocks of the farm: the commands the first days opened one by one (`FARM_LADDER`), from the last of those days
+ * what the student learned in the course, and the commands of the buildings and tools.
  */
-const FARM_BASE: ReadonlyArray<BlockName> = [
-  "move",
-  "turnLeft",
-  "turnRight",
-  "collect",
-  "store",
-  "wallAhead",
-  "onCrystal",
-  "handsFull",
-  "atStorehouse",
-  "repeat",
-  "forever",
-  "repeatUntil",
-  "if",
-  "ifElse",
-  "not",
-  "and",
-  "or"
-]
-
-/** The blocks of the farm: the base, what the student learned in the course, and the beds once they are built. */
 export const farmPalette = (state: FarmState, learned: ReadonlyArray<BlockName>): ReadonlyArray<BlockName> => {
-  const have = new Set<BlockName>([...FARM_BASE, ...learned])
+  const have = new Set<BlockName>([...ladderBlocks(state.day), ...(state.day >= LADDER_DONE ? learned : [])])
   if (has(state, "beds")) {
     // Two kinds lie on the farm now: «тут ‹…›?» tells a pumpkin from a log.
     have.add("itemIs")
@@ -388,10 +368,12 @@ export const farmDay = (state: FarmState, blocks: ReadonlyArray<BlockName>, day 
   ]
   const scene: Scene = { theme: estateSeason(day), item: "wood", itemsAt, storehouseName: "у коморі", tilemap: look.tilemap, sprites: look.sprites }
   const turns = farmTurns(state)
+  const step = ladderStep(day)
   return {
     id: `farm-${day}`,
     title: `Хутір · день ${day}`,
     task: [
+      ...(step === undefined ? [] : [step.goal]),
       `Робочий день: ${turns} ходів. Усе, що робітник віднесе в комору, піде в запас.`,
       beds ? "На деревах знову виростають колоди, а посіяний гарбуз достигає за кілька ходів." : "На зрубаному дереві згодом знову виростає колода.",
       `Робітник несе не більше ${farmCapacity(state)} речей: коли руки повні, неси в комору.`,
@@ -427,6 +409,7 @@ export const farmDay = (state: FarmState, blocks: ReadonlyArray<BlockName>, day 
     ...(mill === null ? {} : { mill }),
     ...(helper ? { helpers: [{ x: right, y: TOP, dir: "down" as const }] } : {}),
     procedure: "обійти ряд",
+    ...(step === undefined ? {} : { lesson: step.lesson }),
     ...(has(state, "book") && (state.book ?? []).length > 0 ? { library: state.book } : {}),
     scene
   }
@@ -974,25 +957,40 @@ export const totalOf = (amounts: Amounts): number => RESOURCES.reduce((sum, r) =
 /**
  * What to improve after a working day, in the words of the report: the turns spent for nothing, what was left in the
  * hands, a program that stopped before the evening. At most three tips, the most useful first.
+ *
+ * `blocks`: the palette of the day. A tip names only the commands the student has; on the first days, before the
+ * loops and the questions open, it says what to do in other words.
  */
-export const farmTips = (report: FarmReport, capacity: number, language: "blocks" | "python" = "blocks"): ReadonlyArray<string> => {
+export const farmTips = (
+  report: FarmReport,
+  capacity: number,
+  language: "blocks" | "python" = "blocks",
+  blocks?: ReadonlyArray<BlockName>
+): ReadonlyArray<string> => {
   const py = language === "python"
+  const can = (b: BlockName) => blocks === undefined || blocks.includes(b)
   const tips: Array<string> = []
   if (report.stopped === "defeated")
     tips.push(`Гобліни здолали робітника: ${py ? "if hero.enemy_ahead(): hero.attack()" : "«якщо попереду ворог? то вдарити»"} перед кожним кроком.`)
   else if (report.stopped === "crashed")
     tips.push(
-      `Робітник урізався в ${report.goblins > 0 ? "паркан або в гобліна" : "паркан"}: перед кроком спитай ${py ? "hero.wall_ahead()" : "«попереду стіна?»"}${report.goblins > 0 ? (py ? " і hero.enemy_ahead()" : " і «попереду ворог?»") : ""}.`
+      can("wallAhead")
+        ? `Робітник урізався в ${report.goblins > 0 ? "паркан або в гобліна" : "паркан"}: перед кроком спитай ${py ? "hero.wall_ahead()" : "«попереду стіна?»"}${report.goblins > 0 ? (py ? " і hero.enemy_ahead()" : " і «попереду ворог?»") : ""}.`
+        : `Робітник урізався в паркан: порахуй клітинки стежки й поверни там, де вона повертає.`
     )
   else if (report.used < report.turns && report.stopped === null)
-    tips.push(`Програма закінчилась на ході ${report.used} з ${report.turns}: ${py ? "загорни роботу в while True" : "загорни роботу в «завжди»"}, щоб робітник працював до вечора.`)
+    tips.push(
+      can("forever")
+        ? `Програма закінчилась на ході ${report.used} з ${report.turns}: ${py ? "загорни роботу в while True" : "загорни роботу в «завжди»"}, щоб робітник працював до вечора.`
+        : `Програма закінчилась на ході ${report.used} з ${report.turns}: ходів ще багато, допиши команди, щоб робітник приніс більше.`
+    )
   const left = totalOf(report.carried)
   if (left > 0) tips.push(`Наприкінці дня в руках лишилось ${left}: це пропало. Неси в комору, щойно руки повні (${capacity}).`)
   if (report.idle > 0)
     tips.push(
       (report.idleFeed ?? 0) > 0
         ? `Ходів дарма: ${report.idle}, з них ${report.idleFeed} ${py ? "hero.feed()" : "«нагодувати»"} без гарбуза в руках або коли вівці ще їли. Годуй, лише коли ${py ? "hero.sheep_hungry()" : "«вівці голодні?»"} і в руках є гарбуз.`
-        : `Ходів дарма: ${report.idle}. ${py ? "hero.collect()" : "«Взяти»"} на порожній клітинці теж забирає хід: спершу спитай ${py ? "hero.item_here()" : "«тут щось є?»"}.`
+        : `Ходів дарма: ${report.idle}. ${py ? "hero.collect()" : "«Взяти»"} на порожній клітинці теж забирає хід: ${can("onCrystal") ? `спершу спитай ${py ? "hero.item_here()" : "«тут щось є?»"}` : "бери лише там, де лежить колода"}.`
     )
   return tips.slice(0, 3)
 }

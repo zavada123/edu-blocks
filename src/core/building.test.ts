@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest"
+import { COURSE_IDEAS, seasoned } from "./farm-course.fixture.ts"
 import { buildProgram, type Step } from "./build.ts"
 import {
   buildable,
@@ -158,7 +159,7 @@ describe("будівництво на хуторі", () => {
   test("a working day reports the parts its program built", () => {
     const state = chooseBuilding(farm(), "barn")
     const code = "while True:\n    if hero.at_site():\n        hero.build()\n    if hero.wall_ahead():\n        hero.turn_right()\n    else:\n        hero.move()\n"
-    const { report } = runFarmDay(state, { language: "python", source: code }, farmPalette(state, []))
+    const { report } = runFarmDay(state, { language: "python", source: code }, farmPalette(seasoned(state), COURSE_IDEAS))
     expect(report.stopped).toBeNull()
     expect(report.built).toBe(3)
     expect(report.spent?.wood).toBe(6)
@@ -166,9 +167,9 @@ describe("будівництво на хуторі", () => {
   })
 
   test("the palette has the site's blocks and, with «Рахівниця», the number and the comparisons", () => {
-    expect(farmPalette(farm(), [])).toEqual(expect.arrayContaining(["build", "atSite"]))
-    expect(farmPalette(farm(), [])).not.toContain("stock")
-    const counted = farmPalette({ ...farm(), unlocked: [...farm().unlocked, "abacus"] }, [])
+    expect(farmPalette(seasoned(farm()), COURSE_IDEAS)).toEqual(expect.arrayContaining(["build", "atSite"]))
+    expect(farmPalette(seasoned(farm()), COURSE_IDEAS)).not.toContain("stock")
+    const counted = farmPalette(seasoned({ ...farm(), unlocked: [...farm().unlocked, "abacus"] }), COURSE_IDEAS)
     expect(counted).toEqual(expect.arrayContaining(["stock", "gt", "lt", "equals"]))
   })
 
@@ -202,7 +203,7 @@ describe("помічник Тарас", () => {
   })
 
   test("a day of two reports each worker and adds their yields up", () => {
-    const { report, result } = runFarmDay(state, crew, farmPalette(state, []))
+    const { report, result } = runFarmDay(state, crew, farmPalette(seasoned(state), COURSE_IDEAS))
     expect(result.frames.every((f) => f.crew?.length === 1)).toBe(true)
     expect(report.workers).toHaveLength(2)
     const [worker, helper] = report.workers ?? []
@@ -214,7 +215,7 @@ describe("помічник Тарас", () => {
   })
 
   test("the journal keeps the helper's part, and a new helper program is a new program of the day", () => {
-    const { report } = runFarmDay(state, crew, farmPalette(state, []))
+    const { report } = runFarmDay(state, crew, farmPalette(seasoned(state), COURSE_IDEAS))
     const entry = dayRecord(state, report, crew, [])
     expect(entry.helper).toEqual(report.workers?.[1]?.stored)
     const other = dayRecord(state, report, { ...crew, helper: { language: "python", source: FOREST } }, [])
@@ -227,9 +228,9 @@ describe("помічник Тарас", () => {
     if (order === undefined) throw new Error("no order")
     expect(openOrders(state).map((o) => o.id)).toContain("two")
     expect(openOrders({ ...state, parts: {} }).map((o) => o.id)).not.toContain("two")
-    const alone = runFarmDay(state, { language: "python", source: RING }, farmPalette(state, [])).report
+    const alone = runFarmDay(state, { language: "python", source: RING }, farmPalette(seasoned(state), COURSE_IDEAS)).report
     expect(orderMisses(order, alone).join(" ")).toContain("Тарас за день нічого не приніс")
-    const together = runFarmDay(state, crew, farmPalette(state, [])).report
+    const together = runFarmDay(state, crew, farmPalette(seasoned(state), COURSE_IDEAS)).report
     expect(orderMisses(order, together)).toEqual([])
     expect(metAt(together, order.needs)).not.toBeNull()
   })

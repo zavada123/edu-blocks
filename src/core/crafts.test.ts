@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest"
+import { COURSE_IDEAS, seasoned } from "./farm-course.fixture.ts"
 import { craftBlocks, CRAFTS, craftLevel, craftProgress, craftUps } from "./crafts.ts"
 import {
   FASTER_PUMPKIN_GROW,
@@ -61,10 +62,10 @@ describe("ремесла", () => {
   })
 
   test("the palette has the blocks of the crafts; the gardener's need the beds", () => {
-    expect(farmPalette(farm(150, 120), [])).toEqual(expect.arrayContaining(["woodAhead", "chop", "ripeAhead", "water"]))
-    expect(farmPalette(farm(0, 0), [])).not.toContain("chop")
-    expect(farmPalette(farm(150, 120, []), [])).not.toContain("water")
-    expect(farmPalette(farm(0, 0, ["spyglass"]), [])).toContain("itemAhead")
+    expect(farmPalette(seasoned(farm(150, 120)), COURSE_IDEAS)).toEqual(expect.arrayContaining(["woodAhead", "chop", "ripeAhead", "water"]))
+    expect(farmPalette(seasoned(farm(0, 0)), COURSE_IDEAS)).not.toContain("chop")
+    expect(farmPalette(seasoned(farm(150, 120, [])), COURSE_IDEAS)).not.toContain("water")
+    expect(farmPalette(seasoned(farm(0, 0, ["spyglass"])), COURSE_IDEAS)).toContain("itemAhead")
   })
 
   test("from the third level trees and pumpkins grow faster", () => {
@@ -132,7 +133,7 @@ describe("спорядження", () => {
   test("Python has the tools as methods", () => {
     const state = farm(150, 120)
     const code = "for i in range(3):\n    hero.move()\n    if hero.item_is(\"wood\"):\n        hero.chop()\n"
-    const { report } = runFarmDay(state, { language: "python", source: code }, farmPalette(state, []))
+    const { report } = runFarmDay(state, { language: "python", source: code }, farmPalette(seasoned(state), COURSE_IDEAS))
     expect(report.stopped).toBeNull()
   })
 })

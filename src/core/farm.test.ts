@@ -1,4 +1,6 @@
 import { describe, expect, test } from "vitest"
+import { COURSE_IDEAS, seasoned } from "./farm-course.fixture.ts"
+import { FARM_LADDER, LADDER_DONE } from "./farm-ladder.ts"
 import { BOOK_PAGES, type BookPage, pageOf } from "./book.ts"
 import { buildProgram, type Step } from "./build.ts"
 import {
@@ -368,28 +370,34 @@ describe("the day of the farm", () => {
     expect(farmCapacity(withUnlocks("basket", "cart"))).toBe(8)
   })
 
+  test("the first days open the commands one by one, and the course adds its own after them", () => {
+    const BASE = ["move", "turnLeft", "turnRight", "collect", "store"]
+    expect(farmPalette(NEW_FARM, [])).toEqual(BASE)
+    // A student who passed the course still starts with five commands: the farm does not open with everything at once.
+    expect(farmPalette(NEW_FARM, COURSE_IDEAS)).toEqual(BASE)
+    expect(farmPalette({ ...NEW_FARM, day: 2 }, COURSE_IDEAS)).toEqual([...BASE, "repeat"])
+    const third = farmPalette({ ...NEW_FARM, day: 3 }, COURSE_IDEAS)
+    expect(third).toEqual(expect.arrayContaining(["if", "ifElse", "onCrystal", "handsFull"]))
+    expect(third).not.toContain("forever")
+    expect(farmPalette({ ...NEW_FARM, day: 4 }, COURSE_IDEAS)).not.toContain("repeatUntil")
+    expect(farmPalette({ ...NEW_FARM, day: LADDER_DONE }, ["procedure"])).toContain("procedure")
+    expect(farmPalette({ ...NEW_FARM, day: LADDER_DONE - 1 }, ["procedure"])).not.toContain("procedure")
+    expect(new Set(farmPalette({ ...NEW_FARM, day: LADDER_DONE }, []))).toEqual(new Set([...BASE, ...COURSE_IDEAS]))
+  })
+
+  test("a day of the ladder names its goal first and brings its lesson; a later day has neither", () => {
+    const first = farmDay(NEW_FARM, farmPalette(NEW_FARM, []))
+    expect(first.task[0]).toContain("Мета першого дня")
+    expect(first.lesson?.example).toContain("hero.store()")
+    const later = farmDay({ ...NEW_FARM, day: LADDER_DONE + 1 }, [])
+    expect(later.task[0]).toContain("Робочий день")
+    expect(later.lesson).toBeUndefined()
+  })
+
   test("the palette has the beds only once they are built", () => {
-    expect(farmPalette(NEW_FARM, ["procedure", "sow"])).toEqual([
-      "move",
-      "turnLeft",
-      "turnRight",
-      "collect",
-      "store",
-      "wallAhead",
-      "onCrystal",
-      "handsFull",
-      "atStorehouse",
-      "repeat",
-      "forever",
-      "repeatUntil",
-      "if",
-      "ifElse",
-      "not",
-      "and",
-      "or",
-      "procedure"
-    ])
-    expect(farmPalette(withUnlocks("beds"), [])).toEqual(expect.arrayContaining(["bedEmpty", "sow", "itemIs"]))
+    expect(farmPalette(seasoned(NEW_FARM), ["procedure", "sow"])).toEqual(expect.arrayContaining(["procedure"]))
+    expect(farmPalette(seasoned(NEW_FARM), ["procedure", "sow"])).not.toContain("sow")
+    expect(farmPalette(seasoned(withUnlocks("beds")), COURSE_IDEAS)).toEqual(expect.arrayContaining(["bedEmpty", "sow", "itemIs"]))
   })
 })
 
@@ -482,8 +490,8 @@ describe("orders", () => {
       if (o.fromBook === true) state = { ...state, book: [WORK_PAGE] }
       // The student builds what an order needs on the site.
       if (o.building !== undefined) state = { ...state, parts: { ...state.parts, [o.building]: 99 } }
-      // Only the blocks the farm itself gives: a student who skipped the course can do every order.
-      const palette = farmPalette(state, [])
+      // The blocks the farm gives and the loops and questions of the course before the goblins.
+      const palette = farmPalette(seasoned(state), COURSE_IDEAS)
       const best = Math.max(...programs.map((p) => checkOrder(state, o, p, palette).grade))
       expect(best, o.id).toBeGreaterThan(0)
       state = recordOrder(state, o, best)
@@ -577,8 +585,8 @@ describe("goblins and the watch tower", () => {
   })
 
   test("the palette gets «вдарити» and «попереду ворог?» with the basket", () => {
-    expect(farmPalette(withUnlocks("beds"), [])).not.toContain("attack")
-    expect(farmPalette(withUnlocks("beds", "basket"), [])).toEqual(expect.arrayContaining(["attack", "enemyAhead"]))
+    expect(farmPalette(seasoned(withUnlocks("beds")), COURSE_IDEAS)).not.toContain("attack")
+    expect(farmPalette(seasoned(withUnlocks("beds", "basket")), COURSE_IDEAS)).toEqual(expect.arrayContaining(["attack", "enemyAhead"]))
   })
 
   test("a ring that does not look for goblins walks into one; a ring that beats them works till the evening", () => {
@@ -694,8 +702,8 @@ describe("the sheep pen and the gold mine", () => {
     // Assert
     expect(level.map[2]?.[1]).toBe("t")
     expect(level.regrowAt).toEqual([{ x: 2, y: 3, turns: 20 }])
-    expect(farmPalette(built, [])).toEqual(expect.arrayContaining(["feed", "sheepHungry"]))
-    expect(farmPalette(withUnlocks("beds"), [])).not.toContain("feed")
+    expect(farmPalette(seasoned(built), COURSE_IDEAS)).toEqual(expect.arrayContaining(["feed", "sheepHungry"]))
+    expect(farmPalette(seasoned(withUnlocks("beds")), COURSE_IDEAS)).not.toContain("feed")
     expect(farmDay(withUnlocks("beds"), ALL, 4).map[2]?.[1]).toBe(".")
   })
 
@@ -742,11 +750,11 @@ describe("Майстерня", () => {
     expect(palette).toContain("myBlocks")
     expect(palette).not.toContain("counter")
     expect(palette).not.toContain("procedure")
-    expect(farmPalette(withUnlocks("beds"), [])).not.toContain("variables")
+    expect(farmPalette(seasoned(withUnlocks("beds")), COURSE_IDEAS)).not.toContain("variables")
   })
 
   test("«Облік ходок» asks the variable to hold the trips to the barn", () => {
-    const palette = farmPalette(built, [])
+    const palette = farmPalette(seasoned(built), COURSE_IDEAS)
     const tally = order("tally")
     expect(orderRules(tally)).toEqual(["змінна «ходки» наприкінці дня дорівнює кількості ходок до комори"])
     expect(checkOrder(built, tally, TALLY, palette).grade).toBeGreaterThan(0)
@@ -770,7 +778,7 @@ while True:
   })
 
   test("«Облік ходок» in blocks: a variable the student made counts the trips", () => {
-    const palette = farmPalette(built, [])
+    const palette = farmPalette(seasoned(built), COURSE_IDEAS)
     const steps: ReadonlyArray<Step> = [
       { set: 0, variable: "ходки" },
       {
@@ -790,7 +798,7 @@ while True:
   })
 
   test("«Підряд теслі» asks for an own block called with different values", () => {
-    const palette = farmPalette(built, [])
+    const palette = farmPalette(seasoned(built), COURSE_IDEAS)
     const carpenter = order("carpenter")
     expect(checkOrder(built, carpenter, CARPENTER, palette).grade).toBeGreaterThan(0)
     expect(checkOrder(built, carpenter, RING, palette).grade).toBe(0)
@@ -809,7 +817,7 @@ while True:
   })
 
   test("«Підряд теслі» in blocks: «пройти (кроки)» with 5 and 3", () => {
-    const palette = farmPalette(built, [])
+    const palette = farmPalette(seasoned(built), COURSE_IDEAS)
     const body: ReadonlyArray<Step> = [
       {
         repeat: { param: "ходів" },
@@ -829,7 +837,7 @@ while True:
 
 describe("Книга команд", () => {
   const built = withUnlocks("beds", "basket", "tower", "longDay", "cart", "pen", "mine", "workshop", "book")
-  const palette = farmPalette(built, [])
+  const palette = farmPalette(seasoned(built), COURSE_IDEAS)
   const withBook: FarmState = { ...built, book: [WORK_PAGE] }
 
   test("«Облік ходок» opens the book with three pages, and «Сад і поле» gives one more", () => {
@@ -862,5 +870,27 @@ describe("Книга команд", () => {
     expect(checkOrder(withBook, garden, FROM_BOOK, palette).grade).toBeGreaterThan(0)
     expect(checkOrder(withBook, garden, CARPENTER, palette).grade).toBe(0)
     expect(orderMisses(garden, runFarmDay(withBook, CARPENTER, palette).report, "python")[0]).toMatch(/не пиши для неї свій def/)
+  })
+})
+
+describe("the ladder of the first days", () => {
+  test("the example of each day's lesson runs on that day without a mistake, with that day's commands", () => {
+    for (const step of FARM_LADDER) {
+      const state = { ...NEW_FARM, day: step.day }
+      const { result } = runFarmDay(state, { language: "python", source: step.lesson.example }, farmPalette(state, []))
+      expect(result.reason, `day ${step.day}`).toBeNull()
+    }
+  })
+})
+
+describe("the tips of the first days", () => {
+  test("a tip names only the commands of the day's palette", () => {
+    const state = NEW_FARM
+    const palette = farmPalette(state, [])
+    const { report } = runFarmDay(state, { language: "python", source: "hero.collect()\n" }, palette)
+    const tips = farmTips(report, 3, "python", palette)
+    expect(tips.join(" ")).not.toContain("while True")
+    expect(tips.join(" ")).not.toContain("item_here")
+    expect(tips[0]).toContain("допиши команди")
   })
 })

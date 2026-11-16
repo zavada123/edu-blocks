@@ -669,6 +669,43 @@ const heroFigure = (ctx: Ctx, hero: HeroPose, spriteId: string, now: number, sti
   ctx.restore()
 }
 
+/** Where the facing mark of a hero stands, from the middle of the cell, and which way it points. */
+const FACING: Readonly<Record<HeroPose["dir"], { readonly dx: number; readonly dy: number }>> = {
+  right: { dx: 1, dy: 0 },
+  left: { dx: -1, dy: 0 },
+  down: { dx: 0, dy: 1 },
+  up: { dx: 0, dy: -1 }
+}
+/** How far the mark stands from the hero's feet, and how big it is. Facing up, it floats over the head. */
+const FACING_OFFSET = 7
+const FACING_OVER_HEAD = 19
+const FACING_SIZE = 2.6
+
+/**
+ * A small arrow on the ground in front of the hero. The pictures face only left or right, so without it a hero facing
+ * up or down looks the same as one facing sideways, and a student cannot tell where `move()` goes.
+ */
+const facingMark = (ctx: Ctx, hero: HeroPose) => {
+  if (hero.fallen > 0 || hero.act === "walk") return
+  const { dx, dy } = FACING[hero.dir]
+  const x = hero.x * CELL + CELL / 2 + dx * FACING_OFFSET
+  const y = hero.y * CELL + CELL / 2 + 4 + dy * (dy < 0 ? FACING_OVER_HEAD : FACING_OFFSET)
+  const s = FACING_SIZE
+  ctx.save()
+  ctx.beginPath()
+  ctx.moveTo(x + dx * s, y + dy * s)
+  ctx.lineTo(x - dx * s + dy * s, y - dy * s + dx * s)
+  ctx.lineTo(x - dx * s - dy * s, y - dy * s - dx * s)
+  ctx.closePath()
+  ctx.fillStyle = "#ffd447"
+  ctx.strokeStyle = "rgba(40, 25, 10, 0.85)"
+  ctx.lineWidth = 0.8
+  ctx.lineJoin = "round"
+  ctx.stroke()
+  ctx.fill()
+  ctx.restore()
+}
+
 /** A building or a big tree, standing on the middle of the bottom row of its cells. */
 const propFigure = (ctx: Ctx, prop: Prop, now: number) => {
   const { width, height } = PROPS[prop.kind]
@@ -924,6 +961,7 @@ export const drawActors = (ctx: Ctx, input: ActorsInput) => {
     { y: pose.hero.y + 0.01, draw: () => heroFigure(ctx, pose.hero, HERO_ART[skin], now, still) }
   ]
   for (const f of figures.sort((a, b) => a.y - b.y)) f.draw()
+  for (const h of [...pose.crew, pose.hero]) facingMark(ctx, h)
   // Roofs and crowns of the tile map cover the hero who walks under them.
   if (map !== undefined && tileset !== null) for (const t of tilesOfKind(map, "above")) drawTile(ctx, tileset, t.tile, t.x, t.y)
   for (const npc of scene.npcs ?? []) if (npc.say !== undefined && npc.say.trim() !== "" && nextTo(npc, pose.hero)) speech(ctx, npc, npc.say)
