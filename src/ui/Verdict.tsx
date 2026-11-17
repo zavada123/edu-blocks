@@ -5,6 +5,7 @@ import { type BlockName, type Level, speaksTo } from "../core/level.ts"
 import type { FailReason, Program, RunResult } from "../core/program.ts"
 import { heroLevelOf, xpFor, xpGain } from "../core/xp.ts"
 import { Coin } from "./Coin.tsx"
+import { RichText } from "./RichText.tsx"
 
 /** The result of a run for the student: stars, XP, what went wrong and what to try. Shared by blocks and Python. */
 
@@ -273,7 +274,7 @@ const HintLadder = ({ hints, step, onMore }: { readonly hints: ReadonlyArray<str
         </pre>
       ) : (
         <p key={hint} className="eb-hint">
-          Підказка {i + 1}: {hint}
+          Підказка {i + 1}: <RichText text={hint} />
         </p>
       )
     )}
@@ -371,7 +372,9 @@ export const Verdict = ({
         {own && level.hints !== undefined && onHint !== undefined ? (
           <HintLadder hints={level.hints} step={hintStep} onMore={onHint} />
         ) : (
-          level.hint !== undefined && HINTED.has(reason) && <p className="eb-hint">Підказка: {level.hint}</p>
+          level.hint !== undefined && HINTED.has(reason) && <p className="eb-hint">
+              Підказка: <RichText text={level.hint} />
+            </p>
         )}
         <div className="eb-verdict-actions">
           {onContinue !== undefined && <ContinueButton onContinue={onContinue} />}

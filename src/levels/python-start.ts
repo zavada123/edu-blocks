@@ -72,7 +72,7 @@ const heroLevels: ReadonlyArray<Level> = [
       title: "Як дати героєві команду",
       text: [
         "Герой у програмі зветься hero. Щоб він щось зробив, пиши hero, крапку і що зробити.",
-        "hero.move() — один крок уперед. hero.collect() — взяти те, що лежить під ногами.",
+        "`hero.move()` — один крок уперед. `hero.collect()` — взяти те, що лежить під ногами.",
         "Кожна команда пишеться з нового рядка. Дужки в кінці обов'язкові.",
       ],
       example: "hero.move()      # крок\nhero.collect()   # взяти\n",
@@ -82,10 +82,10 @@ const heroLevels: ReadonlyArray<Level> = [
     blocks: ["move", "collect"],
     goals: [{ type: "crystals" }],
     stars: { three: 4, two: 6 },
-    hint: "Три рядки hero.move() і один hero.collect().",
+    hint: "Три рядки `hero.move()` і один `hero.collect()`.",
     hints: [
       "Скільки клітинок до дров? Стільки разів і треба зробити крок.",
-      "Крок — hero.move(), взяти — hero.collect(). Кожна команда з нового рядка.",
+      "Крок — `hero.move()`, взяти — `hero.collect()`. Кожна команда з нового рядка.",
       "hero.move()\nhero.move()\nhero.____()\nhero.________()",
     ],
     gift: { name: "Чоботи мандрівника", skill: "hero.move() і hero.collect(): герой ходить і бере речі." },
@@ -107,7 +107,7 @@ const heroLevels: ReadonlyArray<Level> = [
     lesson: {
       title: "Багато кроків одним рядком",
       text: [
-        "У дужки можна написати число: hero.move(6) — це 6 кроків.",
+        "У дужки можна написати число: `hero.move(6)` — це 6 кроків.",
         "Так коротше: один рядок замість шести.",
       ],
       example: "hero.move(2)   # 2 кроки\n",
@@ -117,10 +117,10 @@ const heroLevels: ReadonlyArray<Level> = [
     blocks: ["move", "collect"],
     goals: [{ type: "crystals" }],
     stars: { three: 2, two: 4 },
-    hint: "hero.move(6), а потім hero.collect().",
+    hint: "`hero.move(6)`, а потім `hero.collect()`.",
     hints: [
       "Скільки кроків до дров? Це число можна написати в дужках.",
-      "hero.move(6) робить 6 кроків одним рядком. Потім візьми дрова.",
+      "`hero.move(6)` робить 6 кроків одним рядком. Потім візьми дрова.",
       "hero.move(_)\nhero.collect()",
     ],
     scene: {
@@ -141,7 +141,7 @@ const heroLevels: ReadonlyArray<Level> = [
     lesson: {
       title: "Як повернути",
       text: [
-        "hero.turn_right() — повернути праворуч. hero.turn_left() — повернути ліворуч.",
+        "`hero.turn_right()` — повернути праворуч. `hero.turn_left()` — повернути ліворуч.",
         "Герой повертається на місці, без кроку. Праворуч і ліворуч — це від героя, куди він дивиться.",
       ],
       example: "hero.turn_right()   # тепер герой дивиться вниз\n",
@@ -151,10 +151,10 @@ const heroLevels: ReadonlyArray<Level> = [
     blocks: ["move", "turnLeft", "turnRight", "collect"],
     goals: [{ type: "crystals" }],
     stars: { three: 4, two: 6 },
-    hint: "hero.move(3), hero.turn_right(), hero.move(3), hero.collect().",
+    hint: "`hero.move(3)`, `hero.turn_right()`, `hero.move(3)`, `hero.collect()`.",
     hints: [
       "Куди треба повернути, коли дійдеш до рогу: праворуч чи ліворуч?",
-      "Іди вправо, поверни праворуч командою hero.turn_right(), іди вниз і візьми.",
+      "Іди вправо, поверни праворуч командою `hero.turn_right()`, іди вниз і візьми.",
       "hero.move(_)\nhero.turn_____()\nhero.move(_)\nhero.collect()",
     ],
     gift: { name: "Компас", skill: "hero.turn_right() і hero.turn_left(): герой повертає." },
@@ -172,8 +172,8 @@ const heroLevels: ReadonlyArray<Level> = [
     lesson: {
       title: "Як сказати вголос",
       text: [
-        'print("…") — ще одна команда: герой каже вголос те, що в дужках.',
-        'Слова пиши в лапках: print("Привіт!"). Сказане видно у віконці під кодом.',
+        '`print("…")` — ще одна команда: герой каже вголос те, що в дужках.',
+        'Слова пиши в лапках: `print("Привіт!")`. Сказане видно у віконці під кодом.',
       ],
       example: 'print("Привіт!")   # герой каже: Привіт!\n',
     },
@@ -184,7 +184,7 @@ const heroLevels: ReadonlyArray<Level> = [
     uses: ["print"],
     prints: "Добрий день!",
     stars: { three: 3, two: 5 },
-    hint: 'print("Добрий день!"), а потім hero.move(5).',
+    hint: '`print("Добрий день!")`, а потім `hero.move(5)`.',
     hints: [
       "Що треба зробити спершу: сказати чи піти?",
       "Тобі потрібні дві команди: print, щоб сказати, і hero.move, щоб піти.",
@@ -207,7 +207,7 @@ const heroLevels: ReadonlyArray<Level> = [
       text: [
         "Python каже, у якому рядку помилка і що не так. Читай і виправляй по одній.",
         "Часті помилки: забули дужки, написали Hero з великої літери, забули лапки навколо слів.",
-        "Команди героя через крапку ще називають методами. Це просто «що вміє герой».",
+        "Команди героя через крапку ще називають методами. Це просто **що вміє герой**.",
       ],
       example: 'hero.move()    # дужки є\nprint("Ура")    # слова в лапках\n',
     },
@@ -218,7 +218,7 @@ const heroLevels: ReadonlyArray<Level> = [
     uses: ["print"],
     prints: "Привіт",
     stars: { three: 4, two: 6 },
-    hint: 'hero.move(), hero.move(2), print("Привіт").',
+    hint: '`hero.move()`, `hero.move(2)`, `print("Привіт")`.',
     hints: [
       "Python показує номер рядка з помилкою. Почни з нього.",
       "Рядок 1 без дужок, у рядку 2 велика літера H, у рядку 3 слово без лапок.",
@@ -243,9 +243,9 @@ const boxLevels: ReadonlyArray<Level> = [
     lesson: {
       title: "Що таке змінна",
       text: [
-        "Рядок steps = 0 — це змінна. Вона як скринька з написом: зліва назва steps, справа те, що лежить усередині.",
-        "hero.move(steps) — герой іде стільки кроків, скільки лежить у змінній steps. Нижні рядки вже готові.",
-        "Заміни 0 на інше число й натисни «Запустити».",
+        "Рядок `steps = 0` — це змінна. Вона як скринька з написом: зліва назва steps, справа те, що лежить усередині.",
+        "`hero.move(steps)` — герой іде стільки кроків, скільки лежить у змінній steps. Нижні рядки вже готові.",
+        "Заміни 0 на інше число й натисни **Запустити**.",
       ],
       example: "steps = 5   # у змінній steps лежить 5\n",
     },
@@ -256,11 +256,11 @@ const boxLevels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }],
     uses: ["variable"],
     stars: { three: 4, two: 6 },
-    hint: "Перший рядок має бути steps = 3.",
+    hint: "Перший рядок має бути `steps = 3`.",
     hints: [
       "Скільки клітинок до дров?",
       "Герой іде стільки кроків, скільки лежить у змінній steps. Поклади туди це число.",
-      "steps = _",
+      "`steps = _`",
     ],
     scene: {
       theme: "autumn",
@@ -292,11 +292,11 @@ const boxLevels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }],
     uses: ["variable"],
     stars: { three: 7, two: 10 },
-    hint: "Перший рядок має бути steps = 4.",
+    hint: "Перший рядок має бути `steps = 4`.",
     hints: [
       "Скільки клітинок у кожній частині стежки?",
       "Обидві частини однакові, тому одне число в змінній підходить для обох.",
-      "steps = _",
+      "`steps = _`",
     ],
     scene: { theme: "autumn", item: "apple", props: [HOME] },
   },
@@ -358,7 +358,7 @@ const boxLevels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }],
     uses: ["variable"],
     stars: { three: 8, two: 11 },
-    hint: "forward = 5 і down = 2.",
+    hint: "`forward = 5` і `down = 2`.",
     hints: [
       "Скільки клітинок управо? А скільки вниз?",
       "У forward поклади, скільки вправо, а в down — скільки вниз.",
@@ -378,8 +378,8 @@ const boxLevels: ReadonlyArray<Level> = [
     lesson: {
       title: "Як зробити змінну",
       text: [
-        "Пишеш назву, знак = і число: steps = 6. Так ти робиш змінну й кладеш у неї 6.",
-        "Знак = тут означає «поклади». Зліва завжди назва, справа те, що кладеш.",
+        "Пишеш назву, знак = і число: `steps = 6`. Так ти робиш змінну й кладеш у неї 6.",
+        "Знак = тут означає **поклади**. Зліва завжди назва, справа те, що кладеш.",
         "Змінна так зветься, бо число в ній можна змінити.",
       ],
       example: "coins = 10   # нова змінна coins, у ній 10\n",
@@ -391,9 +391,9 @@ const boxLevels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }],
     uses: ["variable"],
     stars: { three: 4, two: 6 },
-    hint: "Перед hero.move(steps) додай рядок steps = 6.",
+    hint: "Перед `hero.move(steps)` додай рядок `steps = 6`.",
     hints: [
-      "Чого бракує Python у рядку hero.move(steps)?",
+      "Чого бракує Python у рядку `hero.move(steps)`?",
       "Змінної steps ще немає. Зроби її рядком над командами.",
       "steps = _\nhero.move(steps)\nhero.collect()",
     ],
@@ -448,8 +448,8 @@ const boxLevels: ReadonlyArray<Level> = [
     lesson: {
       title: "Усе разом",
       text: [
-        "Тепер ти пишеш сам і змінну, і команди. hero.move(steps) бере число зі змінної.",
-        "Поворот праворуч — hero.turn_right(), ліворуч — hero.turn_left().",
+        "Тепер ти пишеш сам і змінну, і команди. `hero.move(steps)` бере число зі змінної.",
+        "Поворот праворуч — `hero.turn_right()`, ліворуч — `hero.turn_left()`.",
       ],
       example: "steps = 2\nhero.move(steps)\nhero.turn_left()\n",
     },
@@ -466,10 +466,10 @@ const boxLevels: ReadonlyArray<Level> = [
     goals: [{ type: "finish" }],
     uses: ["variable"],
     stars: { three: 9, two: 12 },
-    hint: "hero.move(steps), поворот праворуч, hero.move(steps), поворот ліворуч, hero.move(steps).",
+    hint: "`hero.move(steps)`, поворот праворуч, `hero.move(steps)`, поворот ліворуч, `hero.move(steps)`.",
     hints: [
       "З яких частин складається стежка? Скільки в кожній клітинок?",
-      "Три рази hero.move(steps), а між ними поворот праворуч і поворот ліворуч.",
+      "Три рази `hero.move(steps)`, а між ними поворот праворуч і поворот ліворуч.",
       "hero.move(steps)\nhero.turn_right()\nhero.move(_____)\nhero.turn____()\nhero.move(steps)",
     ],
     scene: { theme: "autumn", finish: "well", props: [HOME] },
@@ -491,7 +491,7 @@ const mathLevels: ReadonlyArray<Level> = [
       title: "Python уміє рахувати",
       text: [
         "Зі змінними можна рахувати: + додати, - відняти, * помножити.",
-        "hero.move(first + second): Python спершу додає, а потім герой іде стільки кроків.",
+        "`hero.move(first + second)`: Python спершу додає, а потім герой іде стільки кроків.",
       ],
       example:
         "a = 2\nb = 5\nprint(a + b)   # 7\nprint(b - a)   # 3\nprint(a * b)   # 10\n",
@@ -502,7 +502,7 @@ const mathLevels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }],
     uses: ["variable"],
     stars: { three: 7, two: 10 },
-    hint: "hero.move(first + second), а потім hero.collect().",
+    hint: "`hero.move(first + second)`, а потім `hero.collect()`.",
     hints: [
       "Скільки разом клітинок у двох шматках?",
       "Python може додати сам: first + second прямо в дужках.",
@@ -527,8 +527,8 @@ const mathLevels: ReadonlyArray<Level> = [
     lesson: {
       title: "Множимо",
       text: [
-        "Зірочка * означає «помножити»: n * 2 — удвічі більше, ніж у змінній n.",
-        "Якщо n = 3, то n * 2 дає 6.",
+        "Зірочка * означає **помножити**: n * 2 — удвічі більше, ніж у змінній n.",
+        "Якщо `n = 3`, то n * 2 дає 6.",
       ],
       example: "n = 5\nhero.move(n * 2)   # 10 кроків\n",
     },
@@ -538,7 +538,7 @@ const mathLevels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }],
     uses: ["variable"],
     stars: { three: 5, two: 7 },
-    hint: "hero.move(n * 2), а потім hero.collect().",
+    hint: "`hero.move(n * 2)`, а потім `hero.collect()`.",
     hints: [
       "Скільки це — удвічі більше, ніж 3?",
       "У дужках hero.move можна рахувати: n * 2.",
@@ -562,9 +562,9 @@ const mathLevels: ReadonlyArray<Level> = [
     lesson: {
       title: "Результат — у змінну",
       text: [
-        "Що порахував, можна покласти в змінну: change = money - price.",
+        "Що порахував, можна покласти в змінну: `change = money - price`.",
         "Python спершу рахує праву частину, а потім кладе результат у змінну зліва.",
-        'print може сказати слова і число разом. Пиши їх через кому: print("Решта:", change).',
+        'print може сказати слова і число разом. Пиши їх через кому: `print("Решта:", change)`.',
       ],
       example:
         'apples = 4\npears = 3\ntotal = apples + pears\nprint("Разом:", total)   # Разом: 7\n',
@@ -576,7 +576,7 @@ const mathLevels: ReadonlyArray<Level> = [
     uses: ["variable", "print"],
     prints: "Решта: 13",
     stars: { three: 9, two: 12 },
-    hint: 'change = money - price, потім print("Решта:", change) і hero.move(4).',
+    hint: '`change = money - price`, потім `print("Решта:", change)` і `hero.move(4)`.',
     hints: [
       "Решта — це скільки було грошей мінус ціна.",
       "Зроби змінну change, поклади в неї money - price і скажи її через print.",
@@ -596,7 +596,7 @@ const mathLevels: ReadonlyArray<Level> = [
     lesson: {
       title: "Змінна-лічильник",
       text: [
-        "mushrooms = mushrooms + 1 — це не задачка з математики. Це команда.",
+        "`mushrooms = mushrooms + 1` — це не задачка з математики. Це команда.",
         "Вона означає: візьми число зі змінної, додай 1 і поклади назад. Було 0, стало 1.",
       ],
       example:
@@ -609,10 +609,10 @@ const mathLevels: ReadonlyArray<Level> = [
     uses: ["variable", "print"],
     prints: "Грибів: 3",
     stars: { three: 18, two: 22 },
-    hint: 'Тричі: hero.move(), hero.collect(), mushrooms = mushrooms + 1. Потім print("Грибів:", mushrooms).',
+    hint: 'Тричі: `hero.move()`, `hero.collect()`, `mushrooms = mushrooms + 1`. Потім `print("Грибів:", mushrooms)`.',
     hints: [
       "Що треба зробити біля кожного гриба, крім того, щоб узяти його?",
-      "Після кожного hero.collect() додай 1 у змінну: mushrooms = mushrooms + 1.",
+      "Після кожного `hero.collect()` додай 1 у змінну: `mushrooms = mushrooms + 1`.",
       'hero.move()\nhero.collect()\nmushrooms = mushrooms + _\n...\nprint("Грибів:", _________)',
     ],
     scene: {
@@ -639,7 +639,7 @@ const typeLevels: ReadonlyArray<Level> = [
       title: "У змінну можна покласти слова",
       text: [
         'У змінній може лежати не лише число, а й слова. Слова, як і в print, беруть у лапки: "Привіт".',
-        "print(greeting) без лапок каже не слово greeting, а те, що лежить у змінній.",
+        "`print(greeting)` без лапок каже не слово greeting, а те, що лежить у змінній.",
       ],
       example: 'word = "Привіт!"\nprint(word)   # Привіт!\n',
     },
@@ -651,11 +651,11 @@ const typeLevels: ReadonlyArray<Level> = [
     uses: ["variable", "print"],
     prints: "Добрий день!",
     stars: { three: 4, two: 6 },
-    hint: 'greeting = "Добрий день!" — з лапками і знаком оклику.',
+    hint: '`greeting = "Добрий день!"` — з лапками і знаком оклику.',
     hints: [
       "Що хоче почути дід?",
       "Поклади в змінну greeting саме ці слова, у лапках.",
-      'greeting = "_____ ____!"',
+      '`greeting = "_____ ____!"`',
     ],
     scene: { theme: "autumn", props: [HOME], npcs: below("grandpa", 6) },
   },
@@ -671,8 +671,8 @@ const typeLevels: ReadonlyArray<Level> = [
     lesson: {
       title: "Слова в лапках, число без лапок",
       text: [
-        'Слова кладуть у змінну в лапках: name = "Оля".',
-        "Число пишуть без лапок: apples = 5.",
+        'Слова кладуть у змінну в лапках: `name = "Оля"`.',
+        "Число пишуть без лапок: `apples = 5`.",
         "print може сказати кілька речей одразу. Їх пишуть через кому, а Python ставить між ними пробіл.",
       ],
       example:
@@ -686,7 +686,7 @@ const typeLevels: ReadonlyArray<Level> = [
     uses: ["variable", "print"],
     prints: "Тарас приніс яблук: 3",
     stars: { three: 6, two: 9 },
-    hint: 'name = "Тарас" і apples = 3.',
+    hint: '`name = "Тарас"` і `apples = 3`.',
     hints: [
       "Як звати героя? Скільки яблук він приніс?",
       "Ім'я — слова, тому в лапках. Число — без лапок.",
@@ -719,11 +719,11 @@ const typeLevels: ReadonlyArray<Level> = [
     blocks: ["move", "collect"],
     goals: [{ type: "crystals" }],
     stars: { three: 7, two: 10 },
-    hint: "Прибери лапки: steps = 5.",
+    hint: "Прибери лапки: `steps = 5`.",
     hints: [
       "Подивись на перший рядок. Що в ньому не так з числом 5?",
       '"5" у лапках — це слова. Герой ходить числом без лапок.',
-      "steps = _",
+      "`steps = _`",
     ],
     gift: { name: "Лупа", skill: "Тепер ти відрізняєш число від слів." },
     scene: { theme: "autumn", item: "apple", props: [HOME] },
@@ -753,11 +753,11 @@ const typeLevels: ReadonlyArray<Level> = [
     uses: ["variable", "print"],
     prints: "Кошик важить 2.5 кг",
     stars: { three: 5, two: 7 },
-    hint: "weight = 2.5 — з крапкою, без лапок.",
+    hint: "`weight = 2.5` — з крапкою, без лапок.",
     hints: [
       "Як записати два з половиною в Python?",
       "Дробову частину відділяють крапкою, і число пишуть без лапок.",
-      "weight = _._",
+      "`weight = _._`",
     ],
     scene: { theme: "autumn", item: "carrot", props: [HOME] },
   },
@@ -773,8 +773,8 @@ const typeLevels: ReadonlyArray<Level> = [
     lesson: {
       title: "True і False",
       text: [
-        "Буває, що треба зберегти лише «так» чи «ні». Для цього в Python є True і False.",
-        "True означає «так», False означає «ні». Пишуть їх з великої літери і без лапок.",
+        "Буває, що треба зберегти лише **так** чи **ні**. Для цього в Python є True і False.",
+        "True означає **так**, False означає **ні**. Пишуть їх з великої літери і без лапок.",
         "Тепер ти знаєш чотири речі, які лежать у змінній: ціле число, число з крапкою, слова і True або False.",
       ],
       example:
@@ -788,11 +788,11 @@ const typeLevels: ReadonlyArray<Level> = [
     uses: ["variable", "print"],
     prints: "Хвіртка відчинена: True",
     stars: { three: 4, two: 6 },
-    hint: "door_open = True — з великої літери, без лапок.",
+    hint: "`door_open = True` — з великої літери, без лапок.",
     hints: [
-      "Яке слово означає «так» у Python?",
+      "Яке слово означає **так** у Python?",
       "True пишуть з великої літери і без лапок.",
-      "door_open = ____",
+      "`door_open = ____`",
     ],
     scene: { theme: "autumn", finish: "home", props: [HOME] },
   },
@@ -812,8 +812,8 @@ const askLevels: ReadonlyArray<Level> = [
     lesson: {
       title: "Як спитати",
       text: [
-        'input("Як вас звати?") ставить питання й чекає відповіді. Тут відповідає дід.',
-        'Відповідь кладуть у змінну: name = input("Як вас звати?").',
+        '`input("Як вас звати?")` ставить питання й чекає відповіді. Тут відповідає дід.',
+        'Відповідь кладуть у змінну: `name = input("Як вас звати?")`.',
         "Ти не знаєш наперед, що скаже дід. Але змінна name запам'ятає відповідь.",
       ],
       example:
@@ -839,10 +839,10 @@ const askLevels: ReadonlyArray<Level> = [
     goals: [{ type: "finish" }],
     uses: ["input", "variable", "print"],
     stars: { three: 5, two: 7 },
-    hint: 'name = input("Як вас звати?"), а потім print("Добрий день,", name).',
+    hint: '`name = input("Як вас звати?")`, а потім `print("Добрий день,", name)`.',
     hints: [
       "Що треба дізнатися в діда? Куди покласти відповідь?",
-      'name = input("Як вас звати?") питає й кладе відповідь у змінну. Потім скажи її через print.',
+      '`name = input("Як вас звати?")` питає й кладе відповідь у змінну. Потім скажи її через print.',
       'name = input("___ ___ ______?")\nprint("Добрий день,", ____)',
     ],
     gift: { name: "Сурма", skill: "input(): герой питає." },
@@ -860,7 +860,7 @@ const askLevels: ReadonlyArray<Level> = [
     lesson: {
       title: "Два питання — дві змінні",
       text: [
-        "Питати можна кілька разів. Перший input() отримує першу відповідь, другий — другу.",
+        "Питати можна кілька разів. Перший `input()` отримує першу відповідь, другий — другу.",
         "Кожну відповідь клади в окрему змінну з назвою, яка підказує, що там.",
       ],
       example:
@@ -881,10 +881,10 @@ const askLevels: ReadonlyArray<Level> = [
     goals: [{ type: "finish" }],
     uses: ["input", "variable", "print"],
     stars: { three: 8, two: 11 },
-    hint: 'name = input("Як тебе звати?"), village = input("Звідки ти?"), print(name, village).',
+    hint: '`name = input("Як тебе звати?")`, `village = input("Звідки ти?")`, `print(name, village)`.',
     hints: [
       "Скільки питань треба поставити?",
-      "Два input(), кожен у свою змінну. Потім print з обома змінними через кому.",
+      "Два `input()`, кожен у свою змінну. Потім print з обома змінними через кому.",
       'name = input("Як тебе звати?")\nvillage = _____("Звідки ти?")\nprint(____, _______)',
     ],
     scene: { theme: "autumn", props: [HOME], npcs: below("hunter", 3) },
@@ -906,8 +906,8 @@ const convertLevels: ReadonlyArray<Level> = [
     lesson: {
       title: "input() дає слова",
       text: [
-        'Що б не сказав дід, input() дає слова. "3" + "4" склеюються в "34", як два написи.',
-        'Зробити з напису число вміє int(): int("3") дає 3. Тоді 3 + 4 дасть 7.',
+        'Що б не сказав дід, `input()` дає слова. "3" + "4" склеюються в "34", як два написи.',
+        'Зробити з напису число вміє `int()`: `int("3")` дає 3. Тоді 3 + 4 дасть 7.',
       ],
       example:
         'print("3" + "4")             # 34\nprint(int("3") + int("4"))   # 7\n',
@@ -922,10 +922,10 @@ const convertLevels: ReadonlyArray<Level> = [
     goals: [{ type: "finish" }],
     uses: ["input", "int", "print"],
     stars: { three: 11, two: 14 },
-    hint: 'a = int(input("Перше число?")) і так само b.',
+    hint: '`a = int(input("Перше число?"))` і так само b.',
     hints: [
-      "Чому вийшло 34, а не 7? Що дає input(): число чи слова?",
-      "Загорни кожен input() в int(), щоб відповідь стала числом.",
+      "Чому вийшло 34, а не 7? Що дає `input()`: число чи слова?",
+      "Загорни кожен `input()` в `int()`, щоб відповідь стала числом.",
       'a = int(input("Перше число?"))\nb = ___(input("Друге число?"))',
     ],
     gift: { name: "Перетворювач", skill: "int(): зі слів виходить число." },
@@ -943,9 +943,9 @@ const convertLevels: ReadonlyArray<Level> = [
     lesson: {
       title: "Відповідь — це слова",
       text: [
-        'Що б не сказав дід, input() дає слова. Навіть "3" для Python — це напис, а не число.',
-        'Зробити з напису число вміє int(): int("3") дає 3.',
-        'Тому відповідь загортають в int(): steps = int(input("Скільки кроків?")).',
+        'Що б не сказав дід, `input()` дає слова. Навіть "3" для Python — це напис, а не число.',
+        'Зробити з напису число вміє `int()`: `int("3")` дає 3.',
+        'Тому відповідь загортають в `int()`: `steps = int(input("Скільки кроків?"))`.',
       ],
       example:
         'age = int(input("Скільки тобі років?"))   # "11" стало числом 11\nprint(age + 1)                           # 12\n',
@@ -961,10 +961,10 @@ const convertLevels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }],
     uses: ["input"],
     stars: { three: 6, two: 9 },
-    hint: 'steps = int(input("Скільки кроків?")), потім hero.move(steps) і hero.collect().',
+    hint: '`steps = int(input("Скільки кроків?"))`, потім `hero.move(steps)` і `hero.collect()`.',
     hints: [
-      "Що дає input(): число чи слова? А чим ходить герой?",
-      "Загорни відповідь в int(), поклади в змінну і йди стільки кроків.",
+      "Що дає `input()`: число чи слова? А чим ходить герой?",
+      "Загорни відповідь в `int()`, поклади в змінну і йди стільки кроків.",
       'steps = ___(input("Скільки кроків?"))\nhero.move(_____)\nhero.collect()',
     ],
     scene: {
@@ -987,7 +987,7 @@ const convertLevels: ReadonlyArray<Level> = [
       title: "Два числа від мисливця",
       text: [
         "Тут усе як раніше: два питання, дві змінні.",
-        "Тільки кожну відповідь загортаєш в int(), бо герой ходить числами, а не словами.",
+        "Тільки кожну відповідь загортаєш в `int()`, бо герой ходить числами, а не словами.",
       ],
       example:
         'a = int(input("Перше число?"))   # 4\nb = int(input("Друге число?"))   # 6\n',
@@ -1003,10 +1003,10 @@ const convertLevels: ReadonlyArray<Level> = [
     goals: [{ type: "crystals" }],
     uses: ["input", "variable"],
     stars: { three: 12, two: 15 },
-    hint: "Дві змінні з int(input(…)), потім hero.move(перша), hero.turn_right(), hero.move(друга), hero.collect().",
+    hint: "Дві змінні з `int(input(…))`, потім `hero.move(перша)`, `hero.turn_right()`, `hero.move(друга)`, `hero.collect()`.",
     hints: [
       "Скільки питань треба поставити мисливцю?",
-      "Дві змінні, кожна з int(input(…)). Потім вправо, поворот праворуч, униз.",
+      "Дві змінні, кожна з `int(input(…))`. Потім вправо, поворот праворуч, униз.",
       'forward = int(input("Скільки прямо?"))\ndown = ___(_____("Скільки вниз?"))\nhero.move(forward)\nhero.turn_right()\nhero.move(____)\nhero.collect()',
     ],
     scene: {
@@ -1028,8 +1028,8 @@ const convertLevels: ReadonlyArray<Level> = [
     lesson: {
       title: "Слова в число з крапкою",
       text: [
-        'int() робить лише цілі числа. Напис "2.5" він не зрозуміє.',
-        'Для чисел з крапкою є float(): float("2.5") дає 2.5.',
+        '`int()` робить лише цілі числа. Напис "2.5" він не зрозуміє.',
+        'Для чисел з крапкою є `float()`: `float("2.5")` дає 2.5.',
       ],
       example: 'price = float(input("Скільки коштує?"))   # "7.5" стало 7.5\n',
     },
@@ -1044,10 +1044,10 @@ const convertLevels: ReadonlyArray<Level> = [
     goals: [{ type: "finish" }],
     uses: ["input", "float", "print"],
     stars: { three: 6, two: 9 },
-    hint: 'weight = float(input("Скільки важить?")), потім print("Кошик важить", weight, "кг").',
+    hint: '`weight = float(input("Скільки важить?"))`, потім `print("Кошик важить", weight, "кг")`.',
     hints: [
-      "Вага з крапкою. Чи впорається з нею int()?",
-      "Для чисел з крапкою є float(). Загорни в нього input().",
+      "Вага з крапкою. Чи впорається з нею `int()`?",
+      "Для чисел з крапкою є `float()`. Загорни в нього `input()`.",
       'weight = _____(input("Скільки важить?"))\nprint("Кошик важить", ______, "кг")',
     ],
     scene: { theme: "autumn", finish: "grandma", props: [HOME] },
@@ -1065,7 +1065,7 @@ const convertLevels: ReadonlyArray<Level> = [
       title: "Слова і число не склеюються",
       text: [
         'Знак + склеює слова зі словами: "Добрий" + " день". А слова з числом не склеює.',
-        'str() робить із числа слова: str(3) дає "3". Тепер їх можна склеїти.',
+        '`str()` робить із числа слова: `str(3)` дає "3". Тепер їх можна склеїти.',
       ],
       example: 'coins = 5\nprint("Монет: " + str(coins))   # Монет: 5\n',
     },
@@ -1076,11 +1076,11 @@ const convertLevels: ReadonlyArray<Level> = [
     uses: ["str", "print"],
     prints: "Яблук: 3",
     stars: { three: 6, two: 9 },
-    hint: 'print("Яблук: " + str(apples)).',
+    hint: '`print("Яблук: " + str(apples))`.',
     hints: [
       "Python каже, що не може додати слова і число. Що з них треба змінити?",
-      "str(apples) робить із числа слова, і тоді їх можна склеїти.",
-      'print("Яблук: " + ___(apples))',
+      "`str(apples)` робить із числа слова, і тоді їх можна склеїти.",
+      '`print("Яблук: " + ___(apples))`',
     ],
     gift: { name: "Перо", skill: "str(): із числа виходять слова." },
     scene: { theme: "autumn", finish: "grandma", props: [HOME] },
@@ -1098,7 +1098,7 @@ const convertLevels: ReadonlyArray<Level> = [
       title: "Віднімаємо",
       text: [
         "Решта — це скільки грошей було мінус ціна. У Python це 20 - price.",
-        "Ціну дає input(), тому не забудь загорнути її в int().",
+        "Ціну дає `input()`, тому не забудь загорнути її в `int()`.",
       ],
       example:
         'money = 50\nprice = 30\nprint("Залишилось:", money - price)   # Залишилось: 20\n',
@@ -1112,10 +1112,10 @@ const convertLevels: ReadonlyArray<Level> = [
     goals: [{ type: "finish" }],
     uses: ["input", "int", "print"],
     stars: { three: 7, two: 10 },
-    hint: 'price = int(input("Скільки коштує хліб?")), потім print("Решта:", 20 - price).',
+    hint: '`price = int(input("Скільки коштує хліб?"))`, потім `print("Решта:", 20 - price)`.',
     hints: [
       "Решта — це скільки було мінус ціна. А ціну дізнаєшся в продавчині.",
-      "Спитай ціну через int(input(…)), а потім скажи 20 - price.",
+      "Спитай ціну через `int(input(…))`, а потім скажи 20 - price.",
       'price = int(input("Скільки коштує хліб?"))\nprint("Решта:", __ - _____)',
     ],
     scene: { theme: "autumn", props: [HOME], npcs: below("girl", 5) },
@@ -1132,8 +1132,8 @@ const convertLevels: ReadonlyArray<Level> = [
     lesson: {
       title: "Множимо",
       text: [
-        "Ціна буває з копійками: 12.5. Тому відповідь загортай у float().",
-        "Три кілограми коштують утричі більше: price * 3. Зірочка * — це «помножити».",
+        "Ціна буває з копійками: 12.5. Тому відповідь загортай у `float()`.",
+        "Три кілограми коштують утричі більше: price * 3. Зірочка * — це **помножити**.",
       ],
       example: 'price = float("2.5")\nprint(price * 3)   # 7.5\n',
     },
@@ -1146,10 +1146,10 @@ const convertLevels: ReadonlyArray<Level> = [
     goals: [{ type: "finish" }],
     uses: ["input", "float", "print"],
     stars: { three: 9, two: 12 },
-    hint: 'price = float(input("Скільки коштує кілограм?")), потім total = price * 3 і print("Разом:", total).',
+    hint: '`price = float(input("Скільки коштує кілограм?"))`, потім `total = price * 3` і `print("Разом:", total)`.',
     hints: [
       "Ціна з копійками. Яким перетворенням зробити з неї число?",
-      "float(input(…)) дає ціну, а price * 3 — ціну трьох кілограмів.",
+      "`float(input(…))` дає ціну, а price * 3 — ціну трьох кілограмів.",
       'price = float(input("Скільки коштує кілограм?"))\ntotal = price * _\nprint("Разом:", _____)',
     ],
     scene: {
@@ -1170,8 +1170,8 @@ const convertLevels: ReadonlyArray<Level> = [
     lesson: {
       title: "Рахуємо в дужках",
       text: [
-        "hero.move(n * 2) — удвічі більше кроків, ніж лежить у змінній n.",
-        "Якщо n = 3, герой пройде 6 кроків.",
+        "`hero.move(n * 2)` — удвічі більше кроків, ніж лежить у змінній n.",
+        "Якщо `n = 3`, герой пройде 6 кроків.",
       ],
       example: "n = 4\nprint(n * 2)   # 8\n",
     },
@@ -1183,10 +1183,10 @@ const convertLevels: ReadonlyArray<Level> = [
     goals: [{ type: "finish" }],
     uses: ["input", "variable"],
     stars: { three: 12, two: 15 },
-    hint: "n = int(input(…)); вправо n, поворот праворуч, вниз n, поворот ліворуч, і hero.move(n * 2).",
+    hint: "`n = int(input(…))`; вправо n, поворот праворуч, вниз n, поворот ліворуч, і `hero.move(n * 2)`.",
     hints: [
       "Скільки разів треба спитати діда?",
-      "Один int(input(…)) у змінну n. Перші два шматки — n, останній — n * 2.",
+      "Один `int(input(…))` у змінну n. Перші два шматки — n, останній — n * 2.",
       'n = int(input("Яка довжина сходинки?"))\nhero.move(n)\nhero.turn_right()\nhero.move(_)\nhero.turn_left()\nhero.move(n * _)',
     ],
     scene: {

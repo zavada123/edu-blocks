@@ -1,12 +1,15 @@
 import { describeGoal, goalMet, type Level } from "../core/level.ts"
 import type { World } from "../core/world.ts"
+import { RichText } from "./RichText.tsx"
 
 /** The task of the level on parchment: what to do, the goals that tick as the hero meets them, and the star sizes. */
 export const Quest = ({ level, start, world }: { readonly level: Level; readonly start: World; readonly world: World }) => (
   <div className="eb-quest eb-frame eb-parchment" role="group" aria-label="Завдання">
     {level.title !== "" && <h2>{level.title}</h2>}
     {level.task.map((line) => (
-      <p key={line}>{line}</p>
+      <p key={line}>
+        <RichText text={line} />
+      </p>
     ))}
     <ul className="eb-goals">
       {level.goals.map((g) => {

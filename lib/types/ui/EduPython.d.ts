@@ -6,6 +6,7 @@ import { type GameNavigation } from "./GameScreen.tsx";
 import type { Skin } from "./stage/Stage.tsx";
 import { type EstateRun, type FarmRun, type HeroXp } from "./Verdict.tsx";
 import "./python.css";
+import "./rich-text.css";
 /**
  * The game with Python code instead of blocks, as in Tynker or CodeCombat: the field on one side, the code on the
  * other, the methods of the level above the code. The same levels, the same hero and the same grading rules.
