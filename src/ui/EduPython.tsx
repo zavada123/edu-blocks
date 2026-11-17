@@ -22,6 +22,7 @@ import { gradePieces, JOIN_TIP, PiecesBar, usePieces } from "./pieces.tsx"
 import { usePlayer } from "./Timeline.tsx"
 import { type EstateRun, type FarmRun, farmRewardOf, harvestRewardOf, type HeroXp, type Reward, rewardOf, Verdict } from "./Verdict.tsx"
 import "./python.css"
+import "./rich-text.css"
 
 /**
  * The game with Python code instead of blocks, as in Tynker or CodeCombat: the field on one side, the code on the

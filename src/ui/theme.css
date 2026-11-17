@@ -19,6 +19,12 @@
   --eb-parch-line: #b9975d;
   --eb-ink: #3a2616;
   --eb-ink-soft: #6b4f33;
+  /* Marked task and hint texts (rich-text.css) stand on parchment. */
+  --rt-accent: #9a2f0c;
+  --rt-code-bg: rgb(58 38 22 / 0.1);
+  --rt-key-bg: #fffaf0;
+  --rt-key-line: #b9975d;
+  --rt-key-text: #3a2616;
   /* Wood: the frame of the field and the map button. */
   --eb-edge: #24160d;
   --eb-wood: #7a4b26;

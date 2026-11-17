@@ -1,4 +1,5 @@
 import type { Lesson as LessonData } from "../core/level.ts"
+import { RichText } from "./RichText.tsx"
 
 /**
  * The lesson of a level over the code: what the new idea is, in a few short paragraphs, and an example to read.
@@ -14,7 +15,9 @@ export const Lesson = ({ lesson, open, onToggle }: { readonly lesson: LessonData
     </summary>
     <div className="eb-lesson-body">
       {lesson.text.map((line) => (
-        <p key={line}>{line}</p>
+        <p key={line}>
+          <RichText text={line} />
+        </p>
       ))}
       <pre className="eb-lesson-example" aria-label="Приклад коду">
         {lesson.example}

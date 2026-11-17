@@ -10,6 +10,7 @@ import { type usePlayer } from "./Timeline.tsx";
 import type { HeroCoins } from "./Verdict.tsx";
 import "./theme.css";
 import "./blocks.css";
+import "./rich-text.css";
 /** What the app can add around a level: the way to the map, the next level, the stars of passed levels, the coins and the shop. */
 export interface GameNavigation {
     /** «← Мапа» over the game: back to the course. */
