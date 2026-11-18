@@ -486,17 +486,17 @@ Every push to `main` runs the tests and deploys the demo to GitHub Pages: see th
 
 ## License and third-party code
 
-The package code is [MIT](LICENSE). It uses:
+The package code is [MIT](LICENSE). The MIT licence covers only the code: the fonts, pictures and sounds keep their own licences, listed below. To reuse a part of this repository, check its licence here first. It uses:
 
 - [TurboWarp scratch-vm](https://github.com/TurboWarp/scratch-vm) — the engine the editor keeps the program in. It is bundled into `edu-blocks/react`; `edu-blocks/core` does not need it. Licensed under MPL-2.0; the package does not modify the engine.
 - [scratch-blocks](https://github.com/scratchfoundation/scratch-blocks) 1.3.0 — the block editor. Licensed under Apache-2.0, block translations under BSD-3-Clause. TurboWarp's fork of scratch-blocks is GPL-3.0, so it is not used.
 
 The fonts are [Tiny5](https://github.com/Gissio/font_tiny5), [Golos Text](https://github.com/googlefonts/golos-text) and [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono), under the SIL Open Font License 1.1 ([`src/ui/fonts`](src/ui/fonts)); the package has only their Latin and Cyrillic letters.
 
-The whole game is drawn with [Tiny Swords](https://pixelfrog-assets.itch.io/tiny-swords) by Pixel Frog: the old version (Update 010) is public domain (CC0) and lives in [`assets/tiny-swords/`](assets/tiny-swords/CATALOG.md). [`src/ui/art.ts`](src/ui/art.ts) says which sprite draws which thing of the game (heroes, goblins, villagers, items, the goal, houses, bushes, trees and the ground). When the build serves the private Free Pack 2025 as `tiny-swords-free` (`EDU_BLOCKS_PRIVATE_ASSETS`), any sprite it has under the same id is drawn from it instead; the ground stays from the public pack. Weather, hearts and traps are drawn in code.
+The whole game is drawn with [Tiny Swords](https://pixelfrog-assets.itch.io/tiny-swords) by Pixel Frog: the old version (Update 010, the file «TS_old version_CC0 Licensed» on its page) is public domain (CC0) and lives in [`assets/tiny-swords/`](assets/tiny-swords/LICENSE.md). The newer Free Pack 2025 may not be redistributed, so it is not in this repository. [`src/ui/art.ts`](src/ui/art.ts) says which sprite draws which thing of the game (heroes, goblins, villagers, items, the goal, houses, bushes, trees and the ground). When the build serves the private Free Pack 2025 as `tiny-swords-free` (`EDU_BLOCKS_PRIVATE_ASSETS`), any sprite it has under the same id is drawn from it instead; the ground stays from the public pack. Weather, hearts and traps are drawn in code.
 
 The [`assets/`](assets/README.md) folder is the game's asset library with a manifest per pack (category, frame grid and animation clips of every picture, read with `frameAt` from `edu-blocks/core`): the full Ninja Adventure pack (CC0), [Farming crops 16x16](https://opengameart.org/content/farming-crops-16x16) by josehzz (CC0) and [Sunnyside World](https://danieldiggle.itch.io/sunnyside) by Daniel Diggle. Sunnyside World is not under the MIT licence: it may be shared only as part of educational material with a link to its page, and may not be repackaged, resold or used to train AI (see [`assets/sunnyside/LICENSE.md`](assets/sunnyside/LICENSE.md)).
 
 `npm run build:lib` writes the license texts of every bundled package (and of their dependencies) to [`lib/THIRD-PARTY-LICENSES.txt`](lib/THIRD-PARTY-LICENSES.txt); a site that serves `lib/` should serve this file too.
 
-Scratch, the Scratch Cat and other Scratch characters are trademarks of MIT; this trainer does not use them and is not affiliated with the Scratch Foundation.
+Scratch, the Scratch logo, the Scratch Cat and other Scratch characters are trademarks of the Scratch Foundation; this trainer does not use them and is not affiliated with the Scratch Foundation or MIT.
