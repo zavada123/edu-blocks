@@ -10,6 +10,8 @@ const Part = ({ part }: { readonly part: RichPart }) => {
       return <strong className="rt-ui">{part.text}</strong>
     case "code":
       return <code className="rt-code">{part.text}</code>
+    case "name":
+      return <span className="rt-name">«{part.text}»</span>
     case "color":
       return <span className={`rt-color rt-${part.color}`}>{part.text}</span>
     case "keys":

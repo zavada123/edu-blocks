@@ -3,7 +3,25 @@ import { parseRich, plainText, splitKeys } from "./rich-text.ts"
 
 describe("parseRich", () => {
   it("gives one text part for text without markup", () => {
-    expect(parseRich("Створи папку «Тварини».")).toEqual([{ kind: "text", text: "Створи папку «Тварини»." }])
+    expect(parseRich("Створи нову папку.")).toEqual([{ kind: "text", text: "Створи нову папку." }])
+  })
+
+  it("finds the name of a folder or file in quotes", () => {
+    expect(parseRich("Перенеси «кіт.png» у папку «Тварини».")).toEqual([
+      { kind: "text", text: "Перенеси " },
+      { kind: "name", text: "кіт.png" },
+      { kind: "text", text: " у папку " },
+      { kind: "name", text: "Тварини" },
+      { kind: "text", text: "." }
+    ])
+  })
+
+  it("keeps the quotes in the plain text", () => {
+    expect(plainText("Створи папку «Тварини».")).toBe("Створи папку «Тварини».")
+  })
+
+  it("keeps quotes without their end as text", () => {
+    expect(parseRich("Відкрий «Мої фото")).toEqual([{ kind: "text", text: "Відкрий «Мої фото" }])
   })
 
   it("finds a UI name, keys, code and a color", () => {
