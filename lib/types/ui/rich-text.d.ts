@@ -6,6 +6,7 @@
  *   [k]Ctrl+C[/k]       keys: each key is a keyboard key, «+» between them
  *   `=SUM(A1:A3)`       text to type exactly: formula, code, name
  *   [red]червоний[/red] a term in its color: red, green, blue, yellow, orange, purple
+ *   «Тварини»           name of a folder, file, sheet, site or other object: highlighted, the quotes stay
  *
  * The parser makes plain parts. It never makes HTML from the text, so a text cannot add tags or scripts.
  * Markup does not nest. A mark without its end stays as plain text.
@@ -30,6 +31,9 @@ export type RichPart = {
     readonly keys: ReadonlyArray<string>;
 } | {
     readonly kind: "code";
+    readonly text: string;
+} | {
+    readonly kind: "name";
     readonly text: string;
 } | {
     readonly kind: "color";

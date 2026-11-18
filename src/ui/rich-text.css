@@ -1,6 +1,7 @@
 /*
  * Look of marked task and hint texts (rich-text.ts). The same file is in every eduprostir trainer.
- * A trainer sets --rt-accent (and, on a dark panel, --rt-key-bg, --rt-key-line, --rt-key-text) on its root.
+ * A trainer sets --rt-accent (and, on a dark panel, --rt-key-bg, --rt-key-line, --rt-key-text, --rt-name, --rt-name-bg)
+ * on its root.
  */
 
 .rt-ui {
@@ -17,6 +18,16 @@
   font-variant-ligatures: none;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.rt-name {
+  padding: 0 0.15em;
+  border-radius: 4px;
+  background: var(--rt-name-bg, rgba(250, 204, 21, 0.35));
+  color: var(--rt-name, #1b2230);
+  font-weight: 700;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
