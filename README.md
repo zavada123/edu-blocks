@@ -497,4 +497,6 @@ The whole game is drawn with [Tiny Swords](https://pixelfrog-assets.itch.io/tiny
 
 The [`assets/`](assets/README.md) folder is the game's asset library with a manifest per pack (category, frame grid and animation clips of every picture, read with `frameAt` from `edu-blocks/core`): the full Ninja Adventure pack (CC0), [Farming crops 16x16](https://opengameart.org/content/farming-crops-16x16) by josehzz (CC0) and [Sunnyside World](https://danieldiggle.itch.io/sunnyside) by Daniel Diggle. Sunnyside World is not under the MIT licence: it may be shared only as part of educational material with a link to its page, and may not be repackaged, resold or used to train AI (see [`assets/sunnyside/LICENSE.md`](assets/sunnyside/LICENSE.md)).
 
+`npm run build:lib` writes the license texts of every bundled package (and of their dependencies) to [`lib/THIRD-PARTY-LICENSES.txt`](lib/THIRD-PARTY-LICENSES.txt); a site that serves `lib/` should serve this file too.
+
 Scratch, the Scratch Cat and other Scratch characters are trademarks of MIT; this trainer does not use them and is not affiliated with the Scratch Foundation.
