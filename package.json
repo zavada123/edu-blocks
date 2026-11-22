@@ -75,6 +75,6 @@
     "scratch-vm": "github:TurboWarp/scratch-vm#f26ff67e951258a84d25cad3acaf8804eb202318",
     "typescript": "7.0.2",
     "vite": "8.3.8",
-    "vitest": "5.1.0"
+    "vitest": "5.1.1"
   }
 }
